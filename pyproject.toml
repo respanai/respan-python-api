@@ -4,7 +4,7 @@ dynamic = ["version"]
 
 [tool.poetry]
 name = "respan-api"
-version = "0.0.20260402"
+version = "0.0.20260403"
 description = ""
 readme = "README.md"
 authors = []
