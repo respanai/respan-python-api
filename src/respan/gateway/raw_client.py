@@ -78,7 +78,7 @@ class RawGatewayClient:
         """
         Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, and caching.
 
-        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/api-reference/chat). Respan-specific parameters can be passed three ways:
+        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
         2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
         3. **Header `X-Respan-Params`** - base64-encoded JSON header
@@ -364,7 +364,7 @@ class RawGatewayClient:
         """
         Send a response request through the Respan gateway using the OpenAI Responses API format. Supports streaming, tool use, and prompt management.
 
-        Respan parameters can be passed the same way as [Create chat completion](/docs/api-reference/develop/gateway/create-chat-completion): top-level fields, nested under `respan_params`, or via `X-Respan-Params` header.
+        Respan parameters can be passed the same way as [Create chat completion](/docs/apis/gateway/api-chat-completions): top-level fields, nested under `respan_params`, or via `X-Respan-Params` header.
 
         Parameters
         ----------
@@ -607,7 +607,7 @@ class AsyncRawGatewayClient:
         """
         Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, and caching.
 
-        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/api-reference/chat). Respan-specific parameters can be passed three ways:
+        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
         2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
         3. **Header `X-Respan-Params`** - base64-encoded JSON header
@@ -893,7 +893,7 @@ class AsyncRawGatewayClient:
         """
         Send a response request through the Respan gateway using the OpenAI Responses API format. Supports streaming, tool use, and prompt management.
 
-        Respan parameters can be passed the same way as [Create chat completion](/docs/api-reference/develop/gateway/create-chat-completion): top-level fields, nested under `respan_params`, or via `X-Respan-Params` header.
+        Respan parameters can be passed the same way as [Create chat completion](/docs/apis/gateway/api-chat-completions): top-level fields, nested under `respan_params`, or via `X-Respan-Params` header.
 
         Parameters
         ----------

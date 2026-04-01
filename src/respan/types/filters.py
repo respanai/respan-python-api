@@ -9,7 +9,7 @@ from .filter_value import FilterValue
 
 class Filters(UniversalBaseModel):
     """
-    Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for operator syntax.
+    Filter criteria. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
     """
 
     status: typing.Optional[FilterValue] = None

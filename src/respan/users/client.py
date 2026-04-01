@@ -44,7 +44,7 @@ class UsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
-        Retrieve customers matching the specified filters with pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
+        Retrieve customers matching the specified filters with pagination. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
 
         Parameters
         ----------
@@ -285,7 +285,7 @@ class AsyncUsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
-        Retrieve customers matching the specified filters with pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
+        Retrieve customers matching the specified filters with pagination. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
 
         Parameters
         ----------

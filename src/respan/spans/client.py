@@ -331,7 +331,7 @@ class SpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[typing.Dict[str, typing.Any], ListSpansResponse]:
         """
-        Retrieve spans matching the specified filters with pagination. Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for full filter syntax.
+        Retrieve spans matching the specified filters with pagination. Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for full filter syntax.
 
         Parameters
         ----------
@@ -534,7 +534,7 @@ class SpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetSpansSummaryResponse:
         """
-        Get aggregated statistics for spans matching the given filters. Uses the same filters and query parameters as [List spans](/docs/api-reference/observe/logs/list-spans).
+        Get aggregated statistics for spans matching the given filters. Uses the same filters and query parameters as [List spans](/docs/apis/spans/api-request-logs-list).
 
         Parameters
         ----------
@@ -596,7 +596,7 @@ class SpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Ingest an array of spans as a trace. Each span uses the same fields as [Create span](/docs/api-reference/observe/logs/create-span), plus `span_unique_id` to identify each span within the trace.
+        Ingest an array of spans as a trace. Each span uses the same fields as [Create span](/docs/apis/spans/api-request-logs), plus `span_unique_id` to identify each span within the trace.
 
         Parameters
         ----------
@@ -946,7 +946,7 @@ class AsyncSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[typing.Dict[str, typing.Any], ListSpansResponse]:
         """
-        Retrieve spans matching the specified filters with pagination. Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for full filter syntax.
+        Retrieve spans matching the specified filters with pagination. Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for full filter syntax.
 
         Parameters
         ----------
@@ -1173,7 +1173,7 @@ class AsyncSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetSpansSummaryResponse:
         """
-        Get aggregated statistics for spans matching the given filters. Uses the same filters and query parameters as [List spans](/docs/api-reference/observe/logs/list-spans).
+        Get aggregated statistics for spans matching the given filters. Uses the same filters and query parameters as [List spans](/docs/apis/spans/api-request-logs-list).
 
         Parameters
         ----------
@@ -1242,7 +1242,7 @@ class AsyncSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Ingest an array of spans as a trace. Each span uses the same fields as [Create span](/docs/api-reference/observe/logs/create-span), plus `span_unique_id` to identify each span within the trace.
+        Ingest an array of spans as a trace. Each span uses the same fields as [Create span](/docs/apis/spans/api-request-logs), plus `span_unique_id` to identify each span within the trace.
 
         Parameters
         ----------

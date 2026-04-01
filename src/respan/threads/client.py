@@ -59,7 +59,7 @@ class ThreadsClient:
             This is controlled by the API key. A prod API key creates prod threads, test key creates test threads.
 
         filters : typing.Optional[ListThreadsRequestFilters]
-            Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
+            Filter criteria. See [Filters API Reference](/docs/apis/reference/filters-api-reference).
 
         operator : typing.Optional[ListThreadsRequestOperator]
             Logical operator to combine filters.
@@ -141,7 +141,7 @@ class AsyncThreadsClient:
             This is controlled by the API key. A prod API key creates prod threads, test key creates test threads.
 
         filters : typing.Optional[ListThreadsRequestFilters]
-            Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
+            Filter criteria. See [Filters API Reference](/docs/apis/reference/filters-api-reference).
 
         operator : typing.Optional[ListThreadsRequestOperator]
             Logical operator to combine filters.

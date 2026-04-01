@@ -9,7 +9,7 @@ from ...types.filter_value import FilterValue
 
 class ListThreadsRequestFilters(UniversalBaseModel):
     """
-    Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
+    Filter criteria. See [Filters API Reference](/docs/apis/reference/filters-api-reference).
     """
 
     thread_identifier: typing.Optional[FilterValue] = None

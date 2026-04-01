@@ -94,7 +94,7 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTracesResponse:
         """
-        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
+        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
 
         Parameters
         ----------
@@ -287,7 +287,7 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetTracesSummaryResponse:
         """
-        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/api-reference/observe/traces/list-traces).
+        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/apis/traces/api-traces-list).
 
         Parameters
         ----------
@@ -352,7 +352,7 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BulkDeleteTracesResponse:
         """
-        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/api-reference/observe/traces/list-traces). Returns the count of deleted traces.
+        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/apis/traces/api-traces-list). Returns the count of deleted traces.
 
         Parameters
         ----------
@@ -419,7 +419,7 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTraceLegacyResponse:
         """
-        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/api-reference/observe/traces/create-a-trace-otlp).
+        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/api-v2-traces).
 
         Parameters
         ----------
@@ -540,7 +540,7 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTracesResponse:
         """
-        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
+        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
 
         Parameters
         ----------
@@ -756,7 +756,7 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetTracesSummaryResponse:
         """
-        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/api-reference/observe/traces/list-traces).
+        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/apis/traces/api-traces-list).
 
         Parameters
         ----------
@@ -828,7 +828,7 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BulkDeleteTracesResponse:
         """
-        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/api-reference/observe/traces/list-traces). Returns the count of deleted traces.
+        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/apis/traces/api-traces-list). Returns the count of deleted traces.
 
         Parameters
         ----------
@@ -903,7 +903,7 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTraceLegacyResponse:
         """
-        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/api-reference/observe/traces/create-a-trace-otlp).
+        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/api-v2-traces).
 
         Parameters
         ----------

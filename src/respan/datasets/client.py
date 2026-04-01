@@ -200,7 +200,7 @@ class DatasetsClient:
             Create an empty dataset (no initial spans).
 
         initial_log_filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filters for selecting initial spans. Same format as [Filters API](/docs/api-reference/reference/filters-api-reference).
+            Filters for selecting initial spans. Same format as [Filters API](/docs/apis/reference/filters-api-reference).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -293,7 +293,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListDatasetSpansResponse:
         """
-        List spans in a dataset with filters and pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
+        List spans in a dataset with filters and pagination. See [Filters API Reference](/docs/apis/reference/filters-api-reference).
 
         Parameters
         ----------
@@ -916,7 +916,7 @@ class AsyncDatasetsClient:
             Create an empty dataset (no initial spans).
 
         initial_log_filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filters for selecting initial spans. Same format as [Filters API](/docs/api-reference/reference/filters-api-reference).
+            Filters for selecting initial spans. Same format as [Filters API](/docs/apis/reference/filters-api-reference).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1025,7 +1025,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListDatasetSpansResponse:
         """
-        List spans in a dataset with filters and pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
+        List spans in a dataset with filters and pagination. See [Filters API Reference](/docs/apis/reference/filters-api-reference).
 
         Parameters
         ----------

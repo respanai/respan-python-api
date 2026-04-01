@@ -132,7 +132,7 @@ class RawTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListTracesResponse]:
         """
-        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
+        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
 
         Parameters
         ----------
@@ -460,7 +460,7 @@ class RawTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetTracesSummaryResponse]:
         """
-        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/api-reference/observe/traces/list-traces).
+        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/apis/traces/api-traces-list).
 
         Parameters
         ----------
@@ -576,7 +576,7 @@ class RawTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[BulkDeleteTracesResponse]:
         """
-        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/api-reference/observe/traces/list-traces). Returns the count of deleted traces.
+        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/apis/traces/api-traces-list). Returns the count of deleted traces.
 
         Parameters
         ----------
@@ -689,7 +689,7 @@ class RawTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateTraceLegacyResponse]:
         """
-        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/api-reference/observe/traces/create-a-trace-otlp).
+        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/api-v2-traces).
 
         Parameters
         ----------
@@ -880,7 +880,7 @@ class AsyncRawTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListTracesResponse]:
         """
-        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
+        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
 
         Parameters
         ----------
@@ -1208,7 +1208,7 @@ class AsyncRawTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetTracesSummaryResponse]:
         """
-        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/api-reference/observe/traces/list-traces).
+        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/apis/traces/api-traces-list).
 
         Parameters
         ----------
@@ -1324,7 +1324,7 @@ class AsyncRawTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[BulkDeleteTracesResponse]:
         """
-        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/api-reference/observe/traces/list-traces). Returns the count of deleted traces.
+        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/apis/traces/api-traces-list). Returns the count of deleted traces.
 
         Parameters
         ----------
@@ -1437,7 +1437,7 @@ class AsyncRawTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateTraceLegacyResponse]:
         """
-        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/api-reference/observe/traces/create-a-trace-otlp).
+        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/api-v2-traces).
 
         Parameters
         ----------
