@@ -19,13 +19,13 @@ from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..types.filters import Filters
 from .types.bulk_delete_traces_response import BulkDeleteTracesResponse
-from .types.ingest_traces_from_logs_request_body_item import IngestTracesFromLogsRequestBodyItem
-from .types.ingest_traces_from_logs_response import IngestTracesFromLogsResponse
-from .types.ingest_traces_via_otlp_request_resource_spans_item import IngestTracesViaOtlpRequestResourceSpansItem
-from .types.ingest_traces_via_otlp_response import IngestTracesViaOtlpResponse
+from .types.create_trace_legacy_request_body_item import CreateTraceLegacyRequestBodyItem
+from .types.create_trace_legacy_response import CreateTraceLegacyResponse
+from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
+from .types.create_trace_response import CreateTraceResponse
+from .types.get_traces_summary_response import GetTracesSummaryResponse
 from .types.list_traces_request_operator import ListTracesRequestOperator
 from .types.list_traces_response import ListTracesResponse
-from .types.retrieve_traces_summary_response import RetrieveTracesSummaryResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -35,13 +35,13 @@ class RawTracesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def ingest_traces_via_otlp(
+    def create_trace(
         self,
         *,
         authorization: str,
-        resource_spans: typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem],
+        resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[IngestTracesViaOtlpResponse]:
+    ) -> HttpResponse[CreateTraceResponse]:
         """
         Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. Any OpenTelemetry-compatible SDK can export directly to this endpoint. Accepts both `application/json` and `application/x-protobuf` content types.
 
@@ -52,7 +52,7 @@ class RawTracesClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        resource_spans : typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem]
+        resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
             Array of resource spans. Each element represents spans from a single resource (service).
 
         request_options : typing.Optional[RequestOptions]
@@ -60,7 +60,7 @@ class RawTracesClient:
 
         Returns
         -------
-        HttpResponse[IngestTracesViaOtlpResponse]
+        HttpResponse[CreateTraceResponse]
             Spans accepted.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -69,7 +69,7 @@ class RawTracesClient:
             json={
                 "resourceSpans": convert_and_respect_annotation_metadata(
                     object_=resource_spans,
-                    annotation=typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem],
+                    annotation=typing.Sequence[CreateTraceRequestResourceSpansItem],
                     direction="write",
                 ),
             },
@@ -83,9 +83,9 @@ class RawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    IngestTracesViaOtlpResponse,
+                    CreateTraceResponse,
                     parse_obj_as(
-                        type_=IngestTracesViaOtlpResponse,  # type: ignore
+                        type_=CreateTraceResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -449,7 +449,7 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def retrieve_traces_summary(
+    def get_traces_summary(
         self,
         *,
         authorization: str,
@@ -458,7 +458,7 @@ class RawTracesClient:
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[RetrieveTracesSummaryResponse]:
+    ) -> HttpResponse[GetTracesSummaryResponse]:
         """
         Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/api-reference/observe/traces/list-traces).
 
@@ -483,7 +483,7 @@ class RawTracesClient:
 
         Returns
         -------
-        HttpResponse[RetrieveTracesSummaryResponse]
+        HttpResponse[GetTracesSummaryResponse]
             Trace summary statistics.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -509,9 +509,9 @@ class RawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    RetrieveTracesSummaryResponse,
+                    GetTracesSummaryResponse,
                     parse_obj_as(
-                        type_=RetrieveTracesSummaryResponse,  # type: ignore
+                        type_=GetTracesSummaryResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -681,13 +681,13 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def ingest_traces_from_logs(
+    def create_trace_legacy(
         self,
         *,
         authorization: str,
-        request: typing.Sequence[IngestTracesFromLogsRequestBodyItem],
+        request: typing.Sequence[CreateTraceLegacyRequestBodyItem],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[IngestTracesFromLogsResponse]:
+    ) -> HttpResponse[CreateTraceLegacyResponse]:
         """
         Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/api-reference/observe/traces/create-a-trace-otlp).
 
@@ -696,21 +696,21 @@ class RawTracesClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[IngestTracesFromLogsRequestBodyItem]
+        request : typing.Sequence[CreateTraceLegacyRequestBodyItem]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[IngestTracesFromLogsResponse]
+        HttpResponse[CreateTraceLegacyResponse]
             Successful response for Ingest traces from logs
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/v1/traces/ingest",
             method="POST",
             json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[IngestTracesFromLogsRequestBodyItem], direction="write"
+                object_=request, annotation=typing.Sequence[CreateTraceLegacyRequestBodyItem], direction="write"
             ),
             headers={
                 "content-type": "application/json",
@@ -722,9 +722,9 @@ class RawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    IngestTracesFromLogsResponse,
+                    CreateTraceLegacyResponse,
                     parse_obj_as(
-                        type_=IngestTracesFromLogsResponse,  # type: ignore
+                        type_=CreateTraceLegacyResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -783,13 +783,13 @@ class AsyncRawTracesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def ingest_traces_via_otlp(
+    async def create_trace(
         self,
         *,
         authorization: str,
-        resource_spans: typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem],
+        resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[IngestTracesViaOtlpResponse]:
+    ) -> AsyncHttpResponse[CreateTraceResponse]:
         """
         Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. Any OpenTelemetry-compatible SDK can export directly to this endpoint. Accepts both `application/json` and `application/x-protobuf` content types.
 
@@ -800,7 +800,7 @@ class AsyncRawTracesClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        resource_spans : typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem]
+        resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
             Array of resource spans. Each element represents spans from a single resource (service).
 
         request_options : typing.Optional[RequestOptions]
@@ -808,7 +808,7 @@ class AsyncRawTracesClient:
 
         Returns
         -------
-        AsyncHttpResponse[IngestTracesViaOtlpResponse]
+        AsyncHttpResponse[CreateTraceResponse]
             Spans accepted.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -817,7 +817,7 @@ class AsyncRawTracesClient:
             json={
                 "resourceSpans": convert_and_respect_annotation_metadata(
                     object_=resource_spans,
-                    annotation=typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem],
+                    annotation=typing.Sequence[CreateTraceRequestResourceSpansItem],
                     direction="write",
                 ),
             },
@@ -831,9 +831,9 @@ class AsyncRawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    IngestTracesViaOtlpResponse,
+                    CreateTraceResponse,
                     parse_obj_as(
-                        type_=IngestTracesViaOtlpResponse,  # type: ignore
+                        type_=CreateTraceResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1197,7 +1197,7 @@ class AsyncRawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def retrieve_traces_summary(
+    async def get_traces_summary(
         self,
         *,
         authorization: str,
@@ -1206,7 +1206,7 @@ class AsyncRawTracesClient:
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[RetrieveTracesSummaryResponse]:
+    ) -> AsyncHttpResponse[GetTracesSummaryResponse]:
         """
         Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/api-reference/observe/traces/list-traces).
 
@@ -1231,7 +1231,7 @@ class AsyncRawTracesClient:
 
         Returns
         -------
-        AsyncHttpResponse[RetrieveTracesSummaryResponse]
+        AsyncHttpResponse[GetTracesSummaryResponse]
             Trace summary statistics.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -1257,9 +1257,9 @@ class AsyncRawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    RetrieveTracesSummaryResponse,
+                    GetTracesSummaryResponse,
                     parse_obj_as(
-                        type_=RetrieveTracesSummaryResponse,  # type: ignore
+                        type_=GetTracesSummaryResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1429,13 +1429,13 @@ class AsyncRawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def ingest_traces_from_logs(
+    async def create_trace_legacy(
         self,
         *,
         authorization: str,
-        request: typing.Sequence[IngestTracesFromLogsRequestBodyItem],
+        request: typing.Sequence[CreateTraceLegacyRequestBodyItem],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[IngestTracesFromLogsResponse]:
+    ) -> AsyncHttpResponse[CreateTraceLegacyResponse]:
         """
         Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/api-reference/observe/traces/create-a-trace-otlp).
 
@@ -1444,21 +1444,21 @@ class AsyncRawTracesClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[IngestTracesFromLogsRequestBodyItem]
+        request : typing.Sequence[CreateTraceLegacyRequestBodyItem]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[IngestTracesFromLogsResponse]
+        AsyncHttpResponse[CreateTraceLegacyResponse]
             Successful response for Ingest traces from logs
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/v1/traces/ingest",
             method="POST",
             json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[IngestTracesFromLogsRequestBodyItem], direction="write"
+                object_=request, annotation=typing.Sequence[CreateTraceLegacyRequestBodyItem], direction="write"
             ),
             headers={
                 "content-type": "application/json",
@@ -1470,9 +1470,9 @@ class AsyncRawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    IngestTracesFromLogsResponse,
+                    CreateTraceLegacyResponse,
                     parse_obj_as(
-                        type_=IngestTracesFromLogsResponse,  # type: ignore
+                        type_=CreateTraceLegacyResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )

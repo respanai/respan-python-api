@@ -6,11 +6,11 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .health_check_response import HealthCheckResponse
-    from .health_check_response_status import HealthCheckResponseStatus
+    from .check_response import CheckResponse
+    from .check_response_status import CheckResponseStatus
 _dynamic_imports: typing.Dict[str, str] = {
-    "HealthCheckResponse": ".health_check_response",
-    "HealthCheckResponseStatus": ".health_check_response_status",
+    "CheckResponse": ".check_response",
+    "CheckResponseStatus": ".check_response_status",
 }
 
 
@@ -35,4 +35,4 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["HealthCheckResponse", "HealthCheckResponseStatus"]
+__all__ = ["CheckResponse", "CheckResponseStatus"]

@@ -27,7 +27,7 @@ from .types.create_span_request_tool_choice import CreateSpanRequestToolChoice
 from .types.create_span_request_warnings import CreateSpanRequestWarnings
 from .types.create_span_response import CreateSpanResponse
 from .types.get_spans_summary_response import GetSpansSummaryResponse
-from .types.ingest_spans_from_traces_request_body_item import IngestSpansFromTracesRequestBodyItem
+from .types.ingest_spans_request_body_item import IngestSpansRequestBodyItem
 from .types.list_spans_request_all_envs import ListSpansRequestAllEnvs
 from .types.list_spans_request_fetch_filters import ListSpansRequestFetchFilters
 from .types.list_spans_request_is_test import ListSpansRequestIsTest
@@ -652,7 +652,7 @@ class RawSpansClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def patch_log_span(
+    def update_span(
         self,
         unique_id: str,
         *,
@@ -888,11 +888,11 @@ class RawSpansClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def ingest_spans_from_traces(
+    def ingest_spans(
         self,
         *,
         authorization: str,
-        request: typing.Sequence[IngestSpansFromTracesRequestBodyItem],
+        request: typing.Sequence[IngestSpansRequestBodyItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.Dict[str, typing.Any]]:
         """
@@ -903,7 +903,7 @@ class RawSpansClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[IngestSpansFromTracesRequestBodyItem]
+        request : typing.Sequence[IngestSpansRequestBodyItem]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -917,7 +917,7 @@ class RawSpansClient:
             "api/traces/ingest/",
             method="POST",
             json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[IngestSpansFromTracesRequestBodyItem], direction="write"
+                object_=request, annotation=typing.Sequence[IngestSpansRequestBodyItem], direction="write"
             ),
             headers={
                 "content-type": "application/json",
@@ -1569,7 +1569,7 @@ class AsyncRawSpansClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def patch_log_span(
+    async def update_span(
         self,
         unique_id: str,
         *,
@@ -1805,11 +1805,11 @@ class AsyncRawSpansClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def ingest_spans_from_traces(
+    async def ingest_spans(
         self,
         *,
         authorization: str,
-        request: typing.Sequence[IngestSpansFromTracesRequestBodyItem],
+        request: typing.Sequence[IngestSpansRequestBodyItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.Dict[str, typing.Any]]:
         """
@@ -1820,7 +1820,7 @@ class AsyncRawSpansClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[IngestSpansFromTracesRequestBodyItem]
+        request : typing.Sequence[IngestSpansRequestBodyItem]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1834,7 +1834,7 @@ class AsyncRawSpansClient:
             "api/traces/ingest/",
             method="POST",
             json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[IngestSpansFromTracesRequestBodyItem], direction="write"
+                object_=request, annotation=typing.Sequence[IngestSpansRequestBodyItem], direction="write"
             ),
             headers={
                 "content-type": "application/json",

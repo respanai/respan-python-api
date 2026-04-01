@@ -7,8 +7,8 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
-        CreateVersionResponse,
-        CreateVersionResponseVariables,
+        CreatePromptVersionResponse,
+        CreatePromptVersionResponseVariables,
         GetPromptsSummaryResponse,
         GetPromptsSummaryWithFiltersResponse,
         ListPromptsRequestSortBy,
@@ -17,8 +17,8 @@ if typing.TYPE_CHECKING:
         UpdatePromptVersionResponseVariables,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreateVersionResponse": ".types",
-    "CreateVersionResponseVariables": ".types",
+    "CreatePromptVersionResponse": ".types",
+    "CreatePromptVersionResponseVariables": ".types",
     "GetPromptsSummaryResponse": ".types",
     "GetPromptsSummaryWithFiltersResponse": ".types",
     "ListPromptsRequestSortBy": ".types",
@@ -50,8 +50,8 @@ def __dir__():
 
 
 __all__ = [
-    "CreateVersionResponse",
-    "CreateVersionResponseVariables",
+    "CreatePromptVersionResponse",
+    "CreatePromptVersionResponseVariables",
     "GetPromptsSummaryResponse",
     "GetPromptsSummaryWithFiltersResponse",
     "ListPromptsRequestSortBy",

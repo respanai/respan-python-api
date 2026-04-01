@@ -17,7 +17,7 @@ from .types.retrieve_dataset_response import RetrieveDatasetResponse
 from .types.retrieve_dataset_span_response import RetrieveDatasetSpanResponse
 from .types.run_eval_on_dataset_response import RunEvalOnDatasetResponse
 from .types.update_dataset_response import UpdateDatasetResponse
-from .types.update_span_partial_response import UpdateSpanPartialResponse
+from .types.update_dataset_span_response import UpdateDatasetSpanResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -439,7 +439,7 @@ class DatasetsClient:
         )
         return _response.data
 
-    def delete_span(
+    def delete_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
@@ -473,18 +473,18 @@ class DatasetsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.datasets.delete_span(
+        client.datasets.delete_dataset_span(
             dataset_id="dataset_id",
             log_id="log_id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_span(
+        _response = self._raw_client.delete_dataset_span(
             dataset_id, log_id, authorization=authorization, request_options=request_options
         )
         return _response.data
 
-    def update_span_partial(
+    def update_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
@@ -492,7 +492,7 @@ class DatasetsClient:
         authorization: str,
         request: typing.Dict[str, typing.Any],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> UpdateSpanPartialResponse:
+    ) -> UpdateDatasetSpanResponse:
         """
         Update fields on a span in a dataset. Only provided fields are updated.
 
@@ -514,7 +514,7 @@ class DatasetsClient:
 
         Returns
         -------
-        UpdateSpanPartialResponse
+        UpdateDatasetSpanResponse
             Successful response for Update span (partial)
 
         Examples
@@ -522,14 +522,14 @@ class DatasetsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.datasets.update_span_partial(
+        client.datasets.update_dataset_span(
             dataset_id="dataset_id",
             log_id="log_id",
             authorization="Bearer sk_live_xxxxx",
             request={"key": "value"},
         )
         """
-        _response = self._raw_client.update_span_partial(
+        _response = self._raw_client.update_dataset_span(
             dataset_id, log_id, authorization=authorization, request=request, request_options=request_options
         )
         return _response.data
@@ -1195,7 +1195,7 @@ class AsyncDatasetsClient:
         )
         return _response.data
 
-    async def delete_span(
+    async def delete_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
@@ -1234,7 +1234,7 @@ class AsyncDatasetsClient:
 
 
         async def main() -> None:
-            await client.datasets.delete_span(
+            await client.datasets.delete_dataset_span(
                 dataset_id="dataset_id",
                 log_id="log_id",
                 authorization="Bearer sk_live_xxxxx",
@@ -1243,12 +1243,12 @@ class AsyncDatasetsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_span(
+        _response = await self._raw_client.delete_dataset_span(
             dataset_id, log_id, authorization=authorization, request_options=request_options
         )
         return _response.data
 
-    async def update_span_partial(
+    async def update_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
@@ -1256,7 +1256,7 @@ class AsyncDatasetsClient:
         authorization: str,
         request: typing.Dict[str, typing.Any],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> UpdateSpanPartialResponse:
+    ) -> UpdateDatasetSpanResponse:
         """
         Update fields on a span in a dataset. Only provided fields are updated.
 
@@ -1278,7 +1278,7 @@ class AsyncDatasetsClient:
 
         Returns
         -------
-        UpdateSpanPartialResponse
+        UpdateDatasetSpanResponse
             Successful response for Update span (partial)
 
         Examples
@@ -1291,7 +1291,7 @@ class AsyncDatasetsClient:
 
 
         async def main() -> None:
-            await client.datasets.update_span_partial(
+            await client.datasets.update_dataset_span(
                 dataset_id="dataset_id",
                 log_id="log_id",
                 authorization="Bearer sk_live_xxxxx",
@@ -1301,7 +1301,7 @@ class AsyncDatasetsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.update_span_partial(
+        _response = await self._raw_client.update_dataset_span(
             dataset_id, log_id, authorization=authorization, request=request, request_options=request_options
         )
         return _response.data

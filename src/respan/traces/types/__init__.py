@@ -7,58 +7,56 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .bulk_delete_traces_response import BulkDeleteTracesResponse
-    from .ingest_traces_from_logs_request_body_item import IngestTracesFromLogsRequestBodyItem
-    from .ingest_traces_from_logs_request_body_item_log_type import IngestTracesFromLogsRequestBodyItemLogType
-    from .ingest_traces_from_logs_request_body_item_status import IngestTracesFromLogsRequestBodyItemStatus
-    from .ingest_traces_from_logs_response import IngestTracesFromLogsResponse
-    from .ingest_traces_via_otlp_request_resource_spans_item import IngestTracesViaOtlpRequestResourceSpansItem
-    from .ingest_traces_via_otlp_request_resource_spans_item_resource import (
-        IngestTracesViaOtlpRequestResourceSpansItemResource,
+    from .create_trace_legacy_request_body_item import CreateTraceLegacyRequestBodyItem
+    from .create_trace_legacy_request_body_item_log_type import CreateTraceLegacyRequestBodyItemLogType
+    from .create_trace_legacy_request_body_item_status import CreateTraceLegacyRequestBodyItemStatus
+    from .create_trace_legacy_response import CreateTraceLegacyResponse
+    from .create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
+    from .create_trace_request_resource_spans_item_resource import CreateTraceRequestResourceSpansItemResource
+    from .create_trace_request_resource_spans_item_resource_attributes_item import (
+        CreateTraceRequestResourceSpansItemResourceAttributesItem,
     )
-    from .ingest_traces_via_otlp_request_resource_spans_item_resource_attributes_item import (
-        IngestTracesViaOtlpRequestResourceSpansItemResourceAttributesItem,
+    from .create_trace_request_resource_spans_item_scope_spans_item import (
+        CreateTraceRequestResourceSpansItemScopeSpansItem,
     )
-    from .ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item import (
-        IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItem,
+    from .create_trace_request_resource_spans_item_scope_spans_item_scope import (
+        CreateTraceRequestResourceSpansItemScopeSpansItemScope,
     )
-    from .ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item_scope import (
-        IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemScope,
+    from .create_trace_request_resource_spans_item_scope_spans_item_spans_item import (
+        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem,
     )
-    from .ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item_spans_item import (
-        IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItem,
+    from .create_trace_request_resource_spans_item_scope_spans_item_spans_item_attributes_item import (
+        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem,
     )
-    from .ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item_spans_item_attributes_item import (
-        IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem,
+    from .create_trace_request_resource_spans_item_scope_spans_item_spans_item_status import (
+        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus,
     )
-    from .ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item_spans_item_status import (
-        IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemStatus,
-    )
-    from .ingest_traces_via_otlp_response import IngestTracesViaOtlpResponse
-    from .ingest_traces_via_otlp_response_partial_success import IngestTracesViaOtlpResponsePartialSuccess
+    from .create_trace_response import CreateTraceResponse
+    from .create_trace_response_partial_success import CreateTraceResponsePartialSuccess
+    from .get_traces_summary_response import GetTracesSummaryResponse
     from .list_traces_request_operator import ListTracesRequestOperator
     from .list_traces_response import ListTracesResponse
     from .list_traces_response_results_item import ListTracesResponseResultsItem
-    from .retrieve_traces_summary_response import RetrieveTracesSummaryResponse
 _dynamic_imports: typing.Dict[str, str] = {
     "BulkDeleteTracesResponse": ".bulk_delete_traces_response",
-    "IngestTracesFromLogsRequestBodyItem": ".ingest_traces_from_logs_request_body_item",
-    "IngestTracesFromLogsRequestBodyItemLogType": ".ingest_traces_from_logs_request_body_item_log_type",
-    "IngestTracesFromLogsRequestBodyItemStatus": ".ingest_traces_from_logs_request_body_item_status",
-    "IngestTracesFromLogsResponse": ".ingest_traces_from_logs_response",
-    "IngestTracesViaOtlpRequestResourceSpansItem": ".ingest_traces_via_otlp_request_resource_spans_item",
-    "IngestTracesViaOtlpRequestResourceSpansItemResource": ".ingest_traces_via_otlp_request_resource_spans_item_resource",
-    "IngestTracesViaOtlpRequestResourceSpansItemResourceAttributesItem": ".ingest_traces_via_otlp_request_resource_spans_item_resource_attributes_item",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItem": ".ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemScope": ".ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item_scope",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItem": ".ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item_spans_item",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem": ".ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item_spans_item_attributes_item",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemStatus": ".ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item_spans_item_status",
-    "IngestTracesViaOtlpResponse": ".ingest_traces_via_otlp_response",
-    "IngestTracesViaOtlpResponsePartialSuccess": ".ingest_traces_via_otlp_response_partial_success",
+    "CreateTraceLegacyRequestBodyItem": ".create_trace_legacy_request_body_item",
+    "CreateTraceLegacyRequestBodyItemLogType": ".create_trace_legacy_request_body_item_log_type",
+    "CreateTraceLegacyRequestBodyItemStatus": ".create_trace_legacy_request_body_item_status",
+    "CreateTraceLegacyResponse": ".create_trace_legacy_response",
+    "CreateTraceRequestResourceSpansItem": ".create_trace_request_resource_spans_item",
+    "CreateTraceRequestResourceSpansItemResource": ".create_trace_request_resource_spans_item_resource",
+    "CreateTraceRequestResourceSpansItemResourceAttributesItem": ".create_trace_request_resource_spans_item_resource_attributes_item",
+    "CreateTraceRequestResourceSpansItemScopeSpansItem": ".create_trace_request_resource_spans_item_scope_spans_item",
+    "CreateTraceRequestResourceSpansItemScopeSpansItemScope": ".create_trace_request_resource_spans_item_scope_spans_item_scope",
+    "CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem": ".create_trace_request_resource_spans_item_scope_spans_item_spans_item",
+    "CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem": ".create_trace_request_resource_spans_item_scope_spans_item_spans_item_attributes_item",
+    "CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus": ".create_trace_request_resource_spans_item_scope_spans_item_spans_item_status",
+    "CreateTraceResponse": ".create_trace_response",
+    "CreateTraceResponsePartialSuccess": ".create_trace_response_partial_success",
+    "GetTracesSummaryResponse": ".get_traces_summary_response",
     "ListTracesRequestOperator": ".list_traces_request_operator",
     "ListTracesResponse": ".list_traces_response",
     "ListTracesResponseResultsItem": ".list_traces_response_results_item",
-    "RetrieveTracesSummaryResponse": ".retrieve_traces_summary_response",
 }
 
 
@@ -85,22 +83,22 @@ def __dir__():
 
 __all__ = [
     "BulkDeleteTracesResponse",
-    "IngestTracesFromLogsRequestBodyItem",
-    "IngestTracesFromLogsRequestBodyItemLogType",
-    "IngestTracesFromLogsRequestBodyItemStatus",
-    "IngestTracesFromLogsResponse",
-    "IngestTracesViaOtlpRequestResourceSpansItem",
-    "IngestTracesViaOtlpRequestResourceSpansItemResource",
-    "IngestTracesViaOtlpRequestResourceSpansItemResourceAttributesItem",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItem",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemScope",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItem",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem",
-    "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemStatus",
-    "IngestTracesViaOtlpResponse",
-    "IngestTracesViaOtlpResponsePartialSuccess",
+    "CreateTraceLegacyRequestBodyItem",
+    "CreateTraceLegacyRequestBodyItemLogType",
+    "CreateTraceLegacyRequestBodyItemStatus",
+    "CreateTraceLegacyResponse",
+    "CreateTraceRequestResourceSpansItem",
+    "CreateTraceRequestResourceSpansItemResource",
+    "CreateTraceRequestResourceSpansItemResourceAttributesItem",
+    "CreateTraceRequestResourceSpansItemScopeSpansItem",
+    "CreateTraceRequestResourceSpansItemScopeSpansItemScope",
+    "CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem",
+    "CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem",
+    "CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus",
+    "CreateTraceResponse",
+    "CreateTraceResponsePartialSuccess",
+    "GetTracesSummaryResponse",
     "ListTracesRequestOperator",
     "ListTracesResponse",
     "ListTracesResponseResultsItem",
-    "RetrieveTracesSummaryResponse",
 ]

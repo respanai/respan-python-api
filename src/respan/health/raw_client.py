@@ -10,7 +10,7 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..errors.service_unavailable_error import ServiceUnavailableError
 from ..types.service_unavailable_error_body import ServiceUnavailableErrorBody
-from .types.health_check_response import HealthCheckResponse
+from .types.check_response import CheckResponse
 
 
 class RawHealthClient:
@@ -19,7 +19,7 @@ class RawHealthClient:
 
     def check(
         self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[HealthCheckResponse]:
+    ) -> HttpResponse[CheckResponse]:
         """
         Check API availability.
 
@@ -33,7 +33,7 @@ class RawHealthClient:
 
         Returns
         -------
-        HttpResponse[HealthCheckResponse]
+        HttpResponse[CheckResponse]
             API is healthy
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -47,9 +47,9 @@ class RawHealthClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    HealthCheckResponse,
+                    CheckResponse,
                     parse_obj_as(
-                        type_=HealthCheckResponse,  # type: ignore
+                        type_=CheckResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -77,7 +77,7 @@ class AsyncRawHealthClient:
 
     async def check(
         self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[HealthCheckResponse]:
+    ) -> AsyncHttpResponse[CheckResponse]:
         """
         Check API availability.
 
@@ -91,7 +91,7 @@ class AsyncRawHealthClient:
 
         Returns
         -------
-        AsyncHttpResponse[HealthCheckResponse]
+        AsyncHttpResponse[CheckResponse]
             API is healthy
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -105,9 +105,9 @@ class AsyncRawHealthClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    HealthCheckResponse,
+                    CheckResponse,
                     parse_obj_as(
-                        type_=HealthCheckResponse,  # type: ignore
+                        type_=CheckResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )

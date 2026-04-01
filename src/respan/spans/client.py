@@ -16,7 +16,7 @@ from .types.create_span_request_tool_choice import CreateSpanRequestToolChoice
 from .types.create_span_request_warnings import CreateSpanRequestWarnings
 from .types.create_span_response import CreateSpanResponse
 from .types.get_spans_summary_response import GetSpansSummaryResponse
-from .types.ingest_spans_from_traces_request_body_item import IngestSpansFromTracesRequestBodyItem
+from .types.ingest_spans_request_body_item import IngestSpansRequestBodyItem
 from .types.list_spans_request_all_envs import ListSpansRequestAllEnvs
 from .types.list_spans_request_fetch_filters import ListSpansRequestFetchFilters
 from .types.list_spans_request_is_test import ListSpansRequestIsTest
@@ -461,7 +461,7 @@ class SpansClient:
         )
         return _response.data
 
-    def patch_log_span(
+    def update_span(
         self,
         unique_id: str,
         *,
@@ -507,12 +507,12 @@ class SpansClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.spans.patch_log_span(
+        client.spans.update_span(
             unique_id="unique_id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.patch_log_span(
+        _response = self._raw_client.update_span(
             unique_id,
             authorization=authorization,
             is_pinned=is_pinned,
@@ -588,11 +588,11 @@ class SpansClient:
         )
         return _response.data
 
-    def ingest_spans_from_traces(
+    def ingest_spans(
         self,
         *,
         authorization: str,
-        request: typing.Sequence[IngestSpansFromTracesRequestBodyItem],
+        request: typing.Sequence[IngestSpansRequestBodyItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
@@ -603,7 +603,7 @@ class SpansClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[IngestSpansFromTracesRequestBodyItem]
+        request : typing.Sequence[IngestSpansRequestBodyItem]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -616,20 +616,20 @@ class SpansClient:
         Examples
         --------
         from respan import RespanClient
-        from respan.spans import IngestSpansFromTracesRequestBodyItem
+        from respan.spans import IngestSpansRequestBodyItem
 
         client = RespanClient()
-        client.spans.ingest_spans_from_traces(
+        client.spans.ingest_spans(
             authorization="Bearer sk_live_xxxxx",
             request=[
-                IngestSpansFromTracesRequestBodyItem(
+                IngestSpansRequestBodyItem(
                     trace_unique_id="trace_abc123",
                     span_unique_id="span_xyz789",
                 )
             ],
         )
         """
-        _response = self._raw_client.ingest_spans_from_traces(
+        _response = self._raw_client.ingest_spans(
             authorization=authorization, request=request, request_options=request_options
         )
         return _response.data
@@ -1092,7 +1092,7 @@ class AsyncSpansClient:
         )
         return _response.data
 
-    async def patch_log_span(
+    async def update_span(
         self,
         unique_id: str,
         *,
@@ -1143,7 +1143,7 @@ class AsyncSpansClient:
 
 
         async def main() -> None:
-            await client.spans.patch_log_span(
+            await client.spans.update_span(
                 unique_id="unique_id",
                 authorization="Bearer sk_live_xxxxx",
             )
@@ -1151,7 +1151,7 @@ class AsyncSpansClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.patch_log_span(
+        _response = await self._raw_client.update_span(
             unique_id,
             authorization=authorization,
             is_pinned=is_pinned,
@@ -1234,11 +1234,11 @@ class AsyncSpansClient:
         )
         return _response.data
 
-    async def ingest_spans_from_traces(
+    async def ingest_spans(
         self,
         *,
         authorization: str,
-        request: typing.Sequence[IngestSpansFromTracesRequestBodyItem],
+        request: typing.Sequence[IngestSpansRequestBodyItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
@@ -1249,7 +1249,7 @@ class AsyncSpansClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[IngestSpansFromTracesRequestBodyItem]
+        request : typing.Sequence[IngestSpansRequestBodyItem]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1264,16 +1264,16 @@ class AsyncSpansClient:
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.spans import IngestSpansFromTracesRequestBodyItem
+        from respan.spans import IngestSpansRequestBodyItem
 
         client = AsyncRespanClient()
 
 
         async def main() -> None:
-            await client.spans.ingest_spans_from_traces(
+            await client.spans.ingest_spans(
                 authorization="Bearer sk_live_xxxxx",
                 request=[
-                    IngestSpansFromTracesRequestBodyItem(
+                    IngestSpansRequestBodyItem(
                         trace_unique_id="trace_abc123",
                         span_unique_id="span_xyz789",
                     )
@@ -1283,7 +1283,7 @@ class AsyncSpansClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.ingest_spans_from_traces(
+        _response = await self._raw_client.ingest_spans(
             authorization=authorization, request=request, request_options=request_options
         )
         return _response.data

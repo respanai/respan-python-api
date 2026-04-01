@@ -14,7 +14,7 @@ from ..errors.bad_request_error import BadRequestError
 from ..errors.not_found_error import NotFoundError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..types.filters import Filters
-from .types.create_version_response import CreateVersionResponse
+from .types.create_prompt_version_response import CreatePromptVersionResponse
 from .types.get_prompts_summary_response import GetPromptsSummaryResponse
 from .types.get_prompts_summary_with_filters_response import GetPromptsSummaryWithFiltersResponse
 from .types.list_prompts_request_sort_by import ListPromptsRequestSortBy
@@ -394,7 +394,7 @@ class RawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def retrieve_versions(
+    def list_prompt_versions(
         self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[typing.Dict[str, typing.Any]]:
         """
@@ -461,7 +461,7 @@ class RawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def create_version(
+    def create_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -480,7 +480,7 @@ class RawPromptsClient:
         tools: typing.Optional[typing.Sequence[str]] = OMIT,
         deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[CreateVersionResponse]:
+    ) -> HttpResponse[CreatePromptVersionResponse]:
         """
         Create a new version of a prompt. Use `{{variable_name}}` syntax in messages to define template variables.
 
@@ -536,7 +536,7 @@ class RawPromptsClient:
 
         Returns
         -------
-        HttpResponse[CreateVersionResponse]
+        HttpResponse[CreatePromptVersionResponse]
             Successful response for Create version
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -567,9 +567,9 @@ class RawPromptsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CreateVersionResponse,
+                    CreatePromptVersionResponse,
                     parse_obj_as(
-                        type_=CreateVersionResponse,  # type: ignore
+                        type_=CreatePromptVersionResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -676,7 +676,7 @@ class RawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def delete_version(
+    def delete_prompt_version(
         self,
         prompt_id: str,
         version: str,
@@ -887,7 +887,7 @@ class RawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def commit_draft_version(
+    def commit_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -978,7 +978,7 @@ class RawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def deploy_committed_version(
+    def deploy_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -1569,7 +1569,7 @@ class AsyncRawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def retrieve_versions(
+    async def list_prompt_versions(
         self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[typing.Dict[str, typing.Any]]:
         """
@@ -1636,7 +1636,7 @@ class AsyncRawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def create_version(
+    async def create_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -1655,7 +1655,7 @@ class AsyncRawPromptsClient:
         tools: typing.Optional[typing.Sequence[str]] = OMIT,
         deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[CreateVersionResponse]:
+    ) -> AsyncHttpResponse[CreatePromptVersionResponse]:
         """
         Create a new version of a prompt. Use `{{variable_name}}` syntax in messages to define template variables.
 
@@ -1711,7 +1711,7 @@ class AsyncRawPromptsClient:
 
         Returns
         -------
-        AsyncHttpResponse[CreateVersionResponse]
+        AsyncHttpResponse[CreatePromptVersionResponse]
             Successful response for Create version
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -1742,9 +1742,9 @@ class AsyncRawPromptsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CreateVersionResponse,
+                    CreatePromptVersionResponse,
                     parse_obj_as(
-                        type_=CreateVersionResponse,  # type: ignore
+                        type_=CreatePromptVersionResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1851,7 +1851,7 @@ class AsyncRawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def delete_version(
+    async def delete_prompt_version(
         self,
         prompt_id: str,
         version: str,
@@ -2062,7 +2062,7 @@ class AsyncRawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def commit_draft_version(
+    async def commit_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -2153,7 +2153,7 @@ class AsyncRawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def deploy_committed_version(
+    async def deploy_prompt_version(
         self,
         prompt_id: str,
         *,

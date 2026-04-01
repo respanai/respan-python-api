@@ -16,9 +16,9 @@ if typing.TYPE_CHECKING:
     from .create_span_response_usage import CreateSpanResponseUsage
     from .create_span_response_usage_prompt_tokens_details import CreateSpanResponseUsagePromptTokensDetails
     from .get_spans_summary_response import GetSpansSummaryResponse
-    from .ingest_spans_from_traces_request_body_item import IngestSpansFromTracesRequestBodyItem
-    from .ingest_spans_from_traces_request_body_item_log_type import IngestSpansFromTracesRequestBodyItemLogType
-    from .ingest_spans_from_traces_request_body_item_status import IngestSpansFromTracesRequestBodyItemStatus
+    from .ingest_spans_request_body_item import IngestSpansRequestBodyItem
+    from .ingest_spans_request_body_item_log_type import IngestSpansRequestBodyItemLogType
+    from .ingest_spans_request_body_item_status import IngestSpansRequestBodyItemStatus
     from .list_spans_request_all_envs import ListSpansRequestAllEnvs
     from .list_spans_request_fetch_filters import ListSpansRequestFetchFilters
     from .list_spans_request_is_test import ListSpansRequestIsTest
@@ -38,9 +38,9 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateSpanResponseUsage": ".create_span_response_usage",
     "CreateSpanResponseUsagePromptTokensDetails": ".create_span_response_usage_prompt_tokens_details",
     "GetSpansSummaryResponse": ".get_spans_summary_response",
-    "IngestSpansFromTracesRequestBodyItem": ".ingest_spans_from_traces_request_body_item",
-    "IngestSpansFromTracesRequestBodyItemLogType": ".ingest_spans_from_traces_request_body_item_log_type",
-    "IngestSpansFromTracesRequestBodyItemStatus": ".ingest_spans_from_traces_request_body_item_status",
+    "IngestSpansRequestBodyItem": ".ingest_spans_request_body_item",
+    "IngestSpansRequestBodyItemLogType": ".ingest_spans_request_body_item_log_type",
+    "IngestSpansRequestBodyItemStatus": ".ingest_spans_request_body_item_status",
     "ListSpansRequestAllEnvs": ".list_spans_request_all_envs",
     "ListSpansRequestFetchFilters": ".list_spans_request_fetch_filters",
     "ListSpansRequestIsTest": ".list_spans_request_is_test",
@@ -84,9 +84,9 @@ __all__ = [
     "CreateSpanResponseUsage",
     "CreateSpanResponseUsagePromptTokensDetails",
     "GetSpansSummaryResponse",
-    "IngestSpansFromTracesRequestBodyItem",
-    "IngestSpansFromTracesRequestBodyItemLogType",
-    "IngestSpansFromTracesRequestBodyItemStatus",
+    "IngestSpansRequestBodyItem",
+    "IngestSpansRequestBodyItemLogType",
+    "IngestSpansRequestBodyItemStatus",
     "ListSpansRequestAllEnvs",
     "ListSpansRequestFetchFilters",
     "ListSpansRequestIsTest",

@@ -8,13 +8,13 @@ from ..core.request_options import RequestOptions
 from ..types.filters import Filters
 from .raw_client import AsyncRawTracesClient, RawTracesClient
 from .types.bulk_delete_traces_response import BulkDeleteTracesResponse
-from .types.ingest_traces_from_logs_request_body_item import IngestTracesFromLogsRequestBodyItem
-from .types.ingest_traces_from_logs_response import IngestTracesFromLogsResponse
-from .types.ingest_traces_via_otlp_request_resource_spans_item import IngestTracesViaOtlpRequestResourceSpansItem
-from .types.ingest_traces_via_otlp_response import IngestTracesViaOtlpResponse
+from .types.create_trace_legacy_request_body_item import CreateTraceLegacyRequestBodyItem
+from .types.create_trace_legacy_response import CreateTraceLegacyResponse
+from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
+from .types.create_trace_response import CreateTraceResponse
+from .types.get_traces_summary_response import GetTracesSummaryResponse
 from .types.list_traces_request_operator import ListTracesRequestOperator
 from .types.list_traces_response import ListTracesResponse
-from .types.retrieve_traces_summary_response import RetrieveTracesSummaryResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -35,13 +35,13 @@ class TracesClient:
         """
         return self._raw_client
 
-    def ingest_traces_via_otlp(
+    def create_trace(
         self,
         *,
         authorization: str,
-        resource_spans: typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem],
+        resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> IngestTracesViaOtlpResponse:
+    ) -> CreateTraceResponse:
         """
         Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. Any OpenTelemetry-compatible SDK can export directly to this endpoint. Accepts both `application/json` and `application/x-protobuf` content types.
 
@@ -52,7 +52,7 @@ class TracesClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        resource_spans : typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem]
+        resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
             Array of resource spans. Each element represents spans from a single resource (service).
 
         request_options : typing.Optional[RequestOptions]
@@ -60,21 +60,21 @@ class TracesClient:
 
         Returns
         -------
-        IngestTracesViaOtlpResponse
+        CreateTraceResponse
             Spans accepted.
 
         Examples
         --------
         from respan import RespanClient
-        from respan.traces import IngestTracesViaOtlpRequestResourceSpansItem
+        from respan.traces import CreateTraceRequestResourceSpansItem
 
         client = RespanClient()
-        client.traces.ingest_traces_via_otlp(
+        client.traces.create_trace(
             authorization="Bearer sk_live_xxxxx",
-            resource_spans=[IngestTracesViaOtlpRequestResourceSpansItem()],
+            resource_spans=[CreateTraceRequestResourceSpansItem()],
         )
         """
-        _response = self._raw_client.ingest_traces_via_otlp(
+        _response = self._raw_client.create_trace(
             authorization=authorization, resource_spans=resource_spans, request_options=request_options
         )
         return _response.data
@@ -276,7 +276,7 @@ class TracesClient:
         )
         return _response.data
 
-    def retrieve_traces_summary(
+    def get_traces_summary(
         self,
         *,
         authorization: str,
@@ -285,7 +285,7 @@ class TracesClient:
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> RetrieveTracesSummaryResponse:
+    ) -> GetTracesSummaryResponse:
         """
         Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/api-reference/observe/traces/list-traces).
 
@@ -310,7 +310,7 @@ class TracesClient:
 
         Returns
         -------
-        RetrieveTracesSummaryResponse
+        GetTracesSummaryResponse
             Trace summary statistics.
 
         Examples
@@ -320,7 +320,7 @@ class TracesClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.traces.retrieve_traces_summary(
+        client.traces.get_traces_summary(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2025-01-01 00:00:00+00:00",
@@ -331,7 +331,7 @@ class TracesClient:
             environment="production",
         )
         """
-        _response = self._raw_client.retrieve_traces_summary(
+        _response = self._raw_client.get_traces_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -411,13 +411,13 @@ class TracesClient:
         )
         return _response.data
 
-    def ingest_traces_from_logs(
+    def create_trace_legacy(
         self,
         *,
         authorization: str,
-        request: typing.Sequence[IngestTracesFromLogsRequestBodyItem],
+        request: typing.Sequence[CreateTraceLegacyRequestBodyItem],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> IngestTracesFromLogsResponse:
+    ) -> CreateTraceLegacyResponse:
         """
         Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/api-reference/observe/traces/create-a-trace-otlp).
 
@@ -426,33 +426,33 @@ class TracesClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[IngestTracesFromLogsRequestBodyItem]
+        request : typing.Sequence[CreateTraceLegacyRequestBodyItem]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        IngestTracesFromLogsResponse
+        CreateTraceLegacyResponse
             Successful response for Ingest traces from logs
 
         Examples
         --------
         from respan import RespanClient
-        from respan.traces import IngestTracesFromLogsRequestBodyItem
+        from respan.traces import CreateTraceLegacyRequestBodyItem
 
         client = RespanClient()
-        client.traces.ingest_traces_from_logs(
+        client.traces.create_trace_legacy(
             authorization="Bearer sk_live_xxxxx",
             request=[
-                IngestTracesFromLogsRequestBodyItem(
+                CreateTraceLegacyRequestBodyItem(
                     trace_unique_id="trace_abc123",
                     span_unique_id="span_001",
                 )
             ],
         )
         """
-        _response = self._raw_client.ingest_traces_from_logs(
+        _response = self._raw_client.create_trace_legacy(
             authorization=authorization, request=request, request_options=request_options
         )
         return _response.data
@@ -473,13 +473,13 @@ class AsyncTracesClient:
         """
         return self._raw_client
 
-    async def ingest_traces_via_otlp(
+    async def create_trace(
         self,
         *,
         authorization: str,
-        resource_spans: typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem],
+        resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> IngestTracesViaOtlpResponse:
+    ) -> CreateTraceResponse:
         """
         Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. Any OpenTelemetry-compatible SDK can export directly to this endpoint. Accepts both `application/json` and `application/x-protobuf` content types.
 
@@ -490,7 +490,7 @@ class AsyncTracesClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        resource_spans : typing.Sequence[IngestTracesViaOtlpRequestResourceSpansItem]
+        resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
             Array of resource spans. Each element represents spans from a single resource (service).
 
         request_options : typing.Optional[RequestOptions]
@@ -498,7 +498,7 @@ class AsyncTracesClient:
 
         Returns
         -------
-        IngestTracesViaOtlpResponse
+        CreateTraceResponse
             Spans accepted.
 
         Examples
@@ -506,21 +506,21 @@ class AsyncTracesClient:
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.traces import IngestTracesViaOtlpRequestResourceSpansItem
+        from respan.traces import CreateTraceRequestResourceSpansItem
 
         client = AsyncRespanClient()
 
 
         async def main() -> None:
-            await client.traces.ingest_traces_via_otlp(
+            await client.traces.create_trace(
                 authorization="Bearer sk_live_xxxxx",
-                resource_spans=[IngestTracesViaOtlpRequestResourceSpansItem()],
+                resource_spans=[CreateTraceRequestResourceSpansItem()],
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.ingest_traces_via_otlp(
+        _response = await self._raw_client.create_trace(
             authorization=authorization, resource_spans=resource_spans, request_options=request_options
         )
         return _response.data
@@ -745,7 +745,7 @@ class AsyncTracesClient:
         )
         return _response.data
 
-    async def retrieve_traces_summary(
+    async def get_traces_summary(
         self,
         *,
         authorization: str,
@@ -754,7 +754,7 @@ class AsyncTracesClient:
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> RetrieveTracesSummaryResponse:
+    ) -> GetTracesSummaryResponse:
         """
         Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/api-reference/observe/traces/list-traces).
 
@@ -779,7 +779,7 @@ class AsyncTracesClient:
 
         Returns
         -------
-        RetrieveTracesSummaryResponse
+        GetTracesSummaryResponse
             Trace summary statistics.
 
         Examples
@@ -793,7 +793,7 @@ class AsyncTracesClient:
 
 
         async def main() -> None:
-            await client.traces.retrieve_traces_summary(
+            await client.traces.get_traces_summary(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2025-01-01 00:00:00+00:00",
@@ -807,7 +807,7 @@ class AsyncTracesClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_traces_summary(
+        _response = await self._raw_client.get_traces_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -895,13 +895,13 @@ class AsyncTracesClient:
         )
         return _response.data
 
-    async def ingest_traces_from_logs(
+    async def create_trace_legacy(
         self,
         *,
         authorization: str,
-        request: typing.Sequence[IngestTracesFromLogsRequestBodyItem],
+        request: typing.Sequence[CreateTraceLegacyRequestBodyItem],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> IngestTracesFromLogsResponse:
+    ) -> CreateTraceLegacyResponse:
         """
         Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/api-reference/observe/traces/create-a-trace-otlp).
 
@@ -910,14 +910,14 @@ class AsyncTracesClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[IngestTracesFromLogsRequestBodyItem]
+        request : typing.Sequence[CreateTraceLegacyRequestBodyItem]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        IngestTracesFromLogsResponse
+        CreateTraceLegacyResponse
             Successful response for Ingest traces from logs
 
         Examples
@@ -925,16 +925,16 @@ class AsyncTracesClient:
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.traces import IngestTracesFromLogsRequestBodyItem
+        from respan.traces import CreateTraceLegacyRequestBodyItem
 
         client = AsyncRespanClient()
 
 
         async def main() -> None:
-            await client.traces.ingest_traces_from_logs(
+            await client.traces.create_trace_legacy(
                 authorization="Bearer sk_live_xxxxx",
                 request=[
-                    IngestTracesFromLogsRequestBodyItem(
+                    CreateTraceLegacyRequestBodyItem(
                         trace_unique_id="trace_abc123",
                         span_unique_id="span_001",
                     )
@@ -944,7 +944,7 @@ class AsyncTracesClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.ingest_traces_from_logs(
+        _response = await self._raw_client.create_trace_legacy(
             authorization=authorization, request=request, request_options=request_options
         )
         return _response.data

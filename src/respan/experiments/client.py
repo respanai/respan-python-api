@@ -94,7 +94,7 @@ class ExperimentsClient:
         )
         return _response.data
 
-    def search_experiment(
+    def list_experiments(
         self,
         *,
         authorization: str,
@@ -124,11 +124,11 @@ class ExperimentsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.experiments.search_experiment(
+        client.experiments.list_experiments(
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.search_experiment(
+        _response = self._raw_client.list_experiments(
             authorization=authorization, filters=filters, request_options=request_options
         )
         return _response.data
@@ -206,7 +206,7 @@ class ExperimentsClient:
         )
         return _response.data
 
-    def search_experiment_spans(
+    def list_experiment_spans(
         self,
         experiment_id: str,
         *,
@@ -240,12 +240,12 @@ class ExperimentsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.experiments.search_experiment_spans(
+        client.experiments.list_experiment_spans(
             experiment_id="experiment_id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.search_experiment_spans(
+        _response = self._raw_client.list_experiment_spans(
             experiment_id, authorization=authorization, filters=filters, request_options=request_options
         )
         return _response.data
@@ -572,7 +572,7 @@ class AsyncExperimentsClient:
         )
         return _response.data
 
-    async def search_experiment(
+    async def list_experiments(
         self,
         *,
         authorization: str,
@@ -607,14 +607,14 @@ class AsyncExperimentsClient:
 
 
         async def main() -> None:
-            await client.experiments.search_experiment(
+            await client.experiments.list_experiments(
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.search_experiment(
+        _response = await self._raw_client.list_experiments(
             authorization=authorization, filters=filters, request_options=request_options
         )
         return _response.data
@@ -708,7 +708,7 @@ class AsyncExperimentsClient:
         )
         return _response.data
 
-    async def search_experiment_spans(
+    async def list_experiment_spans(
         self,
         experiment_id: str,
         *,
@@ -747,7 +747,7 @@ class AsyncExperimentsClient:
 
 
         async def main() -> None:
-            await client.experiments.search_experiment_spans(
+            await client.experiments.list_experiment_spans(
                 experiment_id="experiment_id",
                 authorization="Bearer sk_live_xxxxx",
             )
@@ -755,7 +755,7 @@ class AsyncExperimentsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.search_experiment_spans(
+        _response = await self._raw_client.list_experiment_spans(
             experiment_id, authorization=authorization, filters=filters, request_options=request_options
         )
         return _response.data

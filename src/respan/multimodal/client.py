@@ -6,10 +6,10 @@ from .. import core
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawMultimodalClient, RawMultimodalClient
-from .types.assemblyai_integration_response import AssemblyaiIntegrationResponse
-from .types.embeddings_request_encoding_format import EmbeddingsRequestEncodingFormat
-from .types.embeddings_request_model import EmbeddingsRequestModel
-from .types.embeddings_response import EmbeddingsResponse
+from .types.create_embeddings_request_encoding_format import CreateEmbeddingsRequestEncodingFormat
+from .types.create_embeddings_request_model import CreateEmbeddingsRequestModel
+from .types.create_embeddings_response import CreateEmbeddingsResponse
+from .types.retrieve_assemblyai_transcript_response import RetrieveAssemblyaiTranscriptResponse
 from .types.speech_to_text_request_model import SpeechToTextRequestModel
 from .types.speech_to_text_request_response_format import SpeechToTextRequestResponseFormat
 from .types.speech_to_text_response import SpeechToTextResponse
@@ -36,13 +36,13 @@ class MultimodalClient:
         """
         return self._raw_client
 
-    def embeddings(
+    def create_embeddings(
         self,
         *,
         authorization: str,
-        model: EmbeddingsRequestModel,
+        model: CreateEmbeddingsRequestModel,
         input: typing.Any,
-        encoding_format: typing.Optional[EmbeddingsRequestEncodingFormat] = OMIT,
+        encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
         dimensions: typing.Optional[int] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -52,7 +52,7 @@ class MultimodalClient:
         thread_identifier: typing.Optional[str] = OMIT,
         request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> EmbeddingsResponse:
+    ) -> CreateEmbeddingsResponse:
         """
         Create embeddings through the Respan gateway with automatic logging.
 
@@ -61,12 +61,12 @@ class MultimodalClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        model : EmbeddingsRequestModel
+        model : CreateEmbeddingsRequestModel
             Embedding model ID.
 
         input : typing.Any
 
-        encoding_format : typing.Optional[EmbeddingsRequestEncodingFormat]
+        encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
             Output format.
 
         dimensions : typing.Optional[int]
@@ -98,7 +98,7 @@ class MultimodalClient:
 
         Returns
         -------
-        EmbeddingsResponse
+        CreateEmbeddingsResponse
             Embedding results.
 
         Examples
@@ -106,13 +106,13 @@ class MultimodalClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.multimodal.embeddings(
+        client.multimodal.create_embeddings(
             authorization="Bearer sk_live_xxxxx",
             model="text-embedding-3-small",
             input="Hello world",
         )
         """
-        _response = self._raw_client.embeddings(
+        _response = self._raw_client.create_embeddings(
             authorization=authorization,
             model=model,
             input=input,
@@ -337,14 +337,14 @@ class MultimodalClient:
         ) as r:
             yield from r.data
 
-    def assemblyai_integration(
+    def retrieve_assemblyai_transcript(
         self,
         transcript_id: str,
         *,
         authorization: str,
         assemblyai_api_key: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AssemblyaiIntegrationResponse:
+    ) -> RetrieveAssemblyaiTranscriptResponse:
         """
         Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
 
@@ -364,7 +364,7 @@ class MultimodalClient:
 
         Returns
         -------
-        AssemblyaiIntegrationResponse
+        RetrieveAssemblyaiTranscriptResponse
             Transcript details.
 
         Examples
@@ -372,13 +372,13 @@ class MultimodalClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.multimodal.assemblyai_integration(
+        client.multimodal.retrieve_assemblyai_transcript(
             transcript_id="transcript_id",
             authorization="Bearer sk_live_xxxxx",
             assemblyai_api_key="X-Assemblyai-Api-Key",
         )
         """
-        _response = self._raw_client.assemblyai_integration(
+        _response = self._raw_client.retrieve_assemblyai_transcript(
             transcript_id,
             authorization=authorization,
             assemblyai_api_key=assemblyai_api_key,
@@ -402,13 +402,13 @@ class AsyncMultimodalClient:
         """
         return self._raw_client
 
-    async def embeddings(
+    async def create_embeddings(
         self,
         *,
         authorization: str,
-        model: EmbeddingsRequestModel,
+        model: CreateEmbeddingsRequestModel,
         input: typing.Any,
-        encoding_format: typing.Optional[EmbeddingsRequestEncodingFormat] = OMIT,
+        encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
         dimensions: typing.Optional[int] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -418,7 +418,7 @@ class AsyncMultimodalClient:
         thread_identifier: typing.Optional[str] = OMIT,
         request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> EmbeddingsResponse:
+    ) -> CreateEmbeddingsResponse:
         """
         Create embeddings through the Respan gateway with automatic logging.
 
@@ -427,12 +427,12 @@ class AsyncMultimodalClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        model : EmbeddingsRequestModel
+        model : CreateEmbeddingsRequestModel
             Embedding model ID.
 
         input : typing.Any
 
-        encoding_format : typing.Optional[EmbeddingsRequestEncodingFormat]
+        encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
             Output format.
 
         dimensions : typing.Optional[int]
@@ -464,7 +464,7 @@ class AsyncMultimodalClient:
 
         Returns
         -------
-        EmbeddingsResponse
+        CreateEmbeddingsResponse
             Embedding results.
 
         Examples
@@ -477,7 +477,7 @@ class AsyncMultimodalClient:
 
 
         async def main() -> None:
-            await client.multimodal.embeddings(
+            await client.multimodal.create_embeddings(
                 authorization="Bearer sk_live_xxxxx",
                 model="text-embedding-3-small",
                 input="Hello world",
@@ -486,7 +486,7 @@ class AsyncMultimodalClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.embeddings(
+        _response = await self._raw_client.create_embeddings(
             authorization=authorization,
             model=model,
             input=input,
@@ -728,14 +728,14 @@ class AsyncMultimodalClient:
             async for _chunk in r.data:
                 yield _chunk
 
-    async def assemblyai_integration(
+    async def retrieve_assemblyai_transcript(
         self,
         transcript_id: str,
         *,
         authorization: str,
         assemblyai_api_key: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AssemblyaiIntegrationResponse:
+    ) -> RetrieveAssemblyaiTranscriptResponse:
         """
         Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
 
@@ -755,7 +755,7 @@ class AsyncMultimodalClient:
 
         Returns
         -------
-        AssemblyaiIntegrationResponse
+        RetrieveAssemblyaiTranscriptResponse
             Transcript details.
 
         Examples
@@ -768,7 +768,7 @@ class AsyncMultimodalClient:
 
 
         async def main() -> None:
-            await client.multimodal.assemblyai_integration(
+            await client.multimodal.retrieve_assemblyai_transcript(
                 transcript_id="transcript_id",
                 authorization="Bearer sk_live_xxxxx",
                 assemblyai_api_key="X-Assemblyai-Api-Key",
@@ -777,7 +777,7 @@ class AsyncMultimodalClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.assemblyai_integration(
+        _response = await self._raw_client.retrieve_assemblyai_transcript(
             transcript_id,
             authorization=authorization,
             assemblyai_api_key=assemblyai_api_key,

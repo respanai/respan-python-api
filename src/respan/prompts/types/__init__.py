@@ -6,8 +6,8 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .create_version_response import CreateVersionResponse
-    from .create_version_response_variables import CreateVersionResponseVariables
+    from .create_prompt_version_response import CreatePromptVersionResponse
+    from .create_prompt_version_response_variables import CreatePromptVersionResponseVariables
     from .get_prompts_summary_response import GetPromptsSummaryResponse
     from .get_prompts_summary_with_filters_response import GetPromptsSummaryWithFiltersResponse
     from .list_prompts_request_sort_by import ListPromptsRequestSortBy
@@ -15,8 +15,8 @@ if typing.TYPE_CHECKING:
     from .update_prompt_version_response import UpdatePromptVersionResponse
     from .update_prompt_version_response_variables import UpdatePromptVersionResponseVariables
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreateVersionResponse": ".create_version_response",
-    "CreateVersionResponseVariables": ".create_version_response_variables",
+    "CreatePromptVersionResponse": ".create_prompt_version_response",
+    "CreatePromptVersionResponseVariables": ".create_prompt_version_response_variables",
     "GetPromptsSummaryResponse": ".get_prompts_summary_response",
     "GetPromptsSummaryWithFiltersResponse": ".get_prompts_summary_with_filters_response",
     "ListPromptsRequestSortBy": ".list_prompts_request_sort_by",
@@ -48,8 +48,8 @@ def __dir__():
 
 
 __all__ = [
-    "CreateVersionResponse",
-    "CreateVersionResponseVariables",
+    "CreatePromptVersionResponse",
+    "CreatePromptVersionResponseVariables",
     "GetPromptsSummaryResponse",
     "GetPromptsSummaryWithFiltersResponse",
     "ListPromptsRequestSortBy",

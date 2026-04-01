@@ -25,7 +25,7 @@ from .types.retrieve_dataset_response import RetrieveDatasetResponse
 from .types.retrieve_dataset_span_response import RetrieveDatasetSpanResponse
 from .types.run_eval_on_dataset_response import RunEvalOnDatasetResponse
 from .types.update_dataset_response import UpdateDatasetResponse
-from .types.update_span_partial_response import UpdateSpanPartialResponse
+from .types.update_dataset_span_response import UpdateDatasetSpanResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -604,7 +604,7 @@ class RawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def delete_span(
+    def delete_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
@@ -660,7 +660,7 @@ class RawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def update_span_partial(
+    def update_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
@@ -668,7 +668,7 @@ class RawDatasetsClient:
         authorization: str,
         request: typing.Dict[str, typing.Any],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[UpdateSpanPartialResponse]:
+    ) -> HttpResponse[UpdateDatasetSpanResponse]:
         """
         Update fields on a span in a dataset. Only provided fields are updated.
 
@@ -690,7 +690,7 @@ class RawDatasetsClient:
 
         Returns
         -------
-        HttpResponse[UpdateSpanPartialResponse]
+        HttpResponse[UpdateDatasetSpanResponse]
             Successful response for Update span (partial)
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -707,9 +707,9 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    UpdateSpanPartialResponse,
+                    UpdateDatasetSpanResponse,
                     parse_obj_as(
-                        type_=UpdateSpanPartialResponse,  # type: ignore
+                        type_=UpdateDatasetSpanResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1595,7 +1595,7 @@ class AsyncRawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def delete_span(
+    async def delete_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
@@ -1651,7 +1651,7 @@ class AsyncRawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def update_span_partial(
+    async def update_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
@@ -1659,7 +1659,7 @@ class AsyncRawDatasetsClient:
         authorization: str,
         request: typing.Dict[str, typing.Any],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[UpdateSpanPartialResponse]:
+    ) -> AsyncHttpResponse[UpdateDatasetSpanResponse]:
         """
         Update fields on a span in a dataset. Only provided fields are updated.
 
@@ -1681,7 +1681,7 @@ class AsyncRawDatasetsClient:
 
         Returns
         -------
-        AsyncHttpResponse[UpdateSpanPartialResponse]
+        AsyncHttpResponse[UpdateDatasetSpanResponse]
             Successful response for Update span (partial)
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -1698,9 +1698,9 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    UpdateSpanPartialResponse,
+                    UpdateDatasetSpanResponse,
                     parse_obj_as(
-                        type_=UpdateSpanPartialResponse,  # type: ignore
+                        type_=UpdateDatasetSpanResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )

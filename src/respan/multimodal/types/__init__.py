@@ -6,14 +6,14 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .assemblyai_integration_response import AssemblyaiIntegrationResponse
-    from .assemblyai_integration_response_status import AssemblyaiIntegrationResponseStatus
-    from .assemblyai_integration_response_words_item import AssemblyaiIntegrationResponseWordsItem
-    from .embeddings_request_encoding_format import EmbeddingsRequestEncodingFormat
-    from .embeddings_request_model import EmbeddingsRequestModel
-    from .embeddings_response import EmbeddingsResponse
-    from .embeddings_response_data_item import EmbeddingsResponseDataItem
-    from .embeddings_response_usage import EmbeddingsResponseUsage
+    from .create_embeddings_request_encoding_format import CreateEmbeddingsRequestEncodingFormat
+    from .create_embeddings_request_model import CreateEmbeddingsRequestModel
+    from .create_embeddings_response import CreateEmbeddingsResponse
+    from .create_embeddings_response_data_item import CreateEmbeddingsResponseDataItem
+    from .create_embeddings_response_usage import CreateEmbeddingsResponseUsage
+    from .retrieve_assemblyai_transcript_response import RetrieveAssemblyaiTranscriptResponse
+    from .retrieve_assemblyai_transcript_response_status import RetrieveAssemblyaiTranscriptResponseStatus
+    from .retrieve_assemblyai_transcript_response_words_item import RetrieveAssemblyaiTranscriptResponseWordsItem
     from .speech_to_text_request_model import SpeechToTextRequestModel
     from .speech_to_text_request_response_format import SpeechToTextRequestResponseFormat
     from .speech_to_text_response import SpeechToTextResponse
@@ -22,14 +22,14 @@ if typing.TYPE_CHECKING:
     from .text_to_speech_request_response_format import TextToSpeechRequestResponseFormat
     from .text_to_speech_request_voice import TextToSpeechRequestVoice
 _dynamic_imports: typing.Dict[str, str] = {
-    "AssemblyaiIntegrationResponse": ".assemblyai_integration_response",
-    "AssemblyaiIntegrationResponseStatus": ".assemblyai_integration_response_status",
-    "AssemblyaiIntegrationResponseWordsItem": ".assemblyai_integration_response_words_item",
-    "EmbeddingsRequestEncodingFormat": ".embeddings_request_encoding_format",
-    "EmbeddingsRequestModel": ".embeddings_request_model",
-    "EmbeddingsResponse": ".embeddings_response",
-    "EmbeddingsResponseDataItem": ".embeddings_response_data_item",
-    "EmbeddingsResponseUsage": ".embeddings_response_usage",
+    "CreateEmbeddingsRequestEncodingFormat": ".create_embeddings_request_encoding_format",
+    "CreateEmbeddingsRequestModel": ".create_embeddings_request_model",
+    "CreateEmbeddingsResponse": ".create_embeddings_response",
+    "CreateEmbeddingsResponseDataItem": ".create_embeddings_response_data_item",
+    "CreateEmbeddingsResponseUsage": ".create_embeddings_response_usage",
+    "RetrieveAssemblyaiTranscriptResponse": ".retrieve_assemblyai_transcript_response",
+    "RetrieveAssemblyaiTranscriptResponseStatus": ".retrieve_assemblyai_transcript_response_status",
+    "RetrieveAssemblyaiTranscriptResponseWordsItem": ".retrieve_assemblyai_transcript_response_words_item",
     "SpeechToTextRequestModel": ".speech_to_text_request_model",
     "SpeechToTextRequestResponseFormat": ".speech_to_text_request_response_format",
     "SpeechToTextResponse": ".speech_to_text_response",
@@ -62,14 +62,14 @@ def __dir__():
 
 
 __all__ = [
-    "AssemblyaiIntegrationResponse",
-    "AssemblyaiIntegrationResponseStatus",
-    "AssemblyaiIntegrationResponseWordsItem",
-    "EmbeddingsRequestEncodingFormat",
-    "EmbeddingsRequestModel",
-    "EmbeddingsResponse",
-    "EmbeddingsResponseDataItem",
-    "EmbeddingsResponseUsage",
+    "CreateEmbeddingsRequestEncodingFormat",
+    "CreateEmbeddingsRequestModel",
+    "CreateEmbeddingsResponse",
+    "CreateEmbeddingsResponseDataItem",
+    "CreateEmbeddingsResponseUsage",
+    "RetrieveAssemblyaiTranscriptResponse",
+    "RetrieveAssemblyaiTranscriptResponseStatus",
+    "RetrieveAssemblyaiTranscriptResponseWordsItem",
     "SpeechToTextRequestModel",
     "SpeechToTextRequestResponseFormat",
     "SpeechToTextResponse",

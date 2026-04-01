@@ -29,8 +29,8 @@ if typing.TYPE_CHECKING:
     from .run_eval_on_dataset_response import RunEvalOnDatasetResponse
     from .run_eval_on_dataset_response_status import RunEvalOnDatasetResponseStatus
     from .update_dataset_response import UpdateDatasetResponse
-    from .update_span_partial_response import UpdateSpanPartialResponse
-    from .update_span_partial_response_metadata import UpdateSpanPartialResponseMetadata
+    from .update_dataset_span_response import UpdateDatasetSpanResponse
+    from .update_dataset_span_response_metadata import UpdateDatasetSpanResponseMetadata
 _dynamic_imports: typing.Dict[str, str] = {
     "AddSpansToDatasetResponse": ".add_spans_to_dataset_response",
     "AddSpansToDatasetResponseFilters": ".add_spans_to_dataset_response_filters",
@@ -53,8 +53,8 @@ _dynamic_imports: typing.Dict[str, str] = {
     "RunEvalOnDatasetResponse": ".run_eval_on_dataset_response",
     "RunEvalOnDatasetResponseStatus": ".run_eval_on_dataset_response_status",
     "UpdateDatasetResponse": ".update_dataset_response",
-    "UpdateSpanPartialResponse": ".update_span_partial_response",
-    "UpdateSpanPartialResponseMetadata": ".update_span_partial_response_metadata",
+    "UpdateDatasetSpanResponse": ".update_dataset_span_response",
+    "UpdateDatasetSpanResponseMetadata": ".update_dataset_span_response_metadata",
 }
 
 
@@ -101,6 +101,6 @@ __all__ = [
     "RunEvalOnDatasetResponse",
     "RunEvalOnDatasetResponseStatus",
     "UpdateDatasetResponse",
-    "UpdateSpanPartialResponse",
-    "UpdateSpanPartialResponseMetadata",
+    "UpdateDatasetSpanResponse",
+    "UpdateDatasetSpanResponseMetadata",
 ]

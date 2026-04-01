@@ -6,7 +6,7 @@ from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from ..types.filters import Filters
 from .raw_client import AsyncRawPromptsClient, RawPromptsClient
-from .types.create_version_response import CreateVersionResponse
+from .types.create_prompt_version_response import CreatePromptVersionResponse
 from .types.get_prompts_summary_response import GetPromptsSummaryResponse
 from .types.get_prompts_summary_with_filters_response import GetPromptsSummaryWithFiltersResponse
 from .types.list_prompts_request_sort_by import ListPromptsRequestSortBy
@@ -251,7 +251,7 @@ class PromptsClient:
         )
         return _response.data
 
-    def retrieve_versions(
+    def list_prompt_versions(
         self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.Dict[str, typing.Any]:
         """
@@ -278,17 +278,17 @@ class PromptsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.prompts.retrieve_versions(
+        client.prompts.list_prompt_versions(
             prompt_id="prompt_id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_versions(
+        _response = self._raw_client.list_prompt_versions(
             prompt_id, authorization=authorization, request_options=request_options
         )
         return _response.data
 
-    def create_version(
+    def create_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -307,7 +307,7 @@ class PromptsClient:
         tools: typing.Optional[typing.Sequence[str]] = OMIT,
         deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateVersionResponse:
+    ) -> CreatePromptVersionResponse:
         """
         Create a new version of a prompt. Use `{{variable_name}}` syntax in messages to define template variables.
 
@@ -363,7 +363,7 @@ class PromptsClient:
 
         Returns
         -------
-        CreateVersionResponse
+        CreatePromptVersionResponse
             Successful response for Create version
 
         Examples
@@ -371,14 +371,14 @@ class PromptsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.prompts.create_version(
+        client.prompts.create_prompt_version(
             prompt_id="prompt_id",
             authorization="Bearer sk_live_xxxxx",
             messages=["messages"],
             model="gpt-4o",
         )
         """
-        _response = self._raw_client.create_version(
+        _response = self._raw_client.create_prompt_version(
             prompt_id,
             authorization=authorization,
             messages=messages,
@@ -444,7 +444,7 @@ class PromptsClient:
         )
         return _response.data
 
-    def delete_version(
+    def delete_prompt_version(
         self,
         prompt_id: str,
         version: str,
@@ -478,13 +478,13 @@ class PromptsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.prompts.delete_version(
+        client.prompts.delete_prompt_version(
             prompt_id="prompt_id",
             version="version",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_version(
+        _response = self._raw_client.delete_prompt_version(
             prompt_id, version, authorization=authorization, request_options=request_options
         )
         return _response.data
@@ -603,7 +603,7 @@ class PromptsClient:
         )
         return _response.data
 
-    def commit_draft_version(
+    def commit_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -638,17 +638,17 @@ class PromptsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.prompts.commit_draft_version(
+        client.prompts.commit_prompt_version(
             prompt_id="prompt_id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.commit_draft_version(
+        _response = self._raw_client.commit_prompt_version(
             prompt_id, authorization=authorization, description=description, request_options=request_options
         )
         return _response.data
 
-    def deploy_committed_version(
+    def deploy_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -683,13 +683,13 @@ class PromptsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.prompts.deploy_committed_version(
+        client.prompts.deploy_prompt_version(
             prompt_id="prompt_id",
             authorization="Bearer sk_live_xxxxx",
             version=3,
         )
         """
-        _response = self._raw_client.deploy_committed_version(
+        _response = self._raw_client.deploy_prompt_version(
             prompt_id, authorization=authorization, version=version, request_options=request_options
         )
         return _response.data
@@ -1039,7 +1039,7 @@ class AsyncPromptsClient:
         )
         return _response.data
 
-    async def retrieve_versions(
+    async def list_prompt_versions(
         self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.Dict[str, typing.Any]:
         """
@@ -1071,7 +1071,7 @@ class AsyncPromptsClient:
 
 
         async def main() -> None:
-            await client.prompts.retrieve_versions(
+            await client.prompts.list_prompt_versions(
                 prompt_id="prompt_id",
                 authorization="Bearer sk_live_xxxxx",
             )
@@ -1079,12 +1079,12 @@ class AsyncPromptsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_versions(
+        _response = await self._raw_client.list_prompt_versions(
             prompt_id, authorization=authorization, request_options=request_options
         )
         return _response.data
 
-    async def create_version(
+    async def create_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -1103,7 +1103,7 @@ class AsyncPromptsClient:
         tools: typing.Optional[typing.Sequence[str]] = OMIT,
         deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateVersionResponse:
+    ) -> CreatePromptVersionResponse:
         """
         Create a new version of a prompt. Use `{{variable_name}}` syntax in messages to define template variables.
 
@@ -1159,7 +1159,7 @@ class AsyncPromptsClient:
 
         Returns
         -------
-        CreateVersionResponse
+        CreatePromptVersionResponse
             Successful response for Create version
 
         Examples
@@ -1172,7 +1172,7 @@ class AsyncPromptsClient:
 
 
         async def main() -> None:
-            await client.prompts.create_version(
+            await client.prompts.create_prompt_version(
                 prompt_id="prompt_id",
                 authorization="Bearer sk_live_xxxxx",
                 messages=["messages"],
@@ -1182,7 +1182,7 @@ class AsyncPromptsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_version(
+        _response = await self._raw_client.create_prompt_version(
             prompt_id,
             authorization=authorization,
             messages=messages,
@@ -1256,7 +1256,7 @@ class AsyncPromptsClient:
         )
         return _response.data
 
-    async def delete_version(
+    async def delete_prompt_version(
         self,
         prompt_id: str,
         version: str,
@@ -1295,7 +1295,7 @@ class AsyncPromptsClient:
 
 
         async def main() -> None:
-            await client.prompts.delete_version(
+            await client.prompts.delete_prompt_version(
                 prompt_id="prompt_id",
                 version="version",
                 authorization="Bearer sk_live_xxxxx",
@@ -1304,7 +1304,7 @@ class AsyncPromptsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_version(
+        _response = await self._raw_client.delete_prompt_version(
             prompt_id, version, authorization=authorization, request_options=request_options
         )
         return _response.data
@@ -1431,7 +1431,7 @@ class AsyncPromptsClient:
         )
         return _response.data
 
-    async def commit_draft_version(
+    async def commit_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -1471,7 +1471,7 @@ class AsyncPromptsClient:
 
 
         async def main() -> None:
-            await client.prompts.commit_draft_version(
+            await client.prompts.commit_prompt_version(
                 prompt_id="prompt_id",
                 authorization="Bearer sk_live_xxxxx",
             )
@@ -1479,12 +1479,12 @@ class AsyncPromptsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.commit_draft_version(
+        _response = await self._raw_client.commit_prompt_version(
             prompt_id, authorization=authorization, description=description, request_options=request_options
         )
         return _response.data
 
-    async def deploy_committed_version(
+    async def deploy_prompt_version(
         self,
         prompt_id: str,
         *,
@@ -1524,7 +1524,7 @@ class AsyncPromptsClient:
 
 
         async def main() -> None:
-            await client.prompts.deploy_committed_version(
+            await client.prompts.deploy_prompt_version(
                 prompt_id="prompt_id",
                 authorization="Bearer sk_live_xxxxx",
                 version=3,
@@ -1533,7 +1533,7 @@ class AsyncPromptsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.deploy_committed_version(
+        _response = await self._raw_client.deploy_prompt_version(
             prompt_id, authorization=authorization, version=version, request_options=request_options
         )
         return _response.data

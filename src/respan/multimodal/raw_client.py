@@ -14,10 +14,10 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..errors.not_found_error import NotFoundError
 from ..errors.unauthorized_error import UnauthorizedError
-from .types.assemblyai_integration_response import AssemblyaiIntegrationResponse
-from .types.embeddings_request_encoding_format import EmbeddingsRequestEncodingFormat
-from .types.embeddings_request_model import EmbeddingsRequestModel
-from .types.embeddings_response import EmbeddingsResponse
+from .types.create_embeddings_request_encoding_format import CreateEmbeddingsRequestEncodingFormat
+from .types.create_embeddings_request_model import CreateEmbeddingsRequestModel
+from .types.create_embeddings_response import CreateEmbeddingsResponse
+from .types.retrieve_assemblyai_transcript_response import RetrieveAssemblyaiTranscriptResponse
 from .types.speech_to_text_request_model import SpeechToTextRequestModel
 from .types.speech_to_text_request_response_format import SpeechToTextRequestResponseFormat
 from .types.speech_to_text_response import SpeechToTextResponse
@@ -33,13 +33,13 @@ class RawMultimodalClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def embeddings(
+    def create_embeddings(
         self,
         *,
         authorization: str,
-        model: EmbeddingsRequestModel,
+        model: CreateEmbeddingsRequestModel,
         input: typing.Any,
-        encoding_format: typing.Optional[EmbeddingsRequestEncodingFormat] = OMIT,
+        encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
         dimensions: typing.Optional[int] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -49,7 +49,7 @@ class RawMultimodalClient:
         thread_identifier: typing.Optional[str] = OMIT,
         request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[EmbeddingsResponse]:
+    ) -> HttpResponse[CreateEmbeddingsResponse]:
         """
         Create embeddings through the Respan gateway with automatic logging.
 
@@ -58,12 +58,12 @@ class RawMultimodalClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        model : EmbeddingsRequestModel
+        model : CreateEmbeddingsRequestModel
             Embedding model ID.
 
         input : typing.Any
 
-        encoding_format : typing.Optional[EmbeddingsRequestEncodingFormat]
+        encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
             Output format.
 
         dimensions : typing.Optional[int]
@@ -95,7 +95,7 @@ class RawMultimodalClient:
 
         Returns
         -------
-        HttpResponse[EmbeddingsResponse]
+        HttpResponse[CreateEmbeddingsResponse]
             Embedding results.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -124,9 +124,9 @@ class RawMultimodalClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    EmbeddingsResponse,
+                    CreateEmbeddingsResponse,
                     parse_obj_as(
-                        type_=EmbeddingsResponse,  # type: ignore
+                        type_=CreateEmbeddingsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -403,14 +403,14 @@ class RawMultimodalClient:
 
             yield _stream()
 
-    def assemblyai_integration(
+    def retrieve_assemblyai_transcript(
         self,
         transcript_id: str,
         *,
         authorization: str,
         assemblyai_api_key: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AssemblyaiIntegrationResponse]:
+    ) -> HttpResponse[RetrieveAssemblyaiTranscriptResponse]:
         """
         Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
 
@@ -430,7 +430,7 @@ class RawMultimodalClient:
 
         Returns
         -------
-        HttpResponse[AssemblyaiIntegrationResponse]
+        HttpResponse[RetrieveAssemblyaiTranscriptResponse]
             Transcript details.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -445,9 +445,9 @@ class RawMultimodalClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    AssemblyaiIntegrationResponse,
+                    RetrieveAssemblyaiTranscriptResponse,
                     parse_obj_as(
-                        type_=AssemblyaiIntegrationResponse,  # type: ignore
+                        type_=RetrieveAssemblyaiTranscriptResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -484,13 +484,13 @@ class AsyncRawMultimodalClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def embeddings(
+    async def create_embeddings(
         self,
         *,
         authorization: str,
-        model: EmbeddingsRequestModel,
+        model: CreateEmbeddingsRequestModel,
         input: typing.Any,
-        encoding_format: typing.Optional[EmbeddingsRequestEncodingFormat] = OMIT,
+        encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
         dimensions: typing.Optional[int] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -500,7 +500,7 @@ class AsyncRawMultimodalClient:
         thread_identifier: typing.Optional[str] = OMIT,
         request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[EmbeddingsResponse]:
+    ) -> AsyncHttpResponse[CreateEmbeddingsResponse]:
         """
         Create embeddings through the Respan gateway with automatic logging.
 
@@ -509,12 +509,12 @@ class AsyncRawMultimodalClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        model : EmbeddingsRequestModel
+        model : CreateEmbeddingsRequestModel
             Embedding model ID.
 
         input : typing.Any
 
-        encoding_format : typing.Optional[EmbeddingsRequestEncodingFormat]
+        encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
             Output format.
 
         dimensions : typing.Optional[int]
@@ -546,7 +546,7 @@ class AsyncRawMultimodalClient:
 
         Returns
         -------
-        AsyncHttpResponse[EmbeddingsResponse]
+        AsyncHttpResponse[CreateEmbeddingsResponse]
             Embedding results.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -575,9 +575,9 @@ class AsyncRawMultimodalClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    EmbeddingsResponse,
+                    CreateEmbeddingsResponse,
                     parse_obj_as(
-                        type_=EmbeddingsResponse,  # type: ignore
+                        type_=CreateEmbeddingsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -855,14 +855,14 @@ class AsyncRawMultimodalClient:
 
             yield await _stream()
 
-    async def assemblyai_integration(
+    async def retrieve_assemblyai_transcript(
         self,
         transcript_id: str,
         *,
         authorization: str,
         assemblyai_api_key: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AssemblyaiIntegrationResponse]:
+    ) -> AsyncHttpResponse[RetrieveAssemblyaiTranscriptResponse]:
         """
         Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
 
@@ -882,7 +882,7 @@ class AsyncRawMultimodalClient:
 
         Returns
         -------
-        AsyncHttpResponse[AssemblyaiIntegrationResponse]
+        AsyncHttpResponse[RetrieveAssemblyaiTranscriptResponse]
             Transcript details.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -897,9 +897,9 @@ class AsyncRawMultimodalClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    AssemblyaiIntegrationResponse,
+                    RetrieveAssemblyaiTranscriptResponse,
                     parse_obj_as(
-                        type_=AssemblyaiIntegrationResponse,  # type: ignore
+                        type_=RetrieveAssemblyaiTranscriptResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )

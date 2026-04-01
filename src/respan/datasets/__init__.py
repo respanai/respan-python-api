@@ -28,8 +28,8 @@ if typing.TYPE_CHECKING:
         RunEvalOnDatasetResponse,
         RunEvalOnDatasetResponseStatus,
         UpdateDatasetResponse,
-        UpdateSpanPartialResponse,
-        UpdateSpanPartialResponseMetadata,
+        UpdateDatasetSpanResponse,
+        UpdateDatasetSpanResponseMetadata,
     )
 _dynamic_imports: typing.Dict[str, str] = {
     "AddSpansToDatasetResponse": ".types",
@@ -53,8 +53,8 @@ _dynamic_imports: typing.Dict[str, str] = {
     "RunEvalOnDatasetResponse": ".types",
     "RunEvalOnDatasetResponseStatus": ".types",
     "UpdateDatasetResponse": ".types",
-    "UpdateSpanPartialResponse": ".types",
-    "UpdateSpanPartialResponseMetadata": ".types",
+    "UpdateDatasetSpanResponse": ".types",
+    "UpdateDatasetSpanResponseMetadata": ".types",
 }
 
 
@@ -101,6 +101,6 @@ __all__ = [
     "RunEvalOnDatasetResponse",
     "RunEvalOnDatasetResponseStatus",
     "UpdateDatasetResponse",
-    "UpdateSpanPartialResponse",
-    "UpdateSpanPartialResponseMetadata",
+    "UpdateDatasetSpanResponse",
+    "UpdateDatasetSpanResponseMetadata",
 ]

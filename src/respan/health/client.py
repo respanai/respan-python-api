@@ -5,7 +5,7 @@ import typing
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawHealthClient, RawHealthClient
-from .types.health_check_response import HealthCheckResponse
+from .types.check_response import CheckResponse
 
 
 class HealthClient:
@@ -23,9 +23,7 @@ class HealthClient:
         """
         return self._raw_client
 
-    def check(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HealthCheckResponse:
+    def check(self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None) -> CheckResponse:
         """
         Check API availability.
 
@@ -39,7 +37,7 @@ class HealthClient:
 
         Returns
         -------
-        HealthCheckResponse
+        CheckResponse
             API is healthy
 
         Examples
@@ -72,7 +70,7 @@ class AsyncHealthClient:
 
     async def check(
         self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HealthCheckResponse:
+    ) -> CheckResponse:
         """
         Check API availability.
 
@@ -86,7 +84,7 @@ class AsyncHealthClient:
 
         Returns
         -------
-        HealthCheckResponse
+        CheckResponse
             API is healthy
 
         Examples

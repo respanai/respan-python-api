@@ -114,7 +114,7 @@ class RawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def search_experiment(
+    def list_experiments(
         self,
         *,
         authorization: str,
@@ -284,7 +284,7 @@ class RawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def search_experiment_spans(
+    def list_experiment_spans(
         self,
         experiment_id: str,
         *,
@@ -761,7 +761,7 @@ class AsyncRawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def search_experiment(
+    async def list_experiments(
         self,
         *,
         authorization: str,
@@ -931,7 +931,7 @@ class AsyncRawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def search_experiment_spans(
+    async def list_experiment_spans(
         self,
         experiment_id: str,
         *,
