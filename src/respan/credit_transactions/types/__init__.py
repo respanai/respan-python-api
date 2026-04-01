@@ -6,21 +6,19 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .credit_transactions_list_response import CreditTransactionsListResponse
-    from .credit_transactions_list_response_results_item import CreditTransactionsListResponseResultsItem
-    from .credit_transactions_list_response_results_item_transaction_type import (
-        CreditTransactionsListResponseResultsItemTransactionType,
+    from .list_credit_transactions_response import ListCreditTransactionsResponse
+    from .list_credit_transactions_response_results_item import ListCreditTransactionsResponseResultsItem
+    from .list_credit_transactions_response_results_item_transaction_type import (
+        ListCreditTransactionsResponseResultsItemTransactionType,
     )
-    from .credit_transactions_retrieve_response import CreditTransactionsRetrieveResponse
-    from .credit_transactions_retrieve_response_transaction_type import (
-        CreditTransactionsRetrieveResponseTransactionType,
-    )
+    from .retrieve_credit_transaction_response import RetrieveCreditTransactionResponse
+    from .retrieve_credit_transaction_response_transaction_type import RetrieveCreditTransactionResponseTransactionType
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreditTransactionsListResponse": ".credit_transactions_list_response",
-    "CreditTransactionsListResponseResultsItem": ".credit_transactions_list_response_results_item",
-    "CreditTransactionsListResponseResultsItemTransactionType": ".credit_transactions_list_response_results_item_transaction_type",
-    "CreditTransactionsRetrieveResponse": ".credit_transactions_retrieve_response",
-    "CreditTransactionsRetrieveResponseTransactionType": ".credit_transactions_retrieve_response_transaction_type",
+    "ListCreditTransactionsResponse": ".list_credit_transactions_response",
+    "ListCreditTransactionsResponseResultsItem": ".list_credit_transactions_response_results_item",
+    "ListCreditTransactionsResponseResultsItemTransactionType": ".list_credit_transactions_response_results_item_transaction_type",
+    "RetrieveCreditTransactionResponse": ".retrieve_credit_transaction_response",
+    "RetrieveCreditTransactionResponseTransactionType": ".retrieve_credit_transaction_response_transaction_type",
 }
 
 
@@ -46,9 +44,9 @@ def __dir__():
 
 
 __all__ = [
-    "CreditTransactionsListResponse",
-    "CreditTransactionsListResponseResultsItem",
-    "CreditTransactionsListResponseResultsItemTransactionType",
-    "CreditTransactionsRetrieveResponse",
-    "CreditTransactionsRetrieveResponseTransactionType",
+    "ListCreditTransactionsResponse",
+    "ListCreditTransactionsResponseResultsItem",
+    "ListCreditTransactionsResponseResultsItemTransactionType",
+    "RetrieveCreditTransactionResponse",
+    "RetrieveCreditTransactionResponseTransactionType",
 ]

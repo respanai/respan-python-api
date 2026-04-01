@@ -7,6 +7,9 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
+        ListCustomersRequestFilters,
+        ListCustomersResponse,
+        ListCustomersResponseResultsItem,
         RetrieveUserResponse,
         RetrieveUserResponseBudgetDuration,
         RetrieveUserResponseEnvironment,
@@ -14,11 +17,11 @@ if typing.TYPE_CHECKING:
         UpdateUserResponse,
         UpdateUserResponseMetadata,
         UpdateUserResponseTopModels,
-        UsersSearchRequestFilters,
-        UsersSearchResponse,
-        UsersSearchResponseResultsItem,
     )
 _dynamic_imports: typing.Dict[str, str] = {
+    "ListCustomersRequestFilters": ".types",
+    "ListCustomersResponse": ".types",
+    "ListCustomersResponseResultsItem": ".types",
     "RetrieveUserResponse": ".types",
     "RetrieveUserResponseBudgetDuration": ".types",
     "RetrieveUserResponseEnvironment": ".types",
@@ -26,9 +29,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "UpdateUserResponse": ".types",
     "UpdateUserResponseMetadata": ".types",
     "UpdateUserResponseTopModels": ".types",
-    "UsersSearchRequestFilters": ".types",
-    "UsersSearchResponse": ".types",
-    "UsersSearchResponseResultsItem": ".types",
 }
 
 
@@ -54,6 +54,9 @@ def __dir__():
 
 
 __all__ = [
+    "ListCustomersRequestFilters",
+    "ListCustomersResponse",
+    "ListCustomersResponseResultsItem",
     "RetrieveUserResponse",
     "RetrieveUserResponseBudgetDuration",
     "RetrieveUserResponseEnvironment",
@@ -61,7 +64,4 @@ __all__ = [
     "UpdateUserResponse",
     "UpdateUserResponseMetadata",
     "UpdateUserResponseTopModels",
-    "UsersSearchRequestFilters",
-    "UsersSearchResponse",
-    "UsersSearchResponseResultsItem",
 ]

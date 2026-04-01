@@ -4,18 +4,14 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .credit_transactions_list_response_results_item import CreditTransactionsListResponseResultsItem
+from .list_customers_response_results_item import ListCustomersResponseResultsItem
 
 
-class CreditTransactionsListResponse(UniversalBaseModel):
-    count: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Total transactions.
-    """
-
+class ListCustomersResponse(UniversalBaseModel):
+    count: typing.Optional[int] = None
     next: typing.Optional[str] = None
     previous: typing.Optional[str] = None
-    results: typing.Optional[typing.List[CreditTransactionsListResponseResultsItem]] = None
+    results: typing.Optional[typing.List[ListCustomersResponseResultsItem]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

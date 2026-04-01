@@ -35,10 +35,10 @@ if typing.TYPE_CHECKING:
     )
     from .ingest_traces_via_otlp_response import IngestTracesViaOtlpResponse
     from .ingest_traces_via_otlp_response_partial_success import IngestTracesViaOtlpResponsePartialSuccess
+    from .list_traces_request_operator import ListTracesRequestOperator
+    from .list_traces_response import ListTracesResponse
+    from .list_traces_response_results_item import ListTracesResponseResultsItem
     from .retrieve_traces_summary_response import RetrieveTracesSummaryResponse
-    from .traces_list_request_operator import TracesListRequestOperator
-    from .traces_list_response import TracesListResponse
-    from .traces_list_response_results_item import TracesListResponseResultsItem
 _dynamic_imports: typing.Dict[str, str] = {
     "BulkDeleteTracesResponse": ".bulk_delete_traces_response",
     "IngestTracesFromLogsRequestBodyItem": ".ingest_traces_from_logs_request_body_item",
@@ -55,10 +55,10 @@ _dynamic_imports: typing.Dict[str, str] = {
     "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemStatus": ".ingest_traces_via_otlp_request_resource_spans_item_scope_spans_item_spans_item_status",
     "IngestTracesViaOtlpResponse": ".ingest_traces_via_otlp_response",
     "IngestTracesViaOtlpResponsePartialSuccess": ".ingest_traces_via_otlp_response_partial_success",
+    "ListTracesRequestOperator": ".list_traces_request_operator",
+    "ListTracesResponse": ".list_traces_response",
+    "ListTracesResponseResultsItem": ".list_traces_response_results_item",
     "RetrieveTracesSummaryResponse": ".retrieve_traces_summary_response",
-    "TracesListRequestOperator": ".traces_list_request_operator",
-    "TracesListResponse": ".traces_list_response",
-    "TracesListResponseResultsItem": ".traces_list_response_results_item",
 }
 
 
@@ -99,8 +99,8 @@ __all__ = [
     "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemStatus",
     "IngestTracesViaOtlpResponse",
     "IngestTracesViaOtlpResponsePartialSuccess",
+    "ListTracesRequestOperator",
+    "ListTracesResponse",
+    "ListTracesResponseResultsItem",
     "RetrieveTracesSummaryResponse",
-    "TracesListRequestOperator",
-    "TracesListResponse",
-    "TracesListResponseResultsItem",
 ]

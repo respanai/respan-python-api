@@ -22,10 +22,10 @@ if typing.TYPE_CHECKING:
         IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemStatus,
         IngestTracesViaOtlpResponse,
         IngestTracesViaOtlpResponsePartialSuccess,
+        ListTracesRequestOperator,
+        ListTracesResponse,
+        ListTracesResponseResultsItem,
         RetrieveTracesSummaryResponse,
-        TracesListRequestOperator,
-        TracesListResponse,
-        TracesListResponseResultsItem,
     )
 _dynamic_imports: typing.Dict[str, str] = {
     "BulkDeleteTracesResponse": ".types",
@@ -43,10 +43,10 @@ _dynamic_imports: typing.Dict[str, str] = {
     "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemStatus": ".types",
     "IngestTracesViaOtlpResponse": ".types",
     "IngestTracesViaOtlpResponsePartialSuccess": ".types",
+    "ListTracesRequestOperator": ".types",
+    "ListTracesResponse": ".types",
+    "ListTracesResponseResultsItem": ".types",
     "RetrieveTracesSummaryResponse": ".types",
-    "TracesListRequestOperator": ".types",
-    "TracesListResponse": ".types",
-    "TracesListResponseResultsItem": ".types",
 }
 
 
@@ -87,8 +87,8 @@ __all__ = [
     "IngestTracesViaOtlpRequestResourceSpansItemScopeSpansItemSpansItemStatus",
     "IngestTracesViaOtlpResponse",
     "IngestTracesViaOtlpResponsePartialSuccess",
+    "ListTracesRequestOperator",
+    "ListTracesResponse",
+    "ListTracesResponseResultsItem",
     "RetrieveTracesSummaryResponse",
-    "TracesListRequestOperator",
-    "TracesListResponse",
-    "TracesListResponseResultsItem",
 ]

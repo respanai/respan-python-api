@@ -6,10 +6,10 @@ from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.pagination import AsyncPager, SyncPager
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawThreadsClient, RawThreadsClient
-from .types.threads_list_request_filters import ThreadsListRequestFilters
-from .types.threads_list_request_operator import ThreadsListRequestOperator
-from .types.threads_list_response import ThreadsListResponse
-from .types.threads_list_response_results_item import ThreadsListResponseResultsItem
+from .types.list_threads_request_filters import ListThreadsRequestFilters
+from .types.list_threads_request_operator import ListThreadsRequestOperator
+from .types.list_threads_response import ListThreadsResponse
+from .types.list_threads_response_results_item import ListThreadsResponseResultsItem
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -30,17 +30,17 @@ class ThreadsClient:
         """
         return self._raw_client
 
-    def list(
+    def list_threads(
         self,
         *,
         authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         environment: typing.Optional[str] = None,
-        filters: typing.Optional[ThreadsListRequestFilters] = OMIT,
-        operator: typing.Optional[ThreadsListRequestOperator] = OMIT,
+        filters: typing.Optional[ListThreadsRequestFilters] = OMIT,
+        operator: typing.Optional[ListThreadsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[ThreadsListResponseResultsItem, ThreadsListResponse]:
+    ) -> SyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
         Retrieve threads matching the specified filters with pagination.
 
@@ -58,10 +58,10 @@ class ThreadsClient:
         environment : typing.Optional[str]
             This is controlled by the API key. A prod API key creates prod threads, test key creates test threads.
 
-        filters : typing.Optional[ThreadsListRequestFilters]
+        filters : typing.Optional[ListThreadsRequestFilters]
             Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
 
-        operator : typing.Optional[ThreadsListRequestOperator]
+        operator : typing.Optional[ListThreadsRequestOperator]
             Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
@@ -69,7 +69,7 @@ class ThreadsClient:
 
         Returns
         -------
-        SyncPager[ThreadsListResponseResultsItem, ThreadsListResponse]
+        SyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]
             Paginated list of threads.
 
         Examples
@@ -77,7 +77,7 @@ class ThreadsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        response = client.threads.list(
+        response = client.threads.list_threads(
             authorization="Bearer sk_live_xxxxx",
         )
         for item in response:
@@ -86,7 +86,7 @@ class ThreadsClient:
         for page in response.iter_pages():
             yield page
         """
-        return self._raw_client.list(
+        return self._raw_client.list_threads(
             authorization=authorization,
             page=page,
             page_size=page_size,
@@ -112,17 +112,17 @@ class AsyncThreadsClient:
         """
         return self._raw_client
 
-    async def list(
+    async def list_threads(
         self,
         *,
         authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         environment: typing.Optional[str] = None,
-        filters: typing.Optional[ThreadsListRequestFilters] = OMIT,
-        operator: typing.Optional[ThreadsListRequestOperator] = OMIT,
+        filters: typing.Optional[ListThreadsRequestFilters] = OMIT,
+        operator: typing.Optional[ListThreadsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[ThreadsListResponseResultsItem, ThreadsListResponse]:
+    ) -> AsyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
         Retrieve threads matching the specified filters with pagination.
 
@@ -140,10 +140,10 @@ class AsyncThreadsClient:
         environment : typing.Optional[str]
             This is controlled by the API key. A prod API key creates prod threads, test key creates test threads.
 
-        filters : typing.Optional[ThreadsListRequestFilters]
+        filters : typing.Optional[ListThreadsRequestFilters]
             Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
 
-        operator : typing.Optional[ThreadsListRequestOperator]
+        operator : typing.Optional[ListThreadsRequestOperator]
             Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
@@ -151,7 +151,7 @@ class AsyncThreadsClient:
 
         Returns
         -------
-        AsyncPager[ThreadsListResponseResultsItem, ThreadsListResponse]
+        AsyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]
             Paginated list of threads.
 
         Examples
@@ -164,7 +164,7 @@ class AsyncThreadsClient:
 
 
         async def main() -> None:
-            response = await client.threads.list(
+            response = await client.threads.list_threads(
                 authorization="Bearer sk_live_xxxxx",
             )
             async for item in response:
@@ -177,7 +177,7 @@ class AsyncThreadsClient:
 
         asyncio.run(main())
         """
-        return await self._raw_client.list(
+        return await self._raw_client.list_threads(
             authorization=authorization,
             page=page,
             page_size=page_size,

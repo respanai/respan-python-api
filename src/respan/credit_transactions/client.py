@@ -6,9 +6,9 @@ from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.pagination import AsyncPager, SyncPager
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawCreditTransactionsClient, RawCreditTransactionsClient
-from .types.credit_transactions_list_response import CreditTransactionsListResponse
-from .types.credit_transactions_list_response_results_item import CreditTransactionsListResponseResultsItem
-from .types.credit_transactions_retrieve_response import CreditTransactionsRetrieveResponse
+from .types.list_credit_transactions_response import ListCreditTransactionsResponse
+from .types.list_credit_transactions_response_results_item import ListCreditTransactionsResponseResultsItem
+from .types.retrieve_credit_transaction_response import RetrieveCreditTransactionResponse
 
 
 class CreditTransactionsClient:
@@ -26,14 +26,14 @@ class CreditTransactionsClient:
         """
         return self._raw_client
 
-    def credit_transactions_list(
+    def list_credit_transactions(
         self,
         *,
         authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[CreditTransactionsListResponseResultsItem, CreditTransactionsListResponse]:
+    ) -> SyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
         """
         List credit transactions with pagination.
 
@@ -53,7 +53,7 @@ class CreditTransactionsClient:
 
         Returns
         -------
-        SyncPager[CreditTransactionsListResponseResultsItem, CreditTransactionsListResponse]
+        SyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]
             Paginated list of transactions.
 
         Examples
@@ -61,7 +61,7 @@ class CreditTransactionsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        response = client.credit_transactions.credit_transactions_list(
+        response = client.credit_transactions.list_credit_transactions(
             authorization="Bearer sk_live_xxxxx",
         )
         for item in response:
@@ -70,13 +70,13 @@ class CreditTransactionsClient:
         for page in response.iter_pages():
             yield page
         """
-        return self._raw_client.credit_transactions_list(
+        return self._raw_client.list_credit_transactions(
             authorization=authorization, page=page, page_size=page_size, request_options=request_options
         )
 
-    def credit_transactions_retrieve(
+    def retrieve_credit_transaction(
         self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> CreditTransactionsRetrieveResponse:
+    ) -> RetrieveCreditTransactionResponse:
         """
         Retrieve details of a specific credit transaction.
 
@@ -93,7 +93,7 @@ class CreditTransactionsClient:
 
         Returns
         -------
-        CreditTransactionsRetrieveResponse
+        RetrieveCreditTransactionResponse
             Transaction details.
 
         Examples
@@ -101,12 +101,12 @@ class CreditTransactionsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.credit_transactions.credit_transactions_retrieve(
+        client.credit_transactions.retrieve_credit_transaction(
             id="id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.credit_transactions_retrieve(
+        _response = self._raw_client.retrieve_credit_transaction(
             id, authorization=authorization, request_options=request_options
         )
         return _response.data
@@ -127,14 +127,14 @@ class AsyncCreditTransactionsClient:
         """
         return self._raw_client
 
-    async def credit_transactions_list(
+    async def list_credit_transactions(
         self,
         *,
         authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[CreditTransactionsListResponseResultsItem, CreditTransactionsListResponse]:
+    ) -> AsyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
         """
         List credit transactions with pagination.
 
@@ -154,7 +154,7 @@ class AsyncCreditTransactionsClient:
 
         Returns
         -------
-        AsyncPager[CreditTransactionsListResponseResultsItem, CreditTransactionsListResponse]
+        AsyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]
             Paginated list of transactions.
 
         Examples
@@ -167,7 +167,7 @@ class AsyncCreditTransactionsClient:
 
 
         async def main() -> None:
-            response = await client.credit_transactions.credit_transactions_list(
+            response = await client.credit_transactions.list_credit_transactions(
                 authorization="Bearer sk_live_xxxxx",
             )
             async for item in response:
@@ -180,13 +180,13 @@ class AsyncCreditTransactionsClient:
 
         asyncio.run(main())
         """
-        return await self._raw_client.credit_transactions_list(
+        return await self._raw_client.list_credit_transactions(
             authorization=authorization, page=page, page_size=page_size, request_options=request_options
         )
 
-    async def credit_transactions_retrieve(
+    async def retrieve_credit_transaction(
         self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> CreditTransactionsRetrieveResponse:
+    ) -> RetrieveCreditTransactionResponse:
         """
         Retrieve details of a specific credit transaction.
 
@@ -203,7 +203,7 @@ class AsyncCreditTransactionsClient:
 
         Returns
         -------
-        CreditTransactionsRetrieveResponse
+        RetrieveCreditTransactionResponse
             Transaction details.
 
         Examples
@@ -216,7 +216,7 @@ class AsyncCreditTransactionsClient:
 
 
         async def main() -> None:
-            await client.credit_transactions.credit_transactions_retrieve(
+            await client.credit_transactions.retrieve_credit_transaction(
                 id="id",
                 authorization="Bearer sk_live_xxxxx",
             )
@@ -224,7 +224,7 @@ class AsyncCreditTransactionsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.credit_transactions_retrieve(
+        _response = await self._raw_client.retrieve_credit_transaction(
             id, authorization=authorization, request_options=request_options
         )
         return _response.data

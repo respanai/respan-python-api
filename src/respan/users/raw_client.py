@@ -15,12 +15,12 @@ from ..errors.internal_server_error import InternalServerError
 from ..errors.not_found_error import NotFoundError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
+from .types.list_customers_request_filters import ListCustomersRequestFilters
+from .types.list_customers_response import ListCustomersResponse
+from .types.list_customers_response_results_item import ListCustomersResponseResultsItem
 from .types.retrieve_user_response import RetrieveUserResponse
 from .types.update_user_request_budget_duration import UpdateUserRequestBudgetDuration
 from .types.update_user_response import UpdateUserResponse
-from .types.users_search_request_filters import UsersSearchRequestFilters
-from .types.users_search_response import UsersSearchResponse
-from .types.users_search_response_results_item import UsersSearchResponseResultsItem
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -30,7 +30,7 @@ class RawUsersClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def search(
+    def list_customers(
         self,
         *,
         authorization: str,
@@ -38,9 +38,9 @@ class RawUsersClient:
         page_size: typing.Optional[float] = None,
         sort_by: typing.Optional[str] = None,
         environment: typing.Optional[str] = None,
-        filters: typing.Optional[UsersSearchRequestFilters] = OMIT,
+        filters: typing.Optional[ListCustomersRequestFilters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[UsersSearchResponseResultsItem, UsersSearchResponse]:
+    ) -> SyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
         Retrieve customers matching the specified filters with pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
 
@@ -61,7 +61,7 @@ class RawUsersClient:
         environment : typing.Optional[str]
             Filter by environment. Options: prod, test.
 
-        filters : typing.Optional[UsersSearchRequestFilters]
+        filters : typing.Optional[ListCustomersRequestFilters]
             Filter criteria.
 
         request_options : typing.Optional[RequestOptions]
@@ -69,7 +69,7 @@ class RawUsersClient:
 
         Returns
         -------
-        SyncPager[UsersSearchResponseResultsItem, UsersSearchResponse]
+        SyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]
             Successful response for List customers with filters
         """
         page = page if page is not None else 1
@@ -85,7 +85,7 @@ class RawUsersClient:
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=UsersSearchRequestFilters, direction="write"
+                    object_=filters, annotation=ListCustomersRequestFilters, direction="write"
                 ),
             },
             headers={
@@ -98,15 +98,15 @@ class RawUsersClient:
         try:
             if 200 <= _response.status_code < 300:
                 _parsed_response = typing.cast(
-                    UsersSearchResponse,
+                    ListCustomersResponse,
                     parse_obj_as(
-                        type_=UsersSearchResponse,  # type: ignore
+                        type_=ListCustomersResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 _items = _parsed_response.results
                 _has_next = True
-                _get_next = lambda: self.search(
+                _get_next = lambda: self.list_customers(
                     authorization=authorization,
                     page=page + 1,
                     page_size=page_size,
@@ -450,7 +450,7 @@ class AsyncRawUsersClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def search(
+    async def list_customers(
         self,
         *,
         authorization: str,
@@ -458,9 +458,9 @@ class AsyncRawUsersClient:
         page_size: typing.Optional[float] = None,
         sort_by: typing.Optional[str] = None,
         environment: typing.Optional[str] = None,
-        filters: typing.Optional[UsersSearchRequestFilters] = OMIT,
+        filters: typing.Optional[ListCustomersRequestFilters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[UsersSearchResponseResultsItem, UsersSearchResponse]:
+    ) -> AsyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
         Retrieve customers matching the specified filters with pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
 
@@ -481,7 +481,7 @@ class AsyncRawUsersClient:
         environment : typing.Optional[str]
             Filter by environment. Options: prod, test.
 
-        filters : typing.Optional[UsersSearchRequestFilters]
+        filters : typing.Optional[ListCustomersRequestFilters]
             Filter criteria.
 
         request_options : typing.Optional[RequestOptions]
@@ -489,7 +489,7 @@ class AsyncRawUsersClient:
 
         Returns
         -------
-        AsyncPager[UsersSearchResponseResultsItem, UsersSearchResponse]
+        AsyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]
             Successful response for List customers with filters
         """
         page = page if page is not None else 1
@@ -505,7 +505,7 @@ class AsyncRawUsersClient:
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=UsersSearchRequestFilters, direction="write"
+                    object_=filters, annotation=ListCustomersRequestFilters, direction="write"
                 ),
             },
             headers={
@@ -518,9 +518,9 @@ class AsyncRawUsersClient:
         try:
             if 200 <= _response.status_code < 300:
                 _parsed_response = typing.cast(
-                    UsersSearchResponse,
+                    ListCustomersResponse,
                     parse_obj_as(
-                        type_=UsersSearchResponse,  # type: ignore
+                        type_=ListCustomersResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -528,7 +528,7 @@ class AsyncRawUsersClient:
                 _has_next = True
 
                 async def _get_next():
-                    return await self.search(
+                    return await self.list_customers(
                         authorization=authorization,
                         page=page + 1,
                         page_size=page_size,

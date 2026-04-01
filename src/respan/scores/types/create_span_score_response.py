@@ -5,10 +5,10 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .log_scores_create_span_score_response_type import LogScoresCreateSpanScoreResponseType
+from .create_span_score_response_type import CreateSpanScoreResponseType
 
 
-class LogScoresCreateSpanScoreResponse(UniversalBaseModel):
+class CreateSpanScoreResponse(UniversalBaseModel):
     id: typing.Optional[str] = pydantic.Field(default=None)
     """
     Score ID.
@@ -19,7 +19,7 @@ class LogScoresCreateSpanScoreResponse(UniversalBaseModel):
     Creation timestamp.
     """
 
-    type: typing.Optional[LogScoresCreateSpanScoreResponseType] = pydantic.Field(default=None)
+    type: typing.Optional[CreateSpanScoreResponseType] = pydantic.Field(default=None)
     """
     Evaluator type.
     """

@@ -12,9 +12,9 @@ from .types.ingest_traces_from_logs_request_body_item import IngestTracesFromLog
 from .types.ingest_traces_from_logs_response import IngestTracesFromLogsResponse
 from .types.ingest_traces_via_otlp_request_resource_spans_item import IngestTracesViaOtlpRequestResourceSpansItem
 from .types.ingest_traces_via_otlp_response import IngestTracesViaOtlpResponse
+from .types.list_traces_request_operator import ListTracesRequestOperator
+from .types.list_traces_response import ListTracesResponse
 from .types.retrieve_traces_summary_response import RetrieveTracesSummaryResponse
-from .types.traces_list_request_operator import TracesListRequestOperator
-from .types.traces_list_response import TracesListResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -79,7 +79,7 @@ class TracesClient:
         )
         return _response.data
 
-    def list(
+    def list_traces(
         self,
         *,
         authorization: str,
@@ -90,9 +90,9 @@ class TracesClient:
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[TracesListRequestOperator] = OMIT,
+        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> TracesListResponse:
+    ) -> ListTracesResponse:
         """
         Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
 
@@ -121,7 +121,7 @@ class TracesClient:
 
         filters : typing.Optional[Filters]
 
-        operator : typing.Optional[TracesListRequestOperator]
+        operator : typing.Optional[ListTracesRequestOperator]
             Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
@@ -129,7 +129,7 @@ class TracesClient:
 
         Returns
         -------
-        TracesListResponse
+        ListTracesResponse
             Paginated list of traces.
 
         Examples
@@ -139,7 +139,7 @@ class TracesClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.traces.list(
+        client.traces.list_traces(
             authorization="Bearer sk_live_xxxxx",
             sort_by="-total_cost",
             start_time=datetime.datetime.fromisoformat(
@@ -151,7 +151,7 @@ class TracesClient:
             environment="production",
         )
         """
-        _response = self._raw_client.list(
+        _response = self._raw_client.list_traces(
             authorization=authorization,
             page=page,
             page_size=page_size,
@@ -525,7 +525,7 @@ class AsyncTracesClient:
         )
         return _response.data
 
-    async def list(
+    async def list_traces(
         self,
         *,
         authorization: str,
@@ -536,9 +536,9 @@ class AsyncTracesClient:
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[TracesListRequestOperator] = OMIT,
+        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> TracesListResponse:
+    ) -> ListTracesResponse:
         """
         Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
 
@@ -567,7 +567,7 @@ class AsyncTracesClient:
 
         filters : typing.Optional[Filters]
 
-        operator : typing.Optional[TracesListRequestOperator]
+        operator : typing.Optional[ListTracesRequestOperator]
             Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
@@ -575,7 +575,7 @@ class AsyncTracesClient:
 
         Returns
         -------
-        TracesListResponse
+        ListTracesResponse
             Paginated list of traces.
 
         Examples
@@ -589,7 +589,7 @@ class AsyncTracesClient:
 
 
         async def main() -> None:
-            await client.traces.list(
+            await client.traces.list_traces(
                 authorization="Bearer sk_live_xxxxx",
                 sort_by="-total_cost",
                 start_time=datetime.datetime.fromisoformat(
@@ -604,7 +604,7 @@ class AsyncTracesClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.list(
+        _response = await self._raw_client.list_traces(
             authorization=authorization,
             page=page,
             page_size=page_size,

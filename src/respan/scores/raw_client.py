@@ -14,9 +14,9 @@ from ..errors.not_found_error import NotFoundError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..types.conflict_error_body import ConflictErrorBody
 from .types.create_score_response import CreateScoreResponse
+from .types.create_span_score_response import CreateSpanScoreResponse
 from .types.list_scores_response import ListScoresResponse
 from .types.list_span_scores_response import ListSpanScoresResponse
-from .types.log_scores_create_span_score_response import LogScoresCreateSpanScoreResponse
 from .types.retrieve_score_response import RetrieveScoreResponse
 from .types.retrieve_span_score_response import RetrieveSpanScoreResponse
 from .types.update_score_response import UpdateScoreResponse
@@ -461,7 +461,7 @@ class RawScoresClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def log_scores_create_span_score(
+    def create_span_score(
         self,
         log_id: str,
         *,
@@ -473,7 +473,7 @@ class RawScoresClient:
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[LogScoresCreateSpanScoreResponse]:
+    ) -> HttpResponse[CreateSpanScoreResponse]:
         """
         Create a score for a specific span. Only one score per evaluator per span is allowed.
 
@@ -508,7 +508,7 @@ class RawScoresClient:
 
         Returns
         -------
-        HttpResponse[LogScoresCreateSpanScoreResponse]
+        HttpResponse[CreateSpanScoreResponse]
             Created score.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -532,9 +532,9 @@ class RawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    LogScoresCreateSpanScoreResponse,
+                    CreateSpanScoreResponse,
                     parse_obj_as(
-                        type_=LogScoresCreateSpanScoreResponse,  # type: ignore
+                        type_=CreateSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1244,7 +1244,7 @@ class AsyncRawScoresClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def log_scores_create_span_score(
+    async def create_span_score(
         self,
         log_id: str,
         *,
@@ -1256,7 +1256,7 @@ class AsyncRawScoresClient:
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[LogScoresCreateSpanScoreResponse]:
+    ) -> AsyncHttpResponse[CreateSpanScoreResponse]:
         """
         Create a score for a specific span. Only one score per evaluator per span is allowed.
 
@@ -1291,7 +1291,7 @@ class AsyncRawScoresClient:
 
         Returns
         -------
-        AsyncHttpResponse[LogScoresCreateSpanScoreResponse]
+        AsyncHttpResponse[CreateSpanScoreResponse]
             Created score.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -1315,9 +1315,9 @@ class AsyncRawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    LogScoresCreateSpanScoreResponse,
+                    CreateSpanScoreResponse,
                     parse_obj_as(
-                        type_=LogScoresCreateSpanScoreResponse,  # type: ignore
+                        type_=CreateSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )

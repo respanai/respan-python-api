@@ -7,16 +7,16 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
-        ThreadsListRequestFilters,
-        ThreadsListRequestOperator,
-        ThreadsListResponse,
-        ThreadsListResponseResultsItem,
+        ListThreadsRequestFilters,
+        ListThreadsRequestOperator,
+        ListThreadsResponse,
+        ListThreadsResponseResultsItem,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "ThreadsListRequestFilters": ".types",
-    "ThreadsListRequestOperator": ".types",
-    "ThreadsListResponse": ".types",
-    "ThreadsListResponseResultsItem": ".types",
+    "ListThreadsRequestFilters": ".types",
+    "ListThreadsRequestOperator": ".types",
+    "ListThreadsResponse": ".types",
+    "ListThreadsResponseResultsItem": ".types",
 }
 
 
@@ -42,8 +42,8 @@ def __dir__():
 
 
 __all__ = [
-    "ThreadsListRequestFilters",
-    "ThreadsListRequestOperator",
-    "ThreadsListResponse",
-    "ThreadsListResponseResultsItem",
+    "ListThreadsRequestFilters",
+    "ListThreadsRequestOperator",
+    "ListThreadsResponse",
+    "ListThreadsResponseResultsItem",
 ]

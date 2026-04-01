@@ -9,12 +9,12 @@ from .raw_client import AsyncRawDatasetsClient, RawDatasetsClient
 from .types.add_spans_to_dataset_response import AddSpansToDatasetResponse
 from .types.create_dataset_response import CreateDatasetResponse
 from .types.create_dataset_span_response import CreateDatasetSpanResponse
-from .types.datasets_list_spans_with_filters_response import DatasetsListSpansWithFiltersResponse
-from .types.datasets_retrieve_span_response import DatasetsRetrieveSpanResponse
 from .types.delete_spans_response import DeleteSpansResponse
+from .types.list_dataset_spans_response import ListDatasetSpansResponse
 from .types.list_datasets_response import ListDatasetsResponse
 from .types.list_eval_runs_response import ListEvalRunsResponse
 from .types.retrieve_dataset_response import RetrieveDatasetResponse
+from .types.retrieve_dataset_span_response import RetrieveDatasetSpanResponse
 from .types.run_eval_on_dataset_response import RunEvalOnDatasetResponse
 from .types.update_dataset_response import UpdateDatasetResponse
 from .types.update_span_partial_response import UpdateSpanPartialResponse
@@ -284,14 +284,14 @@ class DatasetsClient:
         )
         return _response.data
 
-    def listspanswithfilters(
+    def list_dataset_spans(
         self,
         dataset_id: str,
         *,
         authorization: str,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> DatasetsListSpansWithFiltersResponse:
+    ) -> ListDatasetSpansResponse:
         """
         List spans in a dataset with filters and pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
 
@@ -310,7 +310,7 @@ class DatasetsClient:
 
         Returns
         -------
-        DatasetsListSpansWithFiltersResponse
+        ListDatasetSpansResponse
             Paginated list of spans.
 
         Examples
@@ -318,12 +318,12 @@ class DatasetsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.datasets.listspanswithfilters(
+        client.datasets.list_dataset_spans(
             dataset_id="dataset_id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.listspanswithfilters(
+        _response = self._raw_client.list_dataset_spans(
             dataset_id, authorization=authorization, filters=filters, request_options=request_options
         )
         return _response.data
@@ -393,14 +393,14 @@ class DatasetsClient:
         )
         return _response.data
 
-    def retrievespan(
+    def retrieve_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> DatasetsRetrieveSpanResponse:
+    ) -> RetrieveDatasetSpanResponse:
         """
         Retrieve a single span from a dataset.
 
@@ -420,7 +420,7 @@ class DatasetsClient:
 
         Returns
         -------
-        DatasetsRetrieveSpanResponse
+        RetrieveDatasetSpanResponse
             Span details.
 
         Examples
@@ -428,13 +428,13 @@ class DatasetsClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.datasets.retrievespan(
+        client.datasets.retrieve_dataset_span(
             dataset_id="dataset_id",
             log_id="log_id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrievespan(
+        _response = self._raw_client.retrieve_dataset_span(
             dataset_id, log_id, authorization=authorization, request_options=request_options
         )
         return _response.data
@@ -1016,14 +1016,14 @@ class AsyncDatasetsClient:
         )
         return _response.data
 
-    async def listspanswithfilters(
+    async def list_dataset_spans(
         self,
         dataset_id: str,
         *,
         authorization: str,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> DatasetsListSpansWithFiltersResponse:
+    ) -> ListDatasetSpansResponse:
         """
         List spans in a dataset with filters and pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
 
@@ -1042,7 +1042,7 @@ class AsyncDatasetsClient:
 
         Returns
         -------
-        DatasetsListSpansWithFiltersResponse
+        ListDatasetSpansResponse
             Paginated list of spans.
 
         Examples
@@ -1055,7 +1055,7 @@ class AsyncDatasetsClient:
 
 
         async def main() -> None:
-            await client.datasets.listspanswithfilters(
+            await client.datasets.list_dataset_spans(
                 dataset_id="dataset_id",
                 authorization="Bearer sk_live_xxxxx",
             )
@@ -1063,7 +1063,7 @@ class AsyncDatasetsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.listspanswithfilters(
+        _response = await self._raw_client.list_dataset_spans(
             dataset_id, authorization=authorization, filters=filters, request_options=request_options
         )
         return _response.data
@@ -1141,14 +1141,14 @@ class AsyncDatasetsClient:
         )
         return _response.data
 
-    async def retrievespan(
+    async def retrieve_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> DatasetsRetrieveSpanResponse:
+    ) -> RetrieveDatasetSpanResponse:
         """
         Retrieve a single span from a dataset.
 
@@ -1168,7 +1168,7 @@ class AsyncDatasetsClient:
 
         Returns
         -------
-        DatasetsRetrieveSpanResponse
+        RetrieveDatasetSpanResponse
             Span details.
 
         Examples
@@ -1181,7 +1181,7 @@ class AsyncDatasetsClient:
 
 
         async def main() -> None:
-            await client.datasets.retrievespan(
+            await client.datasets.retrieve_dataset_span(
                 dataset_id="dataset_id",
                 log_id="log_id",
                 authorization="Bearer sk_live_xxxxx",
@@ -1190,7 +1190,7 @@ class AsyncDatasetsClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrievespan(
+        _response = await self._raw_client.retrieve_dataset_span(
             dataset_id, log_id, authorization=authorization, request_options=request_options
         )
         return _response.data

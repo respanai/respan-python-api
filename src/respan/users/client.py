@@ -6,12 +6,12 @@ from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.pagination import AsyncPager, SyncPager
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawUsersClient, RawUsersClient
+from .types.list_customers_request_filters import ListCustomersRequestFilters
+from .types.list_customers_response import ListCustomersResponse
+from .types.list_customers_response_results_item import ListCustomersResponseResultsItem
 from .types.retrieve_user_response import RetrieveUserResponse
 from .types.update_user_request_budget_duration import UpdateUserRequestBudgetDuration
 from .types.update_user_response import UpdateUserResponse
-from .types.users_search_request_filters import UsersSearchRequestFilters
-from .types.users_search_response import UsersSearchResponse
-from .types.users_search_response_results_item import UsersSearchResponseResultsItem
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -32,7 +32,7 @@ class UsersClient:
         """
         return self._raw_client
 
-    def search(
+    def list_customers(
         self,
         *,
         authorization: str,
@@ -40,9 +40,9 @@ class UsersClient:
         page_size: typing.Optional[float] = None,
         sort_by: typing.Optional[str] = None,
         environment: typing.Optional[str] = None,
-        filters: typing.Optional[UsersSearchRequestFilters] = OMIT,
+        filters: typing.Optional[ListCustomersRequestFilters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[UsersSearchResponseResultsItem, UsersSearchResponse]:
+    ) -> SyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
         Retrieve customers matching the specified filters with pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
 
@@ -63,7 +63,7 @@ class UsersClient:
         environment : typing.Optional[str]
             Filter by environment. Options: prod, test.
 
-        filters : typing.Optional[UsersSearchRequestFilters]
+        filters : typing.Optional[ListCustomersRequestFilters]
             Filter criteria.
 
         request_options : typing.Optional[RequestOptions]
@@ -71,7 +71,7 @@ class UsersClient:
 
         Returns
         -------
-        SyncPager[UsersSearchResponseResultsItem, UsersSearchResponse]
+        SyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]
             Successful response for List customers with filters
 
         Examples
@@ -79,7 +79,7 @@ class UsersClient:
         from respan import RespanClient
 
         client = RespanClient()
-        response = client.users.search(
+        response = client.users.list_customers(
             authorization="Bearer sk_live_xxxxx",
         )
         for item in response:
@@ -88,7 +88,7 @@ class UsersClient:
         for page in response.iter_pages():
             yield page
         """
-        return self._raw_client.search(
+        return self._raw_client.list_customers(
             authorization=authorization,
             page=page,
             page_size=page_size,
@@ -273,7 +273,7 @@ class AsyncUsersClient:
         """
         return self._raw_client
 
-    async def search(
+    async def list_customers(
         self,
         *,
         authorization: str,
@@ -281,9 +281,9 @@ class AsyncUsersClient:
         page_size: typing.Optional[float] = None,
         sort_by: typing.Optional[str] = None,
         environment: typing.Optional[str] = None,
-        filters: typing.Optional[UsersSearchRequestFilters] = OMIT,
+        filters: typing.Optional[ListCustomersRequestFilters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[UsersSearchResponseResultsItem, UsersSearchResponse]:
+    ) -> AsyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
         Retrieve customers matching the specified filters with pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
 
@@ -304,7 +304,7 @@ class AsyncUsersClient:
         environment : typing.Optional[str]
             Filter by environment. Options: prod, test.
 
-        filters : typing.Optional[UsersSearchRequestFilters]
+        filters : typing.Optional[ListCustomersRequestFilters]
             Filter criteria.
 
         request_options : typing.Optional[RequestOptions]
@@ -312,7 +312,7 @@ class AsyncUsersClient:
 
         Returns
         -------
-        AsyncPager[UsersSearchResponseResultsItem, UsersSearchResponse]
+        AsyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]
             Successful response for List customers with filters
 
         Examples
@@ -325,7 +325,7 @@ class AsyncUsersClient:
 
 
         async def main() -> None:
-            response = await client.users.search(
+            response = await client.users.list_customers(
                 authorization="Bearer sk_live_xxxxx",
             )
             async for item in response:
@@ -338,7 +338,7 @@ class AsyncUsersClient:
 
         asyncio.run(main())
         """
-        return await self._raw_client.search(
+        return await self._raw_client.list_customers(
             authorization=authorization,
             page=page,
             page_size=page_size,

@@ -4,17 +4,18 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from ...types.filter_value import FilterValue
+from .list_credit_transactions_response_results_item import ListCreditTransactionsResponseResultsItem
 
 
-class ThreadsListRequestFilters(UniversalBaseModel):
+class ListCreditTransactionsResponse(UniversalBaseModel):
+    count: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
+    Total transactions.
     """
 
-    thread_identifier: typing.Optional[FilterValue] = None
-    customer_identifier: typing.Optional[FilterValue] = None
-    organization_key_id: typing.Optional[FilterValue] = None
+    next: typing.Optional[str] = None
+    previous: typing.Optional[str] = None
+    results: typing.Optional[typing.List[ListCreditTransactionsResponseResultsItem]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

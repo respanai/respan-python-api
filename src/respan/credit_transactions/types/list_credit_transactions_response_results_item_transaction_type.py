@@ -2,6 +2,6 @@
 
 import typing
 
-CreditTransactionsRetrieveResponseTransactionType = typing.Union[
+ListCreditTransactionsResponseResultsItemTransactionType = typing.Union[
     typing.Literal["purchase", "grant", "adjustment", "refund", "bonus"], typing.Any
 ]

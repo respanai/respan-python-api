@@ -4,26 +4,26 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .threads_list_response_results_item import ThreadsListResponseResultsItem
+from .list_traces_response_results_item import ListTracesResponseResultsItem
 
 
-class ThreadsListResponse(UniversalBaseModel):
+class ListTracesResponse(UniversalBaseModel):
     count: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Total matching threads.
+    Total number of matching traces.
     """
 
     next: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Next page URL.
+    URL for the next page.
     """
 
     previous: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Previous page URL.
+    URL for the previous page.
     """
 
-    results: typing.Optional[typing.List[ThreadsListResponseResultsItem]] = None
+    results: typing.Optional[typing.List[ListTracesResponseResultsItem]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

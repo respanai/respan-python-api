@@ -8,14 +8,14 @@ from importlib import import_module
 if typing.TYPE_CHECKING:
     from .create_score_response import CreateScoreResponse
     from .create_score_response_type import CreateScoreResponseType
+    from .create_span_score_response import CreateSpanScoreResponse
+    from .create_span_score_response_type import CreateSpanScoreResponseType
     from .list_scores_response import ListScoresResponse
     from .list_scores_response_results_item import ListScoresResponseResultsItem
     from .list_scores_response_results_item_type import ListScoresResponseResultsItemType
     from .list_span_scores_response import ListSpanScoresResponse
     from .list_span_scores_response_results_item import ListSpanScoresResponseResultsItem
     from .list_span_scores_response_results_item_type import ListSpanScoresResponseResultsItemType
-    from .log_scores_create_span_score_response import LogScoresCreateSpanScoreResponse
-    from .log_scores_create_span_score_response_type import LogScoresCreateSpanScoreResponseType
     from .retrieve_score_response import RetrieveScoreResponse
     from .retrieve_score_response_type import RetrieveScoreResponseType
     from .retrieve_span_score_response import RetrieveSpanScoreResponse
@@ -27,14 +27,14 @@ if typing.TYPE_CHECKING:
 _dynamic_imports: typing.Dict[str, str] = {
     "CreateScoreResponse": ".create_score_response",
     "CreateScoreResponseType": ".create_score_response_type",
+    "CreateSpanScoreResponse": ".create_span_score_response",
+    "CreateSpanScoreResponseType": ".create_span_score_response_type",
     "ListScoresResponse": ".list_scores_response",
     "ListScoresResponseResultsItem": ".list_scores_response_results_item",
     "ListScoresResponseResultsItemType": ".list_scores_response_results_item_type",
     "ListSpanScoresResponse": ".list_span_scores_response",
     "ListSpanScoresResponseResultsItem": ".list_span_scores_response_results_item",
     "ListSpanScoresResponseResultsItemType": ".list_span_scores_response_results_item_type",
-    "LogScoresCreateSpanScoreResponse": ".log_scores_create_span_score_response",
-    "LogScoresCreateSpanScoreResponseType": ".log_scores_create_span_score_response_type",
     "RetrieveScoreResponse": ".retrieve_score_response",
     "RetrieveScoreResponseType": ".retrieve_score_response_type",
     "RetrieveSpanScoreResponse": ".retrieve_span_score_response",
@@ -70,14 +70,14 @@ def __dir__():
 __all__ = [
     "CreateScoreResponse",
     "CreateScoreResponseType",
+    "CreateSpanScoreResponse",
+    "CreateSpanScoreResponseType",
     "ListScoresResponse",
     "ListScoresResponseResultsItem",
     "ListScoresResponseResultsItemType",
     "ListSpanScoresResponse",
     "ListSpanScoresResponseResultsItem",
     "ListSpanScoresResponseResultsItemType",
-    "LogScoresCreateSpanScoreResponse",
-    "LogScoresCreateSpanScoreResponseType",
     "RetrieveScoreResponse",
     "RetrieveScoreResponseType",
     "RetrieveSpanScoreResponse",

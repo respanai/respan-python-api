@@ -4,26 +4,28 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .traces_list_response_results_item import TracesListResponseResultsItem
 
 
-class TracesListResponse(UniversalBaseModel):
+class ListDatasetSpansResponse(UniversalBaseModel):
     count: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Total number of matching traces.
+    Total matching spans.
     """
 
     next: typing.Optional[str] = pydantic.Field(default=None)
     """
-    URL for the next page.
+    Next page URL.
     """
 
     previous: typing.Optional[str] = pydantic.Field(default=None)
     """
-    URL for the previous page.
+    Previous page URL.
     """
 
-    results: typing.Optional[typing.List[TracesListResponseResultsItem]] = None
+    results: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = pydantic.Field(default=None)
+    """
+    Array of span objects.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

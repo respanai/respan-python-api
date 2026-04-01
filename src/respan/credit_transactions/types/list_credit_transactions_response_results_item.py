@@ -5,12 +5,12 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .credit_transactions_list_response_results_item_transaction_type import (
-    CreditTransactionsListResponseResultsItemTransactionType,
+from .list_credit_transactions_response_results_item_transaction_type import (
+    ListCreditTransactionsResponseResultsItemTransactionType,
 )
 
 
-class CreditTransactionsListResponseResultsItem(UniversalBaseModel):
+class ListCreditTransactionsResponseResultsItem(UniversalBaseModel):
     id: typing.Optional[str] = pydantic.Field(default=None)
     """
     Transaction ID.
@@ -31,7 +31,7 @@ class CreditTransactionsListResponseResultsItem(UniversalBaseModel):
     Transaction amount in USD. Negative for deductions.
     """
 
-    transaction_type: typing.Optional[CreditTransactionsListResponseResultsItemTransactionType] = pydantic.Field(
+    transaction_type: typing.Optional[ListCreditTransactionsResponseResultsItemTransactionType] = pydantic.Field(
         default=None
     )
     """

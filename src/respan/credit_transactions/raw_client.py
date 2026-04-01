@@ -12,23 +12,23 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..errors.not_found_error import NotFoundError
 from ..errors.unauthorized_error import UnauthorizedError
-from .types.credit_transactions_list_response import CreditTransactionsListResponse
-from .types.credit_transactions_list_response_results_item import CreditTransactionsListResponseResultsItem
-from .types.credit_transactions_retrieve_response import CreditTransactionsRetrieveResponse
+from .types.list_credit_transactions_response import ListCreditTransactionsResponse
+from .types.list_credit_transactions_response_results_item import ListCreditTransactionsResponseResultsItem
+from .types.retrieve_credit_transaction_response import RetrieveCreditTransactionResponse
 
 
 class RawCreditTransactionsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def credit_transactions_list(
+    def list_credit_transactions(
         self,
         *,
         authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[CreditTransactionsListResponseResultsItem, CreditTransactionsListResponse]:
+    ) -> SyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
         """
         List credit transactions with pagination.
 
@@ -48,7 +48,7 @@ class RawCreditTransactionsClient:
 
         Returns
         -------
-        SyncPager[CreditTransactionsListResponseResultsItem, CreditTransactionsListResponse]
+        SyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]
             Paginated list of transactions.
         """
         page = page if page is not None else 1
@@ -68,15 +68,15 @@ class RawCreditTransactionsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _parsed_response = typing.cast(
-                    CreditTransactionsListResponse,
+                    ListCreditTransactionsResponse,
                     parse_obj_as(
-                        type_=CreditTransactionsListResponse,  # type: ignore
+                        type_=ListCreditTransactionsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 _items = _parsed_response.results
                 _has_next = True
-                _get_next = lambda: self.credit_transactions_list(
+                _get_next = lambda: self.list_credit_transactions(
                     authorization=authorization,
                     page=page + 1,
                     page_size=page_size,
@@ -99,9 +99,9 @@ class RawCreditTransactionsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def credit_transactions_retrieve(
+    def retrieve_credit_transaction(
         self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[CreditTransactionsRetrieveResponse]:
+    ) -> HttpResponse[RetrieveCreditTransactionResponse]:
         """
         Retrieve details of a specific credit transaction.
 
@@ -118,7 +118,7 @@ class RawCreditTransactionsClient:
 
         Returns
         -------
-        HttpResponse[CreditTransactionsRetrieveResponse]
+        HttpResponse[RetrieveCreditTransactionResponse]
             Transaction details.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -132,9 +132,9 @@ class RawCreditTransactionsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CreditTransactionsRetrieveResponse,
+                    RetrieveCreditTransactionResponse,
                     parse_obj_as(
-                        type_=CreditTransactionsRetrieveResponse,  # type: ignore
+                        type_=RetrieveCreditTransactionResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -171,14 +171,14 @@ class AsyncRawCreditTransactionsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def credit_transactions_list(
+    async def list_credit_transactions(
         self,
         *,
         authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[CreditTransactionsListResponseResultsItem, CreditTransactionsListResponse]:
+    ) -> AsyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
         """
         List credit transactions with pagination.
 
@@ -198,7 +198,7 @@ class AsyncRawCreditTransactionsClient:
 
         Returns
         -------
-        AsyncPager[CreditTransactionsListResponseResultsItem, CreditTransactionsListResponse]
+        AsyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]
             Paginated list of transactions.
         """
         page = page if page is not None else 1
@@ -218,9 +218,9 @@ class AsyncRawCreditTransactionsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _parsed_response = typing.cast(
-                    CreditTransactionsListResponse,
+                    ListCreditTransactionsResponse,
                     parse_obj_as(
-                        type_=CreditTransactionsListResponse,  # type: ignore
+                        type_=ListCreditTransactionsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -228,7 +228,7 @@ class AsyncRawCreditTransactionsClient:
                 _has_next = True
 
                 async def _get_next():
-                    return await self.credit_transactions_list(
+                    return await self.list_credit_transactions(
                         authorization=authorization,
                         page=page + 1,
                         page_size=page_size,
@@ -252,9 +252,9 @@ class AsyncRawCreditTransactionsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def credit_transactions_retrieve(
+    async def retrieve_credit_transaction(
         self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[CreditTransactionsRetrieveResponse]:
+    ) -> AsyncHttpResponse[RetrieveCreditTransactionResponse]:
         """
         Retrieve details of a specific credit transaction.
 
@@ -271,7 +271,7 @@ class AsyncRawCreditTransactionsClient:
 
         Returns
         -------
-        AsyncHttpResponse[CreditTransactionsRetrieveResponse]
+        AsyncHttpResponse[RetrieveCreditTransactionResponse]
             Transaction details.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -285,9 +285,9 @@ class AsyncRawCreditTransactionsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CreditTransactionsRetrieveResponse,
+                    RetrieveCreditTransactionResponse,
                     parse_obj_as(
-                        type_=CreditTransactionsRetrieveResponse,  # type: ignore
+                        type_=RetrieveCreditTransactionResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )

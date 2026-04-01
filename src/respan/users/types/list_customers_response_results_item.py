@@ -6,7 +6,7 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class UsersSearchResponseResultsItem(UniversalBaseModel):
+class ListCustomersResponseResultsItem(UniversalBaseModel):
     id: typing.Optional[str] = None
     unique_organization_id: typing.Optional[str] = None
     customer_identifier: typing.Optional[str] = None

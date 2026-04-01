@@ -7,18 +7,18 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
-        CreditTransactionsListResponse,
-        CreditTransactionsListResponseResultsItem,
-        CreditTransactionsListResponseResultsItemTransactionType,
-        CreditTransactionsRetrieveResponse,
-        CreditTransactionsRetrieveResponseTransactionType,
+        ListCreditTransactionsResponse,
+        ListCreditTransactionsResponseResultsItem,
+        ListCreditTransactionsResponseResultsItemTransactionType,
+        RetrieveCreditTransactionResponse,
+        RetrieveCreditTransactionResponseTransactionType,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreditTransactionsListResponse": ".types",
-    "CreditTransactionsListResponseResultsItem": ".types",
-    "CreditTransactionsListResponseResultsItemTransactionType": ".types",
-    "CreditTransactionsRetrieveResponse": ".types",
-    "CreditTransactionsRetrieveResponseTransactionType": ".types",
+    "ListCreditTransactionsResponse": ".types",
+    "ListCreditTransactionsResponseResultsItem": ".types",
+    "ListCreditTransactionsResponseResultsItemTransactionType": ".types",
+    "RetrieveCreditTransactionResponse": ".types",
+    "RetrieveCreditTransactionResponseTransactionType": ".types",
 }
 
 
@@ -44,9 +44,9 @@ def __dir__():
 
 
 __all__ = [
-    "CreditTransactionsListResponse",
-    "CreditTransactionsListResponseResultsItem",
-    "CreditTransactionsListResponseResultsItemTransactionType",
-    "CreditTransactionsRetrieveResponse",
-    "CreditTransactionsRetrieveResponseTransactionType",
+    "ListCreditTransactionsResponse",
+    "ListCreditTransactionsResponseResultsItem",
+    "ListCreditTransactionsResponseResultsItemTransactionType",
+    "RetrieveCreditTransactionResponse",
+    "RetrieveCreditTransactionResponseTransactionType",
 ]

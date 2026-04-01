@@ -6,6 +6,9 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
+    from .list_customers_request_filters import ListCustomersRequestFilters
+    from .list_customers_response import ListCustomersResponse
+    from .list_customers_response_results_item import ListCustomersResponseResultsItem
     from .retrieve_user_response import RetrieveUserResponse
     from .retrieve_user_response_budget_duration import RetrieveUserResponseBudgetDuration
     from .retrieve_user_response_environment import RetrieveUserResponseEnvironment
@@ -13,10 +16,10 @@ if typing.TYPE_CHECKING:
     from .update_user_response import UpdateUserResponse
     from .update_user_response_metadata import UpdateUserResponseMetadata
     from .update_user_response_top_models import UpdateUserResponseTopModels
-    from .users_search_request_filters import UsersSearchRequestFilters
-    from .users_search_response import UsersSearchResponse
-    from .users_search_response_results_item import UsersSearchResponseResultsItem
 _dynamic_imports: typing.Dict[str, str] = {
+    "ListCustomersRequestFilters": ".list_customers_request_filters",
+    "ListCustomersResponse": ".list_customers_response",
+    "ListCustomersResponseResultsItem": ".list_customers_response_results_item",
     "RetrieveUserResponse": ".retrieve_user_response",
     "RetrieveUserResponseBudgetDuration": ".retrieve_user_response_budget_duration",
     "RetrieveUserResponseEnvironment": ".retrieve_user_response_environment",
@@ -24,9 +27,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "UpdateUserResponse": ".update_user_response",
     "UpdateUserResponseMetadata": ".update_user_response_metadata",
     "UpdateUserResponseTopModels": ".update_user_response_top_models",
-    "UsersSearchRequestFilters": ".users_search_request_filters",
-    "UsersSearchResponse": ".users_search_response",
-    "UsersSearchResponseResultsItem": ".users_search_response_results_item",
 }
 
 
@@ -52,6 +52,9 @@ def __dir__():
 
 
 __all__ = [
+    "ListCustomersRequestFilters",
+    "ListCustomersResponse",
+    "ListCustomersResponseResultsItem",
     "RetrieveUserResponse",
     "RetrieveUserResponseBudgetDuration",
     "RetrieveUserResponseEnvironment",
@@ -59,7 +62,4 @@ __all__ = [
     "UpdateUserResponse",
     "UpdateUserResponseMetadata",
     "UpdateUserResponseTopModels",
-    "UsersSearchRequestFilters",
-    "UsersSearchResponse",
-    "UsersSearchResponseResultsItem",
 ]

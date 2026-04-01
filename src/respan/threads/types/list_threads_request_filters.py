@@ -7,17 +7,14 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 from ...types.filter_value import FilterValue
 
 
-class UsersSearchRequestFilters(UniversalBaseModel):
+class ListThreadsRequestFilters(UniversalBaseModel):
     """
-    Filter criteria.
+    Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
     """
 
+    thread_identifier: typing.Optional[FilterValue] = None
     customer_identifier: typing.Optional[FilterValue] = None
-    email: typing.Optional[FilterValue] = None
-    name: typing.Optional[FilterValue] = None
-    total_cost: typing.Optional[FilterValue] = None
-    total_tokens: typing.Optional[FilterValue] = None
-    active_last_day: typing.Optional[FilterValue] = None
+    organization_key_id: typing.Optional[FilterValue] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

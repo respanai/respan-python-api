@@ -4,14 +4,20 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .users_search_response_results_item import UsersSearchResponseResultsItem
+from ...types.filter_value import FilterValue
 
 
-class UsersSearchResponse(UniversalBaseModel):
-    count: typing.Optional[int] = None
-    next: typing.Optional[str] = None
-    previous: typing.Optional[str] = None
-    results: typing.Optional[typing.List[UsersSearchResponseResultsItem]] = None
+class ListCustomersRequestFilters(UniversalBaseModel):
+    """
+    Filter criteria.
+    """
+
+    customer_identifier: typing.Optional[FilterValue] = None
+    email: typing.Optional[FilterValue] = None
+    name: typing.Optional[FilterValue] = None
+    total_cost: typing.Optional[FilterValue] = None
+    total_tokens: typing.Optional[FilterValue] = None
+    active_last_day: typing.Optional[FilterValue] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

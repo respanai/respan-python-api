@@ -23,9 +23,9 @@ from .types.ingest_traces_from_logs_request_body_item import IngestTracesFromLog
 from .types.ingest_traces_from_logs_response import IngestTracesFromLogsResponse
 from .types.ingest_traces_via_otlp_request_resource_spans_item import IngestTracesViaOtlpRequestResourceSpansItem
 from .types.ingest_traces_via_otlp_response import IngestTracesViaOtlpResponse
+from .types.list_traces_request_operator import ListTracesRequestOperator
+from .types.list_traces_response import ListTracesResponse
 from .types.retrieve_traces_summary_response import RetrieveTracesSummaryResponse
-from .types.traces_list_request_operator import TracesListRequestOperator
-from .types.traces_list_response import TracesListResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -117,7 +117,7 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def list(
+    def list_traces(
         self,
         *,
         authorization: str,
@@ -128,9 +128,9 @@ class RawTracesClient:
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[TracesListRequestOperator] = OMIT,
+        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[TracesListResponse]:
+    ) -> HttpResponse[ListTracesResponse]:
         """
         Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
 
@@ -159,7 +159,7 @@ class RawTracesClient:
 
         filters : typing.Optional[Filters]
 
-        operator : typing.Optional[TracesListRequestOperator]
+        operator : typing.Optional[ListTracesRequestOperator]
             Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
@@ -167,7 +167,7 @@ class RawTracesClient:
 
         Returns
         -------
-        HttpResponse[TracesListResponse]
+        HttpResponse[ListTracesResponse]
             Paginated list of traces.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -197,9 +197,9 @@ class RawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    TracesListResponse,
+                    ListTracesResponse,
                     parse_obj_as(
-                        type_=TracesListResponse,  # type: ignore
+                        type_=ListTracesResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -865,7 +865,7 @@ class AsyncRawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def list(
+    async def list_traces(
         self,
         *,
         authorization: str,
@@ -876,9 +876,9 @@ class AsyncRawTracesClient:
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[TracesListRequestOperator] = OMIT,
+        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[TracesListResponse]:
+    ) -> AsyncHttpResponse[ListTracesResponse]:
         """
         Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference) for filter syntax.
 
@@ -907,7 +907,7 @@ class AsyncRawTracesClient:
 
         filters : typing.Optional[Filters]
 
-        operator : typing.Optional[TracesListRequestOperator]
+        operator : typing.Optional[ListTracesRequestOperator]
             Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
@@ -915,7 +915,7 @@ class AsyncRawTracesClient:
 
         Returns
         -------
-        AsyncHttpResponse[TracesListResponse]
+        AsyncHttpResponse[ListTracesResponse]
             Paginated list of traces.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -945,9 +945,9 @@ class AsyncRawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    TracesListResponse,
+                    ListTracesResponse,
                     parse_obj_as(
-                        type_=TracesListResponse,  # type: ignore
+                        type_=ListTracesResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )

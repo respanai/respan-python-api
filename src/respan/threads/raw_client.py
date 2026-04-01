@@ -10,10 +10,10 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.unauthorized_error import UnauthorizedError
-from .types.threads_list_request_filters import ThreadsListRequestFilters
-from .types.threads_list_request_operator import ThreadsListRequestOperator
-from .types.threads_list_response import ThreadsListResponse
-from .types.threads_list_response_results_item import ThreadsListResponseResultsItem
+from .types.list_threads_request_filters import ListThreadsRequestFilters
+from .types.list_threads_request_operator import ListThreadsRequestOperator
+from .types.list_threads_response import ListThreadsResponse
+from .types.list_threads_response_results_item import ListThreadsResponseResultsItem
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -23,17 +23,17 @@ class RawThreadsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def list(
+    def list_threads(
         self,
         *,
         authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         environment: typing.Optional[str] = None,
-        filters: typing.Optional[ThreadsListRequestFilters] = OMIT,
-        operator: typing.Optional[ThreadsListRequestOperator] = OMIT,
+        filters: typing.Optional[ListThreadsRequestFilters] = OMIT,
+        operator: typing.Optional[ListThreadsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[ThreadsListResponseResultsItem, ThreadsListResponse]:
+    ) -> SyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
         Retrieve threads matching the specified filters with pagination.
 
@@ -51,10 +51,10 @@ class RawThreadsClient:
         environment : typing.Optional[str]
             This is controlled by the API key. A prod API key creates prod threads, test key creates test threads.
 
-        filters : typing.Optional[ThreadsListRequestFilters]
+        filters : typing.Optional[ListThreadsRequestFilters]
             Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
 
-        operator : typing.Optional[ThreadsListRequestOperator]
+        operator : typing.Optional[ListThreadsRequestOperator]
             Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
@@ -62,7 +62,7 @@ class RawThreadsClient:
 
         Returns
         -------
-        SyncPager[ThreadsListResponseResultsItem, ThreadsListResponse]
+        SyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]
             Paginated list of threads.
         """
         page = page if page is not None else 1
@@ -77,7 +77,7 @@ class RawThreadsClient:
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=ThreadsListRequestFilters, direction="write"
+                    object_=filters, annotation=ListThreadsRequestFilters, direction="write"
                 ),
                 "operator": operator,
             },
@@ -91,15 +91,15 @@ class RawThreadsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _parsed_response = typing.cast(
-                    ThreadsListResponse,
+                    ListThreadsResponse,
                     parse_obj_as(
-                        type_=ThreadsListResponse,  # type: ignore
+                        type_=ListThreadsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 _items = _parsed_response.results
                 _has_next = True
-                _get_next = lambda: self.list(
+                _get_next = lambda: self.list_threads(
                     authorization=authorization,
                     page=page + 1,
                     page_size=page_size,
@@ -130,17 +130,17 @@ class AsyncRawThreadsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def list(
+    async def list_threads(
         self,
         *,
         authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         environment: typing.Optional[str] = None,
-        filters: typing.Optional[ThreadsListRequestFilters] = OMIT,
-        operator: typing.Optional[ThreadsListRequestOperator] = OMIT,
+        filters: typing.Optional[ListThreadsRequestFilters] = OMIT,
+        operator: typing.Optional[ListThreadsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[ThreadsListResponseResultsItem, ThreadsListResponse]:
+    ) -> AsyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
         Retrieve threads matching the specified filters with pagination.
 
@@ -158,10 +158,10 @@ class AsyncRawThreadsClient:
         environment : typing.Optional[str]
             This is controlled by the API key. A prod API key creates prod threads, test key creates test threads.
 
-        filters : typing.Optional[ThreadsListRequestFilters]
+        filters : typing.Optional[ListThreadsRequestFilters]
             Filter criteria. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
 
-        operator : typing.Optional[ThreadsListRequestOperator]
+        operator : typing.Optional[ListThreadsRequestOperator]
             Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
@@ -169,7 +169,7 @@ class AsyncRawThreadsClient:
 
         Returns
         -------
-        AsyncPager[ThreadsListResponseResultsItem, ThreadsListResponse]
+        AsyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]
             Paginated list of threads.
         """
         page = page if page is not None else 1
@@ -184,7 +184,7 @@ class AsyncRawThreadsClient:
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=ThreadsListRequestFilters, direction="write"
+                    object_=filters, annotation=ListThreadsRequestFilters, direction="write"
                 ),
                 "operator": operator,
             },
@@ -198,9 +198,9 @@ class AsyncRawThreadsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _parsed_response = typing.cast(
-                    ThreadsListResponse,
+                    ListThreadsResponse,
                     parse_obj_as(
-                        type_=ThreadsListResponse,  # type: ignore
+                        type_=ListThreadsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -208,7 +208,7 @@ class AsyncRawThreadsClient:
                 _has_next = True
 
                 async def _get_next():
-                    return await self.list(
+                    return await self.list_threads(
                         authorization=authorization,
                         page=page + 1,
                         page_size=page_size,

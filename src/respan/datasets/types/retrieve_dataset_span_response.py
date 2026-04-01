@@ -6,7 +6,7 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class DatasetsRetrieveSpanResponse(UniversalBaseModel):
+class RetrieveDatasetSpanResponse(UniversalBaseModel):
     unique_id: typing.Optional[str] = pydantic.Field(default=None)
     """
     Span ID.

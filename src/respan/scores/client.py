@@ -6,9 +6,9 @@ from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawScoresClient, RawScoresClient
 from .types.create_score_response import CreateScoreResponse
+from .types.create_span_score_response import CreateSpanScoreResponse
 from .types.list_scores_response import ListScoresResponse
 from .types.list_span_scores_response import ListSpanScoresResponse
-from .types.log_scores_create_span_score_response import LogScoresCreateSpanScoreResponse
 from .types.retrieve_score_response import RetrieveScoreResponse
 from .types.retrieve_span_score_response import RetrieveSpanScoreResponse
 from .types.update_score_response import UpdateScoreResponse
@@ -300,7 +300,7 @@ class ScoresClient:
         )
         return _response.data
 
-    def log_scores_create_span_score(
+    def create_span_score(
         self,
         log_id: str,
         *,
@@ -312,7 +312,7 @@ class ScoresClient:
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> LogScoresCreateSpanScoreResponse:
+    ) -> CreateSpanScoreResponse:
         """
         Create a score for a specific span. Only one score per evaluator per span is allowed.
 
@@ -347,7 +347,7 @@ class ScoresClient:
 
         Returns
         -------
-        LogScoresCreateSpanScoreResponse
+        CreateSpanScoreResponse
             Created score.
 
         Examples
@@ -355,12 +355,12 @@ class ScoresClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.scores.log_scores_create_span_score(
+        client.scores.create_span_score(
             log_id="log_id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.log_scores_create_span_score(
+        _response = self._raw_client.create_span_score(
             log_id,
             authorization=authorization,
             evaluator_id=evaluator_id,
@@ -858,7 +858,7 @@ class AsyncScoresClient:
         )
         return _response.data
 
-    async def log_scores_create_span_score(
+    async def create_span_score(
         self,
         log_id: str,
         *,
@@ -870,7 +870,7 @@ class AsyncScoresClient:
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> LogScoresCreateSpanScoreResponse:
+    ) -> CreateSpanScoreResponse:
         """
         Create a score for a specific span. Only one score per evaluator per span is allowed.
 
@@ -905,7 +905,7 @@ class AsyncScoresClient:
 
         Returns
         -------
-        LogScoresCreateSpanScoreResponse
+        CreateSpanScoreResponse
             Created score.
 
         Examples
@@ -918,7 +918,7 @@ class AsyncScoresClient:
 
 
         async def main() -> None:
-            await client.scores.log_scores_create_span_score(
+            await client.scores.create_span_score(
                 log_id="log_id",
                 authorization="Bearer sk_live_xxxxx",
             )
@@ -926,7 +926,7 @@ class AsyncScoresClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.log_scores_create_span_score(
+        _response = await self._raw_client.create_span_score(
             log_id,
             authorization=authorization,
             evaluator_id=evaluator_id,

@@ -4,23 +4,26 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .list_threads_response_results_item import ListThreadsResponseResultsItem
 
 
-class ThreadsListResponseResultsItem(UniversalBaseModel):
-    thread_identifier: typing.Optional[str] = pydantic.Field(default=None)
+class ListThreadsResponse(UniversalBaseModel):
+    count: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Thread ID.
-    """
-
-    environment: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Environment.
+    Total matching threads.
     """
 
-    log_count: typing.Optional[int] = pydantic.Field(default=None)
+    next: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Number of spans in this thread.
+    Next page URL.
     """
+
+    previous: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Previous page URL.
+    """
+
+    results: typing.Optional[typing.List[ListThreadsResponseResultsItem]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

@@ -13,9 +13,8 @@ if typing.TYPE_CHECKING:
     from .create_dataset_response_status import CreateDatasetResponseStatus
     from .create_dataset_span_response import CreateDatasetSpanResponse
     from .create_dataset_span_response_log_data import CreateDatasetSpanResponseLogData
-    from .datasets_list_spans_with_filters_response import DatasetsListSpansWithFiltersResponse
-    from .datasets_retrieve_span_response import DatasetsRetrieveSpanResponse
     from .delete_spans_response import DeleteSpansResponse
+    from .list_dataset_spans_response import ListDatasetSpansResponse
     from .list_datasets_response import ListDatasetsResponse
     from .list_datasets_response_results_item import ListDatasetsResponseResultsItem
     from .list_eval_runs_response import ListEvalRunsResponse
@@ -26,6 +25,7 @@ if typing.TYPE_CHECKING:
     from .retrieve_dataset_response_initial_log_filters_status_code import (
         RetrieveDatasetResponseInitialLogFiltersStatusCode,
     )
+    from .retrieve_dataset_span_response import RetrieveDatasetSpanResponse
     from .run_eval_on_dataset_response import RunEvalOnDatasetResponse
     from .run_eval_on_dataset_response_status import RunEvalOnDatasetResponseStatus
     from .update_dataset_response import UpdateDatasetResponse
@@ -39,9 +39,8 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateDatasetResponseStatus": ".create_dataset_response_status",
     "CreateDatasetSpanResponse": ".create_dataset_span_response",
     "CreateDatasetSpanResponseLogData": ".create_dataset_span_response_log_data",
-    "DatasetsListSpansWithFiltersResponse": ".datasets_list_spans_with_filters_response",
-    "DatasetsRetrieveSpanResponse": ".datasets_retrieve_span_response",
     "DeleteSpansResponse": ".delete_spans_response",
+    "ListDatasetSpansResponse": ".list_dataset_spans_response",
     "ListDatasetsResponse": ".list_datasets_response",
     "ListDatasetsResponseResultsItem": ".list_datasets_response_results_item",
     "ListEvalRunsResponse": ".list_eval_runs_response",
@@ -50,6 +49,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "RetrieveDatasetResponse": ".retrieve_dataset_response",
     "RetrieveDatasetResponseInitialLogFilters": ".retrieve_dataset_response_initial_log_filters",
     "RetrieveDatasetResponseInitialLogFiltersStatusCode": ".retrieve_dataset_response_initial_log_filters_status_code",
+    "RetrieveDatasetSpanResponse": ".retrieve_dataset_span_response",
     "RunEvalOnDatasetResponse": ".run_eval_on_dataset_response",
     "RunEvalOnDatasetResponseStatus": ".run_eval_on_dataset_response_status",
     "UpdateDatasetResponse": ".update_dataset_response",
@@ -87,9 +87,8 @@ __all__ = [
     "CreateDatasetResponseStatus",
     "CreateDatasetSpanResponse",
     "CreateDatasetSpanResponseLogData",
-    "DatasetsListSpansWithFiltersResponse",
-    "DatasetsRetrieveSpanResponse",
     "DeleteSpansResponse",
+    "ListDatasetSpansResponse",
     "ListDatasetsResponse",
     "ListDatasetsResponseResultsItem",
     "ListEvalRunsResponse",
@@ -98,6 +97,7 @@ __all__ = [
     "RetrieveDatasetResponse",
     "RetrieveDatasetResponseInitialLogFilters",
     "RetrieveDatasetResponseInitialLogFiltersStatusCode",
+    "RetrieveDatasetSpanResponse",
     "RunEvalOnDatasetResponse",
     "RunEvalOnDatasetResponseStatus",
     "UpdateDatasetResponse",

@@ -6,15 +6,15 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .threads_list_request_filters import ThreadsListRequestFilters
-    from .threads_list_request_operator import ThreadsListRequestOperator
-    from .threads_list_response import ThreadsListResponse
-    from .threads_list_response_results_item import ThreadsListResponseResultsItem
+    from .list_threads_request_filters import ListThreadsRequestFilters
+    from .list_threads_request_operator import ListThreadsRequestOperator
+    from .list_threads_response import ListThreadsResponse
+    from .list_threads_response_results_item import ListThreadsResponseResultsItem
 _dynamic_imports: typing.Dict[str, str] = {
-    "ThreadsListRequestFilters": ".threads_list_request_filters",
-    "ThreadsListRequestOperator": ".threads_list_request_operator",
-    "ThreadsListResponse": ".threads_list_response",
-    "ThreadsListResponseResultsItem": ".threads_list_response_results_item",
+    "ListThreadsRequestFilters": ".list_threads_request_filters",
+    "ListThreadsRequestOperator": ".list_threads_request_operator",
+    "ListThreadsResponse": ".list_threads_response",
+    "ListThreadsResponseResultsItem": ".list_threads_response_results_item",
 }
 
 
@@ -40,8 +40,8 @@ def __dir__():
 
 
 __all__ = [
-    "ThreadsListRequestFilters",
-    "ThreadsListRequestOperator",
-    "ThreadsListResponse",
-    "ThreadsListResponseResultsItem",
+    "ListThreadsRequestFilters",
+    "ListThreadsRequestOperator",
+    "ListThreadsResponse",
+    "ListThreadsResponseResultsItem",
 ]

@@ -6,25 +6,20 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class DatasetsListSpansWithFiltersResponse(UniversalBaseModel):
-    count: typing.Optional[int] = pydantic.Field(default=None)
+class ListThreadsResponseResultsItem(UniversalBaseModel):
+    thread_identifier: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Total matching spans.
-    """
-
-    next: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Next page URL.
+    Thread ID.
     """
 
-    previous: typing.Optional[str] = pydantic.Field(default=None)
+    environment: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Previous page URL.
+    Environment.
     """
 
-    results: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = pydantic.Field(default=None)
+    log_count: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Array of span objects.
+    Number of spans in this thread.
     """
 
     if IS_PYDANTIC_V2:

@@ -17,12 +17,12 @@ from ..types.filters import Filters
 from .types.add_spans_to_dataset_response import AddSpansToDatasetResponse
 from .types.create_dataset_response import CreateDatasetResponse
 from .types.create_dataset_span_response import CreateDatasetSpanResponse
-from .types.datasets_list_spans_with_filters_response import DatasetsListSpansWithFiltersResponse
-from .types.datasets_retrieve_span_response import DatasetsRetrieveSpanResponse
 from .types.delete_spans_response import DeleteSpansResponse
+from .types.list_dataset_spans_response import ListDatasetSpansResponse
 from .types.list_datasets_response import ListDatasetsResponse
 from .types.list_eval_runs_response import ListEvalRunsResponse
 from .types.retrieve_dataset_response import RetrieveDatasetResponse
+from .types.retrieve_dataset_span_response import RetrieveDatasetSpanResponse
 from .types.run_eval_on_dataset_response import RunEvalOnDatasetResponse
 from .types.update_dataset_response import UpdateDatasetResponse
 from .types.update_span_partial_response import UpdateSpanPartialResponse
@@ -386,14 +386,14 @@ class RawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def listspanswithfilters(
+    def list_dataset_spans(
         self,
         dataset_id: str,
         *,
         authorization: str,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetsListSpansWithFiltersResponse]:
+    ) -> HttpResponse[ListDatasetSpansResponse]:
         """
         List spans in a dataset with filters and pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
 
@@ -412,7 +412,7 @@ class RawDatasetsClient:
 
         Returns
         -------
-        HttpResponse[DatasetsListSpansWithFiltersResponse]
+        HttpResponse[ListDatasetSpansResponse]
             Paginated list of spans.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -433,9 +433,9 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetsListSpansWithFiltersResponse,
+                    ListDatasetSpansResponse,
                     parse_obj_as(
-                        type_=DatasetsListSpansWithFiltersResponse,  # type: ignore
+                        type_=ListDatasetSpansResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -540,14 +540,14 @@ class RawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def retrievespan(
+    def retrieve_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetsRetrieveSpanResponse]:
+    ) -> HttpResponse[RetrieveDatasetSpanResponse]:
         """
         Retrieve a single span from a dataset.
 
@@ -567,7 +567,7 @@ class RawDatasetsClient:
 
         Returns
         -------
-        HttpResponse[DatasetsRetrieveSpanResponse]
+        HttpResponse[RetrieveDatasetSpanResponse]
             Span details.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -581,9 +581,9 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetsRetrieveSpanResponse,
+                    RetrieveDatasetSpanResponse,
                     parse_obj_as(
-                        type_=DatasetsRetrieveSpanResponse,  # type: ignore
+                        type_=RetrieveDatasetSpanResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1377,14 +1377,14 @@ class AsyncRawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def listspanswithfilters(
+    async def list_dataset_spans(
         self,
         dataset_id: str,
         *,
         authorization: str,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetsListSpansWithFiltersResponse]:
+    ) -> AsyncHttpResponse[ListDatasetSpansResponse]:
         """
         List spans in a dataset with filters and pagination. See [Filters API Reference](/docs/api-reference/reference/filters-api-reference).
 
@@ -1403,7 +1403,7 @@ class AsyncRawDatasetsClient:
 
         Returns
         -------
-        AsyncHttpResponse[DatasetsListSpansWithFiltersResponse]
+        AsyncHttpResponse[ListDatasetSpansResponse]
             Paginated list of spans.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -1424,9 +1424,9 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetsListSpansWithFiltersResponse,
+                    ListDatasetSpansResponse,
                     parse_obj_as(
-                        type_=DatasetsListSpansWithFiltersResponse,  # type: ignore
+                        type_=ListDatasetSpansResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1531,14 +1531,14 @@ class AsyncRawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def retrievespan(
+    async def retrieve_dataset_span(
         self,
         dataset_id: str,
         log_id: str,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetsRetrieveSpanResponse]:
+    ) -> AsyncHttpResponse[RetrieveDatasetSpanResponse]:
         """
         Retrieve a single span from a dataset.
 
@@ -1558,7 +1558,7 @@ class AsyncRawDatasetsClient:
 
         Returns
         -------
-        AsyncHttpResponse[DatasetsRetrieveSpanResponse]
+        AsyncHttpResponse[RetrieveDatasetSpanResponse]
             Span details.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -1572,9 +1572,9 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetsRetrieveSpanResponse,
+                    RetrieveDatasetSpanResponse,
                     parse_obj_as(
-                        type_=DatasetsRetrieveSpanResponse,  # type: ignore
+                        type_=RetrieveDatasetSpanResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
