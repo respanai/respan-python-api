@@ -1,0 +1,10 @@
+{
+  "cliVersion": "4.53.1",
+  "generatorName": "fernapi/fern-python-sdk",
+  "generatorVersion": "4.61.0",
+  "generatorConfig": {
+    "client_class_name": "RespanClient"
+  },
+  "originGitCommit": "6fa5472be849e7dcfbcbdc84a3dec04204755705",
+  "sdkVersion": "0.0.0-20260401-6fa5472"
+}
