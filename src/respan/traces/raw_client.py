@@ -19,13 +19,17 @@ from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..types.filters import Filters
 from .types.bulk_delete_traces_response import BulkDeleteTracesResponse
-from .types.create_trace_legacy_request_body_item import CreateTraceLegacyRequestBodyItem
+from .types.create_trace_legacy_request_body import CreateTraceLegacyRequestBody
 from .types.create_trace_legacy_response import CreateTraceLegacyResponse
 from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
 from .types.create_trace_response import CreateTraceResponse
-from .types.get_traces_summary_response import GetTracesSummaryResponse
-from .types.list_traces_request_operator import ListTracesRequestOperator
+from .types.delete_trace_response import DeleteTraceResponse
 from .types.list_traces_response import ListTracesResponse
+from .types.list_traces_with_filters_request_operator import ListTracesWithFiltersRequestOperator
+from .types.list_traces_with_filters_response import ListTracesWithFiltersResponse
+from .types.retrieve_public_trace_response import RetrievePublicTraceResponse
+from .types.retrieve_trace_response import RetrieveTraceResponse
+from .types.share_trace_response import ShareTraceResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -34,6 +38,796 @@ OMIT = typing.cast(typing.Any, ...)
 class RawTracesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
+
+    def list_traces(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ListTracesResponse]:
+        """
+        Retrieve a paginated list of traces matching your filters. `GET` and `POST` are both supported; use `POST` when sending complex filter payloads.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ListTracesResponse]
+            Paginated list of traces.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/traces/list/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+            },
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListTracesResponse,
+                    parse_obj_as(
+                        type_=ListTracesResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def list_traces_with_filters(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        operator: typing.Optional[ListTracesWithFiltersRequestOperator] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ListTracesWithFiltersResponse]:
+        """
+        Retrieve a paginated list of traces matching your filters. `POST` uses the same response shape as `GET` and supports the filter payload documented in the Filters API.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        filters : typing.Optional[Filters]
+
+        operator : typing.Optional[ListTracesWithFiltersRequestOperator]
+            Logical operator for combining filters when supported by the client payload.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ListTracesWithFiltersResponse]
+            Paginated list of traces.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/traces/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=Filters, direction="write"
+                ),
+                "operator": operator,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListTracesWithFiltersResponse,
+                    parse_obj_as(
+                        type_=ListTracesWithFiltersResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def bulk_delete_traces(
+        self,
+        *,
+        authorization: str,
+        filters: Filters,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[BulkDeleteTracesResponse]:
+        """
+        Delete multiple traces matching the given filters. This endpoint requires a non-empty `filters` object and rejects requests that match more than 1000 traces.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        filters : Filters
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[BulkDeleteTracesResponse]
+            Bulk delete result.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/traces/bulk/",
+            method="POST",
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=Filters, direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkDeleteTracesResponse,
+                    parse_obj_as(
+                        type_=BulkDeleteTracesResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def retrieve_trace(
+        self, trace_unique_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[RetrieveTraceResponse]:
+        """
+        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RetrieveTraceResponse]
+            Trace detail with span tree.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="GET",
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveTraceResponse,
+                    parse_obj_as(
+                        type_=RetrieveTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        authorization: str,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[DeleteTraceResponse]:
+        """
+        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[DeleteTraceResponse]
+            Trace delete issued successfully.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="DELETE",
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+            },
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    DeleteTraceResponse,
+                    parse_obj_as(
+                        type_=DeleteTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def share_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        authorization: str,
+        is_public: bool,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ShareTraceResponse]:
+        """
+        Toggle public sharing for a trace. When `is_public` is `true`, the trace becomes accessible through the public trace URL.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        is_public : bool
+            Set `true` to make the trace public, or `false` to revoke public access.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ShareTraceResponse]
+            Trace sharing state updated.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="PATCH",
+            json={
+                "is_public": is_public,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ShareTraceResponse,
+                    parse_obj_as(
+                        type_=ShareTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def retrieve_public_trace(
+        self,
+        unique_organization_id: str,
+        trace_unique_id: str,
+        *,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[RetrievePublicTraceResponse]:
+        """
+        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`.
+
+        Parameters
+        ----------
+        unique_organization_id : str
+            Organization unique ID used in a public trace share link.
+
+        trace_unique_id : str
+            Unique trace identifier.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RetrievePublicTraceResponse]
+            Trace detail with span tree.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/{jsonable_encoder(unique_organization_id)}/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrievePublicTraceResponse,
+                    parse_obj_as(
+                        type_=RetrievePublicTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def create_trace_legacy(
+        self,
+        *,
+        authorization: str,
+        request: CreateTraceLegacyRequestBody,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[CreateTraceLegacyResponse]:
+        """
+        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request : CreateTraceLegacyRequestBody
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[CreateTraceLegacyResponse]
+            Trace spans processed successfully
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/v1/traces/ingest",
+            method="POST",
+            json=convert_and_respect_annotation_metadata(
+                object_=request, annotation=CreateTraceLegacyRequestBody, direction="write"
+            ),
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    CreateTraceLegacyResponse,
+                    parse_obj_as(
+                        type_=CreateTraceLegacyResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def create_trace(
         self,
@@ -117,7 +911,12 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def list_traces(
+
+class AsyncRawTracesClient:
+    def __init__(self, *, client_wrapper: AsyncClientWrapper):
+        self._client_wrapper = client_wrapper
+
+    async def list_traces(
         self,
         *,
         authorization: str,
@@ -127,12 +926,10 @@ class RawTracesClient:
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListTracesResponse]:
+    ) -> AsyncHttpResponse[ListTracesResponse]:
         """
-        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
+        Retrieve a paginated list of traces matching your filters. `GET` and `POST` are both supported; use `POST` when sending complex filter payloads.
 
         Parameters
         ----------
@@ -146,31 +943,154 @@ class RawTracesClient:
             Results per page (max 1000).
 
         sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending.
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
 
         start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
 
         end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
+            End of time range (ISO 8601). Defaults to now when omitted.
 
         environment : typing.Optional[str]
             Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListTracesRequestOperator]
-            Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[ListTracesResponse]
+        AsyncHttpResponse[ListTracesResponse]
             Paginated list of traces.
         """
-        _response = self._client_wrapper.httpx_client.request(
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/traces/list/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+            },
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListTracesResponse,
+                    parse_obj_as(
+                        type_=ListTracesResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_traces_with_filters(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        operator: typing.Optional[ListTracesWithFiltersRequestOperator] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ListTracesWithFiltersResponse]:
+        """
+        Retrieve a paginated list of traces matching your filters. `POST` uses the same response shape as `GET` and supports the filter payload documented in the Filters API.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        filters : typing.Optional[Filters]
+
+        operator : typing.Optional[ListTracesWithFiltersRequestOperator]
+            Logical operator for combining filters when supported by the client payload.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ListTracesWithFiltersResponse]
+            Paginated list of traces.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
             "api/traces/list/",
             method="POST",
             params={
@@ -197,13 +1117,13 @@ class RawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ListTracesResponse,
+                    ListTracesWithFiltersResponse,
                     parse_obj_as(
-                        type_=ListTracesResponse,  # type: ignore
+                        type_=ListTracesWithFiltersResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
+                return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
                     headers=dict(_response.headers),
@@ -253,330 +1173,18 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def retrieve_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        environment: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Dict[str, typing.Any]]:
-        """
-        Retrieve a trace by its ID, including the complete span tree with full input/output for all spans.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Trace Unique Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[typing.Dict[str, typing.Any]]
-            Successful response for Retrieve trace
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="GET",
-            params={
-                "environment": environment,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.Dict[str, typing.Any],
-                    parse_obj_as(
-                        type_=typing.Dict[str, typing.Any],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def delete_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        start_time: typing.Optional[str] = None,
-        end_time: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[None]:
-        """
-        Delete a trace and all its spans by `trace_unique_id`. Removes data from both raw span storage and the aggregated trace table.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique identifier of the trace to delete.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : typing.Optional[str]
-            ISO 8601 start of time range for efficient lookup. Defaults to end_time minus 1 hour.
-
-        end_time : typing.Optional[str]
-            ISO 8601 end of time range for efficient lookup. Defaults to current time.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="DELETE",
-            params={
-                "start_time": start_time,
-                "end_time": end_time,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def get_traces_summary(
-        self,
-        *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[GetTracesSummaryResponse]:
-        """
-        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/apis/traces/api-traces-list).
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[GetTracesSummaryResponse]
-            Trace summary statistics.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "clickhouse/traces/summary/",
-            method="POST",
-            params={
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "environment": environment,
-            },
-            json={
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetTracesSummaryResponse,
-                    parse_obj_as(
-                        type_=GetTracesSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def bulk_delete_traces(
+    async def bulk_delete_traces(
         self,
         *,
         authorization: str,
         filters: Filters,
-        start_time: typing.Optional[str] = None,
-        end_time: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[BulkDeleteTracesResponse]:
+    ) -> AsyncHttpResponse[BulkDeleteTracesResponse]:
         """
-        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/apis/traces/api-traces-list). Returns the count of deleted traces.
+        Delete multiple traces matching the given filters. This endpoint requires a non-empty `filters` object and rejects requests that match more than 1000 traces.
 
         Parameters
         ----------
@@ -585,29 +1193,29 @@ class RawTracesClient:
 
         filters : Filters
 
-        start_time : typing.Optional[str]
-            ISO 8601 start of time range. Defaults to end_time minus 1 hour.
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
 
-        end_time : typing.Optional[str]
-            ISO 8601 end of time range. Defaults to current time.
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
 
         environment : typing.Optional[str]
-            Filter by environment (e.g., production, staging).
+            Filter by environment.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[BulkDeleteTracesResponse]
-            Traces deleted.
+        AsyncHttpResponse[BulkDeleteTracesResponse]
+            Bulk delete result.
         """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/traces/bulk-delete/",
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/traces/bulk/",
             method="POST",
             params={
-                "start_time": start_time,
-                "end_time": end_time,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "environment": environment,
             },
             json={
@@ -631,7 +1239,7 @@ class RawTracesClient:
                         object_=_response.json(),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
+                return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
                     headers=dict(_response.headers),
@@ -681,36 +1289,367 @@ class RawTracesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def create_trace_legacy(
-        self,
-        *,
-        authorization: str,
-        request: typing.Sequence[CreateTraceLegacyRequestBodyItem],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[CreateTraceLegacyResponse]:
+    async def retrieve_trace(
+        self, trace_unique_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[RetrieveTraceResponse]:
         """
-        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/api-v2-traces).
+        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree.
 
         Parameters
         ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request : typing.Sequence[CreateTraceLegacyRequestBodyItem]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[CreateTraceLegacyResponse]
-            Successful response for Ingest traces from logs
+        AsyncHttpResponse[RetrieveTraceResponse]
+            Trace detail with span tree.
         """
-        _response = self._client_wrapper.httpx_client.request(
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="GET",
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveTraceResponse,
+                    parse_obj_as(
+                        type_=RetrieveTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        authorization: str,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[DeleteTraceResponse]:
+        """
+        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[DeleteTraceResponse]
+            Trace delete issued successfully.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="DELETE",
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+            },
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    DeleteTraceResponse,
+                    parse_obj_as(
+                        type_=DeleteTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def share_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        authorization: str,
+        is_public: bool,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ShareTraceResponse]:
+        """
+        Toggle public sharing for a trace. When `is_public` is `true`, the trace becomes accessible through the public trace URL.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        is_public : bool
+            Set `true` to make the trace public, or `false` to revoke public access.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ShareTraceResponse]
+            Trace sharing state updated.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="PATCH",
+            json={
+                "is_public": is_public,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ShareTraceResponse,
+                    parse_obj_as(
+                        type_=ShareTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def retrieve_public_trace(
+        self,
+        unique_organization_id: str,
+        trace_unique_id: str,
+        *,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[RetrievePublicTraceResponse]:
+        """
+        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`.
+
+        Parameters
+        ----------
+        unique_organization_id : str
+            Organization unique ID used in a public trace share link.
+
+        trace_unique_id : str
+            Unique trace identifier.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[RetrievePublicTraceResponse]
+            Trace detail with span tree.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/{jsonable_encoder(unique_organization_id)}/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrievePublicTraceResponse,
+                    parse_obj_as(
+                        type_=RetrievePublicTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def create_trace_legacy(
+        self,
+        *,
+        authorization: str,
+        request: CreateTraceLegacyRequestBody,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[CreateTraceLegacyResponse]:
+        """
+        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request : CreateTraceLegacyRequestBody
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[CreateTraceLegacyResponse]
+            Trace spans processed successfully
+        """
+        _response = await self._client_wrapper.httpx_client.request(
             "api/v1/traces/ingest",
             method="POST",
             json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[CreateTraceLegacyRequestBodyItem], direction="write"
+                object_=request, annotation=CreateTraceLegacyRequestBody, direction="write"
             ),
             headers={
                 "content-type": "application/json",
@@ -728,7 +1667,7 @@ class RawTracesClient:
                         object_=_response.json(),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
+                return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
                     headers=dict(_response.headers),
@@ -742,17 +1681,6 @@ class RawTracesClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -777,11 +1705,6 @@ class RawTracesClient:
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-
-class AsyncRawTracesClient:
-    def __init__(self, *, client_wrapper: AsyncClientWrapper):
-        self._client_wrapper = client_wrapper
 
     async def create_trace(
         self,
@@ -851,667 +1774,6 @@ class AsyncRawTracesClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_traces(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListTracesResponse]:
-        """
-        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListTracesRequestOperator]
-            Logical operator to combine filters.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ListTracesResponse]
-            Paginated list of traces.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/traces/list/",
-            method="POST",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "environment": environment,
-            },
-            json={
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-                "operator": operator,
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListTracesResponse,
-                    parse_obj_as(
-                        type_=ListTracesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def retrieve_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        environment: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Dict[str, typing.Any]]:
-        """
-        Retrieve a trace by its ID, including the complete span tree with full input/output for all spans.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Trace Unique Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[typing.Dict[str, typing.Any]]
-            Successful response for Retrieve trace
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="GET",
-            params={
-                "environment": environment,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.Dict[str, typing.Any],
-                    parse_obj_as(
-                        type_=typing.Dict[str, typing.Any],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def delete_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        start_time: typing.Optional[str] = None,
-        end_time: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[None]:
-        """
-        Delete a trace and all its spans by `trace_unique_id`. Removes data from both raw span storage and the aggregated trace table.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique identifier of the trace to delete.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : typing.Optional[str]
-            ISO 8601 start of time range for efficient lookup. Defaults to end_time minus 1 hour.
-
-        end_time : typing.Optional[str]
-            ISO 8601 end of time range for efficient lookup. Defaults to current time.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="DELETE",
-            params={
-                "start_time": start_time,
-                "end_time": end_time,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def get_traces_summary(
-        self,
-        *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[GetTracesSummaryResponse]:
-        """
-        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/apis/traces/api-traces-list).
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[GetTracesSummaryResponse]
-            Trace summary statistics.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "clickhouse/traces/summary/",
-            method="POST",
-            params={
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "environment": environment,
-            },
-            json={
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetTracesSummaryResponse,
-                    parse_obj_as(
-                        type_=GetTracesSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def bulk_delete_traces(
-        self,
-        *,
-        authorization: str,
-        filters: Filters,
-        start_time: typing.Optional[str] = None,
-        end_time: typing.Optional[str] = None,
-        environment: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[BulkDeleteTracesResponse]:
-        """
-        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/apis/traces/api-traces-list). Returns the count of deleted traces.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        filters : Filters
-
-        start_time : typing.Optional[str]
-            ISO 8601 start of time range. Defaults to end_time minus 1 hour.
-
-        end_time : typing.Optional[str]
-            ISO 8601 end of time range. Defaults to current time.
-
-        environment : typing.Optional[str]
-            Filter by environment (e.g., production, staging).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[BulkDeleteTracesResponse]
-            Traces deleted.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/traces/bulk-delete/",
-            method="POST",
-            params={
-                "start_time": start_time,
-                "end_time": end_time,
-                "environment": environment,
-            },
-            json={
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    BulkDeleteTracesResponse,
-                    parse_obj_as(
-                        type_=BulkDeleteTracesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def create_trace_legacy(
-        self,
-        *,
-        authorization: str,
-        request: typing.Sequence[CreateTraceLegacyRequestBodyItem],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[CreateTraceLegacyResponse]:
-        """
-        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/api-v2-traces).
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request : typing.Sequence[CreateTraceLegacyRequestBodyItem]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[CreateTraceLegacyResponse]
-            Successful response for Ingest traces from logs
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/v1/traces/ingest",
-            method="POST",
-            json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[CreateTraceLegacyRequestBodyItem], direction="write"
-            ),
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    CreateTraceLegacyResponse,
-                    parse_obj_as(
-                        type_=CreateTraceLegacyResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

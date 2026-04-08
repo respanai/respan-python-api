@@ -17,6 +17,7 @@ if typing.TYPE_CHECKING:
     from .service_unavailable_error_body_status import ServiceUnavailableErrorBodyStatus
     from .too_many_requests_error_body import TooManyRequestsErrorBody
     from .unauthorized_error_body import UnauthorizedErrorBody
+    from .unprocessable_entity_error_body import UnprocessableEntityErrorBody
 _dynamic_imports: typing.Dict[str, str] = {
     "BadRequestErrorBody": ".bad_request_error_body",
     "ConflictErrorBody": ".conflict_error_body",
@@ -29,6 +30,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ServiceUnavailableErrorBodyStatus": ".service_unavailable_error_body_status",
     "TooManyRequestsErrorBody": ".too_many_requests_error_body",
     "UnauthorizedErrorBody": ".unauthorized_error_body",
+    "UnprocessableEntityErrorBody": ".unprocessable_entity_error_body",
 }
 
 
@@ -65,4 +67,5 @@ __all__ = [
     "ServiceUnavailableErrorBodyStatus",
     "TooManyRequestsErrorBody",
     "UnauthorizedErrorBody",
+    "UnprocessableEntityErrorBody",
 ]

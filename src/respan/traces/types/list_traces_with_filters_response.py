@@ -4,10 +4,10 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .list_traces_response_results_item import ListTracesResponseResultsItem
+from .list_traces_with_filters_response_results_item import ListTracesWithFiltersResponseResultsItem
 
 
-class ListTracesResponse(UniversalBaseModel):
+class ListTracesWithFiltersResponse(UniversalBaseModel):
     count: int = pydantic.Field()
     """
     Total number of matching traces.
@@ -23,7 +23,7 @@ class ListTracesResponse(UniversalBaseModel):
     URL for the previous page of results.
     """
 
-    results: typing.List[ListTracesResponseResultsItem] = pydantic.Field()
+    results: typing.List[ListTracesWithFiltersResponseResultsItem] = pydantic.Field()
     """
     Current page of traces.
     """

@@ -6,15 +6,25 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class BulkDeleteTracesResponse(UniversalBaseModel):
-    deleted_count: int = pydantic.Field()
+class ListSpansLegacyResponse(UniversalBaseModel):
+    count: int = pydantic.Field()
     """
-    Number of traces deleted.
+    Total number of matching spans.
     """
 
-    message: str = pydantic.Field()
+    next: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Bulk delete result message.
+    URL for the next page of results.
+    """
+
+    previous: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    URL for the previous page of results.
+    """
+
+    results: typing.List[typing.Dict[str, typing.Any]] = pydantic.Field()
+    """
+    Array of span objects for the current page.
     """
 
     if IS_PYDANTIC_V2:

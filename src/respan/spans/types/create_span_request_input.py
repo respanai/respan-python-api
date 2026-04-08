@@ -2,4 +2,4 @@
 
 import typing
 
-CreateSpanRequestInput = typing.Union[str, typing.Dict[str, typing.Any], typing.List[str]]
+CreateSpanRequestInput = typing.Union[str, typing.Dict[str, typing.Any], typing.List[typing.Dict[str, typing.Any]]]

@@ -7,9 +7,16 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .bulk_delete_traces_response import BulkDeleteTracesResponse
-    from .create_trace_legacy_request_body_item import CreateTraceLegacyRequestBodyItem
-    from .create_trace_legacy_request_body_item_log_type import CreateTraceLegacyRequestBodyItemLogType
-    from .create_trace_legacy_request_body_item_status import CreateTraceLegacyRequestBodyItemStatus
+    from .create_trace_legacy_request_body import CreateTraceLegacyRequestBody
+    from .create_trace_legacy_request_body_data import CreateTraceLegacyRequestBodyData
+    from .create_trace_legacy_request_body_data_data_item import CreateTraceLegacyRequestBodyDataDataItem
+    from .create_trace_legacy_request_body_data_data_item_log_type import (
+        CreateTraceLegacyRequestBodyDataDataItemLogType,
+    )
+    from .create_trace_legacy_request_body_data_data_item_status import CreateTraceLegacyRequestBodyDataDataItemStatus
+    from .create_trace_legacy_request_body_zero_item import CreateTraceLegacyRequestBodyZeroItem
+    from .create_trace_legacy_request_body_zero_item_log_type import CreateTraceLegacyRequestBodyZeroItemLogType
+    from .create_trace_legacy_request_body_zero_item_status import CreateTraceLegacyRequestBodyZeroItemStatus
     from .create_trace_legacy_response import CreateTraceLegacyResponse
     from .create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
     from .create_trace_request_resource_spans_item_resource import CreateTraceRequestResourceSpansItemResource
@@ -33,15 +40,27 @@ if typing.TYPE_CHECKING:
     )
     from .create_trace_response import CreateTraceResponse
     from .create_trace_response_partial_success import CreateTraceResponsePartialSuccess
-    from .get_traces_summary_response import GetTracesSummaryResponse
-    from .list_traces_request_operator import ListTracesRequestOperator
+    from .delete_trace_response import DeleteTraceResponse
     from .list_traces_response import ListTracesResponse
     from .list_traces_response_results_item import ListTracesResponseResultsItem
+    from .list_traces_with_filters_request_operator import ListTracesWithFiltersRequestOperator
+    from .list_traces_with_filters_response import ListTracesWithFiltersResponse
+    from .list_traces_with_filters_response_results_item import ListTracesWithFiltersResponseResultsItem
+    from .retrieve_public_trace_response import RetrievePublicTraceResponse
+    from .retrieve_public_trace_response_span_tree_item import RetrievePublicTraceResponseSpanTreeItem
+    from .retrieve_trace_response import RetrieveTraceResponse
+    from .retrieve_trace_response_span_tree_item import RetrieveTraceResponseSpanTreeItem
+    from .share_trace_response import ShareTraceResponse
 _dynamic_imports: typing.Dict[str, str] = {
     "BulkDeleteTracesResponse": ".bulk_delete_traces_response",
-    "CreateTraceLegacyRequestBodyItem": ".create_trace_legacy_request_body_item",
-    "CreateTraceLegacyRequestBodyItemLogType": ".create_trace_legacy_request_body_item_log_type",
-    "CreateTraceLegacyRequestBodyItemStatus": ".create_trace_legacy_request_body_item_status",
+    "CreateTraceLegacyRequestBody": ".create_trace_legacy_request_body",
+    "CreateTraceLegacyRequestBodyData": ".create_trace_legacy_request_body_data",
+    "CreateTraceLegacyRequestBodyDataDataItem": ".create_trace_legacy_request_body_data_data_item",
+    "CreateTraceLegacyRequestBodyDataDataItemLogType": ".create_trace_legacy_request_body_data_data_item_log_type",
+    "CreateTraceLegacyRequestBodyDataDataItemStatus": ".create_trace_legacy_request_body_data_data_item_status",
+    "CreateTraceLegacyRequestBodyZeroItem": ".create_trace_legacy_request_body_zero_item",
+    "CreateTraceLegacyRequestBodyZeroItemLogType": ".create_trace_legacy_request_body_zero_item_log_type",
+    "CreateTraceLegacyRequestBodyZeroItemStatus": ".create_trace_legacy_request_body_zero_item_status",
     "CreateTraceLegacyResponse": ".create_trace_legacy_response",
     "CreateTraceRequestResourceSpansItem": ".create_trace_request_resource_spans_item",
     "CreateTraceRequestResourceSpansItemResource": ".create_trace_request_resource_spans_item_resource",
@@ -53,10 +72,17 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus": ".create_trace_request_resource_spans_item_scope_spans_item_spans_item_status",
     "CreateTraceResponse": ".create_trace_response",
     "CreateTraceResponsePartialSuccess": ".create_trace_response_partial_success",
-    "GetTracesSummaryResponse": ".get_traces_summary_response",
-    "ListTracesRequestOperator": ".list_traces_request_operator",
+    "DeleteTraceResponse": ".delete_trace_response",
     "ListTracesResponse": ".list_traces_response",
     "ListTracesResponseResultsItem": ".list_traces_response_results_item",
+    "ListTracesWithFiltersRequestOperator": ".list_traces_with_filters_request_operator",
+    "ListTracesWithFiltersResponse": ".list_traces_with_filters_response",
+    "ListTracesWithFiltersResponseResultsItem": ".list_traces_with_filters_response_results_item",
+    "RetrievePublicTraceResponse": ".retrieve_public_trace_response",
+    "RetrievePublicTraceResponseSpanTreeItem": ".retrieve_public_trace_response_span_tree_item",
+    "RetrieveTraceResponse": ".retrieve_trace_response",
+    "RetrieveTraceResponseSpanTreeItem": ".retrieve_trace_response_span_tree_item",
+    "ShareTraceResponse": ".share_trace_response",
 }
 
 
@@ -83,9 +109,14 @@ def __dir__():
 
 __all__ = [
     "BulkDeleteTracesResponse",
-    "CreateTraceLegacyRequestBodyItem",
-    "CreateTraceLegacyRequestBodyItemLogType",
-    "CreateTraceLegacyRequestBodyItemStatus",
+    "CreateTraceLegacyRequestBody",
+    "CreateTraceLegacyRequestBodyData",
+    "CreateTraceLegacyRequestBodyDataDataItem",
+    "CreateTraceLegacyRequestBodyDataDataItemLogType",
+    "CreateTraceLegacyRequestBodyDataDataItemStatus",
+    "CreateTraceLegacyRequestBodyZeroItem",
+    "CreateTraceLegacyRequestBodyZeroItemLogType",
+    "CreateTraceLegacyRequestBodyZeroItemStatus",
     "CreateTraceLegacyResponse",
     "CreateTraceRequestResourceSpansItem",
     "CreateTraceRequestResourceSpansItemResource",
@@ -97,8 +128,15 @@ __all__ = [
     "CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus",
     "CreateTraceResponse",
     "CreateTraceResponsePartialSuccess",
-    "GetTracesSummaryResponse",
-    "ListTracesRequestOperator",
+    "DeleteTraceResponse",
     "ListTracesResponse",
     "ListTracesResponseResultsItem",
+    "ListTracesWithFiltersRequestOperator",
+    "ListTracesWithFiltersResponse",
+    "ListTracesWithFiltersResponseResultsItem",
+    "RetrievePublicTraceResponse",
+    "RetrievePublicTraceResponseSpanTreeItem",
+    "RetrieveTraceResponse",
+    "RetrieveTraceResponseSpanTreeItem",
+    "ShareTraceResponse",
 ]

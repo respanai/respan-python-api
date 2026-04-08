@@ -6,16 +6,9 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class BulkDeleteTracesResponse(UniversalBaseModel):
-    deleted_count: int = pydantic.Field()
-    """
-    Number of traces deleted.
-    """
-
-    message: str = pydantic.Field()
-    """
-    Bulk delete result message.
-    """
+class ShareTraceResponse(UniversalBaseModel):
+    trace_unique_id: str
+    is_public: bool
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

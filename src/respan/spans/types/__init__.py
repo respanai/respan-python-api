@@ -10,15 +10,14 @@ if typing.TYPE_CHECKING:
     from .create_span_request_log_type import CreateSpanRequestLogType
     from .create_span_request_output import CreateSpanRequestOutput
     from .create_span_request_status import CreateSpanRequestStatus
+    from .create_span_request_stop import CreateSpanRequestStop
     from .create_span_request_tool_choice import CreateSpanRequestToolChoice
+    from .create_span_request_usage import CreateSpanRequestUsage
     from .create_span_request_warnings import CreateSpanRequestWarnings
     from .create_span_response import CreateSpanResponse
-    from .create_span_response_usage import CreateSpanResponseUsage
-    from .create_span_response_usage_prompt_tokens_details import CreateSpanResponseUsagePromptTokensDetails
+    from .create_span_response_status import CreateSpanResponseStatus
     from .get_spans_summary_response import GetSpansSummaryResponse
-    from .ingest_spans_request_body_item import IngestSpansRequestBodyItem
-    from .ingest_spans_request_body_item_log_type import IngestSpansRequestBodyItemLogType
-    from .ingest_spans_request_body_item_status import IngestSpansRequestBodyItemStatus
+    from .list_spans_legacy_response import ListSpansLegacyResponse
     from .list_spans_request_all_envs import ListSpansRequestAllEnvs
     from .list_spans_request_fetch_filters import ListSpansRequestFetchFilters
     from .list_spans_request_is_test import ListSpansRequestIsTest
@@ -32,15 +31,14 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateSpanRequestLogType": ".create_span_request_log_type",
     "CreateSpanRequestOutput": ".create_span_request_output",
     "CreateSpanRequestStatus": ".create_span_request_status",
+    "CreateSpanRequestStop": ".create_span_request_stop",
     "CreateSpanRequestToolChoice": ".create_span_request_tool_choice",
+    "CreateSpanRequestUsage": ".create_span_request_usage",
     "CreateSpanRequestWarnings": ".create_span_request_warnings",
     "CreateSpanResponse": ".create_span_response",
-    "CreateSpanResponseUsage": ".create_span_response_usage",
-    "CreateSpanResponseUsagePromptTokensDetails": ".create_span_response_usage_prompt_tokens_details",
+    "CreateSpanResponseStatus": ".create_span_response_status",
     "GetSpansSummaryResponse": ".get_spans_summary_response",
-    "IngestSpansRequestBodyItem": ".ingest_spans_request_body_item",
-    "IngestSpansRequestBodyItemLogType": ".ingest_spans_request_body_item_log_type",
-    "IngestSpansRequestBodyItemStatus": ".ingest_spans_request_body_item_status",
+    "ListSpansLegacyResponse": ".list_spans_legacy_response",
     "ListSpansRequestAllEnvs": ".list_spans_request_all_envs",
     "ListSpansRequestFetchFilters": ".list_spans_request_fetch_filters",
     "ListSpansRequestIsTest": ".list_spans_request_is_test",
@@ -78,15 +76,14 @@ __all__ = [
     "CreateSpanRequestLogType",
     "CreateSpanRequestOutput",
     "CreateSpanRequestStatus",
+    "CreateSpanRequestStop",
     "CreateSpanRequestToolChoice",
+    "CreateSpanRequestUsage",
     "CreateSpanRequestWarnings",
     "CreateSpanResponse",
-    "CreateSpanResponseUsage",
-    "CreateSpanResponseUsagePromptTokensDetails",
+    "CreateSpanResponseStatus",
     "GetSpansSummaryResponse",
-    "IngestSpansRequestBodyItem",
-    "IngestSpansRequestBodyItemLogType",
-    "IngestSpansRequestBodyItemStatus",
+    "ListSpansLegacyResponse",
     "ListSpansRequestAllEnvs",
     "ListSpansRequestFetchFilters",
     "ListSpansRequestIsTest",

@@ -5,11 +5,11 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .create_trace_legacy_request_body_item_log_type import CreateTraceLegacyRequestBodyItemLogType
-from .create_trace_legacy_request_body_item_status import CreateTraceLegacyRequestBodyItemStatus
+from .create_trace_legacy_request_body_data_data_item_log_type import CreateTraceLegacyRequestBodyDataDataItemLogType
+from .create_trace_legacy_request_body_data_data_item_status import CreateTraceLegacyRequestBodyDataDataItemStatus
 
 
-class CreateTraceLegacyRequestBodyItem(UniversalBaseModel):
+class CreateTraceLegacyRequestBodyDataDataItem(UniversalBaseModel):
     trace_unique_id: str = pydantic.Field()
     """
     Trace ID linking all spans.
@@ -35,7 +35,7 @@ class CreateTraceLegacyRequestBodyItem(UniversalBaseModel):
     Workflow name.
     """
 
-    log_type: typing.Optional[CreateTraceLegacyRequestBodyItemLogType] = pydantic.Field(default=None)
+    log_type: typing.Optional[CreateTraceLegacyRequestBodyDataDataItemLogType] = pydantic.Field(default=None)
     """
     Span type.
     """
@@ -70,7 +70,7 @@ class CreateTraceLegacyRequestBodyItem(UniversalBaseModel):
     Latency in seconds.
     """
 
-    status: typing.Optional[CreateTraceLegacyRequestBodyItemStatus] = None
+    status: typing.Optional[CreateTraceLegacyRequestBodyDataDataItemStatus] = None
     timestamp: typing.Optional[dt.datetime] = pydantic.Field(default=None)
     """
     When completed (ISO 8601).

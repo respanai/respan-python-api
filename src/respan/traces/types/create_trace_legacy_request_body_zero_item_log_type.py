@@ -2,7 +2,7 @@
 
 import typing
 
-CreateTraceLegacyRequestBodyItemLogType = typing.Union[
+CreateTraceLegacyRequestBodyZeroItemLogType = typing.Union[
     typing.Literal[
         "chat",
         "completion",

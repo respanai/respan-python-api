@@ -3,18 +3,13 @@
 import typing
 
 import pydantic
-from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class BulkDeleteTracesResponse(UniversalBaseModel):
-    deleted_count: int = pydantic.Field()
+class UnprocessableEntityErrorBody(UniversalBaseModel):
+    error: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Number of traces deleted.
-    """
-
-    message: str = pydantic.Field()
-    """
-    Bulk delete result message.
+    Validation error message.
     """
 
     if IS_PYDANTIC_V2:

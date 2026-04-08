@@ -6,16 +6,14 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class BulkDeleteTracesResponse(UniversalBaseModel):
-    deleted_count: int = pydantic.Field()
+class CreateSpanRequestUsage(UniversalBaseModel):
     """
-    Number of traces deleted.
+    Token usage for the request.
     """
 
-    message: str = pydantic.Field()
-    """
-    Bulk delete result message.
-    """
+    prompt_tokens: typing.Optional[int] = None
+    completion_tokens: typing.Optional[int] = None
+    total_tokens: typing.Optional[int] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

@@ -95,8 +95,8 @@ class RespanClient:
             timeout=_defaulted_timeout,
             logging=logging,
         )
-        self._spans: typing.Optional[SpansClient] = None
         self._traces: typing.Optional[TracesClient] = None
+        self._spans: typing.Optional[SpansClient] = None
         self._health: typing.Optional[HealthClient] = None
         self._threads: typing.Optional[ThreadsClient] = None
         self._users: typing.Optional[UsersClient] = None
@@ -115,20 +115,20 @@ class RespanClient:
         self._automations: typing.Optional[AutomationsClient] = None
 
     @property
-    def spans(self):
-        if self._spans is None:
-            from .spans.client import SpansClient  # noqa: E402
-
-            self._spans = SpansClient(client_wrapper=self._client_wrapper)
-        return self._spans
-
-    @property
     def traces(self):
         if self._traces is None:
             from .traces.client import TracesClient  # noqa: E402
 
             self._traces = TracesClient(client_wrapper=self._client_wrapper)
         return self._traces
+
+    @property
+    def spans(self):
+        if self._spans is None:
+            from .spans.client import SpansClient  # noqa: E402
+
+            self._spans = SpansClient(client_wrapper=self._client_wrapper)
+        return self._spans
 
     @property
     def health(self):
@@ -324,8 +324,8 @@ class AsyncRespanClient:
             timeout=_defaulted_timeout,
             logging=logging,
         )
-        self._spans: typing.Optional[AsyncSpansClient] = None
         self._traces: typing.Optional[AsyncTracesClient] = None
+        self._spans: typing.Optional[AsyncSpansClient] = None
         self._health: typing.Optional[AsyncHealthClient] = None
         self._threads: typing.Optional[AsyncThreadsClient] = None
         self._users: typing.Optional[AsyncUsersClient] = None
@@ -344,20 +344,20 @@ class AsyncRespanClient:
         self._automations: typing.Optional[AsyncAutomationsClient] = None
 
     @property
-    def spans(self):
-        if self._spans is None:
-            from .spans.client import AsyncSpansClient  # noqa: E402
-
-            self._spans = AsyncSpansClient(client_wrapper=self._client_wrapper)
-        return self._spans
-
-    @property
     def traces(self):
         if self._traces is None:
             from .traces.client import AsyncTracesClient  # noqa: E402
 
             self._traces = AsyncTracesClient(client_wrapper=self._client_wrapper)
         return self._traces
+
+    @property
+    def spans(self):
+        if self._spans is None:
+            from .spans.client import AsyncSpansClient  # noqa: E402
+
+            self._spans = AsyncSpansClient(client_wrapper=self._client_wrapper)
+        return self._spans
 
     @property
     def health(self):

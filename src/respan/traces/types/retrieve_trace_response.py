@@ -5,9 +5,10 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .retrieve_trace_response_span_tree_item import RetrieveTraceResponseSpanTreeItem
 
 
-class ListTracesResponseResultsItem(UniversalBaseModel):
+class RetrieveTraceResponse(UniversalBaseModel):
     id: typing.Optional[str] = pydantic.Field(default=None)
     """
     Trace identifier.
@@ -141,6 +142,11 @@ class ListTracesResponseResultsItem(UniversalBaseModel):
     storage_object_key: typing.Optional[str] = pydantic.Field(default=None)
     """
     Storage object key for the root span payload when present.
+    """
+
+    span_tree: typing.Optional[typing.List[RetrieveTraceResponseSpanTreeItem]] = pydantic.Field(default=None)
+    """
+    Hierarchical span tree for the trace.
     """
 
     if IS_PYDANTIC_V2:

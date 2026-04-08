@@ -18,16 +18,20 @@ from ..errors.internal_server_error import InternalServerError
 from ..errors.not_found_error import NotFoundError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.filters import Filters
+from ..types.unprocessable_entity_error_body import UnprocessableEntityErrorBody
 from .types.create_span_request_input import CreateSpanRequestInput
 from .types.create_span_request_log_type import CreateSpanRequestLogType
 from .types.create_span_request_output import CreateSpanRequestOutput
 from .types.create_span_request_status import CreateSpanRequestStatus
+from .types.create_span_request_stop import CreateSpanRequestStop
 from .types.create_span_request_tool_choice import CreateSpanRequestToolChoice
+from .types.create_span_request_usage import CreateSpanRequestUsage
 from .types.create_span_request_warnings import CreateSpanRequestWarnings
 from .types.create_span_response import CreateSpanResponse
 from .types.get_spans_summary_response import GetSpansSummaryResponse
-from .types.ingest_spans_request_body_item import IngestSpansRequestBodyItem
+from .types.list_spans_legacy_response import ListSpansLegacyResponse
 from .types.list_spans_request_all_envs import ListSpansRequestAllEnvs
 from .types.list_spans_request_fetch_filters import ListSpansRequestFetchFilters
 from .types.list_spans_request_is_test import ListSpansRequestIsTest
@@ -43,22 +47,118 @@ class RawSpansClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
+    def list_spans_legacy(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        customer_identifier: typing.Optional[str] = None,
+        include_fields: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ListSpansLegacyResponse]:
+        """
+        List spans via the legacy endpoint. This path supports basic pagination and filtering, but for advanced filtering, annotations, and evaluator score sorting, use `/api/request-logs/list/` instead.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601).
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601).
+
+        customer_identifier : typing.Optional[str]
+            Filter by end-user/customer identifier.
+
+        include_fields : typing.Optional[str]
+            Comma-separated list of fields to include in each span. Reduces response size.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ListSpansLegacyResponse]
+            Paginated legacy span list
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/request-logs/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "customer_identifier": customer_identifier,
+                "include_fields": include_fields,
+            },
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListSpansLegacyResponse,
+                    parse_obj_as(
+                        type_=ListSpansLegacyResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
     def create_span(
         self,
         *,
         authorization: str,
-        prompt_messages: typing.Optional[typing.Sequence[str]] = OMIT,
-        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        model: str,
+        log_type: typing.Optional[CreateSpanRequestLogType] = OMIT,
         input: typing.Optional[CreateSpanRequestInput] = OMIT,
         output: typing.Optional[CreateSpanRequestOutput] = OMIT,
-        log_type: typing.Optional[CreateSpanRequestLogType] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        usage: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        prompt_messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        usage: typing.Optional[CreateSpanRequestUsage] = OMIT,
         cost: typing.Optional[float] = OMIT,
         latency: typing.Optional[float] = OMIT,
         time_to_first_token: typing.Optional[float] = OMIT,
         tokens_per_second: typing.Optional[float] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
         customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
@@ -68,7 +168,7 @@ class RawSpansClient:
         span_workflow_name: typing.Optional[str] = OMIT,
         span_name: typing.Optional[str] = OMIT,
         span_parent_id: typing.Optional[str] = OMIT,
-        tools: typing.Optional[typing.Sequence[str]] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         tool_choice: typing.Optional[CreateSpanRequestToolChoice] = OMIT,
         response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         temperature: typing.Optional[float] = OMIT,
@@ -76,7 +176,7 @@ class RawSpansClient:
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
         max_tokens: typing.Optional[int] = OMIT,
-        stop: typing.Optional[typing.Sequence[str]] = OMIT,
+        stop: typing.Optional[CreateSpanRequestStop] = OMIT,
         status_code: typing.Optional[int] = OMIT,
         error_message: typing.Optional[str] = OMIT,
         warnings: typing.Optional[CreateSpanRequestWarnings] = OMIT,
@@ -85,45 +185,47 @@ class RawSpansClient:
         prompt_id: typing.Optional[str] = OMIT,
         prompt_name: typing.Optional[str] = OMIT,
         is_custom_prompt: typing.Optional[bool] = OMIT,
-        timestamp: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        start_time: typing.Optional[dt.datetime] = OMIT,
         full_request: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         full_response: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         prompt_unit_price: typing.Optional[float] = OMIT,
         completion_unit_price: typing.Optional[float] = OMIT,
-        respan_api_controls: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        keywordsai_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         positive_feedback: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateSpanResponse]:
         """
-        Create a span representing a single LLM interaction. Spans are the core data unit in Respan — every LLM call, agent step, or tool invocation is stored as a span.
-
-        Span size limit: 20MB per payload.
+        Create a span via the logging API. This is the standard create endpoint. `/api/request-logs/create/` remains supported as a legacy alias. Prefer universal `input` and `output` fields; legacy chat fields like `messages`, `prompt_messages`, and `completion_message` are still accepted for backward compatibility. Respan-specific controls can be sent at the top level or nested under `respan_params`.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        prompt_messages : typing.Optional[typing.Sequence[str]]
-            Deprecated. Use `input` instead.
-
-        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
-            Deprecated. Use `output` instead.
-
-        input : typing.Optional[CreateSpanRequestInput]
-            The input to the model. Format depends on `log_type`.
-
-        output : typing.Optional[CreateSpanRequestOutput]
-            The output from the model. Format depends on `log_type`.
+        model : str
+            Model used for the span.
 
         log_type : typing.Optional[CreateSpanRequestLogType]
             Type of span. Determines how `input` and `output` are parsed.
 
-        model : typing.Optional[str]
-            Model used for the request.
+        input : typing.Optional[CreateSpanRequestInput]
+            Preferred universal input field. For chat spans, send an array of message objects or a JSON string. For non-chat spans, send any string/object/array structure that represents the span input.
 
-        usage : typing.Optional[typing.Dict[str, typing.Any]]
+        output : typing.Optional[CreateSpanRequestOutput]
+            Preferred universal output field. For chat spans, send an assistant message object or a JSON string. For non-chat spans, send any string/object/array structure that represents the span output.
+
+        messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Legacy chat input field. Equivalent to `prompt_messages`; prefer `input` for new integrations.
+
+        prompt_messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Legacy chat input field. Prefer `input` for new integrations.
+
+        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy chat output field. Prefer `output` for new integrations.
+
+        usage : typing.Optional[CreateSpanRequestUsage]
             Token usage for the request.
 
         cost : typing.Optional[float]
@@ -140,6 +242,12 @@ class RawSpansClient:
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
             Arbitrary key-value pairs for your reference.
+
+        properties : typing.Optional[typing.Dict[str, typing.Any]]
+            Typed metadata that preserves native JSON types.
+
+        variables : typing.Optional[typing.Dict[str, typing.Any]]
+            Variables used for prompt templates.
 
         customer_identifier : typing.Optional[str]
             Identifier for the end user who made this request.
@@ -168,7 +276,7 @@ class RawSpansClient:
         span_parent_id : typing.Optional[str]
             Parent span ID. Builds the trace hierarchy.
 
-        tools : typing.Optional[typing.Sequence[str]]
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
             Tools available to the model (OpenAI function calling format).
 
         tool_choice : typing.Optional[CreateSpanRequestToolChoice]
@@ -192,8 +300,8 @@ class RawSpansClient:
         max_tokens : typing.Optional[int]
             Maximum tokens to generate.
 
-        stop : typing.Optional[typing.Sequence[str]]
-            Stop sequences where generation halts.
+        stop : typing.Optional[CreateSpanRequestStop]
+            Stop sequence or sequences where generation halts.
 
         status_code : typing.Optional[int]
             HTTP status code of the request.
@@ -219,10 +327,10 @@ class RawSpansClient:
         is_custom_prompt : typing.Optional[bool]
             Set `true` when using a custom `prompt_id`.
 
-        timestamp : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
             ISO 8601 timestamp when the request completed.
 
-        start_time : typing.Optional[str]
+        start_time : typing.Optional[dt.datetime]
             ISO 8601 timestamp when the request started.
 
         full_request : typing.Optional[typing.Dict[str, typing.Any]]
@@ -237,8 +345,11 @@ class RawSpansClient:
         completion_unit_price : typing.Optional[float]
             Custom price per 1M completion tokens (for self-hosted/fine-tuned models).
 
-        respan_api_controls : typing.Optional[typing.Dict[str, typing.Any]]
-            Controls for the Respan logging API behavior.
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Preferred namespace for Respan-specific controls such as customer tagging, metadata, prompt loading, cache settings, and logging flags.
+
+        keywordsai_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy alias for `respan_params`. Still accepted and merged into `respan_params`.
 
         positive_feedback : typing.Optional[bool]
             User feedback. `true` = positive, `false` = negative.
@@ -249,28 +360,33 @@ class RawSpansClient:
         Returns
         -------
         HttpResponse[CreateSpanResponse]
-            Successful response for Create span
+            Span created successfully
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/request-logs/",
             method="POST",
             json={
-                "prompt_messages": prompt_messages,
-                "completion_message": completion_message,
+                "model": model,
+                "log_type": log_type,
                 "input": convert_and_respect_annotation_metadata(
                     object_=input, annotation=CreateSpanRequestInput, direction="write"
                 ),
                 "output": convert_and_respect_annotation_metadata(
                     object_=output, annotation=CreateSpanRequestOutput, direction="write"
                 ),
-                "log_type": log_type,
-                "model": model,
-                "usage": usage,
+                "messages": messages,
+                "prompt_messages": prompt_messages,
+                "completion_message": completion_message,
+                "usage": convert_and_respect_annotation_metadata(
+                    object_=usage, annotation=CreateSpanRequestUsage, direction="write"
+                ),
                 "cost": cost,
                 "latency": latency,
                 "time_to_first_token": time_to_first_token,
                 "tokens_per_second": tokens_per_second,
                 "metadata": metadata,
+                "properties": properties,
+                "variables": variables,
                 "customer_identifier": customer_identifier,
                 "customer_params": customer_params,
                 "thread_identifier": thread_identifier,
@@ -290,7 +406,9 @@ class RawSpansClient:
                 "frequency_penalty": frequency_penalty,
                 "presence_penalty": presence_penalty,
                 "max_tokens": max_tokens,
-                "stop": stop,
+                "stop": convert_and_respect_annotation_metadata(
+                    object_=stop, annotation=CreateSpanRequestStop, direction="write"
+                ),
                 "status_code": status_code,
                 "error_message": error_message,
                 "warnings": convert_and_respect_annotation_metadata(
@@ -307,7 +425,8 @@ class RawSpansClient:
                 "full_response": full_response,
                 "prompt_unit_price": prompt_unit_price,
                 "completion_unit_price": completion_unit_price,
-                "respan_api_controls": respan_api_controls,
+                "respan_params": respan_params,
+                "keywordsai_params": keywordsai_params,
                 "positive_feedback": positive_feedback,
             },
             headers={
@@ -345,6 +464,17 @@ class RawSpansClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnprocessableEntityErrorBody,
+                        parse_obj_as(
+                            type_=UnprocessableEntityErrorBody,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -888,54 +1018,88 @@ class RawSpansClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def ingest_spans(
+
+class AsyncRawSpansClient:
+    def __init__(self, *, client_wrapper: AsyncClientWrapper):
+        self._client_wrapper = client_wrapper
+
+    async def list_spans_legacy(
         self,
         *,
         authorization: str,
-        request: typing.Sequence[IngestSpansRequestBodyItem],
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        customer_identifier: typing.Optional[str] = None,
+        include_fields: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Dict[str, typing.Any]]:
+    ) -> AsyncHttpResponse[ListSpansLegacyResponse]:
         """
-        Ingest an array of spans as a trace. Each span uses the same fields as [Create span](/docs/apis/spans/api-request-logs), plus `span_unique_id` to identify each span within the trace.
+        List spans via the legacy endpoint. This path supports basic pagination and filtering, but for advanced filtering, annotations, and evaluator score sorting, use `/api/request-logs/list/` instead.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[IngestSpansRequestBodyItem]
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601).
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601).
+
+        customer_identifier : typing.Optional[str]
+            Filter by end-user/customer identifier.
+
+        include_fields : typing.Optional[str]
+            Comma-separated list of fields to include in each span. Reduces response size.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[typing.Dict[str, typing.Any]]
-            Successful response for Ingest spans from traces
+        AsyncHttpResponse[ListSpansLegacyResponse]
+            Paginated legacy span list
         """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/traces/ingest/",
-            method="POST",
-            json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[IngestSpansRequestBodyItem], direction="write"
-            ),
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/request-logs/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "customer_identifier": customer_identifier,
+                "include_fields": include_fields,
+            },
             headers={
-                "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    typing.Dict[str, typing.Any],
+                    ListSpansLegacyResponse,
                     parse_obj_as(
-                        type_=typing.Dict[str, typing.Any],  # type: ignore
+                        type_=ListSpansLegacyResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
+                return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -952,27 +1116,25 @@ class RawSpansClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-
-class AsyncRawSpansClient:
-    def __init__(self, *, client_wrapper: AsyncClientWrapper):
-        self._client_wrapper = client_wrapper
-
     async def create_span(
         self,
         *,
         authorization: str,
-        prompt_messages: typing.Optional[typing.Sequence[str]] = OMIT,
-        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        model: str,
+        log_type: typing.Optional[CreateSpanRequestLogType] = OMIT,
         input: typing.Optional[CreateSpanRequestInput] = OMIT,
         output: typing.Optional[CreateSpanRequestOutput] = OMIT,
-        log_type: typing.Optional[CreateSpanRequestLogType] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        usage: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        prompt_messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        usage: typing.Optional[CreateSpanRequestUsage] = OMIT,
         cost: typing.Optional[float] = OMIT,
         latency: typing.Optional[float] = OMIT,
         time_to_first_token: typing.Optional[float] = OMIT,
         tokens_per_second: typing.Optional[float] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
         customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
@@ -982,7 +1144,7 @@ class AsyncRawSpansClient:
         span_workflow_name: typing.Optional[str] = OMIT,
         span_name: typing.Optional[str] = OMIT,
         span_parent_id: typing.Optional[str] = OMIT,
-        tools: typing.Optional[typing.Sequence[str]] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         tool_choice: typing.Optional[CreateSpanRequestToolChoice] = OMIT,
         response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         temperature: typing.Optional[float] = OMIT,
@@ -990,7 +1152,7 @@ class AsyncRawSpansClient:
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
         max_tokens: typing.Optional[int] = OMIT,
-        stop: typing.Optional[typing.Sequence[str]] = OMIT,
+        stop: typing.Optional[CreateSpanRequestStop] = OMIT,
         status_code: typing.Optional[int] = OMIT,
         error_message: typing.Optional[str] = OMIT,
         warnings: typing.Optional[CreateSpanRequestWarnings] = OMIT,
@@ -999,45 +1161,47 @@ class AsyncRawSpansClient:
         prompt_id: typing.Optional[str] = OMIT,
         prompt_name: typing.Optional[str] = OMIT,
         is_custom_prompt: typing.Optional[bool] = OMIT,
-        timestamp: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        start_time: typing.Optional[dt.datetime] = OMIT,
         full_request: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         full_response: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         prompt_unit_price: typing.Optional[float] = OMIT,
         completion_unit_price: typing.Optional[float] = OMIT,
-        respan_api_controls: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        keywordsai_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         positive_feedback: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateSpanResponse]:
         """
-        Create a span representing a single LLM interaction. Spans are the core data unit in Respan — every LLM call, agent step, or tool invocation is stored as a span.
-
-        Span size limit: 20MB per payload.
+        Create a span via the logging API. This is the standard create endpoint. `/api/request-logs/create/` remains supported as a legacy alias. Prefer universal `input` and `output` fields; legacy chat fields like `messages`, `prompt_messages`, and `completion_message` are still accepted for backward compatibility. Respan-specific controls can be sent at the top level or nested under `respan_params`.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        prompt_messages : typing.Optional[typing.Sequence[str]]
-            Deprecated. Use `input` instead.
-
-        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
-            Deprecated. Use `output` instead.
-
-        input : typing.Optional[CreateSpanRequestInput]
-            The input to the model. Format depends on `log_type`.
-
-        output : typing.Optional[CreateSpanRequestOutput]
-            The output from the model. Format depends on `log_type`.
+        model : str
+            Model used for the span.
 
         log_type : typing.Optional[CreateSpanRequestLogType]
             Type of span. Determines how `input` and `output` are parsed.
 
-        model : typing.Optional[str]
-            Model used for the request.
+        input : typing.Optional[CreateSpanRequestInput]
+            Preferred universal input field. For chat spans, send an array of message objects or a JSON string. For non-chat spans, send any string/object/array structure that represents the span input.
 
-        usage : typing.Optional[typing.Dict[str, typing.Any]]
+        output : typing.Optional[CreateSpanRequestOutput]
+            Preferred universal output field. For chat spans, send an assistant message object or a JSON string. For non-chat spans, send any string/object/array structure that represents the span output.
+
+        messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Legacy chat input field. Equivalent to `prompt_messages`; prefer `input` for new integrations.
+
+        prompt_messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Legacy chat input field. Prefer `input` for new integrations.
+
+        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy chat output field. Prefer `output` for new integrations.
+
+        usage : typing.Optional[CreateSpanRequestUsage]
             Token usage for the request.
 
         cost : typing.Optional[float]
@@ -1054,6 +1218,12 @@ class AsyncRawSpansClient:
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
             Arbitrary key-value pairs for your reference.
+
+        properties : typing.Optional[typing.Dict[str, typing.Any]]
+            Typed metadata that preserves native JSON types.
+
+        variables : typing.Optional[typing.Dict[str, typing.Any]]
+            Variables used for prompt templates.
 
         customer_identifier : typing.Optional[str]
             Identifier for the end user who made this request.
@@ -1082,7 +1252,7 @@ class AsyncRawSpansClient:
         span_parent_id : typing.Optional[str]
             Parent span ID. Builds the trace hierarchy.
 
-        tools : typing.Optional[typing.Sequence[str]]
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
             Tools available to the model (OpenAI function calling format).
 
         tool_choice : typing.Optional[CreateSpanRequestToolChoice]
@@ -1106,8 +1276,8 @@ class AsyncRawSpansClient:
         max_tokens : typing.Optional[int]
             Maximum tokens to generate.
 
-        stop : typing.Optional[typing.Sequence[str]]
-            Stop sequences where generation halts.
+        stop : typing.Optional[CreateSpanRequestStop]
+            Stop sequence or sequences where generation halts.
 
         status_code : typing.Optional[int]
             HTTP status code of the request.
@@ -1133,10 +1303,10 @@ class AsyncRawSpansClient:
         is_custom_prompt : typing.Optional[bool]
             Set `true` when using a custom `prompt_id`.
 
-        timestamp : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
             ISO 8601 timestamp when the request completed.
 
-        start_time : typing.Optional[str]
+        start_time : typing.Optional[dt.datetime]
             ISO 8601 timestamp when the request started.
 
         full_request : typing.Optional[typing.Dict[str, typing.Any]]
@@ -1151,8 +1321,11 @@ class AsyncRawSpansClient:
         completion_unit_price : typing.Optional[float]
             Custom price per 1M completion tokens (for self-hosted/fine-tuned models).
 
-        respan_api_controls : typing.Optional[typing.Dict[str, typing.Any]]
-            Controls for the Respan logging API behavior.
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Preferred namespace for Respan-specific controls such as customer tagging, metadata, prompt loading, cache settings, and logging flags.
+
+        keywordsai_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy alias for `respan_params`. Still accepted and merged into `respan_params`.
 
         positive_feedback : typing.Optional[bool]
             User feedback. `true` = positive, `false` = negative.
@@ -1163,28 +1336,33 @@ class AsyncRawSpansClient:
         Returns
         -------
         AsyncHttpResponse[CreateSpanResponse]
-            Successful response for Create span
+            Span created successfully
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/request-logs/",
             method="POST",
             json={
-                "prompt_messages": prompt_messages,
-                "completion_message": completion_message,
+                "model": model,
+                "log_type": log_type,
                 "input": convert_and_respect_annotation_metadata(
                     object_=input, annotation=CreateSpanRequestInput, direction="write"
                 ),
                 "output": convert_and_respect_annotation_metadata(
                     object_=output, annotation=CreateSpanRequestOutput, direction="write"
                 ),
-                "log_type": log_type,
-                "model": model,
-                "usage": usage,
+                "messages": messages,
+                "prompt_messages": prompt_messages,
+                "completion_message": completion_message,
+                "usage": convert_and_respect_annotation_metadata(
+                    object_=usage, annotation=CreateSpanRequestUsage, direction="write"
+                ),
                 "cost": cost,
                 "latency": latency,
                 "time_to_first_token": time_to_first_token,
                 "tokens_per_second": tokens_per_second,
                 "metadata": metadata,
+                "properties": properties,
+                "variables": variables,
                 "customer_identifier": customer_identifier,
                 "customer_params": customer_params,
                 "thread_identifier": thread_identifier,
@@ -1204,7 +1382,9 @@ class AsyncRawSpansClient:
                 "frequency_penalty": frequency_penalty,
                 "presence_penalty": presence_penalty,
                 "max_tokens": max_tokens,
-                "stop": stop,
+                "stop": convert_and_respect_annotation_metadata(
+                    object_=stop, annotation=CreateSpanRequestStop, direction="write"
+                ),
                 "status_code": status_code,
                 "error_message": error_message,
                 "warnings": convert_and_respect_annotation_metadata(
@@ -1221,7 +1401,8 @@ class AsyncRawSpansClient:
                 "full_response": full_response,
                 "prompt_unit_price": prompt_unit_price,
                 "completion_unit_price": completion_unit_price,
-                "respan_api_controls": respan_api_controls,
+                "respan_params": respan_params,
+                "keywordsai_params": keywordsai_params,
                 "positive_feedback": positive_feedback,
             },
             headers={
@@ -1259,6 +1440,17 @@ class AsyncRawSpansClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnprocessableEntityErrorBody,
+                        parse_obj_as(
+                            type_=UnprocessableEntityErrorBody,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1791,70 +1983,6 @@ class AsyncRawSpansClient:
                 )
             if _response.status_code == 500:
                 raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def ingest_spans(
-        self,
-        *,
-        authorization: str,
-        request: typing.Sequence[IngestSpansRequestBodyItem],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Dict[str, typing.Any]]:
-        """
-        Ingest an array of spans as a trace. Each span uses the same fields as [Create span](/docs/apis/spans/api-request-logs), plus `span_unique_id` to identify each span within the trace.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request : typing.Sequence[IngestSpansRequestBodyItem]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[typing.Dict[str, typing.Any]]
-            Successful response for Ingest spans from traces
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/traces/ingest/",
-            method="POST",
-            json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[IngestSpansRequestBodyItem], direction="write"
-            ),
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.Dict[str, typing.Any],
-                    parse_obj_as(
-                        type_=typing.Dict[str, typing.Any],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

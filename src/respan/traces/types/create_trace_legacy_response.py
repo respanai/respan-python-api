@@ -7,11 +7,10 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
 class CreateTraceLegacyResponse(UniversalBaseModel):
-    status: typing.Optional[str] = None
-    ingested_spans: typing.Optional[int] = None
-    created_traces: typing.Optional[int] = None
-    trace_ids: typing.Optional[typing.List[str]] = None
-    errors: typing.Optional[typing.List[str]] = None
+    message: str = pydantic.Field()
+    """
+    Human-readable ingest summary.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

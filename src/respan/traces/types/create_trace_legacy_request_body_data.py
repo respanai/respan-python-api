@@ -4,14 +4,18 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .create_span_response_usage_prompt_tokens_details import CreateSpanResponseUsagePromptTokensDetails
+from .create_trace_legacy_request_body_data_data_item import CreateTraceLegacyRequestBodyDataDataItem
 
 
-class CreateSpanResponseUsage(UniversalBaseModel):
-    prompt_tokens: typing.Optional[int] = None
-    completion_tokens: typing.Optional[int] = None
-    total_tokens: typing.Optional[int] = None
-    prompt_tokens_details: typing.Optional[CreateSpanResponseUsagePromptTokensDetails] = None
+class CreateTraceLegacyRequestBodyData(UniversalBaseModel):
+    """
+    Wrapper object accepted by the legacy integration endpoint.
+    """
+
+    data: typing.List[CreateTraceLegacyRequestBodyDataDataItem] = pydantic.Field()
+    """
+    Array of span objects to ingest as traces.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

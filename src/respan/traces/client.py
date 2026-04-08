@@ -8,13 +8,17 @@ from ..core.request_options import RequestOptions
 from ..types.filters import Filters
 from .raw_client import AsyncRawTracesClient, RawTracesClient
 from .types.bulk_delete_traces_response import BulkDeleteTracesResponse
-from .types.create_trace_legacy_request_body_item import CreateTraceLegacyRequestBodyItem
+from .types.create_trace_legacy_request_body import CreateTraceLegacyRequestBody
 from .types.create_trace_legacy_response import CreateTraceLegacyResponse
 from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
 from .types.create_trace_response import CreateTraceResponse
-from .types.get_traces_summary_response import GetTracesSummaryResponse
-from .types.list_traces_request_operator import ListTracesRequestOperator
+from .types.delete_trace_response import DeleteTraceResponse
 from .types.list_traces_response import ListTracesResponse
+from .types.list_traces_with_filters_request_operator import ListTracesWithFiltersRequestOperator
+from .types.list_traces_with_filters_response import ListTracesWithFiltersResponse
+from .types.retrieve_public_trace_response import RetrievePublicTraceResponse
+from .types.retrieve_trace_response import RetrieveTraceResponse
+from .types.share_trace_response import ShareTraceResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -34,6 +38,479 @@ class TracesClient:
         RawTracesClient
         """
         return self._raw_client
+
+    def list_traces(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListTracesResponse:
+        """
+        Retrieve a paginated list of traces matching your filters. `GET` and `POST` are both supported; use `POST` when sending complex filter payloads.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListTracesResponse
+            Paginated list of traces.
+
+        Examples
+        --------
+        import datetime
+
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.traces.list_traces(
+            authorization="Bearer sk_live_xxxxx",
+            sort_by="-total_cost",
+            start_time=datetime.datetime.fromisoformat(
+                "2025-01-01 00:00:00+00:00",
+            ),
+            end_time=datetime.datetime.fromisoformat(
+                "2025-01-31 23:59:59+00:00",
+            ),
+            environment="production",
+        )
+        """
+        _response = self._raw_client.list_traces(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            start_time=start_time,
+            end_time=end_time,
+            environment=environment,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def list_traces_with_filters(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        operator: typing.Optional[ListTracesWithFiltersRequestOperator] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListTracesWithFiltersResponse:
+        """
+        Retrieve a paginated list of traces matching your filters. `POST` uses the same response shape as `GET` and supports the filter payload documented in the Filters API.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        filters : typing.Optional[Filters]
+
+        operator : typing.Optional[ListTracesWithFiltersRequestOperator]
+            Logical operator for combining filters when supported by the client payload.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListTracesWithFiltersResponse
+            Paginated list of traces.
+
+        Examples
+        --------
+        import datetime
+
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.traces.list_traces_with_filters(
+            authorization="Bearer sk_live_xxxxx",
+            sort_by="-total_cost",
+            start_time=datetime.datetime.fromisoformat(
+                "2025-01-01 00:00:00+00:00",
+            ),
+            end_time=datetime.datetime.fromisoformat(
+                "2025-01-31 23:59:59+00:00",
+            ),
+            environment="production",
+        )
+        """
+        _response = self._raw_client.list_traces_with_filters(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            start_time=start_time,
+            end_time=end_time,
+            environment=environment,
+            filters=filters,
+            operator=operator,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def bulk_delete_traces(
+        self,
+        *,
+        authorization: str,
+        filters: Filters,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> BulkDeleteTracesResponse:
+        """
+        Delete multiple traces matching the given filters. This endpoint requires a non-empty `filters` object and rejects requests that match more than 1000 traces.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        filters : Filters
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        BulkDeleteTracesResponse
+            Bulk delete result.
+
+        Examples
+        --------
+        import datetime
+
+        from respan import Filters, FilterValue, RespanClient
+
+        client = RespanClient()
+        client.traces.bulk_delete_traces(
+            authorization="Bearer sk_live_xxxxx",
+            start_time=datetime.datetime.fromisoformat(
+                "2025-01-01 00:00:00+00:00",
+            ),
+            end_time=datetime.datetime.fromisoformat(
+                "2025-01-31 23:59:59+00:00",
+            ),
+            environment="production",
+            filters=Filters(
+                customer_identifier=FilterValue(
+                    operator="",
+                    value=["user_123"],
+                ),
+                model=FilterValue(
+                    operator="",
+                    value=["gpt-4o"],
+                ),
+                cost=FilterValue(
+                    operator="gte",
+                    value=[0.01],
+                ),
+            ),
+        )
+        """
+        _response = self._raw_client.bulk_delete_traces(
+            authorization=authorization,
+            filters=filters,
+            start_time=start_time,
+            end_time=end_time,
+            environment=environment,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def retrieve_trace(
+        self, trace_unique_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> RetrieveTraceResponse:
+        """
+        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveTraceResponse
+            Trace detail with span tree.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.traces.retrieve_trace(
+            trace_unique_id="trace_unique_id",
+            authorization="Bearer sk_live_xxxxx",
+        )
+        """
+        _response = self._raw_client.retrieve_trace(
+            trace_unique_id, authorization=authorization, request_options=request_options
+        )
+        return _response.data
+
+    def delete_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        authorization: str,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> DeleteTraceResponse:
+        """
+        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        DeleteTraceResponse
+            Trace delete issued successfully.
+
+        Examples
+        --------
+        import datetime
+
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.traces.delete_trace(
+            trace_unique_id="trace_unique_id",
+            authorization="Bearer sk_live_xxxxx",
+            start_time=datetime.datetime.fromisoformat(
+                "2025-01-01 00:00:00+00:00",
+            ),
+            end_time=datetime.datetime.fromisoformat(
+                "2025-01-31 23:59:59+00:00",
+            ),
+        )
+        """
+        _response = self._raw_client.delete_trace(
+            trace_unique_id,
+            authorization=authorization,
+            start_time=start_time,
+            end_time=end_time,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def share_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        authorization: str,
+        is_public: bool,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ShareTraceResponse:
+        """
+        Toggle public sharing for a trace. When `is_public` is `true`, the trace becomes accessible through the public trace URL.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        is_public : bool
+            Set `true` to make the trace public, or `false` to revoke public access.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ShareTraceResponse
+            Trace sharing state updated.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.traces.share_trace(
+            trace_unique_id="trace_unique_id",
+            authorization="Bearer sk_live_xxxxx",
+            is_public=True,
+        )
+        """
+        _response = self._raw_client.share_trace(
+            trace_unique_id, authorization=authorization, is_public=is_public, request_options=request_options
+        )
+        return _response.data
+
+    def retrieve_public_trace(
+        self,
+        unique_organization_id: str,
+        trace_unique_id: str,
+        *,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrievePublicTraceResponse:
+        """
+        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`.
+
+        Parameters
+        ----------
+        unique_organization_id : str
+            Organization unique ID used in a public trace share link.
+
+        trace_unique_id : str
+            Unique trace identifier.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrievePublicTraceResponse
+            Trace detail with span tree.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.traces.retrieve_public_trace(
+            unique_organization_id="unique_organization_id",
+            trace_unique_id="trace_unique_id",
+        )
+        """
+        _response = self._raw_client.retrieve_public_trace(
+            unique_organization_id, trace_unique_id, request_options=request_options
+        )
+        return _response.data
+
+    def create_trace_legacy(
+        self,
+        *,
+        authorization: str,
+        request: CreateTraceLegacyRequestBody,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> CreateTraceLegacyResponse:
+        """
+        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request : CreateTraceLegacyRequestBody
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        CreateTraceLegacyResponse
+            Trace spans processed successfully
+
+        Examples
+        --------
+        from respan import RespanClient
+        from respan.traces import CreateTraceLegacyRequestBodyZeroItem
+
+        client = RespanClient()
+        client.traces.create_trace_legacy(
+            authorization="Bearer sk_live_xxxxx",
+            request=[
+                CreateTraceLegacyRequestBodyZeroItem(
+                    trace_unique_id="trace_abc123",
+                    span_unique_id="span_001",
+                )
+            ],
+        )
+        """
+        _response = self._raw_client.create_trace_legacy(
+            authorization=authorization, request=request, request_options=request_options
+        )
+        return _response.data
 
     def create_trace(
         self,
@@ -79,384 +556,6 @@ class TracesClient:
         )
         return _response.data
 
-    def list_traces(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListTracesResponse:
-        """
-        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListTracesRequestOperator]
-            Logical operator to combine filters.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListTracesResponse
-            Paginated list of traces.
-
-        Examples
-        --------
-        import datetime
-
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.traces.list_traces(
-            authorization="Bearer sk_live_xxxxx",
-            sort_by="-total_cost",
-            start_time=datetime.datetime.fromisoformat(
-                "2025-01-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2025-01-31 23:59:59+00:00",
-            ),
-            environment="production",
-        )
-        """
-        _response = self._raw_client.list_traces(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            filters=filters,
-            operator=operator,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def retrieve_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        environment: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
-        """
-        Retrieve a trace by its ID, including the complete span tree with full input/output for all spans.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Trace Unique Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.Dict[str, typing.Any]
-            Successful response for Retrieve trace
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.traces.retrieve_trace(
-            trace_unique_id="trace_unique_id",
-            authorization="Bearer sk_live_xxxxx",
-            environment="production",
-        )
-        """
-        _response = self._raw_client.retrieve_trace(
-            trace_unique_id,
-            authorization=authorization,
-            environment=environment,
-            start_time=start_time,
-            end_time=end_time,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def delete_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        start_time: typing.Optional[str] = None,
-        end_time: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
-        """
-        Delete a trace and all its spans by `trace_unique_id`. Removes data from both raw span storage and the aggregated trace table.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique identifier of the trace to delete.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : typing.Optional[str]
-            ISO 8601 start of time range for efficient lookup. Defaults to end_time minus 1 hour.
-
-        end_time : typing.Optional[str]
-            ISO 8601 end of time range for efficient lookup. Defaults to current time.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.traces.delete_trace(
-            trace_unique_id="trace_unique_id",
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.delete_trace(
-            trace_unique_id,
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def get_traces_summary(
-        self,
-        *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetTracesSummaryResponse:
-        """
-        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/apis/traces/api-traces-list).
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetTracesSummaryResponse
-            Trace summary statistics.
-
-        Examples
-        --------
-        import datetime
-
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.traces.get_traces_summary(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2025-01-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2025-01-31 23:59:59+00:00",
-            ),
-            environment="production",
-        )
-        """
-        _response = self._raw_client.get_traces_summary(
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            filters=filters,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def bulk_delete_traces(
-        self,
-        *,
-        authorization: str,
-        filters: Filters,
-        start_time: typing.Optional[str] = None,
-        end_time: typing.Optional[str] = None,
-        environment: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> BulkDeleteTracesResponse:
-        """
-        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/apis/traces/api-traces-list). Returns the count of deleted traces.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        filters : Filters
-
-        start_time : typing.Optional[str]
-            ISO 8601 start of time range. Defaults to end_time minus 1 hour.
-
-        end_time : typing.Optional[str]
-            ISO 8601 end of time range. Defaults to current time.
-
-        environment : typing.Optional[str]
-            Filter by environment (e.g., production, staging).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        BulkDeleteTracesResponse
-            Traces deleted.
-
-        Examples
-        --------
-        from respan import Filters, FilterValue, RespanClient
-
-        client = RespanClient()
-        client.traces.bulk_delete_traces(
-            authorization="Bearer sk_live_xxxxx",
-            filters=Filters(
-                customer_identifier=FilterValue(
-                    operator="",
-                    value=["user_123"],
-                ),
-                model=FilterValue(
-                    operator="",
-                    value=["gpt-4o"],
-                ),
-                cost=FilterValue(
-                    operator="gte",
-                    value=[0.01],
-                ),
-            ),
-        )
-        """
-        _response = self._raw_client.bulk_delete_traces(
-            authorization=authorization,
-            filters=filters,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def create_trace_legacy(
-        self,
-        *,
-        authorization: str,
-        request: typing.Sequence[CreateTraceLegacyRequestBodyItem],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateTraceLegacyResponse:
-        """
-        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/api-v2-traces).
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request : typing.Sequence[CreateTraceLegacyRequestBodyItem]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        CreateTraceLegacyResponse
-            Successful response for Ingest traces from logs
-
-        Examples
-        --------
-        from respan import RespanClient
-        from respan.traces import CreateTraceLegacyRequestBodyItem
-
-        client = RespanClient()
-        client.traces.create_trace_legacy(
-            authorization="Bearer sk_live_xxxxx",
-            request=[
-                CreateTraceLegacyRequestBodyItem(
-                    trace_unique_id="trace_abc123",
-                    span_unique_id="span_001",
-                )
-            ],
-        )
-        """
-        _response = self._raw_client.create_trace_legacy(
-            authorization=authorization, request=request, request_options=request_options
-        )
-        return _response.data
-
 
 class AsyncTracesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -472,6 +571,539 @@ class AsyncTracesClient:
         AsyncRawTracesClient
         """
         return self._raw_client
+
+    async def list_traces(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListTracesResponse:
+        """
+        Retrieve a paginated list of traces matching your filters. `GET` and `POST` are both supported; use `POST` when sending complex filter payloads.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListTracesResponse
+            Paginated list of traces.
+
+        Examples
+        --------
+        import asyncio
+        import datetime
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.traces.list_traces(
+                authorization="Bearer sk_live_xxxxx",
+                sort_by="-total_cost",
+                start_time=datetime.datetime.fromisoformat(
+                    "2025-01-01 00:00:00+00:00",
+                ),
+                end_time=datetime.datetime.fromisoformat(
+                    "2025-01-31 23:59:59+00:00",
+                ),
+                environment="production",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_traces(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            start_time=start_time,
+            end_time=end_time,
+            environment=environment,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def list_traces_with_filters(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        operator: typing.Optional[ListTracesWithFiltersRequestOperator] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListTracesWithFiltersResponse:
+        """
+        Retrieve a paginated list of traces matching your filters. `POST` uses the same response shape as `GET` and supports the filter payload documented in the Filters API.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        filters : typing.Optional[Filters]
+
+        operator : typing.Optional[ListTracesWithFiltersRequestOperator]
+            Logical operator for combining filters when supported by the client payload.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListTracesWithFiltersResponse
+            Paginated list of traces.
+
+        Examples
+        --------
+        import asyncio
+        import datetime
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.traces.list_traces_with_filters(
+                authorization="Bearer sk_live_xxxxx",
+                sort_by="-total_cost",
+                start_time=datetime.datetime.fromisoformat(
+                    "2025-01-01 00:00:00+00:00",
+                ),
+                end_time=datetime.datetime.fromisoformat(
+                    "2025-01-31 23:59:59+00:00",
+                ),
+                environment="production",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_traces_with_filters(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            start_time=start_time,
+            end_time=end_time,
+            environment=environment,
+            filters=filters,
+            operator=operator,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def bulk_delete_traces(
+        self,
+        *,
+        authorization: str,
+        filters: Filters,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> BulkDeleteTracesResponse:
+        """
+        Delete multiple traces matching the given filters. This endpoint requires a non-empty `filters` object and rejects requests that match more than 1000 traces.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        filters : Filters
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        BulkDeleteTracesResponse
+            Bulk delete result.
+
+        Examples
+        --------
+        import asyncio
+        import datetime
+
+        from respan import AsyncRespanClient, Filters, FilterValue
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.traces.bulk_delete_traces(
+                authorization="Bearer sk_live_xxxxx",
+                start_time=datetime.datetime.fromisoformat(
+                    "2025-01-01 00:00:00+00:00",
+                ),
+                end_time=datetime.datetime.fromisoformat(
+                    "2025-01-31 23:59:59+00:00",
+                ),
+                environment="production",
+                filters=Filters(
+                    customer_identifier=FilterValue(
+                        operator="",
+                        value=["user_123"],
+                    ),
+                    model=FilterValue(
+                        operator="",
+                        value=["gpt-4o"],
+                    ),
+                    cost=FilterValue(
+                        operator="gte",
+                        value=[0.01],
+                    ),
+                ),
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.bulk_delete_traces(
+            authorization=authorization,
+            filters=filters,
+            start_time=start_time,
+            end_time=end_time,
+            environment=environment,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def retrieve_trace(
+        self, trace_unique_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> RetrieveTraceResponse:
+        """
+        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveTraceResponse
+            Trace detail with span tree.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.traces.retrieve_trace(
+                trace_unique_id="trace_unique_id",
+                authorization="Bearer sk_live_xxxxx",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.retrieve_trace(
+            trace_unique_id, authorization=authorization, request_options=request_options
+        )
+        return _response.data
+
+    async def delete_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        authorization: str,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> DeleteTraceResponse:
+        """
+        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        DeleteTraceResponse
+            Trace delete issued successfully.
+
+        Examples
+        --------
+        import asyncio
+        import datetime
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.traces.delete_trace(
+                trace_unique_id="trace_unique_id",
+                authorization="Bearer sk_live_xxxxx",
+                start_time=datetime.datetime.fromisoformat(
+                    "2025-01-01 00:00:00+00:00",
+                ),
+                end_time=datetime.datetime.fromisoformat(
+                    "2025-01-31 23:59:59+00:00",
+                ),
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.delete_trace(
+            trace_unique_id,
+            authorization=authorization,
+            start_time=start_time,
+            end_time=end_time,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def share_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        authorization: str,
+        is_public: bool,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ShareTraceResponse:
+        """
+        Toggle public sharing for a trace. When `is_public` is `true`, the trace becomes accessible through the public trace URL.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        is_public : bool
+            Set `true` to make the trace public, or `false` to revoke public access.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ShareTraceResponse
+            Trace sharing state updated.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.traces.share_trace(
+                trace_unique_id="trace_unique_id",
+                authorization="Bearer sk_live_xxxxx",
+                is_public=True,
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.share_trace(
+            trace_unique_id, authorization=authorization, is_public=is_public, request_options=request_options
+        )
+        return _response.data
+
+    async def retrieve_public_trace(
+        self,
+        unique_organization_id: str,
+        trace_unique_id: str,
+        *,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrievePublicTraceResponse:
+        """
+        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`.
+
+        Parameters
+        ----------
+        unique_organization_id : str
+            Organization unique ID used in a public trace share link.
+
+        trace_unique_id : str
+            Unique trace identifier.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrievePublicTraceResponse
+            Trace detail with span tree.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.traces.retrieve_public_trace(
+                unique_organization_id="unique_organization_id",
+                trace_unique_id="trace_unique_id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.retrieve_public_trace(
+            unique_organization_id, trace_unique_id, request_options=request_options
+        )
+        return _response.data
+
+    async def create_trace_legacy(
+        self,
+        *,
+        authorization: str,
+        request: CreateTraceLegacyRequestBody,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> CreateTraceLegacyResponse:
+        """
+        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request : CreateTraceLegacyRequestBody
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        CreateTraceLegacyResponse
+            Trace spans processed successfully
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+        from respan.traces import CreateTraceLegacyRequestBodyZeroItem
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.traces.create_trace_legacy(
+                authorization="Bearer sk_live_xxxxx",
+                request=[
+                    CreateTraceLegacyRequestBodyZeroItem(
+                        trace_unique_id="trace_abc123",
+                        span_unique_id="span_001",
+                    )
+                ],
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.create_trace_legacy(
+            authorization=authorization, request=request, request_options=request_options
+        )
+        return _response.data
 
     async def create_trace(
         self,
@@ -522,429 +1154,5 @@ class AsyncTracesClient:
         """
         _response = await self._raw_client.create_trace(
             authorization=authorization, resource_spans=resource_spans, request_options=request_options
-        )
-        return _response.data
-
-    async def list_traces(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListTracesResponse:
-        """
-        Retrieve a paginated list of traces matching your filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for filter syntax.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListTracesRequestOperator]
-            Logical operator to combine filters.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListTracesResponse
-            Paginated list of traces.
-
-        Examples
-        --------
-        import asyncio
-        import datetime
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.traces.list_traces(
-                authorization="Bearer sk_live_xxxxx",
-                sort_by="-total_cost",
-                start_time=datetime.datetime.fromisoformat(
-                    "2025-01-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2025-01-31 23:59:59+00:00",
-                ),
-                environment="production",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_traces(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            filters=filters,
-            operator=operator,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def retrieve_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        environment: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
-        """
-        Retrieve a trace by its ID, including the complete span tree with full input/output for all spans.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Trace Unique Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.Dict[str, typing.Any]
-            Successful response for Retrieve trace
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.traces.retrieve_trace(
-                trace_unique_id="trace_unique_id",
-                authorization="Bearer sk_live_xxxxx",
-                environment="production",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.retrieve_trace(
-            trace_unique_id,
-            authorization=authorization,
-            environment=environment,
-            start_time=start_time,
-            end_time=end_time,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def delete_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        start_time: typing.Optional[str] = None,
-        end_time: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
-        """
-        Delete a trace and all its spans by `trace_unique_id`. Removes data from both raw span storage and the aggregated trace table.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique identifier of the trace to delete.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : typing.Optional[str]
-            ISO 8601 start of time range for efficient lookup. Defaults to end_time minus 1 hour.
-
-        end_time : typing.Optional[str]
-            ISO 8601 end of time range for efficient lookup. Defaults to current time.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.traces.delete_trace(
-                trace_unique_id="trace_unique_id",
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.delete_trace(
-            trace_unique_id,
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def get_traces_summary(
-        self,
-        *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetTracesSummaryResponse:
-        """
-        Get aggregated statistics for traces matching your filters. Uses the same filters and query parameters as [List traces](/docs/apis/traces/api-traces-list).
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetTracesSummaryResponse
-            Trace summary statistics.
-
-        Examples
-        --------
-        import asyncio
-        import datetime
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.traces.get_traces_summary(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2025-01-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2025-01-31 23:59:59+00:00",
-                ),
-                environment="production",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_traces_summary(
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            filters=filters,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def bulk_delete_traces(
-        self,
-        *,
-        authorization: str,
-        filters: Filters,
-        start_time: typing.Optional[str] = None,
-        end_time: typing.Optional[str] = None,
-        environment: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> BulkDeleteTracesResponse:
-        """
-        Delete multiple traces matching the given filters. Uses the same filter format as [List traces](/docs/apis/traces/api-traces-list). Returns the count of deleted traces.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        filters : Filters
-
-        start_time : typing.Optional[str]
-            ISO 8601 start of time range. Defaults to end_time minus 1 hour.
-
-        end_time : typing.Optional[str]
-            ISO 8601 end of time range. Defaults to current time.
-
-        environment : typing.Optional[str]
-            Filter by environment (e.g., production, staging).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        BulkDeleteTracesResponse
-            Traces deleted.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient, Filters, FilterValue
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.traces.bulk_delete_traces(
-                authorization="Bearer sk_live_xxxxx",
-                filters=Filters(
-                    customer_identifier=FilterValue(
-                        operator="",
-                        value=["user_123"],
-                    ),
-                    model=FilterValue(
-                        operator="",
-                        value=["gpt-4o"],
-                    ),
-                    cost=FilterValue(
-                        operator="gte",
-                        value=[0.01],
-                    ),
-                ),
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.bulk_delete_traces(
-            authorization=authorization,
-            filters=filters,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def create_trace_legacy(
-        self,
-        *,
-        authorization: str,
-        request: typing.Sequence[CreateTraceLegacyRequestBodyItem],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateTraceLegacyResponse:
-        """
-        Ingest a batch of spans to construct traces. Spans with the same `trace_unique_id` are grouped into a single trace. Parent-child relationships are inferred via `span_parent_id`. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/api-v2-traces).
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request : typing.Sequence[CreateTraceLegacyRequestBodyItem]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        CreateTraceLegacyResponse
-            Successful response for Ingest traces from logs
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-        from respan.traces import CreateTraceLegacyRequestBodyItem
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.traces.create_trace_legacy(
-                authorization="Bearer sk_live_xxxxx",
-                request=[
-                    CreateTraceLegacyRequestBodyItem(
-                        trace_unique_id="trace_abc123",
-                        span_unique_id="span_001",
-                    )
-                ],
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.create_trace_legacy(
-            authorization=authorization, request=request, request_options=request_options
         )
         return _response.data
