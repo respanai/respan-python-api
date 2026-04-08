@@ -41,11 +41,9 @@ if typing.TYPE_CHECKING:
     from .create_trace_response import CreateTraceResponse
     from .create_trace_response_partial_success import CreateTraceResponsePartialSuccess
     from .delete_trace_response import DeleteTraceResponse
+    from .list_traces_request_operator import ListTracesRequestOperator
     from .list_traces_response import ListTracesResponse
     from .list_traces_response_results_item import ListTracesResponseResultsItem
-    from .list_traces_with_filters_request_operator import ListTracesWithFiltersRequestOperator
-    from .list_traces_with_filters_response import ListTracesWithFiltersResponse
-    from .list_traces_with_filters_response_results_item import ListTracesWithFiltersResponseResultsItem
     from .retrieve_public_trace_response import RetrievePublicTraceResponse
     from .retrieve_public_trace_response_span_tree_item import RetrievePublicTraceResponseSpanTreeItem
     from .retrieve_trace_response import RetrieveTraceResponse
@@ -73,11 +71,9 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateTraceResponse": ".create_trace_response",
     "CreateTraceResponsePartialSuccess": ".create_trace_response_partial_success",
     "DeleteTraceResponse": ".delete_trace_response",
+    "ListTracesRequestOperator": ".list_traces_request_operator",
     "ListTracesResponse": ".list_traces_response",
     "ListTracesResponseResultsItem": ".list_traces_response_results_item",
-    "ListTracesWithFiltersRequestOperator": ".list_traces_with_filters_request_operator",
-    "ListTracesWithFiltersResponse": ".list_traces_with_filters_response",
-    "ListTracesWithFiltersResponseResultsItem": ".list_traces_with_filters_response_results_item",
     "RetrievePublicTraceResponse": ".retrieve_public_trace_response",
     "RetrievePublicTraceResponseSpanTreeItem": ".retrieve_public_trace_response_span_tree_item",
     "RetrieveTraceResponse": ".retrieve_trace_response",
@@ -129,11 +125,9 @@ __all__ = [
     "CreateTraceResponse",
     "CreateTraceResponsePartialSuccess",
     "DeleteTraceResponse",
+    "ListTracesRequestOperator",
     "ListTracesResponse",
     "ListTracesResponseResultsItem",
-    "ListTracesWithFiltersRequestOperator",
-    "ListTracesWithFiltersResponse",
-    "ListTracesWithFiltersResponseResultsItem",
     "RetrievePublicTraceResponse",
     "RetrievePublicTraceResponseSpanTreeItem",
     "RetrieveTraceResponse",

@@ -10,19 +10,9 @@ from .retrieve_user_response_environment import RetrieveUserResponseEnvironment
 
 
 class RetrieveUserResponse(UniversalBaseModel):
-    id: typing.Optional[int] = pydantic.Field(default=None)
+    id: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Internal customer ID.
-    """
-
-    customer_identifier: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Your unique identifier for this customer.
-    """
-
-    email: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Customer email.
+    Customer identifier used by the detail serializer.
     """
 
     name: typing.Optional[str] = pydantic.Field(default=None)
@@ -30,114 +20,59 @@ class RetrieveUserResponse(UniversalBaseModel):
     Customer display name.
     """
 
+    email: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Customer email address.
+    """
+
+    customer_identifier: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Your unique identifier for the customer.
+    """
+
     environment: typing.Optional[RetrieveUserResponseEnvironment] = pydantic.Field(default=None)
     """
-    Environment.
-    """
-
-    period_budget: typing.Optional[float] = pydantic.Field(default=None)
-    """
-    Budget for the current period in USD.
-    """
-
-    budget_duration: typing.Optional[RetrieveUserResponseBudgetDuration] = pydantic.Field(default=None)
-    """
-    Budget reset period.
-    """
-
-    total_period_usage: typing.Optional[float] = pydantic.Field(default=None)
-    """
-    Spending in the current budget period (USD).
-    """
-
-    period_start: typing.Optional[dt.datetime] = pydantic.Field(default=None)
-    """
-    Start of current budget period.
-    """
-
-    period_end: typing.Optional[dt.datetime] = pydantic.Field(default=None)
-    """
-    End of current budget period.
+    Customer environment.
     """
 
     total_budget: typing.Optional[float] = pydantic.Field(default=None)
     """
-    Lifetime budget limit (USD).
+    Lifetime spending budget in USD.
     """
 
-    total_usage: typing.Optional[float] = pydantic.Field(default=None)
+    period_budget: typing.Optional[float] = pydantic.Field(default=None)
     """
-    Lifetime spending (USD).
-    """
-
-    total_requests: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Total number of requests.
+    Current period budget in USD.
     """
 
-    total_prompt_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    organization_name: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Total prompt tokens.
-    """
-
-    total_completion_tokens: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Total completion tokens.
+    Owning organization name.
     """
 
-    total_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    total_period_usage: typing.Optional[float] = pydantic.Field(default=None)
     """
-    Total tokens.
-    """
-
-    total_cache_hits: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Total cache hits.
+    Usage in the current budget period in USD.
     """
 
-    average_latency: typing.Optional[float] = pydantic.Field(default=None)
+    period_start: typing.Optional[dt.datetime] = pydantic.Field(default=None)
     """
-    Average latency in seconds.
-    """
-
-    average_ttft: typing.Optional[float] = pydantic.Field(default=None)
-    """
-    Average time to first token in seconds.
+    Start of the current budget period.
     """
 
-    average_monthly_cost: typing.Optional[float] = pydantic.Field(default=None)
+    period_end: typing.Optional[dt.datetime] = pydantic.Field(default=None)
     """
-    Average monthly cost (USD).
-    """
-
-    top_models: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
-    """
-    Most used models.
+    End of the current budget period.
     """
 
-    last_active: typing.Optional[dt.datetime] = pydantic.Field(default=None)
+    budget_duration: typing.Optional[RetrieveUserResponseBudgetDuration] = pydantic.Field(default=None)
     """
-    Last activity timestamp.
-    """
-
-    created_at: typing.Optional[dt.datetime] = pydantic.Field(default=None)
-    """
-    When the customer was created.
+    Budget renewal period.
     """
 
     updated_at: typing.Optional[dt.datetime] = pydantic.Field(default=None)
     """
     Last update timestamp.
-    """
-
-    metadata: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
-    """
-    Custom metadata.
-    """
-
-    markup_percentage: typing.Optional[float] = pydantic.Field(default=None)
-    """
-    Markup percentage.
     """
 
     if IS_PYDANTIC_V2:

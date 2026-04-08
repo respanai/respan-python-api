@@ -7,28 +7,40 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
-        ListCustomersRequestFilters,
+        DeleteUserRequestEnvironment,
+        ListCustomersRequestEnvironment,
+        ListCustomersRequestOperator,
         ListCustomersResponse,
         ListCustomersResponseResultsItem,
+        ListCustomersResponseResultsItemBudgetDuration,
+        ListCustomersResponseResultsItemEnvironment,
+        RetrieveUserRequestEnvironment,
         RetrieveUserResponse,
         RetrieveUserResponseBudgetDuration,
         RetrieveUserResponseEnvironment,
         UpdateUserRequestBudgetDuration,
+        UpdateUserRequestEnvironment,
         UpdateUserResponse,
-        UpdateUserResponseMetadata,
-        UpdateUserResponseTopModels,
+        UpdateUserResponseBudgetDuration,
+        UpdateUserResponseEnvironment,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "ListCustomersRequestFilters": ".types",
+    "DeleteUserRequestEnvironment": ".types",
+    "ListCustomersRequestEnvironment": ".types",
+    "ListCustomersRequestOperator": ".types",
     "ListCustomersResponse": ".types",
     "ListCustomersResponseResultsItem": ".types",
+    "ListCustomersResponseResultsItemBudgetDuration": ".types",
+    "ListCustomersResponseResultsItemEnvironment": ".types",
+    "RetrieveUserRequestEnvironment": ".types",
     "RetrieveUserResponse": ".types",
     "RetrieveUserResponseBudgetDuration": ".types",
     "RetrieveUserResponseEnvironment": ".types",
     "UpdateUserRequestBudgetDuration": ".types",
+    "UpdateUserRequestEnvironment": ".types",
     "UpdateUserResponse": ".types",
-    "UpdateUserResponseMetadata": ".types",
-    "UpdateUserResponseTopModels": ".types",
+    "UpdateUserResponseBudgetDuration": ".types",
+    "UpdateUserResponseEnvironment": ".types",
 }
 
 
@@ -54,14 +66,20 @@ def __dir__():
 
 
 __all__ = [
-    "ListCustomersRequestFilters",
+    "DeleteUserRequestEnvironment",
+    "ListCustomersRequestEnvironment",
+    "ListCustomersRequestOperator",
     "ListCustomersResponse",
     "ListCustomersResponseResultsItem",
+    "ListCustomersResponseResultsItemBudgetDuration",
+    "ListCustomersResponseResultsItemEnvironment",
+    "RetrieveUserRequestEnvironment",
     "RetrieveUserResponse",
     "RetrieveUserResponseBudgetDuration",
     "RetrieveUserResponseEnvironment",
     "UpdateUserRequestBudgetDuration",
+    "UpdateUserRequestEnvironment",
     "UpdateUserResponse",
-    "UpdateUserResponseMetadata",
-    "UpdateUserResponseTopModels",
+    "UpdateUserResponseBudgetDuration",
+    "UpdateUserResponseEnvironment",
 ]

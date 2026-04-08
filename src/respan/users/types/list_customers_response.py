@@ -8,10 +8,25 @@ from .list_customers_response_results_item import ListCustomersResponseResultsIt
 
 
 class ListCustomersResponse(UniversalBaseModel):
-    count: typing.Optional[int] = None
-    next: typing.Optional[str] = None
-    previous: typing.Optional[str] = None
-    results: typing.Optional[typing.List[ListCustomersResponseResultsItem]] = None
+    count: int = pydantic.Field()
+    """
+    Total number of matching customers.
+    """
+
+    next: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Next page URL.
+    """
+
+    previous: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Previous page URL.
+    """
+
+    results: typing.List[ListCustomersResponseResultsItem] = pydantic.Field()
+    """
+    Customers for the current page.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

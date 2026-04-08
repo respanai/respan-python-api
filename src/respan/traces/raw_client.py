@@ -24,9 +24,8 @@ from .types.create_trace_legacy_response import CreateTraceLegacyResponse
 from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
 from .types.create_trace_response import CreateTraceResponse
 from .types.delete_trace_response import DeleteTraceResponse
+from .types.list_traces_request_operator import ListTracesRequestOperator
 from .types.list_traces_response import ListTracesResponse
-from .types.list_traces_with_filters_request_operator import ListTracesWithFiltersRequestOperator
-from .types.list_traces_with_filters_response import ListTracesWithFiltersResponse
 from .types.retrieve_public_trace_response import RetrievePublicTraceResponse
 from .types.retrieve_trace_response import RetrieveTraceResponse
 from .types.share_trace_response import ShareTraceResponse
@@ -49,133 +48,12 @@ class RawTracesClient:
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListTracesResponse]:
         """
-        Retrieve a paginated list of traces matching your filters. `GET` and `POST` are both supported; use `POST` when sending complex filter payloads.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ListTracesResponse]
-            Paginated list of traces.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/traces/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "environment": environment,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListTracesResponse,
-                    parse_obj_as(
-                        type_=ListTracesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def list_traces_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesWithFiltersRequestOperator] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListTracesWithFiltersResponse]:
-        """
-        Retrieve a paginated list of traces matching your filters. `POST` uses the same response shape as `GET` and supports the filter payload documented in the Filters API.
+        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API.
 
         Parameters
         ----------
@@ -202,7 +80,7 @@ class RawTracesClient:
 
         filters : typing.Optional[Filters]
 
-        operator : typing.Optional[ListTracesWithFiltersRequestOperator]
+        operator : typing.Optional[ListTracesRequestOperator]
             Logical operator for combining filters when supported by the client payload.
 
         request_options : typing.Optional[RequestOptions]
@@ -210,7 +88,7 @@ class RawTracesClient:
 
         Returns
         -------
-        HttpResponse[ListTracesWithFiltersResponse]
+        HttpResponse[ListTracesResponse]
             Paginated list of traces.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -240,9 +118,9 @@ class RawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ListTracesWithFiltersResponse,
+                    ListTracesResponse,
                     parse_obj_as(
-                        type_=ListTracesWithFiltersResponse,  # type: ignore
+                        type_=ListTracesResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -926,133 +804,12 @@ class AsyncRawTracesClient:
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListTracesResponse]:
         """
-        Retrieve a paginated list of traces matching your filters. `GET` and `POST` are both supported; use `POST` when sending complex filter payloads.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ListTracesResponse]
-            Paginated list of traces.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/traces/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "environment": environment,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListTracesResponse,
-                    parse_obj_as(
-                        type_=ListTracesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_traces_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesWithFiltersRequestOperator] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListTracesWithFiltersResponse]:
-        """
-        Retrieve a paginated list of traces matching your filters. `POST` uses the same response shape as `GET` and supports the filter payload documented in the Filters API.
+        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API.
 
         Parameters
         ----------
@@ -1079,7 +836,7 @@ class AsyncRawTracesClient:
 
         filters : typing.Optional[Filters]
 
-        operator : typing.Optional[ListTracesWithFiltersRequestOperator]
+        operator : typing.Optional[ListTracesRequestOperator]
             Logical operator for combining filters when supported by the client payload.
 
         request_options : typing.Optional[RequestOptions]
@@ -1087,7 +844,7 @@ class AsyncRawTracesClient:
 
         Returns
         -------
-        AsyncHttpResponse[ListTracesWithFiltersResponse]
+        AsyncHttpResponse[ListTracesResponse]
             Paginated list of traces.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -1117,9 +874,9 @@ class AsyncRawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ListTracesWithFiltersResponse,
+                    ListTracesResponse,
                     parse_obj_as(
-                        type_=ListTracesWithFiltersResponse,  # type: ignore
+                        type_=ListTracesResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )

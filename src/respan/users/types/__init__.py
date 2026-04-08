@@ -6,27 +6,39 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .list_customers_request_filters import ListCustomersRequestFilters
+    from .delete_user_request_environment import DeleteUserRequestEnvironment
+    from .list_customers_request_environment import ListCustomersRequestEnvironment
+    from .list_customers_request_operator import ListCustomersRequestOperator
     from .list_customers_response import ListCustomersResponse
     from .list_customers_response_results_item import ListCustomersResponseResultsItem
+    from .list_customers_response_results_item_budget_duration import ListCustomersResponseResultsItemBudgetDuration
+    from .list_customers_response_results_item_environment import ListCustomersResponseResultsItemEnvironment
+    from .retrieve_user_request_environment import RetrieveUserRequestEnvironment
     from .retrieve_user_response import RetrieveUserResponse
     from .retrieve_user_response_budget_duration import RetrieveUserResponseBudgetDuration
     from .retrieve_user_response_environment import RetrieveUserResponseEnvironment
     from .update_user_request_budget_duration import UpdateUserRequestBudgetDuration
+    from .update_user_request_environment import UpdateUserRequestEnvironment
     from .update_user_response import UpdateUserResponse
-    from .update_user_response_metadata import UpdateUserResponseMetadata
-    from .update_user_response_top_models import UpdateUserResponseTopModels
+    from .update_user_response_budget_duration import UpdateUserResponseBudgetDuration
+    from .update_user_response_environment import UpdateUserResponseEnvironment
 _dynamic_imports: typing.Dict[str, str] = {
-    "ListCustomersRequestFilters": ".list_customers_request_filters",
+    "DeleteUserRequestEnvironment": ".delete_user_request_environment",
+    "ListCustomersRequestEnvironment": ".list_customers_request_environment",
+    "ListCustomersRequestOperator": ".list_customers_request_operator",
     "ListCustomersResponse": ".list_customers_response",
     "ListCustomersResponseResultsItem": ".list_customers_response_results_item",
+    "ListCustomersResponseResultsItemBudgetDuration": ".list_customers_response_results_item_budget_duration",
+    "ListCustomersResponseResultsItemEnvironment": ".list_customers_response_results_item_environment",
+    "RetrieveUserRequestEnvironment": ".retrieve_user_request_environment",
     "RetrieveUserResponse": ".retrieve_user_response",
     "RetrieveUserResponseBudgetDuration": ".retrieve_user_response_budget_duration",
     "RetrieveUserResponseEnvironment": ".retrieve_user_response_environment",
     "UpdateUserRequestBudgetDuration": ".update_user_request_budget_duration",
+    "UpdateUserRequestEnvironment": ".update_user_request_environment",
     "UpdateUserResponse": ".update_user_response",
-    "UpdateUserResponseMetadata": ".update_user_response_metadata",
-    "UpdateUserResponseTopModels": ".update_user_response_top_models",
+    "UpdateUserResponseBudgetDuration": ".update_user_response_budget_duration",
+    "UpdateUserResponseEnvironment": ".update_user_response_environment",
 }
 
 
@@ -52,14 +64,20 @@ def __dir__():
 
 
 __all__ = [
-    "ListCustomersRequestFilters",
+    "DeleteUserRequestEnvironment",
+    "ListCustomersRequestEnvironment",
+    "ListCustomersRequestOperator",
     "ListCustomersResponse",
     "ListCustomersResponseResultsItem",
+    "ListCustomersResponseResultsItemBudgetDuration",
+    "ListCustomersResponseResultsItemEnvironment",
+    "RetrieveUserRequestEnvironment",
     "RetrieveUserResponse",
     "RetrieveUserResponseBudgetDuration",
     "RetrieveUserResponseEnvironment",
     "UpdateUserRequestBudgetDuration",
+    "UpdateUserRequestEnvironment",
     "UpdateUserResponse",
-    "UpdateUserResponseMetadata",
-    "UpdateUserResponseTopModels",
+    "UpdateUserResponseBudgetDuration",
+    "UpdateUserResponseEnvironment",
 ]

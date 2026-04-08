@@ -13,9 +13,8 @@ from .types.create_trace_legacy_response import CreateTraceLegacyResponse
 from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
 from .types.create_trace_response import CreateTraceResponse
 from .types.delete_trace_response import DeleteTraceResponse
+from .types.list_traces_request_operator import ListTracesRequestOperator
 from .types.list_traces_response import ListTracesResponse
-from .types.list_traces_with_filters_request_operator import ListTracesWithFiltersRequestOperator
-from .types.list_traces_with_filters_response import ListTracesWithFiltersResponse
 from .types.retrieve_public_trace_response import RetrievePublicTraceResponse
 from .types.retrieve_trace_response import RetrieveTraceResponse
 from .types.share_trace_response import ShareTraceResponse
@@ -49,10 +48,12 @@ class TracesClient:
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTracesResponse:
         """
-        Retrieve a paginated list of traces matching your filters. `GET` and `POST` are both supported; use `POST` when sending complex filter payloads.
+        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API.
 
         Parameters
         ----------
@@ -76,6 +77,11 @@ class TracesClient:
 
         environment : typing.Optional[str]
             Filter by environment.
+
+        filters : typing.Optional[Filters]
+
+        operator : typing.Optional[ListTracesRequestOperator]
+            Logical operator for combining filters when supported by the client payload.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -105,90 +111,6 @@ class TracesClient:
         )
         """
         _response = self._raw_client.list_traces(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def list_traces_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesWithFiltersRequestOperator] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListTracesWithFiltersResponse:
-        """
-        Retrieve a paginated list of traces matching your filters. `POST` uses the same response shape as `GET` and supports the filter payload documented in the Filters API.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListTracesWithFiltersRequestOperator]
-            Logical operator for combining filters when supported by the client payload.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListTracesWithFiltersResponse
-            Paginated list of traces.
-
-        Examples
-        --------
-        import datetime
-
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.traces.list_traces_with_filters(
-            authorization="Bearer sk_live_xxxxx",
-            sort_by="-total_cost",
-            start_time=datetime.datetime.fromisoformat(
-                "2025-01-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2025-01-31 23:59:59+00:00",
-            ),
-            environment="production",
-        )
-        """
-        _response = self._raw_client.list_traces_with_filters(
             authorization=authorization,
             page=page,
             page_size=page_size,
@@ -582,10 +504,12 @@ class AsyncTracesClient:
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTracesResponse:
         """
-        Retrieve a paginated list of traces matching your filters. `GET` and `POST` are both supported; use `POST` when sending complex filter payloads.
+        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API.
 
         Parameters
         ----------
@@ -609,6 +533,11 @@ class AsyncTracesClient:
 
         environment : typing.Optional[str]
             Filter by environment.
+
+        filters : typing.Optional[Filters]
+
+        operator : typing.Optional[ListTracesRequestOperator]
+            Logical operator for combining filters when supported by the client payload.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -645,97 +574,6 @@ class AsyncTracesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.list_traces(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def list_traces_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesWithFiltersRequestOperator] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListTracesWithFiltersResponse:
-        """
-        Retrieve a paginated list of traces matching your filters. `POST` uses the same response shape as `GET` and supports the filter payload documented in the Filters API.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListTracesWithFiltersRequestOperator]
-            Logical operator for combining filters when supported by the client payload.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListTracesWithFiltersResponse
-            Paginated list of traces.
-
-        Examples
-        --------
-        import asyncio
-        import datetime
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.traces.list_traces_with_filters(
-                authorization="Bearer sk_live_xxxxx",
-                sort_by="-total_cost",
-                start_time=datetime.datetime.fromisoformat(
-                    "2025-01-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2025-01-31 23:59:59+00:00",
-                ),
-                environment="production",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_traces_with_filters(
             authorization=authorization,
             page=page,
             page_size=page_size,

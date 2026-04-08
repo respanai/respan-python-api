@@ -200,7 +200,7 @@ class GatewayClient:
             End user identifier for analytics and budgets.
 
         customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`/`yearly`), `total_budget`, `markup_percentage`.
+            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
 
         request_breakdown : typing.Optional[bool]
             Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
@@ -685,7 +685,7 @@ class AsyncGatewayClient:
             End user identifier for analytics and budgets.
 
         customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`/`yearly`), `total_budget`, `markup_percentage`.
+            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
 
         request_breakdown : typing.Optional[bool]
             Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.

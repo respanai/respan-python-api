@@ -2,4 +2,4 @@
 
 import typing
 
-UpdateUserRequestBudgetDuration = typing.Union[typing.Literal["daily", "weekly", "monthly", "yearly"], typing.Any]
+UpdateUserRequestBudgetDuration = typing.Union[typing.Literal["daily", "weekly", "monthly"], typing.Any]

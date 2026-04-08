@@ -17,7 +17,6 @@ if typing.TYPE_CHECKING:
     from .create_span_response import CreateSpanResponse
     from .create_span_response_status import CreateSpanResponseStatus
     from .get_spans_summary_response import GetSpansSummaryResponse
-    from .list_spans_legacy_response import ListSpansLegacyResponse
     from .list_spans_request_all_envs import ListSpansRequestAllEnvs
     from .list_spans_request_fetch_filters import ListSpansRequestFetchFilters
     from .list_spans_request_is_test import ListSpansRequestIsTest
@@ -38,7 +37,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateSpanResponse": ".create_span_response",
     "CreateSpanResponseStatus": ".create_span_response_status",
     "GetSpansSummaryResponse": ".get_spans_summary_response",
-    "ListSpansLegacyResponse": ".list_spans_legacy_response",
     "ListSpansRequestAllEnvs": ".list_spans_request_all_envs",
     "ListSpansRequestFetchFilters": ".list_spans_request_fetch_filters",
     "ListSpansRequestIsTest": ".list_spans_request_is_test",
@@ -83,7 +81,6 @@ __all__ = [
     "CreateSpanResponse",
     "CreateSpanResponseStatus",
     "GetSpansSummaryResponse",
-    "ListSpansLegacyResponse",
     "ListSpansRequestAllEnvs",
     "ListSpansRequestFetchFilters",
     "ListSpansRequestIsTest",

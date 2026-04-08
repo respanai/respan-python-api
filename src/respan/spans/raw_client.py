@@ -31,7 +31,6 @@ from .types.create_span_request_usage import CreateSpanRequestUsage
 from .types.create_span_request_warnings import CreateSpanRequestWarnings
 from .types.create_span_response import CreateSpanResponse
 from .types.get_spans_summary_response import GetSpansSummaryResponse
-from .types.list_spans_legacy_response import ListSpansLegacyResponse
 from .types.list_spans_request_all_envs import ListSpansRequestAllEnvs
 from .types.list_spans_request_fetch_filters import ListSpansRequestFetchFilters
 from .types.list_spans_request_is_test import ListSpansRequestIsTest
@@ -46,99 +45,6 @@ OMIT = typing.cast(typing.Any, ...)
 class RawSpansClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    def list_spans_legacy(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        customer_identifier: typing.Optional[str] = None,
-        include_fields: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListSpansLegacyResponse]:
-        """
-        List spans via the legacy endpoint. This path supports basic pagination and filtering, but for advanced filtering, annotations, and evaluator score sorting, use `/api/request-logs/list/` instead.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        customer_identifier : typing.Optional[str]
-            Filter by end-user/customer identifier.
-
-        include_fields : typing.Optional[str]
-            Comma-separated list of fields to include in each span. Reduces response size.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ListSpansLegacyResponse]
-            Paginated legacy span list
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/request-logs/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "customer_identifier": customer_identifier,
-                "include_fields": include_fields,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListSpansLegacyResponse,
-                    parse_obj_as(
-                        type_=ListSpansLegacyResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def create_span(
         self,
@@ -1022,99 +928,6 @@ class RawSpansClient:
 class AsyncRawSpansClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
-
-    async def list_spans_legacy(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        customer_identifier: typing.Optional[str] = None,
-        include_fields: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListSpansLegacyResponse]:
-        """
-        List spans via the legacy endpoint. This path supports basic pagination and filtering, but for advanced filtering, annotations, and evaluator score sorting, use `/api/request-logs/list/` instead.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        customer_identifier : typing.Optional[str]
-            Filter by end-user/customer identifier.
-
-        include_fields : typing.Optional[str]
-            Comma-separated list of fields to include in each span. Reduces response size.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ListSpansLegacyResponse]
-            Paginated legacy span list
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/request-logs/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "customer_identifier": customer_identifier,
-                "include_fields": include_fields,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListSpansLegacyResponse,
-                    parse_obj_as(
-                        type_=ListSpansLegacyResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def create_span(
         self,

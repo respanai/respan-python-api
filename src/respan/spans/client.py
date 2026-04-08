@@ -18,7 +18,6 @@ from .types.create_span_request_usage import CreateSpanRequestUsage
 from .types.create_span_request_warnings import CreateSpanRequestWarnings
 from .types.create_span_response import CreateSpanResponse
 from .types.get_spans_summary_response import GetSpansSummaryResponse
-from .types.list_spans_legacy_response import ListSpansLegacyResponse
 from .types.list_spans_request_all_envs import ListSpansRequestAllEnvs
 from .types.list_spans_request_fetch_filters import ListSpansRequestFetchFilters
 from .types.list_spans_request_is_test import ListSpansRequestIsTest
@@ -44,89 +43,6 @@ class SpansClient:
         RawSpansClient
         """
         return self._raw_client
-
-    def list_spans_legacy(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        customer_identifier: typing.Optional[str] = None,
-        include_fields: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListSpansLegacyResponse:
-        """
-        List spans via the legacy endpoint. This path supports basic pagination and filtering, but for advanced filtering, annotations, and evaluator score sorting, use `/api/request-logs/list/` instead.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        customer_identifier : typing.Optional[str]
-            Filter by end-user/customer identifier.
-
-        include_fields : typing.Optional[str]
-            Comma-separated list of fields to include in each span. Reduces response size.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListSpansLegacyResponse
-            Paginated legacy span list
-
-        Examples
-        --------
-        import datetime
-
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.spans.list_spans_legacy(
-            authorization="Bearer sk_live_xxxxx",
-            sort_by="-timestamp",
-            start_time=datetime.datetime.fromisoformat(
-                "2025-01-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2025-01-31 23:59:59+00:00",
-            ),
-            customer_identifier="user_123",
-            include_fields="id,cost,latency,customer_identifier",
-        )
-        """
-        _response = self._raw_client.list_spans_legacy(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            customer_identifier=customer_identifier,
-            include_fields=include_fields,
-            request_options=request_options,
-        )
-        return _response.data
 
     def create_span(
         self,
@@ -707,96 +623,6 @@ class AsyncSpansClient:
         AsyncRawSpansClient
         """
         return self._raw_client
-
-    async def list_spans_legacy(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        customer_identifier: typing.Optional[str] = None,
-        include_fields: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListSpansLegacyResponse:
-        """
-        List spans via the legacy endpoint. This path supports basic pagination and filtering, but for advanced filtering, annotations, and evaluator score sorting, use `/api/request-logs/list/` instead.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601).
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601).
-
-        customer_identifier : typing.Optional[str]
-            Filter by end-user/customer identifier.
-
-        include_fields : typing.Optional[str]
-            Comma-separated list of fields to include in each span. Reduces response size.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListSpansLegacyResponse
-            Paginated legacy span list
-
-        Examples
-        --------
-        import asyncio
-        import datetime
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.spans.list_spans_legacy(
-                authorization="Bearer sk_live_xxxxx",
-                sort_by="-timestamp",
-                start_time=datetime.datetime.fromisoformat(
-                    "2025-01-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2025-01-31 23:59:59+00:00",
-                ),
-                customer_identifier="user_123",
-                include_fields="id,cost,latency,customer_identifier",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_spans_legacy(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            customer_identifier=customer_identifier,
-            include_fields=include_fields,
-            request_options=request_options,
-        )
-        return _response.data
 
     async def create_span(
         self,
