@@ -6,10 +6,11 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class CreateConditionResponseConditionPolicyRulesItem(UniversalBaseModel):
-    field: typing.Optional[str] = None
-    operator: typing.Optional[str] = None
-    value: typing.Optional[int] = None
+class ValidateWorkflowResponseTaskResultsItem(UniversalBaseModel):
+    task_id: typing.Optional[str] = None
+    task_type: typing.Optional[str] = None
+    status: typing.Optional[str] = None
+    message: typing.Optional[str] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

@@ -6,11 +6,12 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class UpdateAutomationResponseCondition(UniversalBaseModel):
+class DeployWorkflowResponse(UniversalBaseModel):
     id: typing.Optional[str] = None
-    condition_slug: typing.Optional[str] = None
-    name: typing.Optional[str] = None
-    condition_type: typing.Optional[str] = None
+    workflow_id: typing.Optional[str] = None
+    version: typing.Optional[int] = None
+    is_enabled: typing.Optional[bool] = None
+    is_read_only: typing.Optional[bool] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

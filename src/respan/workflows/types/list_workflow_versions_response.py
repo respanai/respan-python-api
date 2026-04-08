@@ -4,11 +4,14 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .list_workflow_versions_response_results_item import ListWorkflowVersionsResponseResultsItem
 
 
-class UpdateAutomationResponseConfiguration(UniversalBaseModel):
-    evaluator_ids: typing.Optional[typing.List[str]] = None
-    sampling_rate: typing.Optional[float] = None
+class ListWorkflowVersionsResponse(UniversalBaseModel):
+    count: typing.Optional[int] = None
+    next: typing.Optional[str] = None
+    previous: typing.Optional[str] = None
+    results: typing.Optional[typing.List[ListWorkflowVersionsResponseResultsItem]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

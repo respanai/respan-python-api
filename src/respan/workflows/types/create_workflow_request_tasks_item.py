@@ -6,11 +6,16 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class CreateAutomationResponseEvaluatorDetailsItem(UniversalBaseModel):
+class CreateWorkflowRequestTasksItem(UniversalBaseModel):
     id: typing.Optional[str] = None
-    name: typing.Optional[str] = None
-    evaluator_slug: typing.Optional[str] = None
-    eval_class: typing.Optional[str] = None
+    type: str = pydantic.Field()
+    """
+    Task type such as `aggregation`, `condition`, `notification`, `webhook`, or `compute`.
+    """
+
+    label: typing.Optional[str] = None
+    next: typing.Optional[str] = None
+    config: typing.Optional[typing.Dict[str, typing.Any]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

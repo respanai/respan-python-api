@@ -10,7 +10,6 @@ from .core.logging import LogConfig, Logger
 from .environment import RespanClientEnvironment
 
 if typing.TYPE_CHECKING:
-    from .automations.client import AsyncAutomationsClient, AutomationsClient
     from .credit_transactions.client import AsyncCreditTransactionsClient, CreditTransactionsClient
     from .datasets.client import AsyncDatasetsClient, DatasetsClient
     from .evaluators.client import AsyncEvaluatorsClient, EvaluatorsClient
@@ -28,6 +27,7 @@ if typing.TYPE_CHECKING:
     from .threads.client import AsyncThreadsClient, ThreadsClient
     from .traces.client import AsyncTracesClient, TracesClient
     from .users.client import AsyncUsersClient, UsersClient
+    from .workflows.client import AsyncWorkflowsClient, WorkflowsClient
 
 
 class RespanClient:
@@ -112,7 +112,7 @@ class RespanClient:
         self._models: typing.Optional[ModelsClient] = None
         self._temporary_api_keys: typing.Optional[TemporaryApiKeysClient] = None
         self._credit_transactions: typing.Optional[CreditTransactionsClient] = None
-        self._automations: typing.Optional[AutomationsClient] = None
+        self._workflows: typing.Optional[WorkflowsClient] = None
 
     @property
     def traces(self):
@@ -251,12 +251,12 @@ class RespanClient:
         return self._credit_transactions
 
     @property
-    def automations(self):
-        if self._automations is None:
-            from .automations.client import AutomationsClient  # noqa: E402
+    def workflows(self):
+        if self._workflows is None:
+            from .workflows.client import WorkflowsClient  # noqa: E402
 
-            self._automations = AutomationsClient(client_wrapper=self._client_wrapper)
-        return self._automations
+            self._workflows = WorkflowsClient(client_wrapper=self._client_wrapper)
+        return self._workflows
 
 
 class AsyncRespanClient:
@@ -341,7 +341,7 @@ class AsyncRespanClient:
         self._models: typing.Optional[AsyncModelsClient] = None
         self._temporary_api_keys: typing.Optional[AsyncTemporaryApiKeysClient] = None
         self._credit_transactions: typing.Optional[AsyncCreditTransactionsClient] = None
-        self._automations: typing.Optional[AsyncAutomationsClient] = None
+        self._workflows: typing.Optional[AsyncWorkflowsClient] = None
 
     @property
     def traces(self):
@@ -480,12 +480,12 @@ class AsyncRespanClient:
         return self._credit_transactions
 
     @property
-    def automations(self):
-        if self._automations is None:
-            from .automations.client import AsyncAutomationsClient  # noqa: E402
+    def workflows(self):
+        if self._workflows is None:
+            from .workflows.client import AsyncWorkflowsClient  # noqa: E402
 
-            self._automations = AsyncAutomationsClient(client_wrapper=self._client_wrapper)
-        return self._automations
+            self._workflows = AsyncWorkflowsClient(client_wrapper=self._client_wrapper)
+        return self._workflows
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: RespanClientEnvironment) -> str:
