@@ -5,11 +5,11 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .update_prompt_version_response_edited_by import UpdatePromptVersionResponseEditedBy
-from .update_prompt_version_response_tool_choice import UpdatePromptVersionResponseToolChoice
+from .list_prompt_versions_response_results_item_edited_by import ListPromptVersionsResponseResultsItemEditedBy
+from .list_prompt_versions_response_results_item_tool_choice import ListPromptVersionsResponseResultsItemToolChoice
 
 
-class UpdatePromptVersionResponse(UniversalBaseModel):
+class ListPromptVersionsResponseResultsItem(UniversalBaseModel):
     id: typing.Optional[str] = None
     prompt_version_id: typing.Optional[str] = None
     version: typing.Optional[int] = None
@@ -30,13 +30,13 @@ class UpdatePromptVersionResponse(UniversalBaseModel):
     fallback_models: typing.Optional[typing.List[str]] = None
     load_balance_models: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = None
     tools: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = None
-    tool_choice: typing.Optional[UpdatePromptVersionResponseToolChoice] = None
+    tool_choice: typing.Optional[ListPromptVersionsResponseResultsItemToolChoice] = None
     response_format: typing.Optional[typing.Dict[str, typing.Any]] = None
     json_schema: typing.Optional[typing.Dict[str, typing.Any]] = None
     is_enforcing_response_format: typing.Optional[bool] = None
     readonly: typing.Optional[bool] = None
     is_deployed: typing.Optional[bool] = None
-    edited_by: typing.Optional[UpdatePromptVersionResponseEditedBy] = None
+    edited_by: typing.Optional[ListPromptVersionsResponseResultsItemEditedBy] = None
     created_at: typing.Optional[dt.datetime] = None
     updated_at: typing.Optional[dt.datetime] = None
 

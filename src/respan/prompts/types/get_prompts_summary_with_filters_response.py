@@ -9,7 +9,7 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 class GetPromptsSummaryWithFiltersResponse(UniversalBaseModel):
     total_count: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Total number of prompts matching filters
+    Total number of prompts matching the filters.
     """
 
     if IS_PYDANTIC_V2:

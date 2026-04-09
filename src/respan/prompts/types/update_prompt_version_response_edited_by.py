@@ -6,11 +6,11 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class GetPromptsSummaryResponse(UniversalBaseModel):
-    total_count: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Total number of prompts matching the filters.
-    """
+class UpdatePromptVersionResponseEditedBy(UniversalBaseModel):
+    id: typing.Optional[int] = None
+    email: typing.Optional[str] = None
+    first_name: typing.Optional[str] = None
+    last_name: typing.Optional[str] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

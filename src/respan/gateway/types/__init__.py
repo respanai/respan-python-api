@@ -6,10 +6,12 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
+    from .create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
     from .create_chat_completion_response import CreateChatCompletionResponse
     from .create_chat_completion_response_content_item import CreateChatCompletionResponseContentItem
     from .create_response_request_input import CreateResponseRequestInput
 _dynamic_imports: typing.Dict[str, str] = {
+    "CreateChatCompletionRequestCacheOptions": ".create_chat_completion_request_cache_options",
     "CreateChatCompletionResponse": ".create_chat_completion_response",
     "CreateChatCompletionResponseContentItem": ".create_chat_completion_response_content_item",
     "CreateResponseRequestInput": ".create_response_request_input",
@@ -37,4 +39,9 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["CreateChatCompletionResponse", "CreateChatCompletionResponseContentItem", "CreateResponseRequestInput"]
+__all__ = [
+    "CreateChatCompletionRequestCacheOptions",
+    "CreateChatCompletionResponse",
+    "CreateChatCompletionResponseContentItem",
+    "CreateResponseRequestInput",
+]

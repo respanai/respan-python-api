@@ -42,15 +42,14 @@ class MultimodalClient:
         authorization: str,
         model: CreateEmbeddingsRequestModel,
         input: typing.Any,
+        data_respan_params: typing.Optional[str] = None,
         encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
         dimensions: typing.Optional[int] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateEmbeddingsResponse:
         """
@@ -65,6 +64,9 @@ class MultimodalClient:
             Embedding model ID.
 
         input : typing.Any
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
             Output format.
@@ -84,14 +86,8 @@ class MultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -116,15 +112,14 @@ class MultimodalClient:
             authorization=authorization,
             model=model,
             input=input,
+            data_respan_params=data_respan_params,
             encoding_format=encoding_format,
             dimensions=dimensions,
             customer_credentials=customer_credentials,
             disable_log=disable_log,
             metadata=metadata,
             customer_identifier=customer_identifier,
-            customer_email=customer_email,
             thread_identifier=thread_identifier,
-            request_breakdown=request_breakdown,
             request_options=request_options,
         )
         return _response.data
@@ -135,6 +130,7 @@ class MultimodalClient:
         authorization: str,
         file: core.File,
         model: SpeechToTextRequestModel,
+        data_respan_params: typing.Optional[str] = None,
         language: typing.Optional[str] = OMIT,
         prompt: typing.Optional[str] = OMIT,
         response_format: typing.Optional[SpeechToTextRequestResponseFormat] = OMIT,
@@ -144,9 +140,7 @@ class MultimodalClient:
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SpeechToTextResponse:
         """
@@ -162,6 +156,9 @@ class MultimodalClient:
 
         model : SpeechToTextRequestModel
             Model ID.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         language : typing.Optional[str]
             Input audio language (ISO-639-1).
@@ -190,14 +187,8 @@ class MultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -221,6 +212,7 @@ class MultimodalClient:
             authorization=authorization,
             file=file,
             model=model,
+            data_respan_params=data_respan_params,
             language=language,
             prompt=prompt,
             response_format=response_format,
@@ -230,9 +222,7 @@ class MultimodalClient:
             disable_log=disable_log,
             metadata=metadata,
             customer_identifier=customer_identifier,
-            customer_email=customer_email,
             thread_identifier=thread_identifier,
-            request_breakdown=request_breakdown,
             request_options=request_options,
         )
         return _response.data
@@ -244,15 +234,14 @@ class MultimodalClient:
         model: TextToSpeechRequestModel,
         input: str,
         voice: TextToSpeechRequestVoice,
+        data_respan_params: typing.Optional[str] = None,
         response_format: typing.Optional[TextToSpeechRequestResponseFormat] = OMIT,
         speed: typing.Optional[float] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[bytes]:
         """
@@ -272,6 +261,9 @@ class MultimodalClient:
         voice : TextToSpeechRequestVoice
             Voice to use.
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         response_format : typing.Optional[TextToSpeechRequestResponseFormat]
             Audio output format.
 
@@ -290,14 +282,8 @@ class MultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -324,15 +310,14 @@ class MultimodalClient:
             model=model,
             input=input,
             voice=voice,
+            data_respan_params=data_respan_params,
             response_format=response_format,
             speed=speed,
             customer_credentials=customer_credentials,
             disable_log=disable_log,
             metadata=metadata,
             customer_identifier=customer_identifier,
-            customer_email=customer_email,
             thread_identifier=thread_identifier,
-            request_breakdown=request_breakdown,
             request_options=request_options,
         ) as r:
             yield from r.data
@@ -408,15 +393,14 @@ class AsyncMultimodalClient:
         authorization: str,
         model: CreateEmbeddingsRequestModel,
         input: typing.Any,
+        data_respan_params: typing.Optional[str] = None,
         encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
         dimensions: typing.Optional[int] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateEmbeddingsResponse:
         """
@@ -431,6 +415,9 @@ class AsyncMultimodalClient:
             Embedding model ID.
 
         input : typing.Any
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
             Output format.
@@ -450,14 +437,8 @@ class AsyncMultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -490,15 +471,14 @@ class AsyncMultimodalClient:
             authorization=authorization,
             model=model,
             input=input,
+            data_respan_params=data_respan_params,
             encoding_format=encoding_format,
             dimensions=dimensions,
             customer_credentials=customer_credentials,
             disable_log=disable_log,
             metadata=metadata,
             customer_identifier=customer_identifier,
-            customer_email=customer_email,
             thread_identifier=thread_identifier,
-            request_breakdown=request_breakdown,
             request_options=request_options,
         )
         return _response.data
@@ -509,6 +489,7 @@ class AsyncMultimodalClient:
         authorization: str,
         file: core.File,
         model: SpeechToTextRequestModel,
+        data_respan_params: typing.Optional[str] = None,
         language: typing.Optional[str] = OMIT,
         prompt: typing.Optional[str] = OMIT,
         response_format: typing.Optional[SpeechToTextRequestResponseFormat] = OMIT,
@@ -518,9 +499,7 @@ class AsyncMultimodalClient:
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SpeechToTextResponse:
         """
@@ -536,6 +515,9 @@ class AsyncMultimodalClient:
 
         model : SpeechToTextRequestModel
             Model ID.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         language : typing.Optional[str]
             Input audio language (ISO-639-1).
@@ -564,14 +546,8 @@ class AsyncMultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -603,6 +579,7 @@ class AsyncMultimodalClient:
             authorization=authorization,
             file=file,
             model=model,
+            data_respan_params=data_respan_params,
             language=language,
             prompt=prompt,
             response_format=response_format,
@@ -612,9 +589,7 @@ class AsyncMultimodalClient:
             disable_log=disable_log,
             metadata=metadata,
             customer_identifier=customer_identifier,
-            customer_email=customer_email,
             thread_identifier=thread_identifier,
-            request_breakdown=request_breakdown,
             request_options=request_options,
         )
         return _response.data
@@ -626,15 +601,14 @@ class AsyncMultimodalClient:
         model: TextToSpeechRequestModel,
         input: str,
         voice: TextToSpeechRequestVoice,
+        data_respan_params: typing.Optional[str] = None,
         response_format: typing.Optional[TextToSpeechRequestResponseFormat] = OMIT,
         speed: typing.Optional[float] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[bytes]:
         """
@@ -654,6 +628,9 @@ class AsyncMultimodalClient:
         voice : TextToSpeechRequestVoice
             Voice to use.
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         response_format : typing.Optional[TextToSpeechRequestResponseFormat]
             Audio output format.
 
@@ -672,14 +649,8 @@ class AsyncMultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -714,15 +685,14 @@ class AsyncMultimodalClient:
             model=model,
             input=input,
             voice=voice,
+            data_respan_params=data_respan_params,
             response_format=response_format,
             speed=speed,
             customer_credentials=customer_credentials,
             disable_log=disable_log,
             metadata=metadata,
             customer_identifier=customer_identifier,
-            customer_email=customer_email,
             thread_identifier=thread_identifier,
-            request_breakdown=request_breakdown,
             request_options=request_options,
         ) as r:
             async for _chunk in r.data:

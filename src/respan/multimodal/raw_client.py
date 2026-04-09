@@ -39,15 +39,14 @@ class RawMultimodalClient:
         authorization: str,
         model: CreateEmbeddingsRequestModel,
         input: typing.Any,
+        data_respan_params: typing.Optional[str] = None,
         encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
         dimensions: typing.Optional[int] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateEmbeddingsResponse]:
         """
@@ -62,6 +61,9 @@ class RawMultimodalClient:
             Embedding model ID.
 
         input : typing.Any
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
             Output format.
@@ -81,14 +83,8 @@ class RawMultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -110,13 +106,12 @@ class RawMultimodalClient:
                 "disable_log": disable_log,
                 "metadata": metadata,
                 "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
                 "thread_identifier": thread_identifier,
-                "request_breakdown": request_breakdown,
             },
             headers={
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -153,6 +148,7 @@ class RawMultimodalClient:
         authorization: str,
         file: core.File,
         model: SpeechToTextRequestModel,
+        data_respan_params: typing.Optional[str] = None,
         language: typing.Optional[str] = OMIT,
         prompt: typing.Optional[str] = OMIT,
         response_format: typing.Optional[SpeechToTextRequestResponseFormat] = OMIT,
@@ -162,9 +158,7 @@ class RawMultimodalClient:
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[SpeechToTextResponse]:
         """
@@ -180,6 +174,9 @@ class RawMultimodalClient:
 
         model : SpeechToTextRequestModel
             Model ID.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         language : typing.Optional[str]
             Input audio language (ISO-639-1).
@@ -208,14 +205,8 @@ class RawMultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -226,7 +217,7 @@ class RawMultimodalClient:
             Transcription result.
         """
         _response = self._client_wrapper.httpx_client.request(
-            "api/audio/transcription",
+            "api/audio/transcriptions",
             method="POST",
             data={
                 "model": model,
@@ -239,15 +230,14 @@ class RawMultimodalClient:
                 "disable_log": disable_log,
                 "metadata": json.dumps(jsonable_encoder(metadata)),
                 "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
                 "thread_identifier": thread_identifier,
-                "request_breakdown": request_breakdown,
             },
             files={
                 "file": file,
             },
             headers={
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -287,15 +277,14 @@ class RawMultimodalClient:
         model: TextToSpeechRequestModel,
         input: str,
         voice: TextToSpeechRequestVoice,
+        data_respan_params: typing.Optional[str] = None,
         response_format: typing.Optional[TextToSpeechRequestResponseFormat] = OMIT,
         speed: typing.Optional[float] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Iterator[HttpResponse[typing.Iterator[bytes]]]:
         """
@@ -315,6 +304,9 @@ class RawMultimodalClient:
         voice : TextToSpeechRequestVoice
             Voice to use.
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         response_format : typing.Optional[TextToSpeechRequestResponseFormat]
             Audio output format.
 
@@ -333,14 +325,8 @@ class RawMultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -363,13 +349,12 @@ class RawMultimodalClient:
                 "disable_log": disable_log,
                 "metadata": metadata,
                 "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
                 "thread_identifier": thread_identifier,
-                "request_breakdown": request_breakdown,
             },
             headers={
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -490,15 +475,14 @@ class AsyncRawMultimodalClient:
         authorization: str,
         model: CreateEmbeddingsRequestModel,
         input: typing.Any,
+        data_respan_params: typing.Optional[str] = None,
         encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
         dimensions: typing.Optional[int] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateEmbeddingsResponse]:
         """
@@ -513,6 +497,9 @@ class AsyncRawMultimodalClient:
             Embedding model ID.
 
         input : typing.Any
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
             Output format.
@@ -532,14 +519,8 @@ class AsyncRawMultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -561,13 +542,12 @@ class AsyncRawMultimodalClient:
                 "disable_log": disable_log,
                 "metadata": metadata,
                 "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
                 "thread_identifier": thread_identifier,
-                "request_breakdown": request_breakdown,
             },
             headers={
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -604,6 +584,7 @@ class AsyncRawMultimodalClient:
         authorization: str,
         file: core.File,
         model: SpeechToTextRequestModel,
+        data_respan_params: typing.Optional[str] = None,
         language: typing.Optional[str] = OMIT,
         prompt: typing.Optional[str] = OMIT,
         response_format: typing.Optional[SpeechToTextRequestResponseFormat] = OMIT,
@@ -613,9 +594,7 @@ class AsyncRawMultimodalClient:
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[SpeechToTextResponse]:
         """
@@ -631,6 +610,9 @@ class AsyncRawMultimodalClient:
 
         model : SpeechToTextRequestModel
             Model ID.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         language : typing.Optional[str]
             Input audio language (ISO-639-1).
@@ -659,14 +641,8 @@ class AsyncRawMultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -677,7 +653,7 @@ class AsyncRawMultimodalClient:
             Transcription result.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "api/audio/transcription",
+            "api/audio/transcriptions",
             method="POST",
             data={
                 "model": model,
@@ -690,15 +666,14 @@ class AsyncRawMultimodalClient:
                 "disable_log": disable_log,
                 "metadata": json.dumps(jsonable_encoder(metadata)),
                 "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
                 "thread_identifier": thread_identifier,
-                "request_breakdown": request_breakdown,
             },
             files={
                 "file": file,
             },
             headers={
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -738,15 +713,14 @@ class AsyncRawMultimodalClient:
         model: TextToSpeechRequestModel,
         input: str,
         voice: TextToSpeechRequestVoice,
+        data_respan_params: typing.Optional[str] = None,
         response_format: typing.Optional[TextToSpeechRequestResponseFormat] = OMIT,
         speed: typing.Optional[float] = OMIT,
         customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[bytes]]]:
         """
@@ -766,6 +740,9 @@ class AsyncRawMultimodalClient:
         voice : TextToSpeechRequestVoice
             Voice to use.
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         response_format : typing.Optional[TextToSpeechRequestResponseFormat]
             Audio output format.
 
@@ -784,14 +761,8 @@ class AsyncRawMultimodalClient:
         customer_identifier : typing.Optional[str]
             End user identifier.
 
-        customer_email : typing.Optional[str]
-            Customer email address.
-
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -814,13 +785,12 @@ class AsyncRawMultimodalClient:
                 "disable_log": disable_log,
                 "metadata": metadata,
                 "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
                 "thread_identifier": thread_identifier,
-                "request_breakdown": request_breakdown,
             },
             headers={
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,

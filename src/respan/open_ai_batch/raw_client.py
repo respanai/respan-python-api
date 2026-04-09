@@ -369,6 +369,7 @@ class RawOpenAiBatchClient:
         authorization: str,
         limit: typing.Optional[int] = None,
         after: typing.Optional[str] = None,
+        data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListBatchesResponse]:
         """
@@ -385,6 +386,9 @@ class RawOpenAiBatchClient:
         after : typing.Optional[str]
             Cursor for pagination. Use the last_id from a previous response to get the next page.
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -394,7 +398,7 @@ class RawOpenAiBatchClient:
             List of batches.
         """
         _response = self._client_wrapper.httpx_client.request(
-            "api/v1/batches/",
+            "api/v1/batches",
             method="GET",
             params={
                 "limit": limit,
@@ -402,6 +406,7 @@ class RawOpenAiBatchClient:
             },
             headers={
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
         )
@@ -438,6 +443,7 @@ class RawOpenAiBatchClient:
         input_file_id: str,
         endpoint: CreateBatchRequestEndpoint,
         completion_window: CreateBatchRequestCompletionWindow,
+        data_respan_params: typing.Optional[str] = None,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
         custom_identifier: typing.Optional[str] = OMIT,
@@ -461,6 +467,9 @@ class RawOpenAiBatchClient:
 
         completion_window : CreateBatchRequestCompletionWindow
             Processing time frame.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
             Custom key-value pairs for tracking.
@@ -486,7 +495,7 @@ class RawOpenAiBatchClient:
             Created batch.
         """
         _response = self._client_wrapper.httpx_client.request(
-            "api/v1/batches/",
+            "api/v1/batches",
             method="POST",
             json={
                 "input_file_id": input_file_id,
@@ -501,6 +510,7 @@ class RawOpenAiBatchClient:
             headers={
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -532,7 +542,12 @@ class RawOpenAiBatchClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_batch(
-        self, batch_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self,
+        batch_id: str,
+        *,
+        authorization: str,
+        data_respan_params: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[RetrieveBatchResponse]:
         """
         Retrieve details of a batch processing job.
@@ -545,6 +560,9 @@ class RawOpenAiBatchClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -554,10 +572,11 @@ class RawOpenAiBatchClient:
             Batch details.
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/v1/batches/{jsonable_encoder(batch_id)}/",
+            f"api/v1/batches/{jsonable_encoder(batch_id)}",
             method="GET",
             headers={
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
         )
@@ -604,6 +623,7 @@ class RawOpenAiBatchClient:
         *,
         authorization: str,
         request: typing.Dict[str, typing.Any],
+        data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CancelBatchResponse]:
         """
@@ -619,6 +639,9 @@ class RawOpenAiBatchClient:
 
         request : typing.Dict[str, typing.Any]
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -628,12 +651,13 @@ class RawOpenAiBatchClient:
             Batch cancellation initiated.
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/v1/batches/{jsonable_encoder(batch_id)}/cancel/",
+            f"api/v1/batches/{jsonable_encoder(batch_id)}/cancel",
             method="POST",
             json=request,
             headers={
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1017,6 +1041,7 @@ class AsyncRawOpenAiBatchClient:
         authorization: str,
         limit: typing.Optional[int] = None,
         after: typing.Optional[str] = None,
+        data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListBatchesResponse]:
         """
@@ -1033,6 +1058,9 @@ class AsyncRawOpenAiBatchClient:
         after : typing.Optional[str]
             Cursor for pagination. Use the last_id from a previous response to get the next page.
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1042,7 +1070,7 @@ class AsyncRawOpenAiBatchClient:
             List of batches.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "api/v1/batches/",
+            "api/v1/batches",
             method="GET",
             params={
                 "limit": limit,
@@ -1050,6 +1078,7 @@ class AsyncRawOpenAiBatchClient:
             },
             headers={
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
         )
@@ -1086,6 +1115,7 @@ class AsyncRawOpenAiBatchClient:
         input_file_id: str,
         endpoint: CreateBatchRequestEndpoint,
         completion_window: CreateBatchRequestCompletionWindow,
+        data_respan_params: typing.Optional[str] = None,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
         custom_identifier: typing.Optional[str] = OMIT,
@@ -1109,6 +1139,9 @@ class AsyncRawOpenAiBatchClient:
 
         completion_window : CreateBatchRequestCompletionWindow
             Processing time frame.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
             Custom key-value pairs for tracking.
@@ -1134,7 +1167,7 @@ class AsyncRawOpenAiBatchClient:
             Created batch.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "api/v1/batches/",
+            "api/v1/batches",
             method="POST",
             json={
                 "input_file_id": input_file_id,
@@ -1149,6 +1182,7 @@ class AsyncRawOpenAiBatchClient:
             headers={
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1180,7 +1214,12 @@ class AsyncRawOpenAiBatchClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_batch(
-        self, batch_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self,
+        batch_id: str,
+        *,
+        authorization: str,
+        data_respan_params: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[RetrieveBatchResponse]:
         """
         Retrieve details of a batch processing job.
@@ -1193,6 +1232,9 @@ class AsyncRawOpenAiBatchClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1202,10 +1244,11 @@ class AsyncRawOpenAiBatchClient:
             Batch details.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/v1/batches/{jsonable_encoder(batch_id)}/",
+            f"api/v1/batches/{jsonable_encoder(batch_id)}",
             method="GET",
             headers={
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
         )
@@ -1252,6 +1295,7 @@ class AsyncRawOpenAiBatchClient:
         *,
         authorization: str,
         request: typing.Dict[str, typing.Any],
+        data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CancelBatchResponse]:
         """
@@ -1267,6 +1311,9 @@ class AsyncRawOpenAiBatchClient:
 
         request : typing.Dict[str, typing.Any]
 
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1276,12 +1323,13 @@ class AsyncRawOpenAiBatchClient:
             Batch cancellation initiated.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/v1/batches/{jsonable_encoder(batch_id)}/cancel/",
+            f"api/v1/batches/{jsonable_encoder(batch_id)}/cancel",
             method="POST",
             json=request,
             headers={
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
             omit=OMIT,

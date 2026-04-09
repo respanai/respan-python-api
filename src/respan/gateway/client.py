@@ -5,6 +5,7 @@ import typing
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawGatewayClient, RawGatewayClient
+from .types.create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
 from .types.create_chat_completion_response import CreateChatCompletionResponse
 from .types.create_response_request_input import CreateResponseRequestInput
 
@@ -31,8 +32,9 @@ class GatewayClient:
         self,
         *,
         authorization: str,
-        messages: typing.Sequence[str],
+        messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
+        data_respan_params: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         stream: typing.Optional[bool] = OMIT,
         tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
@@ -54,7 +56,7 @@ class GatewayClient:
         credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         cache_enabled: typing.Optional[bool] = OMIT,
         cache_ttl: typing.Optional[float] = OMIT,
-        cache_options: typing.Optional[bool] = OMIT,
+        cache_options: typing.Optional[CreateChatCompletionRequestCacheOptions] = OMIT,
         prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -68,27 +70,28 @@ class GatewayClient:
         customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_breakdown: typing.Optional[bool] = OMIT,
         positive_feedback: typing.Optional[bool] = OMIT,
-        customer_api_keys: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        loadbalance_models: typing.Optional[typing.Sequence[str]] = OMIT,
+        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
         properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retries: typing.Optional[int] = OMIT,
         weight: typing.Optional[float] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         span_name: typing.Optional[str] = OMIT,
         respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateChatCompletionResponse:
         """
-        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, and caching.
+        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
 
         Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
         2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
-        3. **Header `X-Respan-Params`** - base64-encoded JSON header
+        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
 
-        Merge order: header > `respan_params` > top-level fields.
+        Merge order: top-level body fields > `respan_params` > header.
+
+        Legacy compatibility:
+        - `keywordsai_params` is still accepted and merged into `respan_params`
+        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
 
         When using the OpenAI SDK, pass Respan parameters via `extra_body`.
 
@@ -97,11 +100,14 @@ class GatewayClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        messages : typing.Sequence[str]
+        messages : typing.Sequence[typing.Dict[str, typing.Any]]
             Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
 
         model : str
             Model to use. See [Models](https://platform.respan.ai/platform/models) for available options.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
@@ -149,7 +155,7 @@ class GatewayClient:
             Enable parallel function calling during tool use.
 
         load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
-            Load balance config. Specify `models` array with `model`, `weight`, and optional `credentials` per model. See [Advanced configuration](/docs/documentation/features/gateway/advanced).
+            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
 
         fallback_models : typing.Optional[typing.Sequence[str]]
             Backup models (ranked by priority) if the primary model fails.
@@ -166,8 +172,8 @@ class GatewayClient:
         cache_ttl : typing.Optional[float]
             Cache time-to-live in seconds.
 
-        cache_options : typing.Optional[bool]
-            Cache options. Set `cache_by_customer: true` to cache per customer.
+        cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
+            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
 
         prompt : typing.Optional[typing.Dict[str, typing.Any]]
             Prompt template config. Properties: `prompt_id` (required), `variables` (template variables), `version` (number, or `"latest"` for draft), `echo` (return rendered prompt), `override` (use override_params), `override_params` (OpenAI params to override), `schema_version` (`1` = legacy, `2` = prompt config wins). See [Prompt management](/docs/documentation/features/prompt-management/advanced).
@@ -182,7 +188,7 @@ class GatewayClient:
             Azure deployment name mapping. Maps your custom Azure deployment names to standard model names.
 
         models : typing.Optional[typing.Sequence[str]]
-            Load balancing model list. Each item: `model` (name), `weight` (routing weight), optional `credentials`.
+            Model list for LLM router selection.
 
         exclude_providers : typing.Optional[typing.Sequence[str]]
             Providers to exclude from routing. All models under excluded providers are skipped.
@@ -208,11 +214,8 @@ class GatewayClient:
         positive_feedback : typing.Optional[bool]
             User feedback. `true` = liked, `false` = disliked.
 
-        customer_api_keys : typing.Optional[typing.Dict[str, typing.Any]]
-            You can pass in a dictionary of your customer's API keys for specific models. If the router selects a model that is in the dictionary, it will attempt to use the customer's API key for calling the model before using your integration API key or Respan's default API key.
-
-        loadbalance_models : typing.Optional[typing.Sequence[str]]
-            Balance the load of your requests between different models. See the details of load balancing here.
+        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Inline load balancing options. Each item can include `model`, `weight`, and optional `credentials`.
 
         thread_identifier : typing.Optional[str]
             Conversation thread ID. Spans with the same `thread_identifier` are grouped together.
@@ -225,12 +228,6 @@ class GatewayClient:
 
         weight : typing.Optional[float]
             Load balancing weight.
-
-        prompt_id : typing.Optional[str]
-            Respan prompt template ID.
-
-        prompt_variables : typing.Optional[typing.Dict[str, typing.Any]]
-            Variables to inject into the prompt template.
 
         span_name : typing.Optional[str]
             Custom span name for tracing.
@@ -253,7 +250,7 @@ class GatewayClient:
         client = RespanClient()
         client.gateway.create_chat_completion(
             authorization="Bearer sk_live_xxxxx",
-            messages=["messages"],
+            messages=[{"key": "value"}],
             model="gpt-4o",
         )
         """
@@ -261,6 +258,7 @@ class GatewayClient:
             authorization=authorization,
             messages=messages,
             model=model,
+            data_respan_params=data_respan_params,
             respan_beta=respan_beta,
             stream=stream,
             tools=tools,
@@ -296,14 +294,11 @@ class GatewayClient:
             customer_params=customer_params,
             request_breakdown=request_breakdown,
             positive_feedback=positive_feedback,
-            customer_api_keys=customer_api_keys,
-            loadbalance_models=loadbalance_models,
+            load_balance_models=load_balance_models,
             thread_identifier=thread_identifier,
             properties=properties,
             retries=retries,
             weight=weight,
-            prompt_id=prompt_id,
-            prompt_variables=prompt_variables,
             span_name=span_name,
             respan_params=respan_params,
             request_options=request_options,
@@ -316,6 +311,7 @@ class GatewayClient:
         authorization: str,
         model: str,
         input: CreateResponseRequestInput,
+        data_respan_params: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         instructions: typing.Optional[str] = OMIT,
         stream: typing.Optional[bool] = OMIT,
@@ -332,7 +328,7 @@ class GatewayClient:
         prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
-        models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        models: typing.Optional[typing.Sequence[str]] = OMIT,
         exclude_providers: typing.Optional[typing.Sequence[str]] = OMIT,
         exclude_models: typing.Optional[typing.Sequence[str]] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -348,7 +344,16 @@ class GatewayClient:
         """
         Send a response request through the Respan gateway using the OpenAI Responses API format. Supports streaming, tool use, and prompt management.
 
-        Respan parameters can be passed the same way as [Create chat completion](/docs/apis/gateway/api-chat-completions): top-level fields, nested under `respan_params`, or via `X-Respan-Params` header.
+        Respan-specific parameters can be passed three ways:
+        1. **Top-level body fields** - add directly to the request body
+        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
+        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
+
+        Merge order: top-level body fields > `respan_params` > header.
+
+        Legacy compatibility:
+        - `keywordsai_params` is still accepted and merged into `respan_params`
+        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
 
         Parameters
         ----------
@@ -360,6 +365,9 @@ class GatewayClient:
 
         input : CreateResponseRequestInput
             Input text or array of conversation messages.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
@@ -409,8 +417,8 @@ class GatewayClient:
         disable_log : typing.Optional[bool]
             When `true`, omits input/output from the log. Metrics still recorded.
 
-        models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Load balancing model list.
+        models : typing.Optional[typing.Sequence[str]]
+            Model list for LLM router selection.
 
         exclude_providers : typing.Optional[typing.Sequence[str]]
             Providers to exclude from routing.
@@ -428,7 +436,7 @@ class GatewayClient:
             End user identifier for analytics and budgets.
 
         customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info.
+            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
 
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
@@ -465,6 +473,7 @@ class GatewayClient:
             authorization=authorization,
             model=model,
             input=input,
+            data_respan_params=data_respan_params,
             respan_beta=respan_beta,
             instructions=instructions,
             stream=stream,
@@ -516,8 +525,9 @@ class AsyncGatewayClient:
         self,
         *,
         authorization: str,
-        messages: typing.Sequence[str],
+        messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
+        data_respan_params: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         stream: typing.Optional[bool] = OMIT,
         tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
@@ -539,7 +549,7 @@ class AsyncGatewayClient:
         credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         cache_enabled: typing.Optional[bool] = OMIT,
         cache_ttl: typing.Optional[float] = OMIT,
-        cache_options: typing.Optional[bool] = OMIT,
+        cache_options: typing.Optional[CreateChatCompletionRequestCacheOptions] = OMIT,
         prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -553,27 +563,28 @@ class AsyncGatewayClient:
         customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_breakdown: typing.Optional[bool] = OMIT,
         positive_feedback: typing.Optional[bool] = OMIT,
-        customer_api_keys: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        loadbalance_models: typing.Optional[typing.Sequence[str]] = OMIT,
+        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         thread_identifier: typing.Optional[str] = OMIT,
         properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retries: typing.Optional[int] = OMIT,
         weight: typing.Optional[float] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         span_name: typing.Optional[str] = OMIT,
         respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateChatCompletionResponse:
         """
-        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, and caching.
+        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
 
         Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
         2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
-        3. **Header `X-Respan-Params`** - base64-encoded JSON header
+        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
 
-        Merge order: header > `respan_params` > top-level fields.
+        Merge order: top-level body fields > `respan_params` > header.
+
+        Legacy compatibility:
+        - `keywordsai_params` is still accepted and merged into `respan_params`
+        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
 
         When using the OpenAI SDK, pass Respan parameters via `extra_body`.
 
@@ -582,11 +593,14 @@ class AsyncGatewayClient:
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        messages : typing.Sequence[str]
+        messages : typing.Sequence[typing.Dict[str, typing.Any]]
             Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
 
         model : str
             Model to use. See [Models](https://platform.respan.ai/platform/models) for available options.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
@@ -634,7 +648,7 @@ class AsyncGatewayClient:
             Enable parallel function calling during tool use.
 
         load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
-            Load balance config. Specify `models` array with `model`, `weight`, and optional `credentials` per model. See [Advanced configuration](/docs/documentation/features/gateway/advanced).
+            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
 
         fallback_models : typing.Optional[typing.Sequence[str]]
             Backup models (ranked by priority) if the primary model fails.
@@ -651,8 +665,8 @@ class AsyncGatewayClient:
         cache_ttl : typing.Optional[float]
             Cache time-to-live in seconds.
 
-        cache_options : typing.Optional[bool]
-            Cache options. Set `cache_by_customer: true` to cache per customer.
+        cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
+            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
 
         prompt : typing.Optional[typing.Dict[str, typing.Any]]
             Prompt template config. Properties: `prompt_id` (required), `variables` (template variables), `version` (number, or `"latest"` for draft), `echo` (return rendered prompt), `override` (use override_params), `override_params` (OpenAI params to override), `schema_version` (`1` = legacy, `2` = prompt config wins). See [Prompt management](/docs/documentation/features/prompt-management/advanced).
@@ -667,7 +681,7 @@ class AsyncGatewayClient:
             Azure deployment name mapping. Maps your custom Azure deployment names to standard model names.
 
         models : typing.Optional[typing.Sequence[str]]
-            Load balancing model list. Each item: `model` (name), `weight` (routing weight), optional `credentials`.
+            Model list for LLM router selection.
 
         exclude_providers : typing.Optional[typing.Sequence[str]]
             Providers to exclude from routing. All models under excluded providers are skipped.
@@ -693,11 +707,8 @@ class AsyncGatewayClient:
         positive_feedback : typing.Optional[bool]
             User feedback. `true` = liked, `false` = disliked.
 
-        customer_api_keys : typing.Optional[typing.Dict[str, typing.Any]]
-            You can pass in a dictionary of your customer's API keys for specific models. If the router selects a model that is in the dictionary, it will attempt to use the customer's API key for calling the model before using your integration API key or Respan's default API key.
-
-        loadbalance_models : typing.Optional[typing.Sequence[str]]
-            Balance the load of your requests between different models. See the details of load balancing here.
+        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Inline load balancing options. Each item can include `model`, `weight`, and optional `credentials`.
 
         thread_identifier : typing.Optional[str]
             Conversation thread ID. Spans with the same `thread_identifier` are grouped together.
@@ -710,12 +721,6 @@ class AsyncGatewayClient:
 
         weight : typing.Optional[float]
             Load balancing weight.
-
-        prompt_id : typing.Optional[str]
-            Respan prompt template ID.
-
-        prompt_variables : typing.Optional[typing.Dict[str, typing.Any]]
-            Variables to inject into the prompt template.
 
         span_name : typing.Optional[str]
             Custom span name for tracing.
@@ -743,7 +748,7 @@ class AsyncGatewayClient:
         async def main() -> None:
             await client.gateway.create_chat_completion(
                 authorization="Bearer sk_live_xxxxx",
-                messages=["messages"],
+                messages=[{"key": "value"}],
                 model="gpt-4o",
             )
 
@@ -754,6 +759,7 @@ class AsyncGatewayClient:
             authorization=authorization,
             messages=messages,
             model=model,
+            data_respan_params=data_respan_params,
             respan_beta=respan_beta,
             stream=stream,
             tools=tools,
@@ -789,14 +795,11 @@ class AsyncGatewayClient:
             customer_params=customer_params,
             request_breakdown=request_breakdown,
             positive_feedback=positive_feedback,
-            customer_api_keys=customer_api_keys,
-            loadbalance_models=loadbalance_models,
+            load_balance_models=load_balance_models,
             thread_identifier=thread_identifier,
             properties=properties,
             retries=retries,
             weight=weight,
-            prompt_id=prompt_id,
-            prompt_variables=prompt_variables,
             span_name=span_name,
             respan_params=respan_params,
             request_options=request_options,
@@ -809,6 +812,7 @@ class AsyncGatewayClient:
         authorization: str,
         model: str,
         input: CreateResponseRequestInput,
+        data_respan_params: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         instructions: typing.Optional[str] = OMIT,
         stream: typing.Optional[bool] = OMIT,
@@ -825,7 +829,7 @@ class AsyncGatewayClient:
         prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
-        models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        models: typing.Optional[typing.Sequence[str]] = OMIT,
         exclude_providers: typing.Optional[typing.Sequence[str]] = OMIT,
         exclude_models: typing.Optional[typing.Sequence[str]] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -841,7 +845,16 @@ class AsyncGatewayClient:
         """
         Send a response request through the Respan gateway using the OpenAI Responses API format. Supports streaming, tool use, and prompt management.
 
-        Respan parameters can be passed the same way as [Create chat completion](/docs/apis/gateway/api-chat-completions): top-level fields, nested under `respan_params`, or via `X-Respan-Params` header.
+        Respan-specific parameters can be passed three ways:
+        1. **Top-level body fields** - add directly to the request body
+        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
+        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
+
+        Merge order: top-level body fields > `respan_params` > header.
+
+        Legacy compatibility:
+        - `keywordsai_params` is still accepted and merged into `respan_params`
+        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
 
         Parameters
         ----------
@@ -853,6 +866,9 @@ class AsyncGatewayClient:
 
         input : CreateResponseRequestInput
             Input text or array of conversation messages.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
@@ -902,8 +918,8 @@ class AsyncGatewayClient:
         disable_log : typing.Optional[bool]
             When `true`, omits input/output from the log. Metrics still recorded.
 
-        models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Load balancing model list.
+        models : typing.Optional[typing.Sequence[str]]
+            Model list for LLM router selection.
 
         exclude_providers : typing.Optional[typing.Sequence[str]]
             Providers to exclude from routing.
@@ -921,7 +937,7 @@ class AsyncGatewayClient:
             End user identifier for analytics and budgets.
 
         customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info.
+            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
 
         thread_identifier : typing.Optional[str]
             Conversation thread ID.
@@ -966,6 +982,7 @@ class AsyncGatewayClient:
             authorization=authorization,
             model=model,
             input=input,
+            data_respan_params=data_respan_params,
             respan_beta=respan_beta,
             instructions=instructions,
             stream=stream,

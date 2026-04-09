@@ -4,13 +4,25 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
-from ..types.filters import Filters
 from .raw_client import AsyncRawPromptsClient, RawPromptsClient
+from .types.commit_prompt_version_response import CommitPromptVersionResponse
+from .types.create_prompt_response import CreatePromptResponse
+from .types.create_prompt_version_request_tool_choice import CreatePromptVersionRequestToolChoice
 from .types.create_prompt_version_response import CreatePromptVersionResponse
+from .types.deploy_prompt_version_response import DeployPromptVersionResponse
 from .types.get_prompts_summary_response import GetPromptsSummaryResponse
+from .types.get_prompts_summary_with_filters_request_filters import GetPromptsSummaryWithFiltersRequestFilters
+from .types.get_prompts_summary_with_filters_request_operator import GetPromptsSummaryWithFiltersRequestOperator
 from .types.get_prompts_summary_with_filters_response import GetPromptsSummaryWithFiltersResponse
+from .types.list_prompt_versions_response import ListPromptVersionsResponse
+from .types.list_prompts_request_filters import ListPromptsRequestFilters
+from .types.list_prompts_request_operator import ListPromptsRequestOperator
 from .types.list_prompts_request_sort_by import ListPromptsRequestSortBy
 from .types.list_prompts_response import ListPromptsResponse
+from .types.retrieve_prompt_response import RetrievePromptResponse
+from .types.retrieve_prompt_version_response import RetrievePromptVersionResponse
+from .types.update_prompt_response import UpdatePromptResponse
+from .types.update_prompt_version_request_tool_choice import UpdatePromptVersionRequestToolChoice
 from .types.update_prompt_version_response import UpdatePromptVersionResponse
 
 # this is used as the default value for optional parameters
@@ -39,10 +51,12 @@ class PromptsClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[ListPromptsRequestSortBy] = None,
+        filters: typing.Optional[ListPromptsRequestFilters] = OMIT,
+        operator: typing.Optional[ListPromptsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListPromptsResponse:
         """
-        List prompts with pagination and sorting.
+        Retrieve prompts with pagination, sorting, and POST-based filters. Common filter fields include `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `tags`, `current_version__updated_at`, and `is_deleted`.
 
         Parameters
         ----------
@@ -50,13 +64,19 @@ class PromptsClient:
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
-            Page number
+            Page number.
 
         page_size : typing.Optional[int]
-            Number of items per page (max: 100)
+            Number of prompts per page. Maximum is 100.
 
         sort_by : typing.Optional[ListPromptsRequestSortBy]
-            Sort field (e.g., -current_version__updated_at, -id)
+            Sort field. Prefix with `-` for descending. Common values are `-id` and `-current_version__updated_at`.
+
+        filters : typing.Optional[ListPromptsRequestFilters]
+            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+
+        operator : typing.Optional[ListPromptsRequestOperator]
+            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -64,15 +84,27 @@ class PromptsClient:
         Returns
         -------
         ListPromptsResponse
-            Paginated list of prompts
+            Paginated list of prompts.
 
         Examples
         --------
-        from respan import RespanClient
+        from respan import FilterValue, RespanClient
+        from respan.prompts import ListPromptsRequestFilters
 
         client = RespanClient()
         client.prompts.list_prompts(
             authorization="Bearer sk_live_xxxxx",
+            filters=ListPromptsRequestFilters(
+                name=FilterValue(
+                    operator="icontains",
+                    value=["support"],
+                ),
+                starred=FilterValue(
+                    operator="",
+                    value=[True],
+                ),
+            ),
+            operator="AND",
         )
         """
         _response = self._raw_client.list_prompts(
@@ -80,6 +112,8 @@ class PromptsClient:
             page=page,
             page_size=page_size,
             sort_by=sort_by,
+            filters=filters,
+            operator=operator,
             request_options=request_options,
         )
         return _response.data
@@ -91,7 +125,7 @@ class PromptsClient:
         name: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> CreatePromptResponse:
         """
         Create a new prompt template.
 
@@ -111,8 +145,8 @@ class PromptsClient:
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Successful response for Create prompt
+        CreatePromptResponse
+            Prompt created successfully.
 
         Examples
         --------
@@ -131,14 +165,14 @@ class PromptsClient:
 
     def retrieve_prompt(
         self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> RetrievePromptResponse:
         """
-        Retrieve a single prompt by ID, including its current deployed version.
+        Retrieve a prompt template by ID, including its current and live versions.
 
         Parameters
         ----------
         prompt_id : str
-            The unique prompt identifier
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -148,8 +182,8 @@ class PromptsClient:
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Prompt details
+        RetrievePromptResponse
+            Prompt details.
 
         Examples
         --------
@@ -170,12 +204,12 @@ class PromptsClient:
         self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a prompt and all its versions.
+        Delete a prompt and its versions from the active prompt library.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -210,31 +244,31 @@ class PromptsClient:
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> UpdatePromptResponse:
         """
-        Update a prompt's name or description.
+        Update prompt metadata such as its name or description.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
-            Prompt name.
+            Updated prompt name.
 
         description : typing.Optional[str]
-            Prompt description.
+            Updated prompt description.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Successful response for Update prompt
+        UpdatePromptResponse
+            Prompt updated successfully.
 
         Examples
         --------
@@ -252,26 +286,38 @@ class PromptsClient:
         return _response.data
 
     def list_prompt_versions(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Dict[str, typing.Any]:
+        self,
+        prompt_id: str,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListPromptVersionsResponse:
         """
-        List all versions of a prompt.
+        List all versions for a prompt. Results are ordered newest first.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of prompt versions per page. Maximum is 500.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Successful response for Retrieve versions
+        ListPromptVersionsResponse
+            Paginated list of prompt versions.
 
         Examples
         --------
@@ -284,7 +330,7 @@ class PromptsClient:
         )
         """
         _response = self._raw_client.list_prompt_versions(
-            prompt_id, authorization=authorization, request_options=request_options
+            prompt_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -293,18 +339,27 @@ class PromptsClient:
         prompt_id: str,
         *,
         authorization: str,
-        messages: typing.Sequence[str],
+        messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         description: typing.Optional[str] = OMIT,
+        thinking: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         stream: typing.Optional[bool] = OMIT,
         temperature: typing.Optional[float] = OMIT,
         max_tokens: typing.Optional[int] = OMIT,
         top_p: typing.Optional[float] = OMIT,
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
+        reasoning_effort: typing.Optional[str] = OMIT,
+        verbosity: typing.Optional[str] = OMIT,
+        seed: typing.Optional[int] = OMIT,
         variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        tools: typing.Optional[typing.Sequence[str]] = OMIT,
+        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_choice: typing.Optional[CreatePromptVersionRequestToolChoice] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        json_schema: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_enforcing_response_format: typing.Optional[bool] = OMIT,
         deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptVersionResponse:
@@ -314,19 +369,22 @@ class PromptsClient:
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        messages : typing.Sequence[str]
-            Messages for this version. Use `{{variable_name}}` for template variables.
+        messages : typing.Sequence[typing.Dict[str, typing.Any]]
+            Messages for this version. Use `{{variable_name}}` placeholders for template variables.
 
         model : str
-            Model for this version.
+            Primary model for this version.
 
         description : typing.Optional[str]
             Version description.
+
+        thinking : typing.Optional[typing.Dict[str, typing.Any]]
+            Optional provider-specific reasoning configuration.
 
         stream : typing.Optional[bool]
             Whether to stream responses.
@@ -346,17 +404,37 @@ class PromptsClient:
         presence_penalty : typing.Optional[float]
             Presence penalty (-2 to 2).
 
+        reasoning_effort : typing.Optional[str]
+
+        verbosity : typing.Optional[str]
+
+        seed : typing.Optional[int]
+
         variables : typing.Optional[typing.Dict[str, typing.Any]]
             Template variables and their default values.
 
         fallback_models : typing.Optional[typing.Sequence[str]]
             Fallback models if the primary model fails.
 
-        tools : typing.Optional[typing.Sequence[str]]
-            Tools available to the model (function calling).
+        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Weighted load-balancing model configuration.
+
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools available to the model.
+
+        tool_choice : typing.Optional[CreatePromptVersionRequestToolChoice]
+
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Structured output / response format configuration.
+
+        json_schema : typing.Optional[typing.Dict[str, typing.Any]]
+            JSON schema used for structured outputs when configured.
+
+        is_enforcing_response_format : typing.Optional[bool]
+            Whether to strictly enforce the response format.
 
         deploy : typing.Optional[bool]
-            Deploy this version as the live version.
+            Deploy this version as the live version immediately.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -364,7 +442,7 @@ class PromptsClient:
         Returns
         -------
         CreatePromptVersionResponse
-            Successful response for Create version
+            Prompt version created successfully.
 
         Examples
         --------
@@ -374,8 +452,27 @@ class PromptsClient:
         client.prompts.create_prompt_version(
             prompt_id="prompt_id",
             authorization="Bearer sk_live_xxxxx",
-            messages=["messages"],
+            description="Production version with context awareness",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful customer support assistant. Context: {{context}}",
+                },
+                {"role": "user", "content": "{{user_query}}"},
+            ],
             model="gpt-4o",
+            temperature=0.7,
+            max_tokens=2048,
+            variables={
+                "context": "Product information and FAQs",
+                "user_query": "How do I reset my password?",
+            },
+            fallback_models=["gpt-4o-mini"],
+            load_balance_models=[
+                {"model": "gpt-4o", "weight": 0.8},
+                {"model": "gpt-4o-mini", "weight": 0.2},
+            ],
+            deploy=False,
         )
         """
         _response = self._raw_client.create_prompt_version(
@@ -384,15 +481,24 @@ class PromptsClient:
             messages=messages,
             model=model,
             description=description,
+            thinking=thinking,
             stream=stream,
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty,
+            reasoning_effort=reasoning_effort,
+            verbosity=verbosity,
+            seed=seed,
             variables=variables,
             fallback_models=fallback_models,
+            load_balance_models=load_balance_models,
             tools=tools,
+            tool_choice=tool_choice,
+            response_format=response_format,
+            json_schema=json_schema,
+            is_enforcing_response_format=is_enforcing_response_format,
             deploy=deploy,
             request_options=request_options,
         )
@@ -401,21 +507,21 @@ class PromptsClient:
     def retrieve_prompt_version(
         self,
         prompt_id: str,
-        version: str,
+        version: int,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> RetrievePromptVersionResponse:
         """
         Retrieve a specific version of a prompt.
 
         Parameters
         ----------
         prompt_id : str
-            The unique prompt identifier
+            The unique prompt identifier.
 
-        version : str
-            The version number
+        version : int
+            The prompt version number.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -425,8 +531,8 @@ class PromptsClient:
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Prompt version details
+        RetrievePromptVersionResponse
+            Prompt version details.
 
         Examples
         --------
@@ -435,7 +541,7 @@ class PromptsClient:
         client = RespanClient()
         client.prompts.retrieve_prompt_version(
             prompt_id="prompt_id",
-            version="version",
+            version=1,
             authorization="Bearer sk_live_xxxxx",
         )
         """
@@ -447,21 +553,21 @@ class PromptsClient:
     def delete_prompt_version(
         self,
         prompt_id: str,
-        version: str,
+        version: int,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
         """
-        Delete a specific prompt version. Cannot delete the currently deployed version.
+        Delete a specific prompt version. The currently deployed live version cannot be deleted.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
-        version : str
-            Version
+        version : int
+            The prompt version number.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -480,7 +586,7 @@ class PromptsClient:
         client = RespanClient()
         client.prompts.delete_prompt_version(
             prompt_id="prompt_id",
-            version="version",
+            version=1,
             authorization="Bearer sk_live_xxxxx",
         )
         """
@@ -492,46 +598,58 @@ class PromptsClient:
     def update_prompt_version(
         self,
         prompt_id: str,
-        version: str,
+        version: int,
         *,
         authorization: str,
-        messages: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        model: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
+        messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        thinking: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        model: typing.Optional[str] = OMIT,
         stream: typing.Optional[bool] = OMIT,
         temperature: typing.Optional[float] = OMIT,
         max_tokens: typing.Optional[int] = OMIT,
         top_p: typing.Optional[float] = OMIT,
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
+        reasoning_effort: typing.Optional[str] = OMIT,
+        verbosity: typing.Optional[str] = OMIT,
+        seed: typing.Optional[int] = OMIT,
         variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        tools: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
+        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_choice: typing.Optional[UpdatePromptVersionRequestToolChoice] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        json_schema: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_enforcing_response_format: typing.Optional[bool] = OMIT,
         deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdatePromptVersionResponse:
         """
-        Update a prompt version's messages, model, parameters, or deploy it as the live version.
+        Update a prompt version. Set `deploy: true` to make this version live immediately.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
-        version : str
-            Version
+        version : int
+            The prompt version number.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        messages : typing.Optional[typing.Sequence[typing.Any]]
-            Messages for this version. Use `{{variable_name}}` for template variables.
-
-        model : typing.Optional[str]
-            Model for this version.
-
         description : typing.Optional[str]
             Version description.
+
+        messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Messages for this version. Use `{{variable_name}}` placeholders for template variables.
+
+        thinking : typing.Optional[typing.Dict[str, typing.Any]]
+            Optional provider-specific reasoning configuration.
+
+        model : typing.Optional[str]
+            Primary model for this version.
 
         stream : typing.Optional[bool]
             Whether to stream responses.
@@ -551,17 +669,37 @@ class PromptsClient:
         presence_penalty : typing.Optional[float]
             Presence penalty (-2 to 2).
 
+        reasoning_effort : typing.Optional[str]
+
+        verbosity : typing.Optional[str]
+
+        seed : typing.Optional[int]
+
         variables : typing.Optional[typing.Dict[str, typing.Any]]
-            Template variables and default values.
+            Template variables and their default values.
 
         fallback_models : typing.Optional[typing.Sequence[str]]
-            Fallback models.
+            Fallback models if the primary model fails.
 
-        tools : typing.Optional[typing.Sequence[typing.Any]]
-            Tools for function calling.
+        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Weighted load-balancing model configuration.
+
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools available to the model.
+
+        tool_choice : typing.Optional[UpdatePromptVersionRequestToolChoice]
+
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Structured output / response format configuration.
+
+        json_schema : typing.Optional[typing.Dict[str, typing.Any]]
+            JSON schema used for structured outputs when configured.
+
+        is_enforcing_response_format : typing.Optional[bool]
+            Whether to strictly enforce the response format.
 
         deploy : typing.Optional[bool]
-            Deploy this version as the live version.
+            Deploy this version as the live version immediately.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -569,7 +707,7 @@ class PromptsClient:
         Returns
         -------
         UpdatePromptVersionResponse
-            Successful response for Update prompt version
+            Prompt version updated successfully.
 
         Examples
         --------
@@ -578,26 +716,56 @@ class PromptsClient:
         client = RespanClient()
         client.prompts.update_prompt_version(
             prompt_id="prompt_id",
-            version="version",
+            version=1,
             authorization="Bearer sk_live_xxxxx",
+            description="Production version with context awareness",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful customer support assistant. Context: {{context}}",
+                },
+                {"role": "user", "content": "{{user_query}}"},
+            ],
+            model="gpt-4o",
+            temperature=0.7,
+            max_tokens=2048,
+            variables={
+                "context": "Product information and FAQs",
+                "user_query": "How do I reset my password?",
+            },
+            fallback_models=["gpt-4o-mini"],
+            load_balance_models=[
+                {"model": "gpt-4o", "weight": 0.8},
+                {"model": "gpt-4o-mini", "weight": 0.2},
+            ],
+            deploy=False,
         )
         """
         _response = self._raw_client.update_prompt_version(
             prompt_id,
             version,
             authorization=authorization,
-            messages=messages,
-            model=model,
             description=description,
+            messages=messages,
+            thinking=thinking,
+            model=model,
             stream=stream,
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty,
+            reasoning_effort=reasoning_effort,
+            verbosity=verbosity,
+            seed=seed,
             variables=variables,
             fallback_models=fallback_models,
+            load_balance_models=load_balance_models,
             tools=tools,
+            tool_choice=tool_choice,
+            response_format=response_format,
+            json_schema=json_schema,
+            is_enforcing_response_format=is_enforcing_response_format,
             deploy=deploy,
             request_options=request_options,
         )
@@ -610,28 +778,28 @@ class PromptsClient:
         authorization: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> CommitPromptVersionResponse:
         """
-        Commit the current prompt version with a description message.
+        Commit the current draft version. This creates a readonly snapshot and advances the draft workflow.
 
         Parameters
         ----------
         prompt_id : str
-            The unique prompt identifier
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
-            Commit message describing the changes.
+            Optional commit message describing the changes.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Committed version created
+        CommitPromptVersionResponse
+            Committed version created.
 
         Examples
         --------
@@ -655,14 +823,14 @@ class PromptsClient:
         authorization: str,
         version: int,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> DeployPromptVersionResponse:
         """
-        Deploy a specific version as the live version. All API calls referencing this prompt will use the deployed version.
+        Deploy a committed version as the live version for this prompt.
 
         Parameters
         ----------
         prompt_id : str
-            The unique prompt identifier
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -675,8 +843,8 @@ class PromptsClient:
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Version deployed successfully
+        DeployPromptVersionResponse
+            Version deployed successfully.
 
         Examples
         --------
@@ -698,7 +866,7 @@ class PromptsClient:
         self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> GetPromptsSummaryResponse:
         """
-        Get aggregated summary statistics for all prompts.
+        Get summary statistics for prompts in your current auth scope. The response currently includes only `total_count`.
 
         Parameters
         ----------
@@ -711,7 +879,7 @@ class PromptsClient:
         Returns
         -------
         GetPromptsSummaryResponse
-            Summary statistics for prompts
+            Summary statistics for prompts.
 
         Examples
         --------
@@ -729,18 +897,23 @@ class PromptsClient:
         self,
         *,
         authorization: str,
-        filters: typing.Optional[Filters] = OMIT,
+        filters: typing.Optional[GetPromptsSummaryWithFiltersRequestFilters] = OMIT,
+        operator: typing.Optional[GetPromptsSummaryWithFiltersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetPromptsSummaryWithFiltersResponse:
         """
-        Get aggregated summary statistics for prompts matching the given filters.
+        Get summary statistics for prompts that match the specified filters.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        filters : typing.Optional[Filters]
+        filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
+            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+
+        operator : typing.Optional[GetPromptsSummaryWithFiltersRequestOperator]
+            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -748,19 +921,27 @@ class PromptsClient:
         Returns
         -------
         GetPromptsSummaryWithFiltersResponse
-            Summary statistics for prompts matching filters
+            Filtered prompt summary statistics.
 
         Examples
         --------
-        from respan import RespanClient
+        from respan import FilterValue, RespanClient
+        from respan.prompts import GetPromptsSummaryWithFiltersRequestFilters
 
         client = RespanClient()
         client.prompts.get_prompts_summary_with_filters(
             authorization="Bearer sk_live_xxxxx",
+            filters=GetPromptsSummaryWithFiltersRequestFilters(
+                name=FilterValue(
+                    operator="icontains",
+                    value=["support"],
+                ),
+            ),
+            operator="AND",
         )
         """
         _response = self._raw_client.get_prompts_summary_with_filters(
-            authorization=authorization, filters=filters, request_options=request_options
+            authorization=authorization, filters=filters, operator=operator, request_options=request_options
         )
         return _response.data
 
@@ -787,10 +968,12 @@ class AsyncPromptsClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[ListPromptsRequestSortBy] = None,
+        filters: typing.Optional[ListPromptsRequestFilters] = OMIT,
+        operator: typing.Optional[ListPromptsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListPromptsResponse:
         """
-        List prompts with pagination and sorting.
+        Retrieve prompts with pagination, sorting, and POST-based filters. Common filter fields include `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `tags`, `current_version__updated_at`, and `is_deleted`.
 
         Parameters
         ----------
@@ -798,13 +981,19 @@ class AsyncPromptsClient:
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
-            Page number
+            Page number.
 
         page_size : typing.Optional[int]
-            Number of items per page (max: 100)
+            Number of prompts per page. Maximum is 100.
 
         sort_by : typing.Optional[ListPromptsRequestSortBy]
-            Sort field (e.g., -current_version__updated_at, -id)
+            Sort field. Prefix with `-` for descending. Common values are `-id` and `-current_version__updated_at`.
+
+        filters : typing.Optional[ListPromptsRequestFilters]
+            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+
+        operator : typing.Optional[ListPromptsRequestOperator]
+            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -812,13 +1001,14 @@ class AsyncPromptsClient:
         Returns
         -------
         ListPromptsResponse
-            Paginated list of prompts
+            Paginated list of prompts.
 
         Examples
         --------
         import asyncio
 
-        from respan import AsyncRespanClient
+        from respan import AsyncRespanClient, FilterValue
+        from respan.prompts import ListPromptsRequestFilters
 
         client = AsyncRespanClient()
 
@@ -826,6 +1016,17 @@ class AsyncPromptsClient:
         async def main() -> None:
             await client.prompts.list_prompts(
                 authorization="Bearer sk_live_xxxxx",
+                filters=ListPromptsRequestFilters(
+                    name=FilterValue(
+                        operator="icontains",
+                        value=["support"],
+                    ),
+                    starred=FilterValue(
+                        operator="",
+                        value=[True],
+                    ),
+                ),
+                operator="AND",
             )
 
 
@@ -836,6 +1037,8 @@ class AsyncPromptsClient:
             page=page,
             page_size=page_size,
             sort_by=sort_by,
+            filters=filters,
+            operator=operator,
             request_options=request_options,
         )
         return _response.data
@@ -847,7 +1050,7 @@ class AsyncPromptsClient:
         name: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> CreatePromptResponse:
         """
         Create a new prompt template.
 
@@ -867,8 +1070,8 @@ class AsyncPromptsClient:
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Successful response for Create prompt
+        CreatePromptResponse
+            Prompt created successfully.
 
         Examples
         --------
@@ -895,14 +1098,14 @@ class AsyncPromptsClient:
 
     async def retrieve_prompt(
         self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> RetrievePromptResponse:
         """
-        Retrieve a single prompt by ID, including its current deployed version.
+        Retrieve a prompt template by ID, including its current and live versions.
 
         Parameters
         ----------
         prompt_id : str
-            The unique prompt identifier
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -912,8 +1115,8 @@ class AsyncPromptsClient:
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Prompt details
+        RetrievePromptResponse
+            Prompt details.
 
         Examples
         --------
@@ -942,12 +1145,12 @@ class AsyncPromptsClient:
         self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a prompt and all its versions.
+        Delete a prompt and its versions from the active prompt library.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -990,31 +1193,31 @@ class AsyncPromptsClient:
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> UpdatePromptResponse:
         """
-        Update a prompt's name or description.
+        Update prompt metadata such as its name or description.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
-            Prompt name.
+            Updated prompt name.
 
         description : typing.Optional[str]
-            Prompt description.
+            Updated prompt description.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Successful response for Update prompt
+        UpdatePromptResponse
+            Prompt updated successfully.
 
         Examples
         --------
@@ -1040,26 +1243,38 @@ class AsyncPromptsClient:
         return _response.data
 
     async def list_prompt_versions(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.Dict[str, typing.Any]:
+        self,
+        prompt_id: str,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListPromptVersionsResponse:
         """
-        List all versions of a prompt.
+        List all versions for a prompt. Results are ordered newest first.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of prompt versions per page. Maximum is 500.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Successful response for Retrieve versions
+        ListPromptVersionsResponse
+            Paginated list of prompt versions.
 
         Examples
         --------
@@ -1080,7 +1295,7 @@ class AsyncPromptsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.list_prompt_versions(
-            prompt_id, authorization=authorization, request_options=request_options
+            prompt_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -1089,18 +1304,27 @@ class AsyncPromptsClient:
         prompt_id: str,
         *,
         authorization: str,
-        messages: typing.Sequence[str],
+        messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         description: typing.Optional[str] = OMIT,
+        thinking: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         stream: typing.Optional[bool] = OMIT,
         temperature: typing.Optional[float] = OMIT,
         max_tokens: typing.Optional[int] = OMIT,
         top_p: typing.Optional[float] = OMIT,
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
+        reasoning_effort: typing.Optional[str] = OMIT,
+        verbosity: typing.Optional[str] = OMIT,
+        seed: typing.Optional[int] = OMIT,
         variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        tools: typing.Optional[typing.Sequence[str]] = OMIT,
+        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_choice: typing.Optional[CreatePromptVersionRequestToolChoice] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        json_schema: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_enforcing_response_format: typing.Optional[bool] = OMIT,
         deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptVersionResponse:
@@ -1110,19 +1334,22 @@ class AsyncPromptsClient:
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        messages : typing.Sequence[str]
-            Messages for this version. Use `{{variable_name}}` for template variables.
+        messages : typing.Sequence[typing.Dict[str, typing.Any]]
+            Messages for this version. Use `{{variable_name}}` placeholders for template variables.
 
         model : str
-            Model for this version.
+            Primary model for this version.
 
         description : typing.Optional[str]
             Version description.
+
+        thinking : typing.Optional[typing.Dict[str, typing.Any]]
+            Optional provider-specific reasoning configuration.
 
         stream : typing.Optional[bool]
             Whether to stream responses.
@@ -1142,17 +1369,37 @@ class AsyncPromptsClient:
         presence_penalty : typing.Optional[float]
             Presence penalty (-2 to 2).
 
+        reasoning_effort : typing.Optional[str]
+
+        verbosity : typing.Optional[str]
+
+        seed : typing.Optional[int]
+
         variables : typing.Optional[typing.Dict[str, typing.Any]]
             Template variables and their default values.
 
         fallback_models : typing.Optional[typing.Sequence[str]]
             Fallback models if the primary model fails.
 
-        tools : typing.Optional[typing.Sequence[str]]
-            Tools available to the model (function calling).
+        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Weighted load-balancing model configuration.
+
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools available to the model.
+
+        tool_choice : typing.Optional[CreatePromptVersionRequestToolChoice]
+
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Structured output / response format configuration.
+
+        json_schema : typing.Optional[typing.Dict[str, typing.Any]]
+            JSON schema used for structured outputs when configured.
+
+        is_enforcing_response_format : typing.Optional[bool]
+            Whether to strictly enforce the response format.
 
         deploy : typing.Optional[bool]
-            Deploy this version as the live version.
+            Deploy this version as the live version immediately.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1160,7 +1407,7 @@ class AsyncPromptsClient:
         Returns
         -------
         CreatePromptVersionResponse
-            Successful response for Create version
+            Prompt version created successfully.
 
         Examples
         --------
@@ -1175,8 +1422,27 @@ class AsyncPromptsClient:
             await client.prompts.create_prompt_version(
                 prompt_id="prompt_id",
                 authorization="Bearer sk_live_xxxxx",
-                messages=["messages"],
+                description="Production version with context awareness",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a helpful customer support assistant. Context: {{context}}",
+                    },
+                    {"role": "user", "content": "{{user_query}}"},
+                ],
                 model="gpt-4o",
+                temperature=0.7,
+                max_tokens=2048,
+                variables={
+                    "context": "Product information and FAQs",
+                    "user_query": "How do I reset my password?",
+                },
+                fallback_models=["gpt-4o-mini"],
+                load_balance_models=[
+                    {"model": "gpt-4o", "weight": 0.8},
+                    {"model": "gpt-4o-mini", "weight": 0.2},
+                ],
+                deploy=False,
             )
 
 
@@ -1188,15 +1454,24 @@ class AsyncPromptsClient:
             messages=messages,
             model=model,
             description=description,
+            thinking=thinking,
             stream=stream,
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty,
+            reasoning_effort=reasoning_effort,
+            verbosity=verbosity,
+            seed=seed,
             variables=variables,
             fallback_models=fallback_models,
+            load_balance_models=load_balance_models,
             tools=tools,
+            tool_choice=tool_choice,
+            response_format=response_format,
+            json_schema=json_schema,
+            is_enforcing_response_format=is_enforcing_response_format,
             deploy=deploy,
             request_options=request_options,
         )
@@ -1205,21 +1480,21 @@ class AsyncPromptsClient:
     async def retrieve_prompt_version(
         self,
         prompt_id: str,
-        version: str,
+        version: int,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> RetrievePromptVersionResponse:
         """
         Retrieve a specific version of a prompt.
 
         Parameters
         ----------
         prompt_id : str
-            The unique prompt identifier
+            The unique prompt identifier.
 
-        version : str
-            The version number
+        version : int
+            The prompt version number.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -1229,8 +1504,8 @@ class AsyncPromptsClient:
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Prompt version details
+        RetrievePromptVersionResponse
+            Prompt version details.
 
         Examples
         --------
@@ -1244,7 +1519,7 @@ class AsyncPromptsClient:
         async def main() -> None:
             await client.prompts.retrieve_prompt_version(
                 prompt_id="prompt_id",
-                version="version",
+                version=1,
                 authorization="Bearer sk_live_xxxxx",
             )
 
@@ -1259,21 +1534,21 @@ class AsyncPromptsClient:
     async def delete_prompt_version(
         self,
         prompt_id: str,
-        version: str,
+        version: int,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
         """
-        Delete a specific prompt version. Cannot delete the currently deployed version.
+        Delete a specific prompt version. The currently deployed live version cannot be deleted.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
-        version : str
-            Version
+        version : int
+            The prompt version number.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -1297,7 +1572,7 @@ class AsyncPromptsClient:
         async def main() -> None:
             await client.prompts.delete_prompt_version(
                 prompt_id="prompt_id",
-                version="version",
+                version=1,
                 authorization="Bearer sk_live_xxxxx",
             )
 
@@ -1312,46 +1587,58 @@ class AsyncPromptsClient:
     async def update_prompt_version(
         self,
         prompt_id: str,
-        version: str,
+        version: int,
         *,
         authorization: str,
-        messages: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        model: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
+        messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        thinking: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        model: typing.Optional[str] = OMIT,
         stream: typing.Optional[bool] = OMIT,
         temperature: typing.Optional[float] = OMIT,
         max_tokens: typing.Optional[int] = OMIT,
         top_p: typing.Optional[float] = OMIT,
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
+        reasoning_effort: typing.Optional[str] = OMIT,
+        verbosity: typing.Optional[str] = OMIT,
+        seed: typing.Optional[int] = OMIT,
         variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        tools: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
+        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_choice: typing.Optional[UpdatePromptVersionRequestToolChoice] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        json_schema: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_enforcing_response_format: typing.Optional[bool] = OMIT,
         deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdatePromptVersionResponse:
         """
-        Update a prompt version's messages, model, parameters, or deploy it as the live version.
+        Update a prompt version. Set `deploy: true` to make this version live immediately.
 
         Parameters
         ----------
         prompt_id : str
-            Prompt Id
+            The unique prompt identifier.
 
-        version : str
-            Version
+        version : int
+            The prompt version number.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        messages : typing.Optional[typing.Sequence[typing.Any]]
-            Messages for this version. Use `{{variable_name}}` for template variables.
-
-        model : typing.Optional[str]
-            Model for this version.
-
         description : typing.Optional[str]
             Version description.
+
+        messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Messages for this version. Use `{{variable_name}}` placeholders for template variables.
+
+        thinking : typing.Optional[typing.Dict[str, typing.Any]]
+            Optional provider-specific reasoning configuration.
+
+        model : typing.Optional[str]
+            Primary model for this version.
 
         stream : typing.Optional[bool]
             Whether to stream responses.
@@ -1371,17 +1658,37 @@ class AsyncPromptsClient:
         presence_penalty : typing.Optional[float]
             Presence penalty (-2 to 2).
 
+        reasoning_effort : typing.Optional[str]
+
+        verbosity : typing.Optional[str]
+
+        seed : typing.Optional[int]
+
         variables : typing.Optional[typing.Dict[str, typing.Any]]
-            Template variables and default values.
+            Template variables and their default values.
 
         fallback_models : typing.Optional[typing.Sequence[str]]
-            Fallback models.
+            Fallback models if the primary model fails.
 
-        tools : typing.Optional[typing.Sequence[typing.Any]]
-            Tools for function calling.
+        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Weighted load-balancing model configuration.
+
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools available to the model.
+
+        tool_choice : typing.Optional[UpdatePromptVersionRequestToolChoice]
+
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Structured output / response format configuration.
+
+        json_schema : typing.Optional[typing.Dict[str, typing.Any]]
+            JSON schema used for structured outputs when configured.
+
+        is_enforcing_response_format : typing.Optional[bool]
+            Whether to strictly enforce the response format.
 
         deploy : typing.Optional[bool]
-            Deploy this version as the live version.
+            Deploy this version as the live version immediately.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1389,7 +1696,7 @@ class AsyncPromptsClient:
         Returns
         -------
         UpdatePromptVersionResponse
-            Successful response for Update prompt version
+            Prompt version updated successfully.
 
         Examples
         --------
@@ -1403,8 +1710,29 @@ class AsyncPromptsClient:
         async def main() -> None:
             await client.prompts.update_prompt_version(
                 prompt_id="prompt_id",
-                version="version",
+                version=1,
                 authorization="Bearer sk_live_xxxxx",
+                description="Production version with context awareness",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a helpful customer support assistant. Context: {{context}}",
+                    },
+                    {"role": "user", "content": "{{user_query}}"},
+                ],
+                model="gpt-4o",
+                temperature=0.7,
+                max_tokens=2048,
+                variables={
+                    "context": "Product information and FAQs",
+                    "user_query": "How do I reset my password?",
+                },
+                fallback_models=["gpt-4o-mini"],
+                load_balance_models=[
+                    {"model": "gpt-4o", "weight": 0.8},
+                    {"model": "gpt-4o-mini", "weight": 0.2},
+                ],
+                deploy=False,
             )
 
 
@@ -1414,18 +1742,27 @@ class AsyncPromptsClient:
             prompt_id,
             version,
             authorization=authorization,
-            messages=messages,
-            model=model,
             description=description,
+            messages=messages,
+            thinking=thinking,
+            model=model,
             stream=stream,
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty,
+            reasoning_effort=reasoning_effort,
+            verbosity=verbosity,
+            seed=seed,
             variables=variables,
             fallback_models=fallback_models,
+            load_balance_models=load_balance_models,
             tools=tools,
+            tool_choice=tool_choice,
+            response_format=response_format,
+            json_schema=json_schema,
+            is_enforcing_response_format=is_enforcing_response_format,
             deploy=deploy,
             request_options=request_options,
         )
@@ -1438,28 +1775,28 @@ class AsyncPromptsClient:
         authorization: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> CommitPromptVersionResponse:
         """
-        Commit the current prompt version with a description message.
+        Commit the current draft version. This creates a readonly snapshot and advances the draft workflow.
 
         Parameters
         ----------
         prompt_id : str
-            The unique prompt identifier
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
-            Commit message describing the changes.
+            Optional commit message describing the changes.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Committed version created
+        CommitPromptVersionResponse
+            Committed version created.
 
         Examples
         --------
@@ -1491,14 +1828,14 @@ class AsyncPromptsClient:
         authorization: str,
         version: int,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, typing.Any]:
+    ) -> DeployPromptVersionResponse:
         """
-        Deploy a specific version as the live version. All API calls referencing this prompt will use the deployed version.
+        Deploy a committed version as the live version for this prompt.
 
         Parameters
         ----------
         prompt_id : str
-            The unique prompt identifier
+            The unique prompt identifier.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -1511,8 +1848,8 @@ class AsyncPromptsClient:
 
         Returns
         -------
-        typing.Dict[str, typing.Any]
-            Version deployed successfully
+        DeployPromptVersionResponse
+            Version deployed successfully.
 
         Examples
         --------
@@ -1542,7 +1879,7 @@ class AsyncPromptsClient:
         self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> GetPromptsSummaryResponse:
         """
-        Get aggregated summary statistics for all prompts.
+        Get summary statistics for prompts in your current auth scope. The response currently includes only `total_count`.
 
         Parameters
         ----------
@@ -1555,7 +1892,7 @@ class AsyncPromptsClient:
         Returns
         -------
         GetPromptsSummaryResponse
-            Summary statistics for prompts
+            Summary statistics for prompts.
 
         Examples
         --------
@@ -1583,18 +1920,23 @@ class AsyncPromptsClient:
         self,
         *,
         authorization: str,
-        filters: typing.Optional[Filters] = OMIT,
+        filters: typing.Optional[GetPromptsSummaryWithFiltersRequestFilters] = OMIT,
+        operator: typing.Optional[GetPromptsSummaryWithFiltersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetPromptsSummaryWithFiltersResponse:
         """
-        Get aggregated summary statistics for prompts matching the given filters.
+        Get summary statistics for prompts that match the specified filters.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        filters : typing.Optional[Filters]
+        filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
+            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+
+        operator : typing.Optional[GetPromptsSummaryWithFiltersRequestOperator]
+            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1602,13 +1944,14 @@ class AsyncPromptsClient:
         Returns
         -------
         GetPromptsSummaryWithFiltersResponse
-            Summary statistics for prompts matching filters
+            Filtered prompt summary statistics.
 
         Examples
         --------
         import asyncio
 
-        from respan import AsyncRespanClient
+        from respan import AsyncRespanClient, FilterValue
+        from respan.prompts import GetPromptsSummaryWithFiltersRequestFilters
 
         client = AsyncRespanClient()
 
@@ -1616,12 +1959,19 @@ class AsyncPromptsClient:
         async def main() -> None:
             await client.prompts.get_prompts_summary_with_filters(
                 authorization="Bearer sk_live_xxxxx",
+                filters=GetPromptsSummaryWithFiltersRequestFilters(
+                    name=FilterValue(
+                        operator="icontains",
+                        value=["support"],
+                    ),
+                ),
+                operator="AND",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_prompts_summary_with_filters(
-            authorization=authorization, filters=filters, request_options=request_options
+            authorization=authorization, filters=filters, operator=operator, request_options=request_options
         )
         return _response.data

@@ -6,8 +6,14 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .types import CreateChatCompletionResponse, CreateChatCompletionResponseContentItem, CreateResponseRequestInput
+    from .types import (
+        CreateChatCompletionRequestCacheOptions,
+        CreateChatCompletionResponse,
+        CreateChatCompletionResponseContentItem,
+        CreateResponseRequestInput,
+    )
 _dynamic_imports: typing.Dict[str, str] = {
+    "CreateChatCompletionRequestCacheOptions": ".types",
     "CreateChatCompletionResponse": ".types",
     "CreateChatCompletionResponseContentItem": ".types",
     "CreateResponseRequestInput": ".types",
@@ -35,4 +41,9 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["CreateChatCompletionResponse", "CreateChatCompletionResponseContentItem", "CreateResponseRequestInput"]
+__all__ = [
+    "CreateChatCompletionRequestCacheOptions",
+    "CreateChatCompletionResponse",
+    "CreateChatCompletionResponseContentItem",
+    "CreateResponseRequestInput",
+]
