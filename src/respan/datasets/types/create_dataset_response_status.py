@@ -2,4 +2,4 @@
 
 import typing
 
-CreateDatasetResponseStatus = typing.Union[typing.Literal["ready", "processing"], typing.Any]
+CreateDatasetResponseStatus = typing.Union[typing.Literal["initializing", "ready", "failed", "loading"], typing.Any]

@@ -4,14 +4,11 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .run_eval_on_dataset_response_created_tasks_item import RunEvalOnDatasetResponseCreatedTasksItem
 
 
-class RunEvalOnDatasetResponse(UniversalBaseModel):
-    created_tasks: typing.List[RunEvalOnDatasetResponseCreatedTasksItem]
-    errors: typing.Optional[typing.Dict[str, typing.Any]] = None
-    experiment_updated: typing.Optional[bool] = None
-    experiment_evaluator_ids: typing.Optional[typing.List[str]] = None
+class ImportDatasetLogsRequestFiltersValue(UniversalBaseModel):
+    operator: typing.Optional[str] = None
+    value: typing.Optional[typing.Any] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

@@ -4,14 +4,14 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .add_spans_to_dataset_response_filters import AddSpansToDatasetResponseFilters
 
 
-class AddSpansToDatasetResponse(UniversalBaseModel):
-    start_time: typing.Optional[str] = None
-    end_time: typing.Optional[str] = None
-    filters: typing.Optional[AddSpansToDatasetResponseFilters] = None
-    sampling_percentage: typing.Optional[int] = None
+class BulkCreateDatasetLogsRequestLogsItem(UniversalBaseModel):
+    input: typing.Optional[typing.Any] = None
+    output: typing.Optional[typing.Any] = None
+    expected_output: typing.Optional[typing.Any] = None
+    metadata: typing.Optional[typing.Dict[str, typing.Any]] = None
+    metrics: typing.Optional[typing.Dict[str, typing.Any]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

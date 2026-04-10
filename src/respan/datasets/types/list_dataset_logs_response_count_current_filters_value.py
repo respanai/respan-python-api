@@ -4,16 +4,11 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .list_eval_runs_response_results_item import ListEvalRunsResponseResultsItem
 
 
-class ListEvalRunsResponse(UniversalBaseModel):
-    count: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Total eval runs.
-    """
-
-    results: typing.Optional[typing.List[ListEvalRunsResponseResultsItem]] = None
+class ListDatasetLogsResponseCountCurrentFiltersValue(UniversalBaseModel):
+    operator: typing.Optional[str] = None
+    value: typing.Optional[typing.Any] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

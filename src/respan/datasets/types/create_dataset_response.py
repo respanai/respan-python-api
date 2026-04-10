@@ -5,44 +5,25 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .create_dataset_response_initial_log_filters_value import CreateDatasetResponseInitialLogFiltersValue
 from .create_dataset_response_status import CreateDatasetResponseStatus
 
 
 class CreateDatasetResponse(UniversalBaseModel):
-    id: typing.Optional[str] = pydantic.Field(default=None)
+    id: typing.Optional[str] = None
+    name: typing.Optional[str] = None
+    description: typing.Optional[str] = None
+    type: typing.Optional[str] = None
+    status: typing.Optional[CreateDatasetResponseStatus] = None
+    initial_log_filters: typing.Optional[typing.Dict[str, CreateDatasetResponseInitialLogFiltersValue]] = (
+        pydantic.Field(default=None)
+    )
     """
-    Dataset ID.
-    """
-
-    name: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Dataset name.
-    """
-
-    description: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Dataset description.
+    Platform-standard filters keyed by field name.
     """
 
-    type: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Dataset type.
-    """
-
-    status: typing.Optional[CreateDatasetResponseStatus] = pydantic.Field(default=None)
-    """
-    Dataset status.
-    """
-
-    log_count: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Number of spans in the dataset.
-    """
-
-    created_at: typing.Optional[dt.datetime] = pydantic.Field(default=None)
-    """
-    Creation timestamp.
-    """
+    created_at: typing.Optional[dt.datetime] = None
+    updated_at: typing.Optional[dt.datetime] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

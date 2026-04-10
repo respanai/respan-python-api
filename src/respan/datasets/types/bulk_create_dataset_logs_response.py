@@ -4,14 +4,14 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .run_eval_on_dataset_response_created_tasks_item import RunEvalOnDatasetResponseCreatedTasksItem
+from .bulk_create_dataset_logs_response_errors_item import BulkCreateDatasetLogsResponseErrorsItem
 
 
-class RunEvalOnDatasetResponse(UniversalBaseModel):
-    created_tasks: typing.List[RunEvalOnDatasetResponseCreatedTasksItem]
-    errors: typing.Optional[typing.Dict[str, typing.Any]] = None
-    experiment_updated: typing.Optional[bool] = None
-    experiment_evaluator_ids: typing.Optional[typing.List[str]] = None
+class BulkCreateDatasetLogsResponse(UniversalBaseModel):
+    success_count: int
+    error_count: int
+    errors: typing.List[BulkCreateDatasetLogsResponseErrorsItem]
+    total_errors: int
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

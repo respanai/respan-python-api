@@ -4,11 +4,27 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .update_dataset_response_initial_log_filters import UpdateDatasetResponseInitialLogFilters
 
 
 class UpdateDatasetResponse(UniversalBaseModel):
+    id: typing.Optional[str] = None
     name: typing.Optional[str] = None
+    type: typing.Optional[str] = None
     description: typing.Optional[str] = None
+    created_at: typing.Optional[str] = None
+    updated_at: typing.Optional[str] = None
+    organization: typing.Optional[int] = None
+    initial_log_filters: typing.Optional[UpdateDatasetResponseInitialLogFilters] = None
+    unique_organization_ids: typing.Optional[typing.List[str]] = None
+    timestamps: typing.Optional[typing.List[str]] = None
+    log_count: typing.Optional[int] = None
+    evaluator: typing.Optional[str] = None
+    status: typing.Optional[str] = None
+    running_status: typing.Optional[str] = None
+    running_progress: typing.Optional[int] = None
+    running_at: typing.Optional[str] = None
+    completed_annotation_count: typing.Optional[int] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

@@ -6,9 +6,8 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class AddSpansToDatasetResponseFiltersStatusCode(UniversalBaseModel):
-    operator: typing.Optional[str] = None
-    value: typing.Optional[int] = None
+class RemoveDatasetLogsResponse(UniversalBaseModel):
+    message: str
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

@@ -4,11 +4,11 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .update_dataset_span_response_metadata import UpdateDatasetSpanResponseMetadata
 
 
-class UpdateDatasetSpanResponse(UniversalBaseModel):
-    metadata: typing.Optional[UpdateDatasetSpanResponseMetadata] = None
+class CreateDatasetResponseInitialLogFiltersValue(UniversalBaseModel):
+    operator: typing.Optional[str] = None
+    value: typing.Optional[typing.Any] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

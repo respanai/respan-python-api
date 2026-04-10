@@ -5,6 +5,8 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .list_datasets_response_results_item_tags_item import ListDatasetsResponseResultsItemTagsItem
+from .list_datasets_response_results_item_updated_by import ListDatasetsResponseResultsItemUpdatedBy
 
 
 class ListDatasetsResponseResultsItem(UniversalBaseModel):
@@ -15,6 +17,15 @@ class ListDatasetsResponseResultsItem(UniversalBaseModel):
     status: typing.Optional[str] = None
     log_count: typing.Optional[int] = None
     created_at: typing.Optional[dt.datetime] = None
+    organization_id: typing.Optional[int] = None
+    updated_by: typing.Optional[ListDatasetsResponseResultsItemUpdatedBy] = None
+    log_ids: typing.Optional[typing.List[str]] = None
+    updated_at: typing.Optional[dt.datetime] = None
+    completed_annotation_count: typing.Optional[int] = None
+    running_status: typing.Optional[str] = None
+    running_progress: typing.Optional[float] = None
+    starred: typing.Optional[bool] = None
+    tags: typing.Optional[typing.List[ListDatasetsResponseResultsItemTagsItem]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

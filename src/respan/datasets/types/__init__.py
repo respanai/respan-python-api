@@ -6,55 +6,105 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .add_spans_to_dataset_response import AddSpansToDatasetResponse
-    from .add_spans_to_dataset_response_filters import AddSpansToDatasetResponseFilters
-    from .add_spans_to_dataset_response_filters_status_code import AddSpansToDatasetResponseFiltersStatusCode
+    from .bulk_create_dataset_logs_request_logs_item import BulkCreateDatasetLogsRequestLogsItem
+    from .bulk_create_dataset_logs_response import BulkCreateDatasetLogsResponse
+    from .bulk_create_dataset_logs_response_errors_item import BulkCreateDatasetLogsResponseErrorsItem
+    from .create_dataset_log_response import CreateDatasetLogResponse
+    from .create_dataset_request_initial_log_filters_value import CreateDatasetRequestInitialLogFiltersValue
     from .create_dataset_response import CreateDatasetResponse
+    from .create_dataset_response_initial_log_filters_value import CreateDatasetResponseInitialLogFiltersValue
     from .create_dataset_response_status import CreateDatasetResponseStatus
-    from .create_dataset_span_response import CreateDatasetSpanResponse
-    from .create_dataset_span_response_log_data import CreateDatasetSpanResponseLogData
-    from .delete_spans_response import DeleteSpansResponse
-    from .list_dataset_spans_response import ListDatasetSpansResponse
+    from .import_dataset_logs_request_filters_value import ImportDatasetLogsRequestFiltersValue
+    from .import_dataset_logs_response import ImportDatasetLogsResponse
+    from .list_dataset_eval_runs_response import ListDatasetEvalRunsResponse
+    from .list_dataset_eval_runs_response_current_filters_value import ListDatasetEvalRunsResponseCurrentFiltersValue
+    from .list_dataset_eval_runs_response_results_item import ListDatasetEvalRunsResponseResultsItem
+    from .list_dataset_logs_request_export_format import ListDatasetLogsRequestExportFormat
+    from .list_dataset_logs_request_filters_value import ListDatasetLogsRequestFiltersValue
+    from .list_dataset_logs_request_retrieval_mode import ListDatasetLogsRequestRetrievalMode
+    from .list_dataset_logs_response import ListDatasetLogsResponse
+    from .list_dataset_logs_response_count import ListDatasetLogsResponseCount
+    from .list_dataset_logs_response_count_current_filters_value import ListDatasetLogsResponseCountCurrentFiltersValue
+    from .list_dataset_logs_response_count_results_item import ListDatasetLogsResponseCountResultsItem
+    from .list_dataset_logs_response_count_results_item_annotation_completed_by import (
+        ListDatasetLogsResponseCountResultsItemAnnotationCompletedBy,
+    )
+    from .list_dataset_logs_response_message import ListDatasetLogsResponseMessage
+    from .list_datasets_request_filters_value import ListDatasetsRequestFiltersValue
     from .list_datasets_response import ListDatasetsResponse
+    from .list_datasets_response_current_filters_value import ListDatasetsResponseCurrentFiltersValue
     from .list_datasets_response_results_item import ListDatasetsResponseResultsItem
-    from .list_eval_runs_response import ListEvalRunsResponse
-    from .list_eval_runs_response_results_item import ListEvalRunsResponseResultsItem
-    from .list_eval_runs_response_results_item_status import ListEvalRunsResponseResultsItemStatus
+    from .list_datasets_response_results_item_tags_item import ListDatasetsResponseResultsItemTagsItem
+    from .list_datasets_response_results_item_updated_by import ListDatasetsResponseResultsItemUpdatedBy
+    from .remove_dataset_logs_request_filters_value import RemoveDatasetLogsRequestFiltersValue
+    from .remove_dataset_logs_response import RemoveDatasetLogsResponse
+    from .replace_dataset_log_response import ReplaceDatasetLogResponse
+    from .retrieve_dataset_log_response import RetrieveDatasetLogResponse
     from .retrieve_dataset_response import RetrieveDatasetResponse
     from .retrieve_dataset_response_initial_log_filters import RetrieveDatasetResponseInitialLogFilters
     from .retrieve_dataset_response_initial_log_filters_status_code import (
         RetrieveDatasetResponseInitialLogFiltersStatusCode,
     )
-    from .retrieve_dataset_span_response import RetrieveDatasetSpanResponse
     from .run_eval_on_dataset_response import RunEvalOnDatasetResponse
-    from .run_eval_on_dataset_response_status import RunEvalOnDatasetResponseStatus
+    from .run_eval_on_dataset_response_created_tasks_item import RunEvalOnDatasetResponseCreatedTasksItem
+    from .summarize_dataset_logs_filtered_request_filters_value import SummarizeDatasetLogsFilteredRequestFiltersValue
+    from .summarize_dataset_logs_filtered_response import SummarizeDatasetLogsFilteredResponse
+    from .summarize_dataset_logs_filtered_response_scores_value import SummarizeDatasetLogsFilteredResponseScoresValue
+    from .summarize_dataset_logs_response import SummarizeDatasetLogsResponse
+    from .summarize_dataset_logs_response_scores_value import SummarizeDatasetLogsResponseScoresValue
+    from .update_dataset_log_response import UpdateDatasetLogResponse
     from .update_dataset_response import UpdateDatasetResponse
-    from .update_dataset_span_response import UpdateDatasetSpanResponse
-    from .update_dataset_span_response_metadata import UpdateDatasetSpanResponseMetadata
+    from .update_dataset_response_initial_log_filters import UpdateDatasetResponseInitialLogFilters
+    from .update_dataset_response_initial_log_filters_status_code import (
+        UpdateDatasetResponseInitialLogFiltersStatusCode,
+    )
 _dynamic_imports: typing.Dict[str, str] = {
-    "AddSpansToDatasetResponse": ".add_spans_to_dataset_response",
-    "AddSpansToDatasetResponseFilters": ".add_spans_to_dataset_response_filters",
-    "AddSpansToDatasetResponseFiltersStatusCode": ".add_spans_to_dataset_response_filters_status_code",
+    "BulkCreateDatasetLogsRequestLogsItem": ".bulk_create_dataset_logs_request_logs_item",
+    "BulkCreateDatasetLogsResponse": ".bulk_create_dataset_logs_response",
+    "BulkCreateDatasetLogsResponseErrorsItem": ".bulk_create_dataset_logs_response_errors_item",
+    "CreateDatasetLogResponse": ".create_dataset_log_response",
+    "CreateDatasetRequestInitialLogFiltersValue": ".create_dataset_request_initial_log_filters_value",
     "CreateDatasetResponse": ".create_dataset_response",
+    "CreateDatasetResponseInitialLogFiltersValue": ".create_dataset_response_initial_log_filters_value",
     "CreateDatasetResponseStatus": ".create_dataset_response_status",
-    "CreateDatasetSpanResponse": ".create_dataset_span_response",
-    "CreateDatasetSpanResponseLogData": ".create_dataset_span_response_log_data",
-    "DeleteSpansResponse": ".delete_spans_response",
-    "ListDatasetSpansResponse": ".list_dataset_spans_response",
+    "ImportDatasetLogsRequestFiltersValue": ".import_dataset_logs_request_filters_value",
+    "ImportDatasetLogsResponse": ".import_dataset_logs_response",
+    "ListDatasetEvalRunsResponse": ".list_dataset_eval_runs_response",
+    "ListDatasetEvalRunsResponseCurrentFiltersValue": ".list_dataset_eval_runs_response_current_filters_value",
+    "ListDatasetEvalRunsResponseResultsItem": ".list_dataset_eval_runs_response_results_item",
+    "ListDatasetLogsRequestExportFormat": ".list_dataset_logs_request_export_format",
+    "ListDatasetLogsRequestFiltersValue": ".list_dataset_logs_request_filters_value",
+    "ListDatasetLogsRequestRetrievalMode": ".list_dataset_logs_request_retrieval_mode",
+    "ListDatasetLogsResponse": ".list_dataset_logs_response",
+    "ListDatasetLogsResponseCount": ".list_dataset_logs_response_count",
+    "ListDatasetLogsResponseCountCurrentFiltersValue": ".list_dataset_logs_response_count_current_filters_value",
+    "ListDatasetLogsResponseCountResultsItem": ".list_dataset_logs_response_count_results_item",
+    "ListDatasetLogsResponseCountResultsItemAnnotationCompletedBy": ".list_dataset_logs_response_count_results_item_annotation_completed_by",
+    "ListDatasetLogsResponseMessage": ".list_dataset_logs_response_message",
+    "ListDatasetsRequestFiltersValue": ".list_datasets_request_filters_value",
     "ListDatasetsResponse": ".list_datasets_response",
+    "ListDatasetsResponseCurrentFiltersValue": ".list_datasets_response_current_filters_value",
     "ListDatasetsResponseResultsItem": ".list_datasets_response_results_item",
-    "ListEvalRunsResponse": ".list_eval_runs_response",
-    "ListEvalRunsResponseResultsItem": ".list_eval_runs_response_results_item",
-    "ListEvalRunsResponseResultsItemStatus": ".list_eval_runs_response_results_item_status",
+    "ListDatasetsResponseResultsItemTagsItem": ".list_datasets_response_results_item_tags_item",
+    "ListDatasetsResponseResultsItemUpdatedBy": ".list_datasets_response_results_item_updated_by",
+    "RemoveDatasetLogsRequestFiltersValue": ".remove_dataset_logs_request_filters_value",
+    "RemoveDatasetLogsResponse": ".remove_dataset_logs_response",
+    "ReplaceDatasetLogResponse": ".replace_dataset_log_response",
+    "RetrieveDatasetLogResponse": ".retrieve_dataset_log_response",
     "RetrieveDatasetResponse": ".retrieve_dataset_response",
     "RetrieveDatasetResponseInitialLogFilters": ".retrieve_dataset_response_initial_log_filters",
     "RetrieveDatasetResponseInitialLogFiltersStatusCode": ".retrieve_dataset_response_initial_log_filters_status_code",
-    "RetrieveDatasetSpanResponse": ".retrieve_dataset_span_response",
     "RunEvalOnDatasetResponse": ".run_eval_on_dataset_response",
-    "RunEvalOnDatasetResponseStatus": ".run_eval_on_dataset_response_status",
+    "RunEvalOnDatasetResponseCreatedTasksItem": ".run_eval_on_dataset_response_created_tasks_item",
+    "SummarizeDatasetLogsFilteredRequestFiltersValue": ".summarize_dataset_logs_filtered_request_filters_value",
+    "SummarizeDatasetLogsFilteredResponse": ".summarize_dataset_logs_filtered_response",
+    "SummarizeDatasetLogsFilteredResponseScoresValue": ".summarize_dataset_logs_filtered_response_scores_value",
+    "SummarizeDatasetLogsResponse": ".summarize_dataset_logs_response",
+    "SummarizeDatasetLogsResponseScoresValue": ".summarize_dataset_logs_response_scores_value",
+    "UpdateDatasetLogResponse": ".update_dataset_log_response",
     "UpdateDatasetResponse": ".update_dataset_response",
-    "UpdateDatasetSpanResponse": ".update_dataset_span_response",
-    "UpdateDatasetSpanResponseMetadata": ".update_dataset_span_response_metadata",
+    "UpdateDatasetResponseInitialLogFilters": ".update_dataset_response_initial_log_filters",
+    "UpdateDatasetResponseInitialLogFiltersStatusCode": ".update_dataset_response_initial_log_filters_status_code",
 }
 
 
@@ -80,27 +130,50 @@ def __dir__():
 
 
 __all__ = [
-    "AddSpansToDatasetResponse",
-    "AddSpansToDatasetResponseFilters",
-    "AddSpansToDatasetResponseFiltersStatusCode",
+    "BulkCreateDatasetLogsRequestLogsItem",
+    "BulkCreateDatasetLogsResponse",
+    "BulkCreateDatasetLogsResponseErrorsItem",
+    "CreateDatasetLogResponse",
+    "CreateDatasetRequestInitialLogFiltersValue",
     "CreateDatasetResponse",
+    "CreateDatasetResponseInitialLogFiltersValue",
     "CreateDatasetResponseStatus",
-    "CreateDatasetSpanResponse",
-    "CreateDatasetSpanResponseLogData",
-    "DeleteSpansResponse",
-    "ListDatasetSpansResponse",
+    "ImportDatasetLogsRequestFiltersValue",
+    "ImportDatasetLogsResponse",
+    "ListDatasetEvalRunsResponse",
+    "ListDatasetEvalRunsResponseCurrentFiltersValue",
+    "ListDatasetEvalRunsResponseResultsItem",
+    "ListDatasetLogsRequestExportFormat",
+    "ListDatasetLogsRequestFiltersValue",
+    "ListDatasetLogsRequestRetrievalMode",
+    "ListDatasetLogsResponse",
+    "ListDatasetLogsResponseCount",
+    "ListDatasetLogsResponseCountCurrentFiltersValue",
+    "ListDatasetLogsResponseCountResultsItem",
+    "ListDatasetLogsResponseCountResultsItemAnnotationCompletedBy",
+    "ListDatasetLogsResponseMessage",
+    "ListDatasetsRequestFiltersValue",
     "ListDatasetsResponse",
+    "ListDatasetsResponseCurrentFiltersValue",
     "ListDatasetsResponseResultsItem",
-    "ListEvalRunsResponse",
-    "ListEvalRunsResponseResultsItem",
-    "ListEvalRunsResponseResultsItemStatus",
+    "ListDatasetsResponseResultsItemTagsItem",
+    "ListDatasetsResponseResultsItemUpdatedBy",
+    "RemoveDatasetLogsRequestFiltersValue",
+    "RemoveDatasetLogsResponse",
+    "ReplaceDatasetLogResponse",
+    "RetrieveDatasetLogResponse",
     "RetrieveDatasetResponse",
     "RetrieveDatasetResponseInitialLogFilters",
     "RetrieveDatasetResponseInitialLogFiltersStatusCode",
-    "RetrieveDatasetSpanResponse",
     "RunEvalOnDatasetResponse",
-    "RunEvalOnDatasetResponseStatus",
+    "RunEvalOnDatasetResponseCreatedTasksItem",
+    "SummarizeDatasetLogsFilteredRequestFiltersValue",
+    "SummarizeDatasetLogsFilteredResponse",
+    "SummarizeDatasetLogsFilteredResponseScoresValue",
+    "SummarizeDatasetLogsResponse",
+    "SummarizeDatasetLogsResponseScoresValue",
+    "UpdateDatasetLogResponse",
     "UpdateDatasetResponse",
-    "UpdateDatasetSpanResponse",
-    "UpdateDatasetSpanResponseMetadata",
+    "UpdateDatasetResponseInitialLogFilters",
+    "UpdateDatasetResponseInitialLogFiltersStatusCode",
 ]

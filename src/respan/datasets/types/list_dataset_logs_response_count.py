@@ -4,14 +4,14 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .list_datasets_response_current_filters_value import ListDatasetsResponseCurrentFiltersValue
-from .list_datasets_response_results_item import ListDatasetsResponseResultsItem
+from .list_dataset_logs_response_count_current_filters_value import ListDatasetLogsResponseCountCurrentFiltersValue
+from .list_dataset_logs_response_count_results_item import ListDatasetLogsResponseCountResultsItem
 
 
-class ListDatasetsResponse(UniversalBaseModel):
+class ListDatasetLogsResponseCount(UniversalBaseModel):
     count: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Total matching datasets.
+    Total matching logs.
     """
 
     next: typing.Optional[str] = pydantic.Field(default=None)
@@ -24,24 +24,25 @@ class ListDatasetsResponse(UniversalBaseModel):
     Previous page URL.
     """
 
-    results: typing.Optional[typing.List[ListDatasetsResponseResultsItem]] = pydantic.Field(default=None)
+    results: typing.Optional[typing.List[ListDatasetLogsResponseCountResultsItem]] = pydantic.Field(default=None)
     """
-    Array of dataset objects.
+    Array of dataset log objects.
     """
 
     total_count: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Total datasets matching the current filters.
+    Total matching logs.
     """
 
-    current_filters: typing.Optional[typing.Dict[str, ListDatasetsResponseCurrentFiltersValue]] = pydantic.Field(
-        default=None
+    current_filters: typing.Optional[typing.Dict[str, ListDatasetLogsResponseCountCurrentFiltersValue]] = (
+        pydantic.Field(default=None)
     )
     """
     Platform-standard filters keyed by field name.
     """
 
     filters_data: typing.Optional[typing.Dict[str, typing.Any]] = None
+    filter_options: typing.Optional[typing.Dict[str, typing.Any]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

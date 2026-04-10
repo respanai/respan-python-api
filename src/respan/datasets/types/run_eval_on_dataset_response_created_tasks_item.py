@@ -5,19 +5,19 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .list_eval_runs_response_results_item_status import ListEvalRunsResponseResultsItemStatus
 
 
-class ListEvalRunsResponseResultsItem(UniversalBaseModel):
-    id: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Eval run ID.
-    """
-
+class RunEvalOnDatasetResponseCreatedTasksItem(UniversalBaseModel):
+    task_id: typing.Optional[str] = None
+    name: typing.Optional[str] = None
     dataset_id: typing.Optional[str] = None
-    status: typing.Optional[ListEvalRunsResponseResultsItemStatus] = None
-    evaluator_slugs: typing.Optional[typing.List[str]] = None
-    created_at: typing.Optional[dt.datetime] = None
+    evaluator_slug: typing.Optional[str] = None
+    status: typing.Optional[str] = None
+    started_at: typing.Optional[dt.datetime] = None
+    completed_at: typing.Optional[dt.datetime] = None
+    error_message: typing.Optional[str] = None
+    evaluated_logs_count: typing.Optional[int] = None
+    score: typing.Optional[float] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

@@ -4,19 +4,19 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .create_dataset_span_response_log_data import CreateDatasetSpanResponseLogData
+from .summarize_dataset_logs_filtered_response_scores_value import SummarizeDatasetLogsFilteredResponseScoresValue
 
 
-class CreateDatasetSpanResponse(UniversalBaseModel):
-    message: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Status message.
-    """
-
-    log_data: typing.Optional[CreateDatasetSpanResponseLogData] = pydantic.Field(default=None)
-    """
-    The created span data.
-    """
+class SummarizeDatasetLogsFilteredResponse(UniversalBaseModel):
+    number_of_requests: int
+    total_cost: float
+    total_tokens: int
+    total_prompt_tokens: int
+    total_completion_tokens: int
+    avg_latency: float
+    avg_tps: float
+    avg_ttft: float
+    scores: typing.Dict[str, SummarizeDatasetLogsFilteredResponseScoresValue]
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
