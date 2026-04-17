@@ -10,6 +10,7 @@ from .core.logging import LogConfig, Logger
 from .environment import RespanClientEnvironment
 
 if typing.TYPE_CHECKING:
+    from .caches.client import AsyncCachesClient, CachesClient
     from .credit_transactions.client import AsyncCreditTransactionsClient, CreditTransactionsClient
     from .datasets.client import AsyncDatasetsClient, DatasetsClient
     from .evaluators.client import AsyncEvaluatorsClient, EvaluatorsClient
@@ -97,6 +98,7 @@ class RespanClient:
         )
         self._traces: typing.Optional[TracesClient] = None
         self._spans: typing.Optional[SpansClient] = None
+        self._caches: typing.Optional[CachesClient] = None
         self._health: typing.Optional[HealthClient] = None
         self._threads: typing.Optional[ThreadsClient] = None
         self._users: typing.Optional[UsersClient] = None
@@ -129,6 +131,14 @@ class RespanClient:
 
             self._spans = SpansClient(client_wrapper=self._client_wrapper)
         return self._spans
+
+    @property
+    def caches(self):
+        if self._caches is None:
+            from .caches.client import CachesClient  # noqa: E402
+
+            self._caches = CachesClient(client_wrapper=self._client_wrapper)
+        return self._caches
 
     @property
     def health(self):
@@ -326,6 +336,7 @@ class AsyncRespanClient:
         )
         self._traces: typing.Optional[AsyncTracesClient] = None
         self._spans: typing.Optional[AsyncSpansClient] = None
+        self._caches: typing.Optional[AsyncCachesClient] = None
         self._health: typing.Optional[AsyncHealthClient] = None
         self._threads: typing.Optional[AsyncThreadsClient] = None
         self._users: typing.Optional[AsyncUsersClient] = None
@@ -358,6 +369,14 @@ class AsyncRespanClient:
 
             self._spans = AsyncSpansClient(client_wrapper=self._client_wrapper)
         return self._spans
+
+    @property
+    def caches(self):
+        if self._caches is None:
+            from .caches.client import AsyncCachesClient  # noqa: E402
+
+            self._caches = AsyncCachesClient(client_wrapper=self._client_wrapper)
+        return self._caches
 
     @property
     def health(self):
