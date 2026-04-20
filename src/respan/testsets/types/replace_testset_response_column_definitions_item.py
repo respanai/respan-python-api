@@ -4,10 +4,10 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .update_testset_response_column_definitions_item_type import UpdateTestsetResponseColumnDefinitionsItemType
+from .replace_testset_response_column_definitions_item_type import ReplaceTestsetResponseColumnDefinitionsItemType
 
 
-class UpdateTestsetResponseColumnDefinitionsItem(UniversalBaseModel):
+class ReplaceTestsetResponseColumnDefinitionsItem(UniversalBaseModel):
     field: str = pydantic.Field()
     """
     Canonical field name stored in each row.
@@ -28,7 +28,7 @@ class UpdateTestsetResponseColumnDefinitionsItem(UniversalBaseModel):
     Whether this column should be hidden in the UI.
     """
 
-    type: typing.Optional[UpdateTestsetResponseColumnDefinitionsItemType] = pydantic.Field(default=None)
+    type: typing.Optional[ReplaceTestsetResponseColumnDefinitionsItemType] = pydantic.Field(default=None)
     """
     Column value type.
     """

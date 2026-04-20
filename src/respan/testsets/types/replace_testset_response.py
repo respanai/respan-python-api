@@ -5,12 +5,10 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .list_testsets_response_results_item_column_definitions_item import (
-    ListTestsetsResponseResultsItemColumnDefinitionsItem,
-)
+from .replace_testset_response_column_definitions_item import ReplaceTestsetResponseColumnDefinitionsItem
 
 
-class ListTestsetsResponseResultsItem(UniversalBaseModel):
+class ReplaceTestsetResponse(UniversalBaseModel):
     id: str = pydantic.Field()
     """
     Public testset ID.
@@ -41,8 +39,8 @@ class ListTestsetsResponseResultsItem(UniversalBaseModel):
     Project identifier when the testset is associated with a project.
     """
 
-    column_definitions: typing.Optional[typing.List[ListTestsetsResponseResultsItemColumnDefinitionsItem]] = (
-        pydantic.Field(default=None)
+    column_definitions: typing.Optional[typing.List[ReplaceTestsetResponseColumnDefinitionsItem]] = pydantic.Field(
+        default=None
     )
     """
     Configured columns for testset rows.

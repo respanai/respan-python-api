@@ -2,24 +2,9 @@
 
 import typing
 
-import pydantic
-from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .create_testset_rows_response_rows_item import CreateTestsetRowsResponseRowsItem
+from .create_testset_rows_response_one_item import CreateTestsetRowsResponseOneItem
+from .create_testset_rows_response_row_data import CreateTestsetRowsResponseRowData
 
-
-class CreateTestsetRowsResponse(UniversalBaseModel):
-    created: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Number of rows created.
-    """
-
-    rows: typing.Optional[typing.List[CreateTestsetRowsResponseRowsItem]] = None
-
-    if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
-    else:
-
-        class Config:
-            frozen = True
-            smart_union = True
-            extra = pydantic.Extra.allow
+CreateTestsetRowsResponse = typing.Union[
+    CreateTestsetRowsResponseRowData, typing.List[CreateTestsetRowsResponseOneItem]
+]

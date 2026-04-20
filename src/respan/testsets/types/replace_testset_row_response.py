@@ -6,7 +6,7 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class UpdateTestsetRowResponse(UniversalBaseModel):
+class ReplaceTestsetRowResponse(UniversalBaseModel):
     row_index: float = pydantic.Field()
     """
     Row index. Decimal values can be returned after reordering.

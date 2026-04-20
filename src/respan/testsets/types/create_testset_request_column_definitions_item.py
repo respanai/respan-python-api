@@ -4,12 +4,33 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .create_testset_request_column_definitions_item_type import CreateTestsetRequestColumnDefinitionsItemType
 
 
 class CreateTestsetRequestColumnDefinitionsItem(UniversalBaseModel):
-    field: typing.Optional[str] = pydantic.Field(default=None)
+    field: str = pydantic.Field()
     """
-    Column name.
+    Canonical field name stored in each row.
+    """
+
+    mapped_name: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Optional display or import name for this field.
+    """
+
+    width: typing.Optional[float] = pydantic.Field(default=None)
+    """
+    Optional UI width in pixels.
+    """
+
+    is_hidden: typing.Optional[bool] = pydantic.Field(default=None)
+    """
+    Whether this column should be hidden in the UI.
+    """
+
+    type: typing.Optional[CreateTestsetRequestColumnDefinitionsItemType] = pydantic.Field(default=None)
+    """
+    Column value type.
     """
 
     if IS_PYDANTIC_V2:

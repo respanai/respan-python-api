@@ -7,11 +7,18 @@ from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawTestsetsClient, RawTestsetsClient
 from .types.create_testset_request_column_definitions_item import CreateTestsetRequestColumnDefinitionsItem
 from .types.create_testset_response import CreateTestsetResponse
-from .types.create_testset_rows_request_body_item import CreateTestsetRowsRequestBodyItem
+from .types.create_testset_rows_request_body import CreateTestsetRowsRequestBody
 from .types.create_testset_rows_response import CreateTestsetRowsResponse
+from .types.get_filtered_testsets_summary_response import GetFilteredTestsetsSummaryResponse
+from .types.get_testsets_summary_response import GetTestsetsSummaryResponse
 from .types.list_testset_rows_response import ListTestsetRowsResponse
 from .types.list_testsets_response import ListTestsetsResponse
+from .types.replace_testset_request_column_definitions_item import ReplaceTestsetRequestColumnDefinitionsItem
+from .types.replace_testset_response import ReplaceTestsetResponse
+from .types.replace_testset_row_response import ReplaceTestsetRowResponse
 from .types.retrieve_testset_response import RetrieveTestsetResponse
+from .types.retrieve_testset_row_response import RetrieveTestsetRowResponse
+from .types.update_testset_request_column_definitions_item import UpdateTestsetRequestColumnDefinitionsItem
 from .types.update_testset_response import UpdateTestsetResponse
 from .types.update_testset_row_response import UpdateTestsetRowResponse
 
@@ -40,12 +47,12 @@ class TestsetsClient:
         authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTestsetResponse:
         """
-        Create a new testset for evaluation.
+        Create a new testset for evaluation. Public API responses return the external testset ID and column metadata only.
 
         Parameters
         ----------
@@ -56,13 +63,13 @@ class TestsetsClient:
             Testset name.
 
         description : typing.Optional[str]
-            Testset description.
-
-        column_definitions : typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]]
-            Column definitions for the testset.
+            Optional description stored with the testset.
 
         starred : typing.Optional[bool]
-            Star the testset.
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -86,8 +93,8 @@ class TestsetsClient:
             authorization=authorization,
             name=name,
             description=description,
-            column_definitions=column_definitions,
             starred=starred,
+            column_definitions=column_definitions,
             request_options=request_options,
         )
         return _response.data
@@ -96,19 +103,31 @@ class TestsetsClient:
         self,
         *,
         authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTestsetsResponse:
         """
-        List testsets with optional filtering.
+        List testsets with pagination and optional filters.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Sort field. Common values include `-created_at`, `name`, and `updated_at`.
+
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria.
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -116,7 +135,7 @@ class TestsetsClient:
         Returns
         -------
         ListTestsetsResponse
-            List of testsets.
+            Paginated testset list.
 
         Examples
         --------
@@ -125,9 +144,86 @@ class TestsetsClient:
         client = RespanClient()
         client.testsets.list_testsets(
             authorization="Bearer sk_live_xxxxx",
+            sort_by="-created_at",
         )
         """
         _response = self._raw_client.list_testsets(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            filters=filters,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def get_testsets_summary(
+        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> GetTestsetsSummaryResponse:
+        """
+        Return summary statistics for testsets.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetTestsetsSummaryResponse
+            Summary statistics.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.testsets.get_testsets_summary(
+            authorization="Bearer sk_live_xxxxx",
+        )
+        """
+        _response = self._raw_client.get_testsets_summary(authorization=authorization, request_options=request_options)
+        return _response.data
+
+    def get_filtered_testsets_summary(
+        self,
+        *,
+        authorization: str,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> GetFilteredTestsetsSummaryResponse:
+        """
+        Return summary statistics for testsets after applying filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetFilteredTestsetsSummaryResponse
+            Filtered summary statistics.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.testsets.get_filtered_testsets_summary(
+            authorization="Bearer sk_live_xxxxx",
+        )
+        """
+        _response = self._raw_client.get_filtered_testsets_summary(
             authorization=authorization, filters=filters, request_options=request_options
         )
         return _response.data
@@ -136,12 +232,12 @@ class TestsetsClient:
         self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetResponse:
         """
-        Retrieve a testset by ID, including column definitions.
+        Retrieve a testset by ID.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to retrieve.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -169,16 +265,80 @@ class TestsetsClient:
         )
         return _response.data
 
-    def delete_testset(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def replace_testset(
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        name: str,
+        description: typing.Optional[str] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceTestsetResponse:
         """
-        Delete a testset and all its rows.
+        Replace a testset metadata payload.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to delete.
+            The testset ID returned as `id` by the API.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        name : str
+            Testset name.
+
+        description : typing.Optional[str]
+            Optional description stored with the testset.
+
+        starred : typing.Optional[bool]
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceTestsetResponse
+            Updated testset.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.testsets.replace_testset(
+            testset_id="testset_id",
+            authorization="Bearer sk_live_xxxxx",
+            name="QA Test Set",
+        )
+        """
+        _response = self._raw_client.replace_testset(
+            testset_id,
+            authorization=authorization,
+            name=name,
+            description=description,
+            starred=starred,
+            column_definitions=column_definitions,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def delete_testset(
+        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Delete a testset and all of its rows.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -213,15 +373,16 @@ class TestsetsClient:
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetResponse:
         """
-        Update a testset's name, description, or starred status.
+        Partially update testset metadata such as the name, description, starred state, or column definitions.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to update.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -230,10 +391,13 @@ class TestsetsClient:
             Testset name.
 
         description : typing.Optional[str]
-            Testset description.
+            Optional description stored with the testset.
 
         starred : typing.Optional[bool]
-            Star the testset.
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -259,23 +423,36 @@ class TestsetsClient:
             name=name,
             description=description,
             starred=starred,
+            column_definitions=column_definitions,
             request_options=request_options,
         )
         return _response.data
 
     def list_testset_rows(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTestsetRowsResponse:
         """
-        List all rows in a testset.
+        List rows in a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to list rows from.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 1000.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -283,7 +460,7 @@ class TestsetsClient:
         Returns
         -------
         ListTestsetRowsResponse
-            List of rows.
+            Paginated row list.
 
         Examples
         --------
@@ -296,7 +473,7 @@ class TestsetsClient:
         )
         """
         _response = self._raw_client.list_testset_rows(
-            testset_id, authorization=authorization, request_options=request_options
+            testset_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -305,21 +482,21 @@ class TestsetsClient:
         testset_id: str,
         *,
         authorization: str,
-        request: typing.Sequence[CreateTestsetRowsRequestBodyItem],
+        request: CreateTestsetRowsRequestBody,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTestsetRowsResponse:
         """
-        Add rows to a testset.
+        Create one or more rows in a testset. If `row_index` is omitted, the row is appended to the end of the testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to add rows to.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[CreateTestsetRowsRequestBodyItem]
+        request : CreateTestsetRowsRequestBody
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -327,18 +504,20 @@ class TestsetsClient:
         Returns
         -------
         CreateTestsetRowsResponse
-            Created rows.
+            Created row or rows.
 
         Examples
         --------
         from respan import RespanClient
-        from respan.testsets import CreateTestsetRowsRequestBodyItem
+        from respan.testsets import CreateTestsetRowsRequestBodyRowData
 
         client = RespanClient()
         client.testsets.create_testset_rows(
             testset_id="testset_id",
             authorization="Bearer sk_live_xxxxx",
-            request=[CreateTestsetRowsRequestBodyItem()],
+            request=CreateTestsetRowsRequestBodyRowData(
+                row_data={"input": "What is 2 + 2?", "expected_output": "4"},
+            ),
         )
         """
         _response = self._raw_client.create_testset_rows(
@@ -346,24 +525,166 @@ class TestsetsClient:
         )
         return _response.data
 
+    def delete_testset_rows(
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        row_indexes: typing.Sequence[float],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> None:
+        """
+        Delete multiple rows from a testset by `row_index`.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        row_indexes : typing.Sequence[float]
+            Row indexes to delete.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.testsets.delete_testset_rows(
+            testset_id="testset_id",
+            authorization="Bearer sk_live_xxxxx",
+            row_indexes=[1.0, 2.0],
+        )
+        """
+        _response = self._raw_client.delete_testset_rows(
+            testset_id, authorization=authorization, row_indexes=row_indexes, request_options=request_options
+        )
+        return _response.data
+
+    def retrieve_testset_row(
+        self,
+        testset_id: str,
+        row_index: str,
+        *,
+        authorization: str,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveTestsetRowResponse:
+        """
+        Retrieve a single row from a testset.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveTestsetRowResponse
+            Row details.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.testsets.retrieve_testset_row(
+            testset_id="testset_id",
+            row_index="row_index",
+            authorization="Bearer sk_live_xxxxx",
+        )
+        """
+        _response = self._raw_client.retrieve_testset_row(
+            testset_id, row_index, authorization=authorization, request_options=request_options
+        )
+        return _response.data
+
+    def replace_testset_row(
+        self,
+        testset_id: str,
+        row_index: str,
+        *,
+        authorization: str,
+        row_data: typing.Dict[str, typing.Any],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceTestsetRowResponse:
+        """
+        Replace the payload for a single row.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        row_data : typing.Dict[str, typing.Any]
+            Updated row payload keyed by testset column field.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceTestsetRowResponse
+            Updated row.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.testsets.replace_testset_row(
+            testset_id="testset_id",
+            row_index="row_index",
+            authorization="Bearer sk_live_xxxxx",
+            row_data={"input": "What is 3 + 3?", "expected_output": "6"},
+        )
+        """
+        _response = self._raw_client.replace_testset_row(
+            testset_id, row_index, authorization=authorization, row_data=row_data, request_options=request_options
+        )
+        return _response.data
+
     def delete_testset_row(
         self,
         testset_id: str,
-        row_index: int,
+        row_index: str,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
         """
-        Delete a specific row from a testset.
+        Delete a single row from a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset.
+            The testset ID returned as `id` by the API.
 
-        row_index : int
-            The index of the row to delete.
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -382,7 +703,7 @@ class TestsetsClient:
         client = RespanClient()
         client.testsets.delete_testset_row(
             testset_id="testset_id",
-            row_index=1,
+            row_index="row_index",
             authorization="Bearer sk_live_xxxxx",
         )
         """
@@ -394,28 +715,28 @@ class TestsetsClient:
     def update_testset_row(
         self,
         testset_id: str,
-        row_index: int,
+        row_index: str,
         *,
         authorization: str,
         row_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetRowResponse:
         """
-        Update a specific row in a testset.
+        Partially update a single row in a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset.
+            The testset ID returned as `id` by the API.
 
-        row_index : int
-            The index of the row to update.
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_data : typing.Optional[typing.Dict[str, typing.Any]]
-            Updated row data keyed by column name.
+            Updated row payload keyed by testset column field.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -432,7 +753,7 @@ class TestsetsClient:
         client = RespanClient()
         client.testsets.update_testset_row(
             testset_id="testset_id",
-            row_index=1,
+            row_index="row_index",
             authorization="Bearer sk_live_xxxxx",
         )
         """
@@ -463,12 +784,12 @@ class AsyncTestsetsClient:
         authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTestsetResponse:
         """
-        Create a new testset for evaluation.
+        Create a new testset for evaluation. Public API responses return the external testset ID and column metadata only.
 
         Parameters
         ----------
@@ -479,13 +800,13 @@ class AsyncTestsetsClient:
             Testset name.
 
         description : typing.Optional[str]
-            Testset description.
-
-        column_definitions : typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]]
-            Column definitions for the testset.
+            Optional description stored with the testset.
 
         starred : typing.Optional[bool]
-            Star the testset.
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -517,8 +838,8 @@ class AsyncTestsetsClient:
             authorization=authorization,
             name=name,
             description=description,
-            column_definitions=column_definitions,
             starred=starred,
+            column_definitions=column_definitions,
             request_options=request_options,
         )
         return _response.data
@@ -527,19 +848,31 @@ class AsyncTestsetsClient:
         self,
         *,
         authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTestsetsResponse:
         """
-        List testsets with optional filtering.
+        List testsets with pagination and optional filters.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Sort field. Common values include `-created_at`, `name`, and `updated_at`.
+
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria.
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -547,7 +880,7 @@ class AsyncTestsetsClient:
         Returns
         -------
         ListTestsetsResponse
-            List of testsets.
+            Paginated testset list.
 
         Examples
         --------
@@ -561,12 +894,107 @@ class AsyncTestsetsClient:
         async def main() -> None:
             await client.testsets.list_testsets(
                 authorization="Bearer sk_live_xxxxx",
+                sort_by="-created_at",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_testsets(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            filters=filters,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def get_testsets_summary(
+        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> GetTestsetsSummaryResponse:
+        """
+        Return summary statistics for testsets.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetTestsetsSummaryResponse
+            Summary statistics.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.testsets.get_testsets_summary(
+                authorization="Bearer sk_live_xxxxx",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.get_testsets_summary(
+            authorization=authorization, request_options=request_options
+        )
+        return _response.data
+
+    async def get_filtered_testsets_summary(
+        self,
+        *,
+        authorization: str,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> GetFilteredTestsetsSummaryResponse:
+        """
+        Return summary statistics for testsets after applying filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetFilteredTestsetsSummaryResponse
+            Filtered summary statistics.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.testsets.get_filtered_testsets_summary(
+                authorization="Bearer sk_live_xxxxx",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.get_filtered_testsets_summary(
             authorization=authorization, filters=filters, request_options=request_options
         )
         return _response.data
@@ -575,12 +1003,12 @@ class AsyncTestsetsClient:
         self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetResponse:
         """
-        Retrieve a testset by ID, including column definitions.
+        Retrieve a testset by ID.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to retrieve.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -616,16 +1044,88 @@ class AsyncTestsetsClient:
         )
         return _response.data
 
-    async def delete_testset(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    async def replace_testset(
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        name: str,
+        description: typing.Optional[str] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceTestsetResponse:
         """
-        Delete a testset and all its rows.
+        Replace a testset metadata payload.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to delete.
+            The testset ID returned as `id` by the API.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        name : str
+            Testset name.
+
+        description : typing.Optional[str]
+            Optional description stored with the testset.
+
+        starred : typing.Optional[bool]
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceTestsetResponse
+            Updated testset.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.testsets.replace_testset(
+                testset_id="testset_id",
+                authorization="Bearer sk_live_xxxxx",
+                name="QA Test Set",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.replace_testset(
+            testset_id,
+            authorization=authorization,
+            name=name,
+            description=description,
+            starred=starred,
+            column_definitions=column_definitions,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def delete_testset(
+        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Delete a testset and all of its rows.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -668,15 +1168,16 @@ class AsyncTestsetsClient:
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetResponse:
         """
-        Update a testset's name, description, or starred status.
+        Partially update testset metadata such as the name, description, starred state, or column definitions.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to update.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -685,10 +1186,13 @@ class AsyncTestsetsClient:
             Testset name.
 
         description : typing.Optional[str]
-            Testset description.
+            Optional description stored with the testset.
 
         starred : typing.Optional[bool]
-            Star the testset.
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -722,23 +1226,36 @@ class AsyncTestsetsClient:
             name=name,
             description=description,
             starred=starred,
+            column_definitions=column_definitions,
             request_options=request_options,
         )
         return _response.data
 
     async def list_testset_rows(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTestsetRowsResponse:
         """
-        List all rows in a testset.
+        List rows in a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to list rows from.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 1000.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -746,7 +1263,7 @@ class AsyncTestsetsClient:
         Returns
         -------
         ListTestsetRowsResponse
-            List of rows.
+            Paginated row list.
 
         Examples
         --------
@@ -767,7 +1284,7 @@ class AsyncTestsetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.list_testset_rows(
-            testset_id, authorization=authorization, request_options=request_options
+            testset_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -776,21 +1293,21 @@ class AsyncTestsetsClient:
         testset_id: str,
         *,
         authorization: str,
-        request: typing.Sequence[CreateTestsetRowsRequestBodyItem],
+        request: CreateTestsetRowsRequestBody,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTestsetRowsResponse:
         """
-        Add rows to a testset.
+        Create one or more rows in a testset. If `row_index` is omitted, the row is appended to the end of the testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to add rows to.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[CreateTestsetRowsRequestBodyItem]
+        request : CreateTestsetRowsRequestBody
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -798,14 +1315,14 @@ class AsyncTestsetsClient:
         Returns
         -------
         CreateTestsetRowsResponse
-            Created rows.
+            Created row or rows.
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.testsets import CreateTestsetRowsRequestBodyItem
+        from respan.testsets import CreateTestsetRowsRequestBodyRowData
 
         client = AsyncRespanClient()
 
@@ -814,7 +1331,9 @@ class AsyncTestsetsClient:
             await client.testsets.create_testset_rows(
                 testset_id="testset_id",
                 authorization="Bearer sk_live_xxxxx",
-                request=[CreateTestsetRowsRequestBodyItem()],
+                request=CreateTestsetRowsRequestBodyRowData(
+                    row_data={"input": "What is 2 + 2?", "expected_output": "4"},
+                ),
             )
 
 
@@ -825,24 +1344,190 @@ class AsyncTestsetsClient:
         )
         return _response.data
 
+    async def delete_testset_rows(
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        row_indexes: typing.Sequence[float],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> None:
+        """
+        Delete multiple rows from a testset by `row_index`.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        row_indexes : typing.Sequence[float]
+            Row indexes to delete.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.testsets.delete_testset_rows(
+                testset_id="testset_id",
+                authorization="Bearer sk_live_xxxxx",
+                row_indexes=[1.0, 2.0],
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.delete_testset_rows(
+            testset_id, authorization=authorization, row_indexes=row_indexes, request_options=request_options
+        )
+        return _response.data
+
+    async def retrieve_testset_row(
+        self,
+        testset_id: str,
+        row_index: str,
+        *,
+        authorization: str,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveTestsetRowResponse:
+        """
+        Retrieve a single row from a testset.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveTestsetRowResponse
+            Row details.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.testsets.retrieve_testset_row(
+                testset_id="testset_id",
+                row_index="row_index",
+                authorization="Bearer sk_live_xxxxx",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.retrieve_testset_row(
+            testset_id, row_index, authorization=authorization, request_options=request_options
+        )
+        return _response.data
+
+    async def replace_testset_row(
+        self,
+        testset_id: str,
+        row_index: str,
+        *,
+        authorization: str,
+        row_data: typing.Dict[str, typing.Any],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceTestsetRowResponse:
+        """
+        Replace the payload for a single row.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        row_data : typing.Dict[str, typing.Any]
+            Updated row payload keyed by testset column field.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceTestsetRowResponse
+            Updated row.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.testsets.replace_testset_row(
+                testset_id="testset_id",
+                row_index="row_index",
+                authorization="Bearer sk_live_xxxxx",
+                row_data={"input": "What is 3 + 3?", "expected_output": "6"},
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.replace_testset_row(
+            testset_id, row_index, authorization=authorization, row_data=row_data, request_options=request_options
+        )
+        return _response.data
+
     async def delete_testset_row(
         self,
         testset_id: str,
-        row_index: int,
+        row_index: str,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
         """
-        Delete a specific row from a testset.
+        Delete a single row from a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset.
+            The testset ID returned as `id` by the API.
 
-        row_index : int
-            The index of the row to delete.
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -866,7 +1551,7 @@ class AsyncTestsetsClient:
         async def main() -> None:
             await client.testsets.delete_testset_row(
                 testset_id="testset_id",
-                row_index=1,
+                row_index="row_index",
                 authorization="Bearer sk_live_xxxxx",
             )
 
@@ -881,28 +1566,28 @@ class AsyncTestsetsClient:
     async def update_testset_row(
         self,
         testset_id: str,
-        row_index: int,
+        row_index: str,
         *,
         authorization: str,
         row_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetRowResponse:
         """
-        Update a specific row in a testset.
+        Partially update a single row in a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset.
+            The testset ID returned as `id` by the API.
 
-        row_index : int
-            The index of the row to update.
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_data : typing.Optional[typing.Dict[str, typing.Any]]
-            Updated row data keyed by column name.
+            Updated row payload keyed by testset column field.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -924,7 +1609,7 @@ class AsyncTestsetsClient:
         async def main() -> None:
             await client.testsets.update_testset_row(
                 testset_id="testset_id",
-                row_index=1,
+                row_index="row_index",
                 authorization="Bearer sk_live_xxxxx",
             )
 

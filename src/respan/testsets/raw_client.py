@@ -10,15 +10,23 @@ from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
+from ..errors.bad_request_error import BadRequestError
 from ..errors.not_found_error import NotFoundError
 from ..errors.unauthorized_error import UnauthorizedError
 from .types.create_testset_request_column_definitions_item import CreateTestsetRequestColumnDefinitionsItem
 from .types.create_testset_response import CreateTestsetResponse
-from .types.create_testset_rows_request_body_item import CreateTestsetRowsRequestBodyItem
+from .types.create_testset_rows_request_body import CreateTestsetRowsRequestBody
 from .types.create_testset_rows_response import CreateTestsetRowsResponse
+from .types.get_filtered_testsets_summary_response import GetFilteredTestsetsSummaryResponse
+from .types.get_testsets_summary_response import GetTestsetsSummaryResponse
 from .types.list_testset_rows_response import ListTestsetRowsResponse
 from .types.list_testsets_response import ListTestsetsResponse
+from .types.replace_testset_request_column_definitions_item import ReplaceTestsetRequestColumnDefinitionsItem
+from .types.replace_testset_response import ReplaceTestsetResponse
+from .types.replace_testset_row_response import ReplaceTestsetRowResponse
 from .types.retrieve_testset_response import RetrieveTestsetResponse
+from .types.retrieve_testset_row_response import RetrieveTestsetRowResponse
+from .types.update_testset_request_column_definitions_item import UpdateTestsetRequestColumnDefinitionsItem
 from .types.update_testset_response import UpdateTestsetResponse
 from .types.update_testset_row_response import UpdateTestsetRowResponse
 
@@ -36,12 +44,12 @@ class RawTestsetsClient:
         authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateTestsetResponse]:
         """
-        Create a new testset for evaluation.
+        Create a new testset for evaluation. Public API responses return the external testset ID and column metadata only.
 
         Parameters
         ----------
@@ -52,13 +60,13 @@ class RawTestsetsClient:
             Testset name.
 
         description : typing.Optional[str]
-            Testset description.
-
-        column_definitions : typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]]
-            Column definitions for the testset.
+            Optional description stored with the testset.
 
         starred : typing.Optional[bool]
-            Star the testset.
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -74,12 +82,12 @@ class RawTestsetsClient:
             json={
                 "name": name,
                 "description": description,
+                "starred": starred,
                 "column_definitions": convert_and_respect_annotation_metadata(
                     object_=column_definitions,
                     annotation=typing.Sequence[CreateTestsetRequestColumnDefinitionsItem],
                     direction="write",
                 ),
-                "starred": starred,
             },
             headers={
                 "content-type": "application/json",
@@ -98,6 +106,17 @@ class RawTestsetsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -118,19 +137,31 @@ class RawTestsetsClient:
         self,
         *,
         authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListTestsetsResponse]:
         """
-        List testsets with optional filtering.
+        List testsets with pagination and optional filters.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Sort field. Common values include `-created_at`, `name`, and `updated_at`.
+
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria.
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -138,11 +169,16 @@ class RawTestsetsClient:
         Returns
         -------
         HttpResponse[ListTestsetsResponse]
-            List of testsets.
+            Paginated testset list.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/testsets/list/",
             method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
             json={
                 "filters": filters,
             },
@@ -163,6 +199,146 @@ class RawTestsetsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def get_testsets_summary(
+        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[GetTestsetsSummaryResponse]:
+        """
+        Return summary statistics for testsets.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[GetTestsetsSummaryResponse]
+            Summary statistics.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/testsets/summary/",
+            method="GET",
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetTestsetsSummaryResponse,
+                    parse_obj_as(
+                        type_=GetTestsetsSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def get_filtered_testsets_summary(
+        self,
+        *,
+        authorization: str,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[GetFilteredTestsetsSummaryResponse]:
+        """
+        Return summary statistics for testsets after applying filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[GetFilteredTestsetsSummaryResponse]
+            Filtered summary statistics.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/testsets/summary/",
+            method="POST",
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetFilteredTestsetsSummaryResponse,
+                    parse_obj_as(
+                        type_=GetFilteredTestsetsSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -183,12 +359,12 @@ class RawTestsetsClient:
         self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveTestsetResponse]:
         """
-        Retrieve a testset by ID, including column definitions.
+        Retrieve a testset by ID.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to retrieve.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -246,16 +422,126 @@ class RawTestsetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def delete_testset(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
+    def replace_testset(
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        name: str,
+        description: typing.Optional[str] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ReplaceTestsetResponse]:
         """
-        Delete a testset and all its rows.
+        Replace a testset metadata payload.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to delete.
+            The testset ID returned as `id` by the API.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        name : str
+            Testset name.
+
+        description : typing.Optional[str]
+            Optional description stored with the testset.
+
+        starred : typing.Optional[bool]
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ReplaceTestsetResponse]
+            Updated testset.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/testsets/{jsonable_encoder(testset_id)}/",
+            method="PUT",
+            json={
+                "name": name,
+                "description": description,
+                "starred": starred,
+                "column_definitions": convert_and_respect_annotation_metadata(
+                    object_=column_definitions,
+                    annotation=typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem],
+                    direction="write",
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceTestsetResponse,
+                    parse_obj_as(
+                        type_=ReplaceTestsetResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_testset(
+        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[None]:
+        """
+        Delete a testset and all of its rows.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -313,15 +599,16 @@ class RawTestsetsClient:
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateTestsetResponse]:
         """
-        Update a testset's name, description, or starred status.
+        Partially update testset metadata such as the name, description, starred state, or column definitions.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to update.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -330,10 +617,13 @@ class RawTestsetsClient:
             Testset name.
 
         description : typing.Optional[str]
-            Testset description.
+            Optional description stored with the testset.
 
         starred : typing.Optional[bool]
-            Star the testset.
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -350,6 +640,11 @@ class RawTestsetsClient:
                 "name": name,
                 "description": description,
                 "starred": starred,
+                "column_definitions": convert_and_respect_annotation_metadata(
+                    object_=column_definitions,
+                    annotation=typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem],
+                    direction="write",
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -368,6 +663,17 @@ class RawTestsetsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -396,18 +702,30 @@ class RawTestsetsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def list_testset_rows(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListTestsetRowsResponse]:
         """
-        List all rows in a testset.
+        List rows in a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to list rows from.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 1000.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -415,11 +733,15 @@ class RawTestsetsClient:
         Returns
         -------
         HttpResponse[ListTestsetRowsResponse]
-            List of rows.
+            Paginated row list.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/testsets/{jsonable_encoder(testset_id)}/rows/",
             method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+            },
             headers={
                 "Authorization": str(authorization) if authorization is not None else None,
             },
@@ -467,21 +789,21 @@ class RawTestsetsClient:
         testset_id: str,
         *,
         authorization: str,
-        request: typing.Sequence[CreateTestsetRowsRequestBodyItem],
+        request: CreateTestsetRowsRequestBody,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateTestsetRowsResponse]:
         """
-        Add rows to a testset.
+        Create one or more rows in a testset. If `row_index` is omitted, the row is appended to the end of the testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to add rows to.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[CreateTestsetRowsRequestBodyItem]
+        request : CreateTestsetRowsRequestBody
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -489,13 +811,13 @@ class RawTestsetsClient:
         Returns
         -------
         HttpResponse[CreateTestsetRowsResponse]
-            Created rows.
+            Created row or rows.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/testsets/{jsonable_encoder(testset_id)}/rows/",
             method="POST",
             json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[CreateTestsetRowsRequestBodyItem], direction="write"
+                object_=request, annotation=CreateTestsetRowsRequestBody, direction="write"
             ),
             headers={
                 "content-type": "application/json",
@@ -510,6 +832,175 @@ class RawTestsetsClient:
                     CreateTestsetRowsResponse,
                     parse_obj_as(
                         type_=CreateTestsetRowsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_testset_rows(
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        row_indexes: typing.Sequence[float],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[None]:
+        """
+        Delete multiple rows from a testset by `row_index`.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        row_indexes : typing.Sequence[float]
+            Row indexes to delete.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[None]
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/testsets/{jsonable_encoder(testset_id)}/rows/",
+            method="DELETE",
+            json={
+                "row_indexes": row_indexes,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return HttpResponse(response=_response, data=None)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def retrieve_testset_row(
+        self,
+        testset_id: str,
+        row_index: str,
+        *,
+        authorization: str,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[RetrieveTestsetRowResponse]:
+        """
+        Retrieve a single row from a testset.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RetrieveTestsetRowResponse]
+            Row details.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/testsets/{jsonable_encoder(testset_id)}/rows/{jsonable_encoder(row_index)}/",
+            method="GET",
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveTestsetRowResponse,
+                    parse_obj_as(
+                        type_=RetrieveTestsetRowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -541,24 +1032,119 @@ class RawTestsetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
+    def replace_testset_row(
+        self,
+        testset_id: str,
+        row_index: str,
+        *,
+        authorization: str,
+        row_data: typing.Dict[str, typing.Any],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ReplaceTestsetRowResponse]:
+        """
+        Replace the payload for a single row.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        row_data : typing.Dict[str, typing.Any]
+            Updated row payload keyed by testset column field.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ReplaceTestsetRowResponse]
+            Updated row.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/testsets/{jsonable_encoder(testset_id)}/rows/{jsonable_encoder(row_index)}/",
+            method="PUT",
+            json={
+                "row_data": row_data,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceTestsetRowResponse,
+                    parse_obj_as(
+                        type_=ReplaceTestsetRowResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
     def delete_testset_row(
         self,
         testset_id: str,
-        row_index: int,
+        row_index: str,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[None]:
         """
-        Delete a specific row from a testset.
+        Delete a single row from a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset.
+            The testset ID returned as `id` by the API.
 
-        row_index : int
-            The index of the row to delete.
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -611,28 +1197,28 @@ class RawTestsetsClient:
     def update_testset_row(
         self,
         testset_id: str,
-        row_index: int,
+        row_index: str,
         *,
         authorization: str,
         row_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateTestsetRowResponse]:
         """
-        Update a specific row in a testset.
+        Partially update a single row in a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset.
+            The testset ID returned as `id` by the API.
 
-        row_index : int
-            The index of the row to update.
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_data : typing.Optional[typing.Dict[str, typing.Any]]
-            Updated row data keyed by column name.
+            Updated row payload keyed by testset column field.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -665,6 +1251,17 @@ class RawTestsetsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -703,12 +1300,12 @@ class AsyncRawTestsetsClient:
         authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateTestsetResponse]:
         """
-        Create a new testset for evaluation.
+        Create a new testset for evaluation. Public API responses return the external testset ID and column metadata only.
 
         Parameters
         ----------
@@ -719,13 +1316,13 @@ class AsyncRawTestsetsClient:
             Testset name.
 
         description : typing.Optional[str]
-            Testset description.
-
-        column_definitions : typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]]
-            Column definitions for the testset.
+            Optional description stored with the testset.
 
         starred : typing.Optional[bool]
-            Star the testset.
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[CreateTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -741,12 +1338,12 @@ class AsyncRawTestsetsClient:
             json={
                 "name": name,
                 "description": description,
+                "starred": starred,
                 "column_definitions": convert_and_respect_annotation_metadata(
                     object_=column_definitions,
                     annotation=typing.Sequence[CreateTestsetRequestColumnDefinitionsItem],
                     direction="write",
                 ),
-                "starred": starred,
             },
             headers={
                 "content-type": "application/json",
@@ -765,6 +1362,17 @@ class AsyncRawTestsetsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -785,19 +1393,31 @@ class AsyncRawTestsetsClient:
         self,
         *,
         authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListTestsetsResponse]:
         """
-        List testsets with optional filtering.
+        List testsets with pagination and optional filters.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Sort field. Common values include `-created_at`, `name`, and `updated_at`.
+
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria.
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -805,11 +1425,16 @@ class AsyncRawTestsetsClient:
         Returns
         -------
         AsyncHttpResponse[ListTestsetsResponse]
-            List of testsets.
+            Paginated testset list.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/testsets/list/",
             method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
             json={
                 "filters": filters,
             },
@@ -830,6 +1455,146 @@ class AsyncRawTestsetsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def get_testsets_summary(
+        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[GetTestsetsSummaryResponse]:
+        """
+        Return summary statistics for testsets.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[GetTestsetsSummaryResponse]
+            Summary statistics.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/testsets/summary/",
+            method="GET",
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetTestsetsSummaryResponse,
+                    parse_obj_as(
+                        type_=GetTestsetsSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def get_filtered_testsets_summary(
+        self,
+        *,
+        authorization: str,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[GetFilteredTestsetsSummaryResponse]:
+        """
+        Return summary statistics for testsets after applying filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[GetFilteredTestsetsSummaryResponse]
+            Filtered summary statistics.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/testsets/summary/",
+            method="POST",
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetFilteredTestsetsSummaryResponse,
+                    parse_obj_as(
+                        type_=GetFilteredTestsetsSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -850,12 +1615,12 @@ class AsyncRawTestsetsClient:
         self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveTestsetResponse]:
         """
-        Retrieve a testset by ID, including column definitions.
+        Retrieve a testset by ID.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to retrieve.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -913,16 +1678,126 @@ class AsyncRawTestsetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def delete_testset(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
+    async def replace_testset(
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        name: str,
+        description: typing.Optional[str] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ReplaceTestsetResponse]:
         """
-        Delete a testset and all its rows.
+        Replace a testset metadata payload.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to delete.
+            The testset ID returned as `id` by the API.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        name : str
+            Testset name.
+
+        description : typing.Optional[str]
+            Optional description stored with the testset.
+
+        starred : typing.Optional[bool]
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ReplaceTestsetResponse]
+            Updated testset.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/testsets/{jsonable_encoder(testset_id)}/",
+            method="PUT",
+            json={
+                "name": name,
+                "description": description,
+                "starred": starred,
+                "column_definitions": convert_and_respect_annotation_metadata(
+                    object_=column_definitions,
+                    annotation=typing.Sequence[ReplaceTestsetRequestColumnDefinitionsItem],
+                    direction="write",
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceTestsetResponse,
+                    parse_obj_as(
+                        type_=ReplaceTestsetResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_testset(
+        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
+        """
+        Delete a testset and all of its rows.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -980,15 +1855,16 @@ class AsyncRawTestsetsClient:
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        column_definitions: typing.Optional[typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateTestsetResponse]:
         """
-        Update a testset's name, description, or starred status.
+        Partially update testset metadata such as the name, description, starred state, or column definitions.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to update.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -997,10 +1873,13 @@ class AsyncRawTestsetsClient:
             Testset name.
 
         description : typing.Optional[str]
-            Testset description.
+            Optional description stored with the testset.
 
         starred : typing.Optional[bool]
-            Star the testset.
+            Whether to star the testset in the UI.
+
+        column_definitions : typing.Optional[typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem]]
+            Column definitions for the testset rows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1017,6 +1896,11 @@ class AsyncRawTestsetsClient:
                 "name": name,
                 "description": description,
                 "starred": starred,
+                "column_definitions": convert_and_respect_annotation_metadata(
+                    object_=column_definitions,
+                    annotation=typing.Sequence[UpdateTestsetRequestColumnDefinitionsItem],
+                    direction="write",
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -1035,6 +1919,17 @@ class AsyncRawTestsetsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -1063,18 +1958,30 @@ class AsyncRawTestsetsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def list_testset_rows(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListTestsetRowsResponse]:
         """
-        List all rows in a testset.
+        List rows in a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to list rows from.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 1000.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1082,11 +1989,15 @@ class AsyncRawTestsetsClient:
         Returns
         -------
         AsyncHttpResponse[ListTestsetRowsResponse]
-            List of rows.
+            Paginated row list.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/testsets/{jsonable_encoder(testset_id)}/rows/",
             method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+            },
             headers={
                 "Authorization": str(authorization) if authorization is not None else None,
             },
@@ -1134,21 +2045,21 @@ class AsyncRawTestsetsClient:
         testset_id: str,
         *,
         authorization: str,
-        request: typing.Sequence[CreateTestsetRowsRequestBodyItem],
+        request: CreateTestsetRowsRequestBody,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateTestsetRowsResponse]:
         """
-        Add rows to a testset.
+        Create one or more rows in a testset. If `row_index` is omitted, the row is appended to the end of the testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset to add rows to.
+            The testset ID returned as `id` by the API.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        request : typing.Sequence[CreateTestsetRowsRequestBodyItem]
+        request : CreateTestsetRowsRequestBody
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1156,13 +2067,13 @@ class AsyncRawTestsetsClient:
         Returns
         -------
         AsyncHttpResponse[CreateTestsetRowsResponse]
-            Created rows.
+            Created row or rows.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/testsets/{jsonable_encoder(testset_id)}/rows/",
             method="POST",
             json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=typing.Sequence[CreateTestsetRowsRequestBodyItem], direction="write"
+                object_=request, annotation=CreateTestsetRowsRequestBody, direction="write"
             ),
             headers={
                 "content-type": "application/json",
@@ -1177,6 +2088,175 @@ class AsyncRawTestsetsClient:
                     CreateTestsetRowsResponse,
                     parse_obj_as(
                         type_=CreateTestsetRowsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_testset_rows(
+        self,
+        testset_id: str,
+        *,
+        authorization: str,
+        row_indexes: typing.Sequence[float],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[None]:
+        """
+        Delete multiple rows from a testset by `row_index`.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        row_indexes : typing.Sequence[float]
+            Row indexes to delete.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[None]
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/testsets/{jsonable_encoder(testset_id)}/rows/",
+            method="DELETE",
+            json={
+                "row_indexes": row_indexes,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def retrieve_testset_row(
+        self,
+        testset_id: str,
+        row_index: str,
+        *,
+        authorization: str,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[RetrieveTestsetRowResponse]:
+        """
+        Retrieve a single row from a testset.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[RetrieveTestsetRowResponse]
+            Row details.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/testsets/{jsonable_encoder(testset_id)}/rows/{jsonable_encoder(row_index)}/",
+            method="GET",
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveTestsetRowResponse,
+                    parse_obj_as(
+                        type_=RetrieveTestsetRowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1208,24 +2288,119 @@ class AsyncRawTestsetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
+    async def replace_testset_row(
+        self,
+        testset_id: str,
+        row_index: str,
+        *,
+        authorization: str,
+        row_data: typing.Dict[str, typing.Any],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ReplaceTestsetRowResponse]:
+        """
+        Replace the payload for a single row.
+
+        Parameters
+        ----------
+        testset_id : str
+            The testset ID returned as `id` by the API.
+
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY`.
+
+        row_data : typing.Dict[str, typing.Any]
+            Updated row payload keyed by testset column field.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ReplaceTestsetRowResponse]
+            Updated row.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/testsets/{jsonable_encoder(testset_id)}/rows/{jsonable_encoder(row_index)}/",
+            method="PUT",
+            json={
+                "row_data": row_data,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceTestsetRowResponse,
+                    parse_obj_as(
+                        type_=ReplaceTestsetRowResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
     async def delete_testset_row(
         self,
         testset_id: str,
-        row_index: int,
+        row_index: str,
         *,
         authorization: str,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[None]:
         """
-        Delete a specific row from a testset.
+        Delete a single row from a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset.
+            The testset ID returned as `id` by the API.
 
-        row_index : int
-            The index of the row to delete.
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
@@ -1278,28 +2453,28 @@ class AsyncRawTestsetsClient:
     async def update_testset_row(
         self,
         testset_id: str,
-        row_index: int,
+        row_index: str,
         *,
         authorization: str,
         row_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateTestsetRowResponse]:
         """
-        Update a specific row in a testset.
+        Partially update a single row in a testset.
 
         Parameters
         ----------
         testset_id : str
-            The ID of the testset.
+            The testset ID returned as `id` by the API.
 
-        row_index : int
-            The index of the row to update.
+        row_index : str
+            The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
 
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_data : typing.Optional[typing.Dict[str, typing.Any]]
-            Updated row data keyed by column name.
+            Updated row payload keyed by testset column field.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1332,6 +2507,17 @@ class AsyncRawTestsetsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),

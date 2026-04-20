@@ -6,20 +6,10 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class UpdateTestsetRowResponse(UniversalBaseModel):
-    row_index: float = pydantic.Field()
+class GetFilteredTestsetsSummaryResponse(UniversalBaseModel):
+    total_count: int = pydantic.Field()
     """
-    Row index. Decimal values can be returned after reordering.
-    """
-
-    testset_id: str = pydantic.Field()
-    """
-    Parent testset ID.
-    """
-
-    row_data: typing.Dict[str, typing.Any] = pydantic.Field()
-    """
-    Row payload keyed by testset column field.
+    Total matching testsets.
     """
 
     if IS_PYDANTIC_V2:

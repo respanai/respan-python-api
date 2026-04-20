@@ -4,10 +4,34 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .retrieve_testset_response_column_definitions_item_type import RetrieveTestsetResponseColumnDefinitionsItemType
 
 
 class RetrieveTestsetResponseColumnDefinitionsItem(UniversalBaseModel):
-    field: typing.Optional[str] = None
+    field: str = pydantic.Field()
+    """
+    Canonical field name stored in each row.
+    """
+
+    mapped_name: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Optional display or import name for this field.
+    """
+
+    width: typing.Optional[float] = pydantic.Field(default=None)
+    """
+    Optional UI width in pixels.
+    """
+
+    is_hidden: typing.Optional[bool] = pydantic.Field(default=None)
+    """
+    Whether this column should be hidden in the UI.
+    """
+
+    type: typing.Optional[RetrieveTestsetResponseColumnDefinitionsItemType] = pydantic.Field(default=None)
+    """
+    Column value type.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

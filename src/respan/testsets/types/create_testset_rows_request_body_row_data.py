@@ -6,15 +6,10 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class UpdateTestsetRowResponse(UniversalBaseModel):
-    row_index: float = pydantic.Field()
+class CreateTestsetRowsRequestBodyRowData(UniversalBaseModel):
+    row_index: typing.Optional[float] = pydantic.Field(default=None)
     """
-    Row index. Decimal values can be returned after reordering.
-    """
-
-    testset_id: str = pydantic.Field()
-    """
-    Parent testset ID.
+    Optional target row index. If omitted, the row is appended to the end of the testset.
     """
 
     row_data: typing.Dict[str, typing.Any] = pydantic.Field()

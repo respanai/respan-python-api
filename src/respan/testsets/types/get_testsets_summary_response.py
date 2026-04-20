@@ -6,10 +6,10 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class CreateTestsetRowsRequestBodyItem(UniversalBaseModel):
-    row_data: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+class GetTestsetsSummaryResponse(UniversalBaseModel):
+    total_count: int = pydantic.Field()
     """
-    Row data keyed by column name.
+    Total matching testsets.
     """
 
     if IS_PYDANTIC_V2:

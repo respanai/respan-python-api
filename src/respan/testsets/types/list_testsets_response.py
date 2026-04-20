@@ -8,12 +8,35 @@ from .list_testsets_response_results_item import ListTestsetsResponseResultsItem
 
 
 class ListTestsetsResponse(UniversalBaseModel):
-    count: typing.Optional[int] = pydantic.Field(default=None)
+    count: int = pydantic.Field()
     """
-    Total matching testsets.
+    Number of testsets returned in this page.
     """
 
-    results: typing.Optional[typing.List[ListTestsetsResponseResultsItem]] = None
+    next: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    URL for the next page, if any.
+    """
+
+    previous: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    URL for the previous page, if any.
+    """
+
+    current_filters: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Normalized filters applied to this response.
+    """
+
+    filters_data: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Available filter definitions for building list queries.
+    """
+
+    results: typing.List[ListTestsetsResponseResultsItem] = pydantic.Field()
+    """
+    Array of testsets.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

@@ -8,12 +8,30 @@ from .list_testset_rows_response_results_item import ListTestsetRowsResponseResu
 
 
 class ListTestsetRowsResponse(UniversalBaseModel):
-    count: typing.Optional[int] = pydantic.Field(default=None)
+    count: int = pydantic.Field()
     """
-    Total rows.
+    Number of rows returned in this page.
     """
 
-    results: typing.Optional[typing.List[ListTestsetRowsResponseResultsItem]] = None
+    next: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    URL for the next page, if any.
+    """
+
+    previous: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    URL for the previous page, if any.
+    """
+
+    current_filters: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Current filter state returned by the paginator.
+    """
+
+    results: typing.List[ListTestsetRowsResponseResultsItem] = pydantic.Field()
+    """
+    Array of testset rows.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
