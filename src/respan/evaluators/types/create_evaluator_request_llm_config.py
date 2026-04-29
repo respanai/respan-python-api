@@ -8,41 +8,24 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 class CreateEvaluatorRequestLlmConfig(UniversalBaseModel):
     """
-    LLM automation config. Required fields: `model`, `evaluator_definition`.
+    LLM grader configuration. The backend validates this against the selected evaluator form.
     """
 
-    model: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    LLM model to use.
-    """
-
+    model: typing.Optional[str] = None
     evaluator_definition: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Evaluation prompt. Use `{{input}}` and `{{output}}` template variables.
+    Prompt/template used by the LLM grader.
     """
 
-    scoring_rubric: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Scoring criteria instructions.
-    """
-
-    temperature: typing.Optional[float] = pydantic.Field(default=None)
-    """
-    Sampling temperature.
-    """
-
-    max_tokens: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Max tokens.
-    """
-
+    scoring_rubric: typing.Optional[str] = None
+    temperature: typing.Optional[float] = None
+    max_tokens: typing.Optional[int] = None
     top_p: typing.Optional[float] = None
     frequency_penalty: typing.Optional[float] = None
     presence_penalty: typing.Optional[float] = None
     stop: typing.Optional[typing.List[str]] = None
     response_format: typing.Optional[typing.Dict[str, typing.Any]] = None
-    stream: typing.Optional[bool] = None
-    tools: typing.Optional[typing.List[typing.Any]] = None
+    tools: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = None
     tool_choice: typing.Optional[typing.Any] = None
     verbosity: typing.Optional[str] = None
 

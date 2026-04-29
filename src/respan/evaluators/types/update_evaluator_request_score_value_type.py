@@ -3,5 +3,8 @@
 import typing
 
 UpdateEvaluatorRequestScoreValueType = typing.Union[
-    typing.Literal["numerical", "boolean", "percentage", "single_select", "multi_select", "json", "text"], typing.Any
+    typing.Literal[
+        "numerical", "boolean", "percentage", "single_select", "multi_select", "text", "json", "comment", "categorical"
+    ],
+    typing.Any,
 ]

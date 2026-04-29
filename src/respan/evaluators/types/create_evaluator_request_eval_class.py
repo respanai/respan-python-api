@@ -2,4 +2,4 @@
 
 import typing
 
-CreateEvaluatorRequestEvalClass = typing.Union[typing.Literal["respan_custom_llm", "custom_code"], typing.Any]
+CreateEvaluatorRequestEvalClass = typing.Union[typing.Literal["keywordsai_custom_llm", "custom_code"], typing.Any]

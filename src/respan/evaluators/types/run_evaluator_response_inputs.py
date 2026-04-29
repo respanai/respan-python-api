@@ -4,19 +4,47 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .run_evaluator_response_inputs_input import RunEvaluatorResponseInputsInput
-from .run_evaluator_response_inputs_metadata import RunEvaluatorResponseInputsMetadata
-from .run_evaluator_response_inputs_metrics import RunEvaluatorResponseInputsMetrics
-from .run_evaluator_response_inputs_output import RunEvaluatorResponseInputsOutput
 
 
 class RunEvaluatorResponseInputs(UniversalBaseModel):
-    input: typing.Optional[RunEvaluatorResponseInputsInput] = None
-    output: typing.Optional[RunEvaluatorResponseInputsOutput] = None
-    metrics: typing.Optional[RunEvaluatorResponseInputsMetrics] = None
-    metadata: typing.Optional[RunEvaluatorResponseInputsMetadata] = None
-    llm_input: typing.Optional[str] = None
-    llm_output: typing.Optional[str] = None
+    """
+    Unified evaluator inputs.
+    """
+
+    input: typing.Optional[typing.Any] = pydantic.Field(default=None)
+    """
+    Input/request being evaluated.
+    """
+
+    output: typing.Optional[typing.Any] = pydantic.Field(default=None)
+    """
+    Output/response being evaluated.
+    """
+
+    expected_output: typing.Optional[typing.Any] = pydantic.Field(default=None)
+    """
+    Reference output, when available.
+    """
+
+    metrics: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Runtime metrics such as cost, latency, and token counts.
+    """
+
+    metadata: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Request metadata such as model, environment, trace IDs, or customer identifiers.
+    """
+
+    llm_input: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Legacy alias for `input`.
+    """
+
+    llm_output: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Legacy alias for `output`.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

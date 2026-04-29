@@ -4,22 +4,71 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
-from ..types.filters import Filters
 from .raw_client import AsyncRawEvaluatorsClient, RawEvaluatorsClient
 from .types.create_evaluator_request_categorical_choices_item import CreateEvaluatorRequestCategoricalChoicesItem
 from .types.create_evaluator_request_code_config import CreateEvaluatorRequestCodeConfig
-from .types.create_evaluator_request_configurations import CreateEvaluatorRequestConfigurations
 from .types.create_evaluator_request_eval_class import CreateEvaluatorRequestEvalClass
 from .types.create_evaluator_request_llm_config import CreateEvaluatorRequestLlmConfig
 from .types.create_evaluator_request_score_config import CreateEvaluatorRequestScoreConfig
 from .types.create_evaluator_request_score_value_type import CreateEvaluatorRequestScoreValueType
 from .types.create_evaluator_request_type import CreateEvaluatorRequestType
 from .types.create_evaluator_response import CreateEvaluatorResponse
-from .types.list_evaluators_response_item import ListEvaluatorsResponseItem
+from .types.create_evaluator_version_request_categorical_choices_item import (
+    CreateEvaluatorVersionRequestCategoricalChoicesItem,
+)
+from .types.create_evaluator_version_request_code_config import CreateEvaluatorVersionRequestCodeConfig
+from .types.create_evaluator_version_request_eval_class import CreateEvaluatorVersionRequestEvalClass
+from .types.create_evaluator_version_request_llm_config import CreateEvaluatorVersionRequestLlmConfig
+from .types.create_evaluator_version_request_score_config import CreateEvaluatorVersionRequestScoreConfig
+from .types.create_evaluator_version_request_score_value_type import CreateEvaluatorVersionRequestScoreValueType
+from .types.create_evaluator_version_request_type import CreateEvaluatorVersionRequestType
+from .types.create_evaluator_version_response import CreateEvaluatorVersionResponse
+from .types.get_evaluators_summary_response import GetEvaluatorsSummaryResponse
+from .types.get_filtered_evaluators_summary_response import GetFilteredEvaluatorsSummaryResponse
+from .types.list_evaluator_versions_response import ListEvaluatorVersionsResponse
+from .types.list_evaluators_response import ListEvaluatorsResponse
+from .types.list_evaluators_root_response import ListEvaluatorsRootResponse
+from .types.replace_evaluator_request_categorical_choices_item import ReplaceEvaluatorRequestCategoricalChoicesItem
+from .types.replace_evaluator_request_code_config import ReplaceEvaluatorRequestCodeConfig
+from .types.replace_evaluator_request_eval_class import ReplaceEvaluatorRequestEvalClass
+from .types.replace_evaluator_request_llm_config import ReplaceEvaluatorRequestLlmConfig
+from .types.replace_evaluator_request_score_config import ReplaceEvaluatorRequestScoreConfig
+from .types.replace_evaluator_request_score_value_type import ReplaceEvaluatorRequestScoreValueType
+from .types.replace_evaluator_request_type import ReplaceEvaluatorRequestType
+from .types.replace_evaluator_response import ReplaceEvaluatorResponse
+from .types.replace_evaluator_version_request_categorical_choices_item import (
+    ReplaceEvaluatorVersionRequestCategoricalChoicesItem,
+)
+from .types.replace_evaluator_version_request_code_config import ReplaceEvaluatorVersionRequestCodeConfig
+from .types.replace_evaluator_version_request_eval_class import ReplaceEvaluatorVersionRequestEvalClass
+from .types.replace_evaluator_version_request_llm_config import ReplaceEvaluatorVersionRequestLlmConfig
+from .types.replace_evaluator_version_request_score_config import ReplaceEvaluatorVersionRequestScoreConfig
+from .types.replace_evaluator_version_request_score_value_type import ReplaceEvaluatorVersionRequestScoreValueType
+from .types.replace_evaluator_version_request_type import ReplaceEvaluatorVersionRequestType
+from .types.replace_evaluator_version_response import ReplaceEvaluatorVersionResponse
 from .types.retrieve_evaluator_response import RetrieveEvaluatorResponse
+from .types.retrieve_evaluator_version_response import RetrieveEvaluatorVersionResponse
+from .types.run_evaluator_request_generation_method import RunEvaluatorRequestGenerationMethod
+from .types.run_evaluator_request_inputs import RunEvaluatorRequestInputs
 from .types.run_evaluator_response import RunEvaluatorResponse
+from .types.update_evaluator_request_categorical_choices_item import UpdateEvaluatorRequestCategoricalChoicesItem
+from .types.update_evaluator_request_code_config import UpdateEvaluatorRequestCodeConfig
+from .types.update_evaluator_request_eval_class import UpdateEvaluatorRequestEvalClass
+from .types.update_evaluator_request_llm_config import UpdateEvaluatorRequestLlmConfig
+from .types.update_evaluator_request_score_config import UpdateEvaluatorRequestScoreConfig
 from .types.update_evaluator_request_score_value_type import UpdateEvaluatorRequestScoreValueType
+from .types.update_evaluator_request_type import UpdateEvaluatorRequestType
 from .types.update_evaluator_response import UpdateEvaluatorResponse
+from .types.update_evaluator_version_request_categorical_choices_item import (
+    UpdateEvaluatorVersionRequestCategoricalChoicesItem,
+)
+from .types.update_evaluator_version_request_code_config import UpdateEvaluatorVersionRequestCodeConfig
+from .types.update_evaluator_version_request_eval_class import UpdateEvaluatorVersionRequestEvalClass
+from .types.update_evaluator_version_request_llm_config import UpdateEvaluatorVersionRequestLlmConfig
+from .types.update_evaluator_version_request_score_config import UpdateEvaluatorVersionRequestScoreConfig
+from .types.update_evaluator_version_request_score_value_type import UpdateEvaluatorVersionRequestScoreValueType
+from .types.update_evaluator_version_request_type import UpdateEvaluatorVersionRequestType
+from .types.update_evaluator_version_response import UpdateEvaluatorVersionResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -40,6 +89,54 @@ class EvaluatorsClient:
         """
         return self._raw_client
 
+    def list_evaluators_root(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        search: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListEvaluatorsRootResponse:
+        """
+        List the current draft/latest evaluator for each evaluator ID. This route supports simple pagination and name search. Use `POST /api/evaluators/list/` when you need the full filter format.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        search : typing.Optional[str]
+            Search evaluator names.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListEvaluatorsRootResponse
+            Paginated evaluator list.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.evaluators.list_evaluators_root(
+            authorization="Bearer sk_live_xxxxx",
+        )
+        """
+        _response = self._raw_client.list_evaluators_root(
+            authorization=authorization, page=page, page_size=page_size, search=search, request_options=request_options
+        )
+        return _response.data
+
     def create_evaluator(
         self,
         *,
@@ -48,59 +145,57 @@ class EvaluatorsClient:
         type: CreateEvaluatorRequestType,
         score_value_type: CreateEvaluatorRequestScoreValueType,
         evaluator_slug: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
         eval_class: typing.Optional[CreateEvaluatorRequestEvalClass] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        description: typing.Optional[str] = OMIT,
         score_config: typing.Optional[CreateEvaluatorRequestScoreConfig] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         llm_config: typing.Optional[CreateEvaluatorRequestLlmConfig] = OMIT,
         code_config: typing.Optional[CreateEvaluatorRequestCodeConfig] = OMIT,
-        configurations: typing.Optional[CreateEvaluatorRequestConfigurations] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateEvaluatorResponse:
         """
-        Create a new evaluator for scoring LLM outputs. Specify `type` and `score_value_type`. Optionally use `eval_class` for pre-built templates.
+        Create a grader/evaluator. Current public evaluator types are `llm`, `human`, and `code`; legacy human-specific types remain readable for older evaluators. New clients should use the flat config fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of relying on legacy `configurations`.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
-            Evaluator display name.
 
         type : CreateEvaluatorRequestType
-            Evaluator type.
 
         score_value_type : CreateEvaluatorRequestScoreValueType
-            Score format.
 
         evaluator_slug : typing.Optional[str]
-            Unique identifier. Auto-generated if not provided.
-
-        description : typing.Optional[str]
-            Evaluator description.
+            Organization-scoped evaluator slug.
 
         eval_class : typing.Optional[CreateEvaluatorRequestEvalClass]
-            Pre-built template.
+            Optional pre-built evaluator template.
 
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]]
-            Required for `single_select` or `multi_select` score types.
+        description : typing.Optional[str]
 
         score_config : typing.Optional[CreateEvaluatorRequestScoreConfig]
-            Score type configuration. For numerical/percentage: `min_score`, `max_score`. For single/multi select: `choices` array.
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Conditions for passing. Uses filter format (e.g. `{"primary_score": {"operator": "gte", "value": 3}}`).
+            Passing conditions in the standard Respan filter format.
 
         llm_config : typing.Optional[CreateEvaluatorRequestLlmConfig]
-            LLM automation config. Required fields: `model`, `evaluator_definition`.
+            LLM grader configuration. The backend validates this against the selected evaluator form.
 
         code_config : typing.Optional[CreateEvaluatorRequestCodeConfig]
-            Code automation config.
+            Code grader configuration.
 
-        configurations : typing.Optional[CreateEvaluatorRequestConfigurations]
-            Legacy configuration format. Use `llm_config`/`code_config` instead for new evaluators.
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -113,13 +208,29 @@ class EvaluatorsClient:
         Examples
         --------
         from respan import RespanClient
+        from respan.evaluators import (
+            CreateEvaluatorRequestLlmConfig,
+            CreateEvaluatorRequestScoreConfig,
+        )
 
         client = RespanClient()
         client.evaluators.create_evaluator(
             authorization="Bearer sk_live_xxxxx",
             name="Response Quality",
+            evaluator_slug="response_quality",
             type="llm",
             score_value_type="numerical",
+            eval_class="keywordsai_custom_llm",
+            score_config=CreateEvaluatorRequestScoreConfig(
+                min_score=1.0,
+                max_score=5.0,
+            ),
+            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+            llm_config=CreateEvaluatorRequestLlmConfig(
+                model="gpt-4o-mini",
+                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                scoring_rubric="1=Poor, 5=Excellent",
+            ),
         )
         """
         _response = self._raw_client.create_evaluator(
@@ -128,15 +239,156 @@ class EvaluatorsClient:
             type=type,
             score_value_type=score_value_type,
             evaluator_slug=evaluator_slug,
-            description=description,
             eval_class=eval_class,
-            categorical_choices=categorical_choices,
+            description=description,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
             configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
             request_options=request_options,
+        )
+        return _response.data
+
+    def list_evaluators(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListEvaluatorsResponse:
+        """
+        List evaluators using POST-for-filtering. The backend returns only the current draft/latest row for each evaluator and includes filter metadata for dashboard clients.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListEvaluatorsResponse
+            Paginated filtered evaluator list.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.evaluators.list_evaluators(
+            authorization="Bearer sk_live_xxxxx",
+            sort_by="name",
+        )
+        """
+        _response = self._raw_client.list_evaluators(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            filters=filters,
+            is_exporting=is_exporting,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def get_evaluators_summary(
+        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> GetEvaluatorsSummaryResponse:
+        """
+        Return the total number of current draft/latest evaluators visible to the authenticated organization.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetEvaluatorsSummaryResponse
+            Evaluator summary.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.evaluators.get_evaluators_summary(
+            authorization="Bearer sk_live_xxxxx",
+        )
+        """
+        _response = self._raw_client.get_evaluators_summary(
+            authorization=authorization, request_options=request_options
+        )
+        return _response.data
+
+    def get_filtered_evaluators_summary(
+        self,
+        *,
+        authorization: str,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> GetFilteredEvaluatorsSummaryResponse:
+        """
+        Return the total number of current draft/latest evaluators after applying standard filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetFilteredEvaluatorsSummaryResponse
+            Filtered evaluator summary.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.evaluators.get_filtered_evaluators_summary(
+            authorization="Bearer sk_live_xxxxx",
+        )
+        """
+        _response = self._raw_client.get_filtered_evaluators_summary(
+            authorization=authorization, filters=filters, is_exporting=is_exporting, request_options=request_options
         )
         return _response.data
 
@@ -144,15 +396,15 @@ class EvaluatorsClient:
         self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveEvaluatorResponse:
         """
-        Retrieve an evaluator by ID, including its full configuration.
+        Retrieve the current draft/latest version of an evaluator by ID.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator Id
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -160,7 +412,7 @@ class EvaluatorsClient:
         Returns
         -------
         RetrieveEvaluatorResponse
-            Successful response for Retrieve evaluator
+            Evaluator details.
 
         Examples
         --------
@@ -177,19 +429,140 @@ class EvaluatorsClient:
         )
         return _response.data
 
-    def delete_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def replace_evaluator(
+        self,
+        evaluator_id: str,
+        *,
+        authorization: str,
+        name: str,
+        type: ReplaceEvaluatorRequestType,
+        score_value_type: ReplaceEvaluatorRequestScoreValueType,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        eval_class: typing.Optional[ReplaceEvaluatorRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[ReplaceEvaluatorRequestScoreConfig] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[ReplaceEvaluatorRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[ReplaceEvaluatorRequestCodeConfig] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceEvaluatorResponse:
         """
-        Delete an evaluator.
+        Replace the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator Id
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        name : str
+
+        type : ReplaceEvaluatorRequestType
+
+        score_value_type : ReplaceEvaluatorRequestScoreValueType
+
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        eval_class : typing.Optional[ReplaceEvaluatorRequestEvalClass]
+            Optional pre-built evaluator template.
+
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[ReplaceEvaluatorRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+            Passing conditions in the standard Respan filter format.
+
+        llm_config : typing.Optional[ReplaceEvaluatorRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
+
+        code_config : typing.Optional[ReplaceEvaluatorRequestCodeConfig]
+            Code grader configuration.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceEvaluatorResponse
+            Updated evaluator.
+
+        Examples
+        --------
+        from respan import RespanClient
+        from respan.evaluators import (
+            ReplaceEvaluatorRequestLlmConfig,
+            ReplaceEvaluatorRequestScoreConfig,
+        )
+
+        client = RespanClient()
+        client.evaluators.replace_evaluator(
+            evaluator_id="evaluator_id",
+            authorization="Bearer sk_live_xxxxx",
+            name="Response Quality",
+            evaluator_slug="response_quality",
+            type="llm",
+            score_value_type="numerical",
+            eval_class="keywordsai_custom_llm",
+            score_config=ReplaceEvaluatorRequestScoreConfig(
+                min_score=1.0,
+                max_score=5.0,
+            ),
+            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+            llm_config=ReplaceEvaluatorRequestLlmConfig(
+                model="gpt-4o-mini",
+                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                scoring_rubric="1=Poor, 5=Excellent",
+            ),
+        )
+        """
+        _response = self._raw_client.replace_evaluator(
+            evaluator_id,
+            authorization=authorization,
+            name=name,
+            type=type,
+            score_value_type=score_value_type,
+            evaluator_slug=evaluator_slug,
+            eval_class=eval_class,
+            description=description,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def delete_evaluator(
+        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -219,50 +592,63 @@ class EvaluatorsClient:
         *,
         authorization: str,
         name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
         score_value_type: typing.Optional[UpdateEvaluatorRequestScoreValueType] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        eval_class: typing.Optional[UpdateEvaluatorRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[UpdateEvaluatorRequestScoreConfig] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[UpdateEvaluatorRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[UpdateEvaluatorRequestCodeConfig] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateEvaluatorResponse:
         """
-        Update an evaluator's configuration, scoring, or automation settings.
+        Partially update the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator Id
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
-            Evaluator name.
 
-        description : typing.Optional[str]
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        type : typing.Optional[UpdateEvaluatorRequestType]
 
         score_value_type : typing.Optional[UpdateEvaluatorRequestScoreValueType]
 
-        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+        eval_class : typing.Optional[UpdateEvaluatorRequestEvalClass]
+            Optional pre-built evaluator template.
 
-        score_config : typing.Optional[typing.Dict[str, typing.Any]]
-            Score configuration.
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[UpdateEvaluatorRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions.
+            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
-            LLM automation config.
+        llm_config : typing.Optional[UpdateEvaluatorRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
 
-        code_config : typing.Optional[typing.Dict[str, typing.Any]]
-            Code automation config.
+        code_config : typing.Optional[UpdateEvaluatorRequestCodeConfig]
+            Code grader configuration.
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy config format.
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -270,30 +656,53 @@ class EvaluatorsClient:
         Returns
         -------
         UpdateEvaluatorResponse
-            Successful response for Update evaluator
+            Updated evaluator.
 
         Examples
         --------
         from respan import RespanClient
+        from respan.evaluators import (
+            UpdateEvaluatorRequestLlmConfig,
+            UpdateEvaluatorRequestScoreConfig,
+        )
 
         client = RespanClient()
         client.evaluators.update_evaluator(
             evaluator_id="evaluator_id",
             authorization="Bearer sk_live_xxxxx",
+            name="Response Quality",
+            evaluator_slug="response_quality",
+            type="llm",
+            score_value_type="numerical",
+            eval_class="keywordsai_custom_llm",
+            score_config=UpdateEvaluatorRequestScoreConfig(
+                min_score=1.0,
+                max_score=5.0,
+            ),
+            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+            llm_config=UpdateEvaluatorRequestLlmConfig(
+                model="gpt-4o-mini",
+                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                scoring_rubric="1=Poor, 5=Excellent",
+            ),
         )
         """
         _response = self._raw_client.update_evaluator(
             evaluator_id,
             authorization=authorization,
             name=name,
-            description=description,
+            evaluator_slug=evaluator_slug,
+            type=type,
             score_value_type=score_value_type,
-            categorical_choices=categorical_choices,
+            eval_class=eval_class,
+            description=description,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
             configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
             request_options=request_options,
         )
         return _response.data
@@ -303,26 +712,34 @@ class EvaluatorsClient:
         evaluator_id: str,
         *,
         authorization: str,
-        log_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
+        inputs: RunEvaluatorRequestInputs,
+        generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
+        evaluation_id: typing.Optional[str] = OMIT,
+        run_evaluator_request_evaluator_id: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RunEvaluatorResponse:
         """
-        Run an evaluator against spans or a dataset to generate scores.
+        Run an evaluator against raw unified inputs. The evaluator ID may include a version suffix such as `evl_abc123:2` to run a specific version.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator Id
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
-        log_ids : typing.Optional[typing.Sequence[str]]
-            Span IDs to evaluate.
+        inputs : RunEvaluatorRequestInputs
+            Unified evaluator inputs.
 
-        dataset_id : typing.Optional[str]
-            Dataset ID to evaluate all spans in.
+        generation_method : typing.Optional[RunEvaluatorRequestGenerationMethod]
+            Optional method override for evaluators that support multiple execution modes.
+
+        evaluation_id : typing.Optional[str]
+            Legacy evaluator ID field. Prefer the path parameter or `evaluator_id`.
+
+        run_evaluator_request_evaluator_id : typing.Optional[str]
+            Optional evaluator ID override. Supports version suffixes such as `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -330,63 +747,497 @@ class EvaluatorsClient:
         Returns
         -------
         RunEvaluatorResponse
-            Successful response for Run evaluator
+            Evaluation result.
 
         Examples
         --------
         from respan import RespanClient
+        from respan.evaluators import RunEvaluatorRequestInputs
 
         client = RespanClient()
         client.evaluators.run_evaluator(
             evaluator_id="evaluator_id",
             authorization="Bearer sk_live_xxxxx",
+            inputs=RunEvaluatorRequestInputs(
+                input="What is the capital of France?",
+                output="The capital of France is Paris.",
+                expected_output="Paris",
+                metrics={"latency": 0.45, "cost": 0.0023},
+                metadata={"model": "gpt-4o-mini"},
+            ),
         )
         """
         _response = self._raw_client.run_evaluator(
             evaluator_id,
             authorization=authorization,
-            log_ids=log_ids,
-            dataset_id=dataset_id,
+            inputs=inputs,
+            generation_method=generation_method,
+            evaluation_id=evaluation_id,
+            run_evaluator_request_evaluator_id=run_evaluator_request_evaluator_id,
             request_options=request_options,
         )
         return _response.data
 
-    def list_evaluators(
+    def list_evaluator_versions(
         self,
+        evaluator_id: str,
         *,
         authorization: str,
-        filters: typing.Optional[Filters] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.List[ListEvaluatorsResponseItem]:
+    ) -> ListEvaluatorVersionsResponse:
         """
-        List evaluators with optional filters.
+        List all versions of an evaluator, ordered newest first. Version `0` is the initial draft; committed versions are returned with `is_read_only: true`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        filters : typing.Optional[Filters]
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        typing.List[ListEvaluatorsResponseItem]
-            List of evaluators.
+        ListEvaluatorVersionsResponse
+            Paginated evaluator versions.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient()
-        client.evaluators.list_evaluators(
+        client.evaluators.list_evaluator_versions(
+            evaluator_id="evaluator_id",
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.list_evaluators(
-            authorization=authorization, filters=filters, request_options=request_options
+        _response = self._raw_client.list_evaluator_versions(
+            evaluator_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+        )
+        return _response.data
+
+    def create_evaluator_version(
+        self,
+        evaluator_id: str,
+        *,
+        authorization: str,
+        name: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
+        score_value_type: typing.Optional[CreateEvaluatorVersionRequestScoreValueType] = OMIT,
+        eval_class: typing.Optional[CreateEvaluatorVersionRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[CreateEvaluatorVersionRequestScoreConfig] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[CreateEvaluatorVersionRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[CreateEvaluatorVersionRequestCodeConfig] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[
+            typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]
+        ] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> CreateEvaluatorVersionResponse:
+        """
+        Commit the current draft and create the next draft version. Supplying only `version_description` commits the existing draft snapshot; supplying configuration fields commits with changes.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        name : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        type : typing.Optional[CreateEvaluatorVersionRequestType]
+
+        score_value_type : typing.Optional[CreateEvaluatorVersionRequestScoreValueType]
+
+        eval_class : typing.Optional[CreateEvaluatorVersionRequestEvalClass]
+            Optional pre-built evaluator template.
+
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[CreateEvaluatorVersionRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+            Passing conditions in the standard Respan filter format.
+
+        llm_config : typing.Optional[CreateEvaluatorVersionRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
+
+        code_config : typing.Optional[CreateEvaluatorVersionRequestCodeConfig]
+            Code grader configuration.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+            Commit message for this version.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        CreateEvaluatorVersionResponse
+            Created evaluator version.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.evaluators.create_evaluator_version(
+            evaluator_id="evaluator_id",
+            authorization="Bearer sk_live_xxxxx",
+            version_description="Ready for production",
+        )
+        """
+        _response = self._raw_client.create_evaluator_version(
+            evaluator_id,
+            authorization=authorization,
+            name=name,
+            evaluator_slug=evaluator_slug,
+            type=type,
+            score_value_type=score_value_type,
+            eval_class=eval_class,
+            description=description,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
+            version_description=version_description,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def retrieve_evaluator_version(
+        self,
+        evaluator_id: str,
+        version: int,
+        *,
+        authorization: str,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveEvaluatorVersionResponse:
+        """
+        Retrieve a specific evaluator version by version number.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version : int
+            Evaluator version number.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveEvaluatorVersionResponse
+            Evaluator version details.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.evaluators.retrieve_evaluator_version(
+            evaluator_id="evaluator_id",
+            version=1,
+            authorization="Bearer sk_live_xxxxx",
+        )
+        """
+        _response = self._raw_client.retrieve_evaluator_version(
+            evaluator_id, version, authorization=authorization, request_options=request_options
+        )
+        return _response.data
+
+    def replace_evaluator_version(
+        self,
+        evaluator_id: str,
+        version: int,
+        *,
+        authorization: str,
+        name: str,
+        type: ReplaceEvaluatorVersionRequestType,
+        score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        eval_class: typing.Optional[ReplaceEvaluatorVersionRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[
+            typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]
+        ] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceEvaluatorVersionResponse:
+        """
+        Replace a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version : int
+            Evaluator version number.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        name : str
+
+        type : ReplaceEvaluatorVersionRequestType
+
+        score_value_type : ReplaceEvaluatorVersionRequestScoreValueType
+
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        eval_class : typing.Optional[ReplaceEvaluatorVersionRequestEvalClass]
+            Optional pre-built evaluator template.
+
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+            Passing conditions in the standard Respan filter format.
+
+        llm_config : typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
+
+        code_config : typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig]
+            Code grader configuration.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceEvaluatorVersionResponse
+            Updated evaluator version.
+
+        Examples
+        --------
+        from respan import RespanClient
+        from respan.evaluators import (
+            ReplaceEvaluatorVersionRequestLlmConfig,
+            ReplaceEvaluatorVersionRequestScoreConfig,
+        )
+
+        client = RespanClient()
+        client.evaluators.replace_evaluator_version(
+            evaluator_id="evaluator_id",
+            version=1,
+            authorization="Bearer sk_live_xxxxx",
+            name="Response Quality",
+            evaluator_slug="response_quality",
+            type="llm",
+            score_value_type="numerical",
+            eval_class="keywordsai_custom_llm",
+            score_config=ReplaceEvaluatorVersionRequestScoreConfig(
+                min_score=1.0,
+                max_score=5.0,
+            ),
+            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+            llm_config=ReplaceEvaluatorVersionRequestLlmConfig(
+                model="gpt-4o-mini",
+                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                scoring_rubric="1=Poor, 5=Excellent",
+            ),
+        )
+        """
+        _response = self._raw_client.replace_evaluator_version(
+            evaluator_id,
+            version,
+            authorization=authorization,
+            name=name,
+            type=type,
+            score_value_type=score_value_type,
+            evaluator_slug=evaluator_slug,
+            eval_class=eval_class,
+            description=description,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def update_evaluator_version(
+        self,
+        evaluator_id: str,
+        version: int,
+        *,
+        authorization: str,
+        name: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
+        score_value_type: typing.Optional[UpdateEvaluatorVersionRequestScoreValueType] = OMIT,
+        eval_class: typing.Optional[UpdateEvaluatorVersionRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[UpdateEvaluatorVersionRequestScoreConfig] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[UpdateEvaluatorVersionRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[UpdateEvaluatorVersionRequestCodeConfig] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[
+            typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]
+        ] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> UpdateEvaluatorVersionResponse:
+        """
+        Partially update a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version : int
+            Evaluator version number.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        name : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        type : typing.Optional[UpdateEvaluatorVersionRequestType]
+
+        score_value_type : typing.Optional[UpdateEvaluatorVersionRequestScoreValueType]
+
+        eval_class : typing.Optional[UpdateEvaluatorVersionRequestEvalClass]
+            Optional pre-built evaluator template.
+
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[UpdateEvaluatorVersionRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+            Passing conditions in the standard Respan filter format.
+
+        llm_config : typing.Optional[UpdateEvaluatorVersionRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
+
+        code_config : typing.Optional[UpdateEvaluatorVersionRequestCodeConfig]
+            Code grader configuration.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        UpdateEvaluatorVersionResponse
+            Updated evaluator version.
+
+        Examples
+        --------
+        from respan import RespanClient
+        from respan.evaluators import (
+            UpdateEvaluatorVersionRequestLlmConfig,
+            UpdateEvaluatorVersionRequestScoreConfig,
+        )
+
+        client = RespanClient()
+        client.evaluators.update_evaluator_version(
+            evaluator_id="evaluator_id",
+            version=1,
+            authorization="Bearer sk_live_xxxxx",
+            name="Response Quality",
+            evaluator_slug="response_quality",
+            type="llm",
+            score_value_type="numerical",
+            eval_class="keywordsai_custom_llm",
+            score_config=UpdateEvaluatorVersionRequestScoreConfig(
+                min_score=1.0,
+                max_score=5.0,
+            ),
+            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+            llm_config=UpdateEvaluatorVersionRequestLlmConfig(
+                model="gpt-4o-mini",
+                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                scoring_rubric="1=Poor, 5=Excellent",
+            ),
+        )
+        """
+        _response = self._raw_client.update_evaluator_version(
+            evaluator_id,
+            version,
+            authorization=authorization,
+            name=name,
+            evaluator_slug=evaluator_slug,
+            type=type,
+            score_value_type=score_value_type,
+            eval_class=eval_class,
+            description=description,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
+            request_options=request_options,
         )
         return _response.data
 
@@ -406,6 +1257,62 @@ class AsyncEvaluatorsClient:
         """
         return self._raw_client
 
+    async def list_evaluators_root(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        search: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListEvaluatorsRootResponse:
+        """
+        List the current draft/latest evaluator for each evaluator ID. This route supports simple pagination and name search. Use `POST /api/evaluators/list/` when you need the full filter format.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        search : typing.Optional[str]
+            Search evaluator names.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListEvaluatorsRootResponse
+            Paginated evaluator list.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.evaluators.list_evaluators_root(
+                authorization="Bearer sk_live_xxxxx",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_evaluators_root(
+            authorization=authorization, page=page, page_size=page_size, search=search, request_options=request_options
+        )
+        return _response.data
+
     async def create_evaluator(
         self,
         *,
@@ -414,59 +1321,57 @@ class AsyncEvaluatorsClient:
         type: CreateEvaluatorRequestType,
         score_value_type: CreateEvaluatorRequestScoreValueType,
         evaluator_slug: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
         eval_class: typing.Optional[CreateEvaluatorRequestEvalClass] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        description: typing.Optional[str] = OMIT,
         score_config: typing.Optional[CreateEvaluatorRequestScoreConfig] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         llm_config: typing.Optional[CreateEvaluatorRequestLlmConfig] = OMIT,
         code_config: typing.Optional[CreateEvaluatorRequestCodeConfig] = OMIT,
-        configurations: typing.Optional[CreateEvaluatorRequestConfigurations] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateEvaluatorResponse:
         """
-        Create a new evaluator for scoring LLM outputs. Specify `type` and `score_value_type`. Optionally use `eval_class` for pre-built templates.
+        Create a grader/evaluator. Current public evaluator types are `llm`, `human`, and `code`; legacy human-specific types remain readable for older evaluators. New clients should use the flat config fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of relying on legacy `configurations`.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
-            Evaluator display name.
 
         type : CreateEvaluatorRequestType
-            Evaluator type.
 
         score_value_type : CreateEvaluatorRequestScoreValueType
-            Score format.
 
         evaluator_slug : typing.Optional[str]
-            Unique identifier. Auto-generated if not provided.
-
-        description : typing.Optional[str]
-            Evaluator description.
+            Organization-scoped evaluator slug.
 
         eval_class : typing.Optional[CreateEvaluatorRequestEvalClass]
-            Pre-built template.
+            Optional pre-built evaluator template.
 
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]]
-            Required for `single_select` or `multi_select` score types.
+        description : typing.Optional[str]
 
         score_config : typing.Optional[CreateEvaluatorRequestScoreConfig]
-            Score type configuration. For numerical/percentage: `min_score`, `max_score`. For single/multi select: `choices` array.
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Conditions for passing. Uses filter format (e.g. `{"primary_score": {"operator": "gte", "value": 3}}`).
+            Passing conditions in the standard Respan filter format.
 
         llm_config : typing.Optional[CreateEvaluatorRequestLlmConfig]
-            LLM automation config. Required fields: `model`, `evaluator_definition`.
+            LLM grader configuration. The backend validates this against the selected evaluator form.
 
         code_config : typing.Optional[CreateEvaluatorRequestCodeConfig]
-            Code automation config.
+            Code grader configuration.
 
-        configurations : typing.Optional[CreateEvaluatorRequestConfigurations]
-            Legacy configuration format. Use `llm_config`/`code_config` instead for new evaluators.
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -481,6 +1386,10 @@ class AsyncEvaluatorsClient:
         import asyncio
 
         from respan import AsyncRespanClient
+        from respan.evaluators import (
+            CreateEvaluatorRequestLlmConfig,
+            CreateEvaluatorRequestScoreConfig,
+        )
 
         client = AsyncRespanClient()
 
@@ -489,8 +1398,20 @@ class AsyncEvaluatorsClient:
             await client.evaluators.create_evaluator(
                 authorization="Bearer sk_live_xxxxx",
                 name="Response Quality",
+                evaluator_slug="response_quality",
                 type="llm",
                 score_value_type="numerical",
+                eval_class="keywordsai_custom_llm",
+                score_config=CreateEvaluatorRequestScoreConfig(
+                    min_score=1.0,
+                    max_score=5.0,
+                ),
+                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+                llm_config=CreateEvaluatorRequestLlmConfig(
+                    model="gpt-4o-mini",
+                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                    scoring_rubric="1=Poor, 5=Excellent",
+                ),
             )
 
 
@@ -502,15 +1423,180 @@ class AsyncEvaluatorsClient:
             type=type,
             score_value_type=score_value_type,
             evaluator_slug=evaluator_slug,
-            description=description,
             eval_class=eval_class,
-            categorical_choices=categorical_choices,
+            description=description,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
             configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
             request_options=request_options,
+        )
+        return _response.data
+
+    async def list_evaluators(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListEvaluatorsResponse:
+        """
+        List evaluators using POST-for-filtering. The backend returns only the current draft/latest row for each evaluator and includes filter metadata for dashboard clients.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListEvaluatorsResponse
+            Paginated filtered evaluator list.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.evaluators.list_evaluators(
+                authorization="Bearer sk_live_xxxxx",
+                sort_by="name",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_evaluators(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            filters=filters,
+            is_exporting=is_exporting,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def get_evaluators_summary(
+        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> GetEvaluatorsSummaryResponse:
+        """
+        Return the total number of current draft/latest evaluators visible to the authenticated organization.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetEvaluatorsSummaryResponse
+            Evaluator summary.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.evaluators.get_evaluators_summary(
+                authorization="Bearer sk_live_xxxxx",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.get_evaluators_summary(
+            authorization=authorization, request_options=request_options
+        )
+        return _response.data
+
+    async def get_filtered_evaluators_summary(
+        self,
+        *,
+        authorization: str,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> GetFilteredEvaluatorsSummaryResponse:
+        """
+        Return the total number of current draft/latest evaluators after applying standard filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetFilteredEvaluatorsSummaryResponse
+            Filtered evaluator summary.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.evaluators.get_filtered_evaluators_summary(
+                authorization="Bearer sk_live_xxxxx",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.get_filtered_evaluators_summary(
+            authorization=authorization, filters=filters, is_exporting=is_exporting, request_options=request_options
         )
         return _response.data
 
@@ -518,15 +1604,15 @@ class AsyncEvaluatorsClient:
         self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveEvaluatorResponse:
         """
-        Retrieve an evaluator by ID, including its full configuration.
+        Retrieve the current draft/latest version of an evaluator by ID.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator Id
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -534,7 +1620,7 @@ class AsyncEvaluatorsClient:
         Returns
         -------
         RetrieveEvaluatorResponse
-            Successful response for Retrieve evaluator
+            Evaluator details.
 
         Examples
         --------
@@ -559,19 +1645,148 @@ class AsyncEvaluatorsClient:
         )
         return _response.data
 
-    async def delete_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    async def replace_evaluator(
+        self,
+        evaluator_id: str,
+        *,
+        authorization: str,
+        name: str,
+        type: ReplaceEvaluatorRequestType,
+        score_value_type: ReplaceEvaluatorRequestScoreValueType,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        eval_class: typing.Optional[ReplaceEvaluatorRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[ReplaceEvaluatorRequestScoreConfig] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[ReplaceEvaluatorRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[ReplaceEvaluatorRequestCodeConfig] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceEvaluatorResponse:
         """
-        Delete an evaluator.
+        Replace the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator Id
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        name : str
+
+        type : ReplaceEvaluatorRequestType
+
+        score_value_type : ReplaceEvaluatorRequestScoreValueType
+
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        eval_class : typing.Optional[ReplaceEvaluatorRequestEvalClass]
+            Optional pre-built evaluator template.
+
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[ReplaceEvaluatorRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+            Passing conditions in the standard Respan filter format.
+
+        llm_config : typing.Optional[ReplaceEvaluatorRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
+
+        code_config : typing.Optional[ReplaceEvaluatorRequestCodeConfig]
+            Code grader configuration.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceEvaluatorResponse
+            Updated evaluator.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+        from respan.evaluators import (
+            ReplaceEvaluatorRequestLlmConfig,
+            ReplaceEvaluatorRequestScoreConfig,
+        )
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.evaluators.replace_evaluator(
+                evaluator_id="evaluator_id",
+                authorization="Bearer sk_live_xxxxx",
+                name="Response Quality",
+                evaluator_slug="response_quality",
+                type="llm",
+                score_value_type="numerical",
+                eval_class="keywordsai_custom_llm",
+                score_config=ReplaceEvaluatorRequestScoreConfig(
+                    min_score=1.0,
+                    max_score=5.0,
+                ),
+                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+                llm_config=ReplaceEvaluatorRequestLlmConfig(
+                    model="gpt-4o-mini",
+                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                    scoring_rubric="1=Poor, 5=Excellent",
+                ),
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.replace_evaluator(
+            evaluator_id,
+            authorization=authorization,
+            name=name,
+            type=type,
+            score_value_type=score_value_type,
+            evaluator_slug=evaluator_slug,
+            eval_class=eval_class,
+            description=description,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def delete_evaluator(
+        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -609,50 +1824,63 @@ class AsyncEvaluatorsClient:
         *,
         authorization: str,
         name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
         score_value_type: typing.Optional[UpdateEvaluatorRequestScoreValueType] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        eval_class: typing.Optional[UpdateEvaluatorRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[UpdateEvaluatorRequestScoreConfig] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[UpdateEvaluatorRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[UpdateEvaluatorRequestCodeConfig] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateEvaluatorResponse:
         """
-        Update an evaluator's configuration, scoring, or automation settings.
+        Partially update the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator Id
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
-            Evaluator name.
 
-        description : typing.Optional[str]
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        type : typing.Optional[UpdateEvaluatorRequestType]
 
         score_value_type : typing.Optional[UpdateEvaluatorRequestScoreValueType]
 
-        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+        eval_class : typing.Optional[UpdateEvaluatorRequestEvalClass]
+            Optional pre-built evaluator template.
 
-        score_config : typing.Optional[typing.Dict[str, typing.Any]]
-            Score configuration.
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[UpdateEvaluatorRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions.
+            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
-            LLM automation config.
+        llm_config : typing.Optional[UpdateEvaluatorRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
 
-        code_config : typing.Optional[typing.Dict[str, typing.Any]]
-            Code automation config.
+        code_config : typing.Optional[UpdateEvaluatorRequestCodeConfig]
+            Code grader configuration.
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy config format.
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -660,13 +1888,17 @@ class AsyncEvaluatorsClient:
         Returns
         -------
         UpdateEvaluatorResponse
-            Successful response for Update evaluator
+            Updated evaluator.
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
+        from respan.evaluators import (
+            UpdateEvaluatorRequestLlmConfig,
+            UpdateEvaluatorRequestScoreConfig,
+        )
 
         client = AsyncRespanClient()
 
@@ -675,6 +1907,21 @@ class AsyncEvaluatorsClient:
             await client.evaluators.update_evaluator(
                 evaluator_id="evaluator_id",
                 authorization="Bearer sk_live_xxxxx",
+                name="Response Quality",
+                evaluator_slug="response_quality",
+                type="llm",
+                score_value_type="numerical",
+                eval_class="keywordsai_custom_llm",
+                score_config=UpdateEvaluatorRequestScoreConfig(
+                    min_score=1.0,
+                    max_score=5.0,
+                ),
+                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+                llm_config=UpdateEvaluatorRequestLlmConfig(
+                    model="gpt-4o-mini",
+                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                    scoring_rubric="1=Poor, 5=Excellent",
+                ),
             )
 
 
@@ -684,14 +1931,18 @@ class AsyncEvaluatorsClient:
             evaluator_id,
             authorization=authorization,
             name=name,
-            description=description,
+            evaluator_slug=evaluator_slug,
+            type=type,
             score_value_type=score_value_type,
-            categorical_choices=categorical_choices,
+            eval_class=eval_class,
+            description=description,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
             configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
             request_options=request_options,
         )
         return _response.data
@@ -701,26 +1952,34 @@ class AsyncEvaluatorsClient:
         evaluator_id: str,
         *,
         authorization: str,
-        log_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
+        inputs: RunEvaluatorRequestInputs,
+        generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
+        evaluation_id: typing.Optional[str] = OMIT,
+        run_evaluator_request_evaluator_id: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RunEvaluatorResponse:
         """
-        Run an evaluator against spans or a dataset to generate scores.
+        Run an evaluator against raw unified inputs. The evaluator ID may include a version suffix such as `evl_abc123:2` to run a specific version.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator Id
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
-        log_ids : typing.Optional[typing.Sequence[str]]
-            Span IDs to evaluate.
+        inputs : RunEvaluatorRequestInputs
+            Unified evaluator inputs.
 
-        dataset_id : typing.Optional[str]
-            Dataset ID to evaluate all spans in.
+        generation_method : typing.Optional[RunEvaluatorRequestGenerationMethod]
+            Optional method override for evaluators that support multiple execution modes.
+
+        evaluation_id : typing.Optional[str]
+            Legacy evaluator ID field. Prefer the path parameter or `evaluator_id`.
+
+        run_evaluator_request_evaluator_id : typing.Optional[str]
+            Optional evaluator ID override. Supports version suffixes such as `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -728,13 +1987,14 @@ class AsyncEvaluatorsClient:
         Returns
         -------
         RunEvaluatorResponse
-            Successful response for Run evaluator
+            Evaluation result.
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
+        from respan.evaluators import RunEvaluatorRequestInputs
 
         client = AsyncRespanClient()
 
@@ -743,6 +2003,13 @@ class AsyncEvaluatorsClient:
             await client.evaluators.run_evaluator(
                 evaluator_id="evaluator_id",
                 authorization="Bearer sk_live_xxxxx",
+                inputs=RunEvaluatorRequestInputs(
+                    input="What is the capital of France?",
+                    output="The capital of France is Paris.",
+                    expected_output="Paris",
+                    metrics={"latency": 0.45, "cost": 0.0023},
+                    metadata={"model": "gpt-4o-mini"},
+                ),
             )
 
 
@@ -751,36 +2018,47 @@ class AsyncEvaluatorsClient:
         _response = await self._raw_client.run_evaluator(
             evaluator_id,
             authorization=authorization,
-            log_ids=log_ids,
-            dataset_id=dataset_id,
+            inputs=inputs,
+            generation_method=generation_method,
+            evaluation_id=evaluation_id,
+            run_evaluator_request_evaluator_id=run_evaluator_request_evaluator_id,
             request_options=request_options,
         )
         return _response.data
 
-    async def list_evaluators(
+    async def list_evaluator_versions(
         self,
+        evaluator_id: str,
         *,
         authorization: str,
-        filters: typing.Optional[Filters] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.List[ListEvaluatorsResponseItem]:
+    ) -> ListEvaluatorVersionsResponse:
         """
-        List evaluators with optional filters.
+        List all versions of an evaluator, ordered newest first. Version `0` is the initial draft; committed versions are returned with `is_read_only: true`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        filters : typing.Optional[Filters]
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        typing.List[ListEvaluatorsResponseItem]
-            List of evaluators.
+        ListEvaluatorVersionsResponse
+            Paginated evaluator versions.
 
         Examples
         --------
@@ -792,14 +2070,461 @@ class AsyncEvaluatorsClient:
 
 
         async def main() -> None:
-            await client.evaluators.list_evaluators(
+            await client.evaluators.list_evaluator_versions(
+                evaluator_id="evaluator_id",
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_evaluators(
-            authorization=authorization, filters=filters, request_options=request_options
+        _response = await self._raw_client.list_evaluator_versions(
+            evaluator_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+        )
+        return _response.data
+
+    async def create_evaluator_version(
+        self,
+        evaluator_id: str,
+        *,
+        authorization: str,
+        name: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
+        score_value_type: typing.Optional[CreateEvaluatorVersionRequestScoreValueType] = OMIT,
+        eval_class: typing.Optional[CreateEvaluatorVersionRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[CreateEvaluatorVersionRequestScoreConfig] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[CreateEvaluatorVersionRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[CreateEvaluatorVersionRequestCodeConfig] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[
+            typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]
+        ] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> CreateEvaluatorVersionResponse:
+        """
+        Commit the current draft and create the next draft version. Supplying only `version_description` commits the existing draft snapshot; supplying configuration fields commits with changes.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        name : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        type : typing.Optional[CreateEvaluatorVersionRequestType]
+
+        score_value_type : typing.Optional[CreateEvaluatorVersionRequestScoreValueType]
+
+        eval_class : typing.Optional[CreateEvaluatorVersionRequestEvalClass]
+            Optional pre-built evaluator template.
+
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[CreateEvaluatorVersionRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+            Passing conditions in the standard Respan filter format.
+
+        llm_config : typing.Optional[CreateEvaluatorVersionRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
+
+        code_config : typing.Optional[CreateEvaluatorVersionRequestCodeConfig]
+            Code grader configuration.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+            Commit message for this version.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        CreateEvaluatorVersionResponse
+            Created evaluator version.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.evaluators.create_evaluator_version(
+                evaluator_id="evaluator_id",
+                authorization="Bearer sk_live_xxxxx",
+                version_description="Ready for production",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.create_evaluator_version(
+            evaluator_id,
+            authorization=authorization,
+            name=name,
+            evaluator_slug=evaluator_slug,
+            type=type,
+            score_value_type=score_value_type,
+            eval_class=eval_class,
+            description=description,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
+            version_description=version_description,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def retrieve_evaluator_version(
+        self,
+        evaluator_id: str,
+        version: int,
+        *,
+        authorization: str,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> RetrieveEvaluatorVersionResponse:
+        """
+        Retrieve a specific evaluator version by version number.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version : int
+            Evaluator version number.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveEvaluatorVersionResponse
+            Evaluator version details.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.evaluators.retrieve_evaluator_version(
+                evaluator_id="evaluator_id",
+                version=1,
+                authorization="Bearer sk_live_xxxxx",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.retrieve_evaluator_version(
+            evaluator_id, version, authorization=authorization, request_options=request_options
+        )
+        return _response.data
+
+    async def replace_evaluator_version(
+        self,
+        evaluator_id: str,
+        version: int,
+        *,
+        authorization: str,
+        name: str,
+        type: ReplaceEvaluatorVersionRequestType,
+        score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        eval_class: typing.Optional[ReplaceEvaluatorVersionRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[
+            typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]
+        ] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceEvaluatorVersionResponse:
+        """
+        Replace a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version : int
+            Evaluator version number.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        name : str
+
+        type : ReplaceEvaluatorVersionRequestType
+
+        score_value_type : ReplaceEvaluatorVersionRequestScoreValueType
+
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        eval_class : typing.Optional[ReplaceEvaluatorVersionRequestEvalClass]
+            Optional pre-built evaluator template.
+
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+            Passing conditions in the standard Respan filter format.
+
+        llm_config : typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
+
+        code_config : typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig]
+            Code grader configuration.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceEvaluatorVersionResponse
+            Updated evaluator version.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+        from respan.evaluators import (
+            ReplaceEvaluatorVersionRequestLlmConfig,
+            ReplaceEvaluatorVersionRequestScoreConfig,
+        )
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.evaluators.replace_evaluator_version(
+                evaluator_id="evaluator_id",
+                version=1,
+                authorization="Bearer sk_live_xxxxx",
+                name="Response Quality",
+                evaluator_slug="response_quality",
+                type="llm",
+                score_value_type="numerical",
+                eval_class="keywordsai_custom_llm",
+                score_config=ReplaceEvaluatorVersionRequestScoreConfig(
+                    min_score=1.0,
+                    max_score=5.0,
+                ),
+                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+                llm_config=ReplaceEvaluatorVersionRequestLlmConfig(
+                    model="gpt-4o-mini",
+                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                    scoring_rubric="1=Poor, 5=Excellent",
+                ),
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.replace_evaluator_version(
+            evaluator_id,
+            version,
+            authorization=authorization,
+            name=name,
+            type=type,
+            score_value_type=score_value_type,
+            evaluator_slug=evaluator_slug,
+            eval_class=eval_class,
+            description=description,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def update_evaluator_version(
+        self,
+        evaluator_id: str,
+        version: int,
+        *,
+        authorization: str,
+        name: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
+        score_value_type: typing.Optional[UpdateEvaluatorVersionRequestScoreValueType] = OMIT,
+        eval_class: typing.Optional[UpdateEvaluatorVersionRequestEvalClass] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        score_config: typing.Optional[UpdateEvaluatorVersionRequestScoreConfig] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[UpdateEvaluatorVersionRequestLlmConfig] = OMIT,
+        code_config: typing.Optional[UpdateEvaluatorVersionRequestCodeConfig] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        categorical_choices: typing.Optional[
+            typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]
+        ] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> UpdateEvaluatorVersionResponse:
+        """
+        Partially update a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+
+        Parameters
+        ----------
+        evaluator_id : str
+            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version : int
+            Evaluator version number.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        name : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
+            Organization-scoped evaluator slug.
+
+        type : typing.Optional[UpdateEvaluatorVersionRequestType]
+
+        score_value_type : typing.Optional[UpdateEvaluatorVersionRequestScoreValueType]
+
+        eval_class : typing.Optional[UpdateEvaluatorVersionRequestEvalClass]
+            Optional pre-built evaluator template.
+
+        description : typing.Optional[str]
+
+        score_config : typing.Optional[UpdateEvaluatorVersionRequestScoreConfig]
+            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+            Passing conditions in the standard Respan filter format.
+
+        llm_config : typing.Optional[UpdateEvaluatorVersionRequestLlmConfig]
+            LLM grader configuration. The backend validates this against the selected evaluator form.
+
+        code_config : typing.Optional[UpdateEvaluatorVersionRequestCodeConfig]
+            Code grader configuration.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+
+        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]]
+
+        starred : typing.Optional[bool]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        UpdateEvaluatorVersionResponse
+            Updated evaluator version.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+        from respan.evaluators import (
+            UpdateEvaluatorVersionRequestLlmConfig,
+            UpdateEvaluatorVersionRequestScoreConfig,
+        )
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.evaluators.update_evaluator_version(
+                evaluator_id="evaluator_id",
+                version=1,
+                authorization="Bearer sk_live_xxxxx",
+                name="Response Quality",
+                evaluator_slug="response_quality",
+                type="llm",
+                score_value_type="numerical",
+                eval_class="keywordsai_custom_llm",
+                score_config=UpdateEvaluatorVersionRequestScoreConfig(
+                    min_score=1.0,
+                    max_score=5.0,
+                ),
+                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
+                llm_config=UpdateEvaluatorVersionRequestLlmConfig(
+                    model="gpt-4o-mini",
+                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
+                    scoring_rubric="1=Poor, 5=Excellent",
+                ),
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.update_evaluator_version(
+            evaluator_id,
+            version,
+            authorization=authorization,
+            name=name,
+            evaluator_slug=evaluator_slug,
+            type=type,
+            score_value_type=score_value_type,
+            eval_class=eval_class,
+            description=description,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
+            starred=starred,
+            request_options=request_options,
         )
         return _response.data

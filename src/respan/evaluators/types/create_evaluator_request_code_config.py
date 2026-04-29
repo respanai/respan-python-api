@@ -8,12 +8,12 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 class CreateEvaluatorRequestCodeConfig(UniversalBaseModel):
     """
-    Code automation config.
+    Code grader configuration.
     """
 
     eval_code_snippet: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Python code with `main(eval_inputs)` function returning the score.
+    Python code defining `main(eval_inputs)`.
     """
 
     if IS_PYDANTIC_V2:

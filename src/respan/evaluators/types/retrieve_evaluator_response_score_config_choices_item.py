@@ -4,11 +4,14 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .retrieve_evaluator_response_score_config_choices_item_value import (
+    RetrieveEvaluatorResponseScoreConfigChoicesItemValue,
+)
 
 
 class RetrieveEvaluatorResponseScoreConfigChoicesItem(UniversalBaseModel):
-    name: typing.Optional[str] = None
-    value: typing.Optional[int] = None
+    name: str
+    value: RetrieveEvaluatorResponseScoreConfigChoicesItemValue
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

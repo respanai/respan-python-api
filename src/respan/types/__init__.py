@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
     from .filter_value import FilterValue
     from .filter_value_operator import FilterValueOperator
     from .filters import Filters
+    from .forbidden_error_body import ForbiddenErrorBody
     from .internal_server_error_body import InternalServerErrorBody
     from .not_found_error_body import NotFoundErrorBody
     from .service_unavailable_error_body import ServiceUnavailableErrorBody
@@ -26,6 +27,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "FilterValue": ".filter_value",
     "FilterValueOperator": ".filter_value_operator",
     "Filters": ".filters",
+    "ForbiddenErrorBody": ".forbidden_error_body",
     "InternalServerErrorBody": ".internal_server_error_body",
     "NotFoundErrorBody": ".not_found_error_body",
     "ServiceUnavailableErrorBody": ".service_unavailable_error_body",
@@ -64,6 +66,7 @@ __all__ = [
     "FilterValue",
     "FilterValueOperator",
     "Filters",
+    "ForbiddenErrorBody",
     "InternalServerErrorBody",
     "NotFoundErrorBody",
     "ServiceUnavailableErrorBody",

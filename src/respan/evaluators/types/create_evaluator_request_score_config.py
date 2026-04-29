@@ -9,23 +9,12 @@ from .create_evaluator_request_score_config_choices_item import CreateEvaluatorR
 
 class CreateEvaluatorRequestScoreConfig(UniversalBaseModel):
     """
-    Score type configuration. For numerical/percentage: `min_score`, `max_score`. For single/multi select: `choices` array.
+    Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
     """
 
-    min_score: typing.Optional[float] = pydantic.Field(default=None)
-    """
-    Minimum score.
-    """
-
-    max_score: typing.Optional[float] = pydantic.Field(default=None)
-    """
-    Maximum score.
-    """
-
-    choices: typing.Optional[typing.List[CreateEvaluatorRequestScoreConfigChoicesItem]] = pydantic.Field(default=None)
-    """
-    Choices for select types.
-    """
+    min_score: typing.Optional[float] = None
+    max_score: typing.Optional[float] = None
+    choices: typing.Optional[typing.List[CreateEvaluatorRequestScoreConfigChoicesItem]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

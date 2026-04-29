@@ -10,8 +10,8 @@ from .retrieve_evaluator_response_categorical_choices_item_value import (
 
 
 class RetrieveEvaluatorResponseCategoricalChoicesItem(UniversalBaseModel):
-    name: typing.Optional[str] = None
-    value: typing.Optional[RetrieveEvaluatorResponseCategoricalChoicesItemValue] = None
+    name: str
+    value: RetrieveEvaluatorResponseCategoricalChoicesItemValue
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

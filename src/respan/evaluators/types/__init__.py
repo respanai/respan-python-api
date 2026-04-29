@@ -7,86 +7,582 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .create_evaluator_request_categorical_choices_item import CreateEvaluatorRequestCategoricalChoicesItem
+    from .create_evaluator_request_categorical_choices_item_value import (
+        CreateEvaluatorRequestCategoricalChoicesItemValue,
+    )
     from .create_evaluator_request_code_config import CreateEvaluatorRequestCodeConfig
-    from .create_evaluator_request_configurations import CreateEvaluatorRequestConfigurations
     from .create_evaluator_request_eval_class import CreateEvaluatorRequestEvalClass
     from .create_evaluator_request_llm_config import CreateEvaluatorRequestLlmConfig
     from .create_evaluator_request_score_config import CreateEvaluatorRequestScoreConfig
     from .create_evaluator_request_score_config_choices_item import CreateEvaluatorRequestScoreConfigChoicesItem
+    from .create_evaluator_request_score_config_choices_item_value import (
+        CreateEvaluatorRequestScoreConfigChoicesItemValue,
+    )
     from .create_evaluator_request_score_value_type import CreateEvaluatorRequestScoreValueType
     from .create_evaluator_request_type import CreateEvaluatorRequestType
     from .create_evaluator_response import CreateEvaluatorResponse
-    from .list_evaluators_response_item import ListEvaluatorsResponseItem
+    from .create_evaluator_response_categorical_choices_item import CreateEvaluatorResponseCategoricalChoicesItem
+    from .create_evaluator_response_categorical_choices_item_value import (
+        CreateEvaluatorResponseCategoricalChoicesItemValue,
+    )
+    from .create_evaluator_response_code_config import CreateEvaluatorResponseCodeConfig
+    from .create_evaluator_response_created_by import CreateEvaluatorResponseCreatedBy
+    from .create_evaluator_response_editor import CreateEvaluatorResponseEditor
+    from .create_evaluator_response_eval_class import CreateEvaluatorResponseEvalClass
+    from .create_evaluator_response_llm_config import CreateEvaluatorResponseLlmConfig
+    from .create_evaluator_response_score_config import CreateEvaluatorResponseScoreConfig
+    from .create_evaluator_response_score_config_choices_item import CreateEvaluatorResponseScoreConfigChoicesItem
+    from .create_evaluator_response_score_config_choices_item_value import (
+        CreateEvaluatorResponseScoreConfigChoicesItemValue,
+    )
+    from .create_evaluator_response_score_value_type import CreateEvaluatorResponseScoreValueType
+    from .create_evaluator_response_tags_item import CreateEvaluatorResponseTagsItem
+    from .create_evaluator_response_type import CreateEvaluatorResponseType
+    from .create_evaluator_response_updated_by import CreateEvaluatorResponseUpdatedBy
+    from .create_evaluator_version_request_categorical_choices_item import (
+        CreateEvaluatorVersionRequestCategoricalChoicesItem,
+    )
+    from .create_evaluator_version_request_categorical_choices_item_value import (
+        CreateEvaluatorVersionRequestCategoricalChoicesItemValue,
+    )
+    from .create_evaluator_version_request_code_config import CreateEvaluatorVersionRequestCodeConfig
+    from .create_evaluator_version_request_eval_class import CreateEvaluatorVersionRequestEvalClass
+    from .create_evaluator_version_request_llm_config import CreateEvaluatorVersionRequestLlmConfig
+    from .create_evaluator_version_request_score_config import CreateEvaluatorVersionRequestScoreConfig
+    from .create_evaluator_version_request_score_config_choices_item import (
+        CreateEvaluatorVersionRequestScoreConfigChoicesItem,
+    )
+    from .create_evaluator_version_request_score_config_choices_item_value import (
+        CreateEvaluatorVersionRequestScoreConfigChoicesItemValue,
+    )
+    from .create_evaluator_version_request_score_value_type import CreateEvaluatorVersionRequestScoreValueType
+    from .create_evaluator_version_request_type import CreateEvaluatorVersionRequestType
+    from .create_evaluator_version_response import CreateEvaluatorVersionResponse
+    from .create_evaluator_version_response_categorical_choices_item import (
+        CreateEvaluatorVersionResponseCategoricalChoicesItem,
+    )
+    from .create_evaluator_version_response_categorical_choices_item_value import (
+        CreateEvaluatorVersionResponseCategoricalChoicesItemValue,
+    )
+    from .create_evaluator_version_response_code_config import CreateEvaluatorVersionResponseCodeConfig
+    from .create_evaluator_version_response_created_by import CreateEvaluatorVersionResponseCreatedBy
+    from .create_evaluator_version_response_eval_class import CreateEvaluatorVersionResponseEvalClass
+    from .create_evaluator_version_response_llm_config import CreateEvaluatorVersionResponseLlmConfig
+    from .create_evaluator_version_response_score_config import CreateEvaluatorVersionResponseScoreConfig
+    from .create_evaluator_version_response_score_config_choices_item import (
+        CreateEvaluatorVersionResponseScoreConfigChoicesItem,
+    )
+    from .create_evaluator_version_response_score_config_choices_item_value import (
+        CreateEvaluatorVersionResponseScoreConfigChoicesItemValue,
+    )
+    from .create_evaluator_version_response_score_value_type import CreateEvaluatorVersionResponseScoreValueType
+    from .create_evaluator_version_response_type import CreateEvaluatorVersionResponseType
+    from .create_evaluator_version_response_updated_by import CreateEvaluatorVersionResponseUpdatedBy
+    from .get_evaluators_summary_response import GetEvaluatorsSummaryResponse
+    from .get_filtered_evaluators_summary_response import GetFilteredEvaluatorsSummaryResponse
+    from .list_evaluator_versions_response import ListEvaluatorVersionsResponse
+    from .list_evaluator_versions_response_results_item import ListEvaluatorVersionsResponseResultsItem
+    from .list_evaluator_versions_response_results_item_created_by import (
+        ListEvaluatorVersionsResponseResultsItemCreatedBy,
+    )
+    from .list_evaluator_versions_response_results_item_score_value_type import (
+        ListEvaluatorVersionsResponseResultsItemScoreValueType,
+    )
+    from .list_evaluator_versions_response_results_item_type import ListEvaluatorVersionsResponseResultsItemType
+    from .list_evaluators_response import ListEvaluatorsResponse
+    from .list_evaluators_response_results_item import ListEvaluatorsResponseResultsItem
+    from .list_evaluators_response_results_item_categorical_choices_item import (
+        ListEvaluatorsResponseResultsItemCategoricalChoicesItem,
+    )
+    from .list_evaluators_response_results_item_categorical_choices_item_value import (
+        ListEvaluatorsResponseResultsItemCategoricalChoicesItemValue,
+    )
+    from .list_evaluators_response_results_item_code_config import ListEvaluatorsResponseResultsItemCodeConfig
+    from .list_evaluators_response_results_item_created_by import ListEvaluatorsResponseResultsItemCreatedBy
+    from .list_evaluators_response_results_item_editor import ListEvaluatorsResponseResultsItemEditor
+    from .list_evaluators_response_results_item_eval_class import ListEvaluatorsResponseResultsItemEvalClass
+    from .list_evaluators_response_results_item_llm_config import ListEvaluatorsResponseResultsItemLlmConfig
+    from .list_evaluators_response_results_item_score_config import ListEvaluatorsResponseResultsItemScoreConfig
+    from .list_evaluators_response_results_item_score_config_choices_item import (
+        ListEvaluatorsResponseResultsItemScoreConfigChoicesItem,
+    )
+    from .list_evaluators_response_results_item_score_config_choices_item_value import (
+        ListEvaluatorsResponseResultsItemScoreConfigChoicesItemValue,
+    )
+    from .list_evaluators_response_results_item_score_value_type import ListEvaluatorsResponseResultsItemScoreValueType
+    from .list_evaluators_response_results_item_tags_item import ListEvaluatorsResponseResultsItemTagsItem
+    from .list_evaluators_response_results_item_type import ListEvaluatorsResponseResultsItemType
+    from .list_evaluators_response_results_item_updated_by import ListEvaluatorsResponseResultsItemUpdatedBy
+    from .list_evaluators_root_response import ListEvaluatorsRootResponse
+    from .list_evaluators_root_response_results_item import ListEvaluatorsRootResponseResultsItem
+    from .list_evaluators_root_response_results_item_categorical_choices_item import (
+        ListEvaluatorsRootResponseResultsItemCategoricalChoicesItem,
+    )
+    from .list_evaluators_root_response_results_item_categorical_choices_item_value import (
+        ListEvaluatorsRootResponseResultsItemCategoricalChoicesItemValue,
+    )
+    from .list_evaluators_root_response_results_item_code_config import ListEvaluatorsRootResponseResultsItemCodeConfig
+    from .list_evaluators_root_response_results_item_created_by import ListEvaluatorsRootResponseResultsItemCreatedBy
+    from .list_evaluators_root_response_results_item_editor import ListEvaluatorsRootResponseResultsItemEditor
+    from .list_evaluators_root_response_results_item_eval_class import ListEvaluatorsRootResponseResultsItemEvalClass
+    from .list_evaluators_root_response_results_item_llm_config import ListEvaluatorsRootResponseResultsItemLlmConfig
+    from .list_evaluators_root_response_results_item_score_config import (
+        ListEvaluatorsRootResponseResultsItemScoreConfig,
+    )
+    from .list_evaluators_root_response_results_item_score_config_choices_item import (
+        ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItem,
+    )
+    from .list_evaluators_root_response_results_item_score_config_choices_item_value import (
+        ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItemValue,
+    )
+    from .list_evaluators_root_response_results_item_score_value_type import (
+        ListEvaluatorsRootResponseResultsItemScoreValueType,
+    )
+    from .list_evaluators_root_response_results_item_tags_item import ListEvaluatorsRootResponseResultsItemTagsItem
+    from .list_evaluators_root_response_results_item_type import ListEvaluatorsRootResponseResultsItemType
+    from .list_evaluators_root_response_results_item_updated_by import ListEvaluatorsRootResponseResultsItemUpdatedBy
+    from .replace_evaluator_request_categorical_choices_item import ReplaceEvaluatorRequestCategoricalChoicesItem
+    from .replace_evaluator_request_categorical_choices_item_value import (
+        ReplaceEvaluatorRequestCategoricalChoicesItemValue,
+    )
+    from .replace_evaluator_request_code_config import ReplaceEvaluatorRequestCodeConfig
+    from .replace_evaluator_request_eval_class import ReplaceEvaluatorRequestEvalClass
+    from .replace_evaluator_request_llm_config import ReplaceEvaluatorRequestLlmConfig
+    from .replace_evaluator_request_score_config import ReplaceEvaluatorRequestScoreConfig
+    from .replace_evaluator_request_score_config_choices_item import ReplaceEvaluatorRequestScoreConfigChoicesItem
+    from .replace_evaluator_request_score_config_choices_item_value import (
+        ReplaceEvaluatorRequestScoreConfigChoicesItemValue,
+    )
+    from .replace_evaluator_request_score_value_type import ReplaceEvaluatorRequestScoreValueType
+    from .replace_evaluator_request_type import ReplaceEvaluatorRequestType
+    from .replace_evaluator_response import ReplaceEvaluatorResponse
+    from .replace_evaluator_response_categorical_choices_item import ReplaceEvaluatorResponseCategoricalChoicesItem
+    from .replace_evaluator_response_categorical_choices_item_value import (
+        ReplaceEvaluatorResponseCategoricalChoicesItemValue,
+    )
+    from .replace_evaluator_response_code_config import ReplaceEvaluatorResponseCodeConfig
+    from .replace_evaluator_response_created_by import ReplaceEvaluatorResponseCreatedBy
+    from .replace_evaluator_response_editor import ReplaceEvaluatorResponseEditor
+    from .replace_evaluator_response_eval_class import ReplaceEvaluatorResponseEvalClass
+    from .replace_evaluator_response_llm_config import ReplaceEvaluatorResponseLlmConfig
+    from .replace_evaluator_response_score_config import ReplaceEvaluatorResponseScoreConfig
+    from .replace_evaluator_response_score_config_choices_item import ReplaceEvaluatorResponseScoreConfigChoicesItem
+    from .replace_evaluator_response_score_config_choices_item_value import (
+        ReplaceEvaluatorResponseScoreConfigChoicesItemValue,
+    )
+    from .replace_evaluator_response_score_value_type import ReplaceEvaluatorResponseScoreValueType
+    from .replace_evaluator_response_tags_item import ReplaceEvaluatorResponseTagsItem
+    from .replace_evaluator_response_type import ReplaceEvaluatorResponseType
+    from .replace_evaluator_response_updated_by import ReplaceEvaluatorResponseUpdatedBy
+    from .replace_evaluator_version_request_categorical_choices_item import (
+        ReplaceEvaluatorVersionRequestCategoricalChoicesItem,
+    )
+    from .replace_evaluator_version_request_categorical_choices_item_value import (
+        ReplaceEvaluatorVersionRequestCategoricalChoicesItemValue,
+    )
+    from .replace_evaluator_version_request_code_config import ReplaceEvaluatorVersionRequestCodeConfig
+    from .replace_evaluator_version_request_eval_class import ReplaceEvaluatorVersionRequestEvalClass
+    from .replace_evaluator_version_request_llm_config import ReplaceEvaluatorVersionRequestLlmConfig
+    from .replace_evaluator_version_request_score_config import ReplaceEvaluatorVersionRequestScoreConfig
+    from .replace_evaluator_version_request_score_config_choices_item import (
+        ReplaceEvaluatorVersionRequestScoreConfigChoicesItem,
+    )
+    from .replace_evaluator_version_request_score_config_choices_item_value import (
+        ReplaceEvaluatorVersionRequestScoreConfigChoicesItemValue,
+    )
+    from .replace_evaluator_version_request_score_value_type import ReplaceEvaluatorVersionRequestScoreValueType
+    from .replace_evaluator_version_request_type import ReplaceEvaluatorVersionRequestType
+    from .replace_evaluator_version_response import ReplaceEvaluatorVersionResponse
+    from .replace_evaluator_version_response_categorical_choices_item import (
+        ReplaceEvaluatorVersionResponseCategoricalChoicesItem,
+    )
+    from .replace_evaluator_version_response_categorical_choices_item_value import (
+        ReplaceEvaluatorVersionResponseCategoricalChoicesItemValue,
+    )
+    from .replace_evaluator_version_response_code_config import ReplaceEvaluatorVersionResponseCodeConfig
+    from .replace_evaluator_version_response_created_by import ReplaceEvaluatorVersionResponseCreatedBy
+    from .replace_evaluator_version_response_eval_class import ReplaceEvaluatorVersionResponseEvalClass
+    from .replace_evaluator_version_response_llm_config import ReplaceEvaluatorVersionResponseLlmConfig
+    from .replace_evaluator_version_response_score_config import ReplaceEvaluatorVersionResponseScoreConfig
+    from .replace_evaluator_version_response_score_config_choices_item import (
+        ReplaceEvaluatorVersionResponseScoreConfigChoicesItem,
+    )
+    from .replace_evaluator_version_response_score_config_choices_item_value import (
+        ReplaceEvaluatorVersionResponseScoreConfigChoicesItemValue,
+    )
+    from .replace_evaluator_version_response_score_value_type import ReplaceEvaluatorVersionResponseScoreValueType
+    from .replace_evaluator_version_response_type import ReplaceEvaluatorVersionResponseType
+    from .replace_evaluator_version_response_updated_by import ReplaceEvaluatorVersionResponseUpdatedBy
     from .retrieve_evaluator_response import RetrieveEvaluatorResponse
     from .retrieve_evaluator_response_categorical_choices_item import RetrieveEvaluatorResponseCategoricalChoicesItem
     from .retrieve_evaluator_response_categorical_choices_item_value import (
         RetrieveEvaluatorResponseCategoricalChoicesItemValue,
     )
-    from .retrieve_evaluator_response_configurations import RetrieveEvaluatorResponseConfigurations
+    from .retrieve_evaluator_response_code_config import RetrieveEvaluatorResponseCodeConfig
     from .retrieve_evaluator_response_created_by import RetrieveEvaluatorResponseCreatedBy
+    from .retrieve_evaluator_response_editor import RetrieveEvaluatorResponseEditor
+    from .retrieve_evaluator_response_eval_class import RetrieveEvaluatorResponseEvalClass
     from .retrieve_evaluator_response_llm_config import RetrieveEvaluatorResponseLlmConfig
-    from .retrieve_evaluator_response_passing_conditions import RetrieveEvaluatorResponsePassingConditions
-    from .retrieve_evaluator_response_passing_conditions_primary_score import (
-        RetrieveEvaluatorResponsePassingConditionsPrimaryScore,
-    )
     from .retrieve_evaluator_response_score_config import RetrieveEvaluatorResponseScoreConfig
     from .retrieve_evaluator_response_score_config_choices_item import RetrieveEvaluatorResponseScoreConfigChoicesItem
+    from .retrieve_evaluator_response_score_config_choices_item_value import (
+        RetrieveEvaluatorResponseScoreConfigChoicesItemValue,
+    )
+    from .retrieve_evaluator_response_score_value_type import RetrieveEvaluatorResponseScoreValueType
+    from .retrieve_evaluator_response_tags_item import RetrieveEvaluatorResponseTagsItem
+    from .retrieve_evaluator_response_type import RetrieveEvaluatorResponseType
     from .retrieve_evaluator_response_updated_by import RetrieveEvaluatorResponseUpdatedBy
+    from .retrieve_evaluator_version_response import RetrieveEvaluatorVersionResponse
+    from .retrieve_evaluator_version_response_categorical_choices_item import (
+        RetrieveEvaluatorVersionResponseCategoricalChoicesItem,
+    )
+    from .retrieve_evaluator_version_response_categorical_choices_item_value import (
+        RetrieveEvaluatorVersionResponseCategoricalChoicesItemValue,
+    )
+    from .retrieve_evaluator_version_response_code_config import RetrieveEvaluatorVersionResponseCodeConfig
+    from .retrieve_evaluator_version_response_created_by import RetrieveEvaluatorVersionResponseCreatedBy
+    from .retrieve_evaluator_version_response_eval_class import RetrieveEvaluatorVersionResponseEvalClass
+    from .retrieve_evaluator_version_response_llm_config import RetrieveEvaluatorVersionResponseLlmConfig
+    from .retrieve_evaluator_version_response_score_config import RetrieveEvaluatorVersionResponseScoreConfig
+    from .retrieve_evaluator_version_response_score_config_choices_item import (
+        RetrieveEvaluatorVersionResponseScoreConfigChoicesItem,
+    )
+    from .retrieve_evaluator_version_response_score_config_choices_item_value import (
+        RetrieveEvaluatorVersionResponseScoreConfigChoicesItemValue,
+    )
+    from .retrieve_evaluator_version_response_score_value_type import RetrieveEvaluatorVersionResponseScoreValueType
+    from .retrieve_evaluator_version_response_type import RetrieveEvaluatorVersionResponseType
+    from .retrieve_evaluator_version_response_updated_by import RetrieveEvaluatorVersionResponseUpdatedBy
+    from .run_evaluator_request_generation_method import RunEvaluatorRequestGenerationMethod
+    from .run_evaluator_request_inputs import RunEvaluatorRequestInputs
     from .run_evaluator_response import RunEvaluatorResponse
+    from .run_evaluator_response_evaluator import RunEvaluatorResponseEvaluator
+    from .run_evaluator_response_evaluator_categorical_choices_item import (
+        RunEvaluatorResponseEvaluatorCategoricalChoicesItem,
+    )
+    from .run_evaluator_response_evaluator_categorical_choices_item_value import (
+        RunEvaluatorResponseEvaluatorCategoricalChoicesItemValue,
+    )
+    from .run_evaluator_response_evaluator_code_config import RunEvaluatorResponseEvaluatorCodeConfig
+    from .run_evaluator_response_evaluator_created_by import RunEvaluatorResponseEvaluatorCreatedBy
+    from .run_evaluator_response_evaluator_editor import RunEvaluatorResponseEvaluatorEditor
+    from .run_evaluator_response_evaluator_eval_class import RunEvaluatorResponseEvaluatorEvalClass
+    from .run_evaluator_response_evaluator_llm_config import RunEvaluatorResponseEvaluatorLlmConfig
+    from .run_evaluator_response_evaluator_score_config import RunEvaluatorResponseEvaluatorScoreConfig
+    from .run_evaluator_response_evaluator_score_config_choices_item import (
+        RunEvaluatorResponseEvaluatorScoreConfigChoicesItem,
+    )
+    from .run_evaluator_response_evaluator_score_config_choices_item_value import (
+        RunEvaluatorResponseEvaluatorScoreConfigChoicesItemValue,
+    )
+    from .run_evaluator_response_evaluator_score_value_type import RunEvaluatorResponseEvaluatorScoreValueType
+    from .run_evaluator_response_evaluator_tags_item import RunEvaluatorResponseEvaluatorTagsItem
+    from .run_evaluator_response_evaluator_type import RunEvaluatorResponseEvaluatorType
+    from .run_evaluator_response_evaluator_updated_by import RunEvaluatorResponseEvaluatorUpdatedBy
     from .run_evaluator_response_inputs import RunEvaluatorResponseInputs
-    from .run_evaluator_response_inputs_input import RunEvaluatorResponseInputsInput
-    from .run_evaluator_response_inputs_metadata import RunEvaluatorResponseInputsMetadata
-    from .run_evaluator_response_inputs_metrics import RunEvaluatorResponseInputsMetrics
-    from .run_evaluator_response_inputs_output import RunEvaluatorResponseInputsOutput
+    from .update_evaluator_request_categorical_choices_item import UpdateEvaluatorRequestCategoricalChoicesItem
+    from .update_evaluator_request_categorical_choices_item_value import (
+        UpdateEvaluatorRequestCategoricalChoicesItemValue,
+    )
+    from .update_evaluator_request_code_config import UpdateEvaluatorRequestCodeConfig
+    from .update_evaluator_request_eval_class import UpdateEvaluatorRequestEvalClass
+    from .update_evaluator_request_llm_config import UpdateEvaluatorRequestLlmConfig
+    from .update_evaluator_request_score_config import UpdateEvaluatorRequestScoreConfig
+    from .update_evaluator_request_score_config_choices_item import UpdateEvaluatorRequestScoreConfigChoicesItem
+    from .update_evaluator_request_score_config_choices_item_value import (
+        UpdateEvaluatorRequestScoreConfigChoicesItemValue,
+    )
     from .update_evaluator_request_score_value_type import UpdateEvaluatorRequestScoreValueType
+    from .update_evaluator_request_type import UpdateEvaluatorRequestType
     from .update_evaluator_response import UpdateEvaluatorResponse
     from .update_evaluator_response_categorical_choices_item import UpdateEvaluatorResponseCategoricalChoicesItem
     from .update_evaluator_response_categorical_choices_item_value import (
         UpdateEvaluatorResponseCategoricalChoicesItemValue,
     )
-    from .update_evaluator_response_configurations import UpdateEvaluatorResponseConfigurations
-    from .update_evaluator_response_configurations_model_options import (
-        UpdateEvaluatorResponseConfigurationsModelOptions,
-    )
+    from .update_evaluator_response_code_config import UpdateEvaluatorResponseCodeConfig
     from .update_evaluator_response_created_by import UpdateEvaluatorResponseCreatedBy
+    from .update_evaluator_response_editor import UpdateEvaluatorResponseEditor
+    from .update_evaluator_response_eval_class import UpdateEvaluatorResponseEvalClass
+    from .update_evaluator_response_llm_config import UpdateEvaluatorResponseLlmConfig
+    from .update_evaluator_response_score_config import UpdateEvaluatorResponseScoreConfig
+    from .update_evaluator_response_score_config_choices_item import UpdateEvaluatorResponseScoreConfigChoicesItem
+    from .update_evaluator_response_score_config_choices_item_value import (
+        UpdateEvaluatorResponseScoreConfigChoicesItemValue,
+    )
+    from .update_evaluator_response_score_value_type import UpdateEvaluatorResponseScoreValueType
+    from .update_evaluator_response_tags_item import UpdateEvaluatorResponseTagsItem
+    from .update_evaluator_response_type import UpdateEvaluatorResponseType
     from .update_evaluator_response_updated_by import UpdateEvaluatorResponseUpdatedBy
+    from .update_evaluator_version_request_categorical_choices_item import (
+        UpdateEvaluatorVersionRequestCategoricalChoicesItem,
+    )
+    from .update_evaluator_version_request_categorical_choices_item_value import (
+        UpdateEvaluatorVersionRequestCategoricalChoicesItemValue,
+    )
+    from .update_evaluator_version_request_code_config import UpdateEvaluatorVersionRequestCodeConfig
+    from .update_evaluator_version_request_eval_class import UpdateEvaluatorVersionRequestEvalClass
+    from .update_evaluator_version_request_llm_config import UpdateEvaluatorVersionRequestLlmConfig
+    from .update_evaluator_version_request_score_config import UpdateEvaluatorVersionRequestScoreConfig
+    from .update_evaluator_version_request_score_config_choices_item import (
+        UpdateEvaluatorVersionRequestScoreConfigChoicesItem,
+    )
+    from .update_evaluator_version_request_score_config_choices_item_value import (
+        UpdateEvaluatorVersionRequestScoreConfigChoicesItemValue,
+    )
+    from .update_evaluator_version_request_score_value_type import UpdateEvaluatorVersionRequestScoreValueType
+    from .update_evaluator_version_request_type import UpdateEvaluatorVersionRequestType
+    from .update_evaluator_version_response import UpdateEvaluatorVersionResponse
+    from .update_evaluator_version_response_categorical_choices_item import (
+        UpdateEvaluatorVersionResponseCategoricalChoicesItem,
+    )
+    from .update_evaluator_version_response_categorical_choices_item_value import (
+        UpdateEvaluatorVersionResponseCategoricalChoicesItemValue,
+    )
+    from .update_evaluator_version_response_code_config import UpdateEvaluatorVersionResponseCodeConfig
+    from .update_evaluator_version_response_created_by import UpdateEvaluatorVersionResponseCreatedBy
+    from .update_evaluator_version_response_eval_class import UpdateEvaluatorVersionResponseEvalClass
+    from .update_evaluator_version_response_llm_config import UpdateEvaluatorVersionResponseLlmConfig
+    from .update_evaluator_version_response_score_config import UpdateEvaluatorVersionResponseScoreConfig
+    from .update_evaluator_version_response_score_config_choices_item import (
+        UpdateEvaluatorVersionResponseScoreConfigChoicesItem,
+    )
+    from .update_evaluator_version_response_score_config_choices_item_value import (
+        UpdateEvaluatorVersionResponseScoreConfigChoicesItemValue,
+    )
+    from .update_evaluator_version_response_score_value_type import UpdateEvaluatorVersionResponseScoreValueType
+    from .update_evaluator_version_response_type import UpdateEvaluatorVersionResponseType
+    from .update_evaluator_version_response_updated_by import UpdateEvaluatorVersionResponseUpdatedBy
 _dynamic_imports: typing.Dict[str, str] = {
     "CreateEvaluatorRequestCategoricalChoicesItem": ".create_evaluator_request_categorical_choices_item",
+    "CreateEvaluatorRequestCategoricalChoicesItemValue": ".create_evaluator_request_categorical_choices_item_value",
     "CreateEvaluatorRequestCodeConfig": ".create_evaluator_request_code_config",
-    "CreateEvaluatorRequestConfigurations": ".create_evaluator_request_configurations",
     "CreateEvaluatorRequestEvalClass": ".create_evaluator_request_eval_class",
     "CreateEvaluatorRequestLlmConfig": ".create_evaluator_request_llm_config",
     "CreateEvaluatorRequestScoreConfig": ".create_evaluator_request_score_config",
     "CreateEvaluatorRequestScoreConfigChoicesItem": ".create_evaluator_request_score_config_choices_item",
+    "CreateEvaluatorRequestScoreConfigChoicesItemValue": ".create_evaluator_request_score_config_choices_item_value",
     "CreateEvaluatorRequestScoreValueType": ".create_evaluator_request_score_value_type",
     "CreateEvaluatorRequestType": ".create_evaluator_request_type",
     "CreateEvaluatorResponse": ".create_evaluator_response",
-    "ListEvaluatorsResponseItem": ".list_evaluators_response_item",
+    "CreateEvaluatorResponseCategoricalChoicesItem": ".create_evaluator_response_categorical_choices_item",
+    "CreateEvaluatorResponseCategoricalChoicesItemValue": ".create_evaluator_response_categorical_choices_item_value",
+    "CreateEvaluatorResponseCodeConfig": ".create_evaluator_response_code_config",
+    "CreateEvaluatorResponseCreatedBy": ".create_evaluator_response_created_by",
+    "CreateEvaluatorResponseEditor": ".create_evaluator_response_editor",
+    "CreateEvaluatorResponseEvalClass": ".create_evaluator_response_eval_class",
+    "CreateEvaluatorResponseLlmConfig": ".create_evaluator_response_llm_config",
+    "CreateEvaluatorResponseScoreConfig": ".create_evaluator_response_score_config",
+    "CreateEvaluatorResponseScoreConfigChoicesItem": ".create_evaluator_response_score_config_choices_item",
+    "CreateEvaluatorResponseScoreConfigChoicesItemValue": ".create_evaluator_response_score_config_choices_item_value",
+    "CreateEvaluatorResponseScoreValueType": ".create_evaluator_response_score_value_type",
+    "CreateEvaluatorResponseTagsItem": ".create_evaluator_response_tags_item",
+    "CreateEvaluatorResponseType": ".create_evaluator_response_type",
+    "CreateEvaluatorResponseUpdatedBy": ".create_evaluator_response_updated_by",
+    "CreateEvaluatorVersionRequestCategoricalChoicesItem": ".create_evaluator_version_request_categorical_choices_item",
+    "CreateEvaluatorVersionRequestCategoricalChoicesItemValue": ".create_evaluator_version_request_categorical_choices_item_value",
+    "CreateEvaluatorVersionRequestCodeConfig": ".create_evaluator_version_request_code_config",
+    "CreateEvaluatorVersionRequestEvalClass": ".create_evaluator_version_request_eval_class",
+    "CreateEvaluatorVersionRequestLlmConfig": ".create_evaluator_version_request_llm_config",
+    "CreateEvaluatorVersionRequestScoreConfig": ".create_evaluator_version_request_score_config",
+    "CreateEvaluatorVersionRequestScoreConfigChoicesItem": ".create_evaluator_version_request_score_config_choices_item",
+    "CreateEvaluatorVersionRequestScoreConfigChoicesItemValue": ".create_evaluator_version_request_score_config_choices_item_value",
+    "CreateEvaluatorVersionRequestScoreValueType": ".create_evaluator_version_request_score_value_type",
+    "CreateEvaluatorVersionRequestType": ".create_evaluator_version_request_type",
+    "CreateEvaluatorVersionResponse": ".create_evaluator_version_response",
+    "CreateEvaluatorVersionResponseCategoricalChoicesItem": ".create_evaluator_version_response_categorical_choices_item",
+    "CreateEvaluatorVersionResponseCategoricalChoicesItemValue": ".create_evaluator_version_response_categorical_choices_item_value",
+    "CreateEvaluatorVersionResponseCodeConfig": ".create_evaluator_version_response_code_config",
+    "CreateEvaluatorVersionResponseCreatedBy": ".create_evaluator_version_response_created_by",
+    "CreateEvaluatorVersionResponseEvalClass": ".create_evaluator_version_response_eval_class",
+    "CreateEvaluatorVersionResponseLlmConfig": ".create_evaluator_version_response_llm_config",
+    "CreateEvaluatorVersionResponseScoreConfig": ".create_evaluator_version_response_score_config",
+    "CreateEvaluatorVersionResponseScoreConfigChoicesItem": ".create_evaluator_version_response_score_config_choices_item",
+    "CreateEvaluatorVersionResponseScoreConfigChoicesItemValue": ".create_evaluator_version_response_score_config_choices_item_value",
+    "CreateEvaluatorVersionResponseScoreValueType": ".create_evaluator_version_response_score_value_type",
+    "CreateEvaluatorVersionResponseType": ".create_evaluator_version_response_type",
+    "CreateEvaluatorVersionResponseUpdatedBy": ".create_evaluator_version_response_updated_by",
+    "GetEvaluatorsSummaryResponse": ".get_evaluators_summary_response",
+    "GetFilteredEvaluatorsSummaryResponse": ".get_filtered_evaluators_summary_response",
+    "ListEvaluatorVersionsResponse": ".list_evaluator_versions_response",
+    "ListEvaluatorVersionsResponseResultsItem": ".list_evaluator_versions_response_results_item",
+    "ListEvaluatorVersionsResponseResultsItemCreatedBy": ".list_evaluator_versions_response_results_item_created_by",
+    "ListEvaluatorVersionsResponseResultsItemScoreValueType": ".list_evaluator_versions_response_results_item_score_value_type",
+    "ListEvaluatorVersionsResponseResultsItemType": ".list_evaluator_versions_response_results_item_type",
+    "ListEvaluatorsResponse": ".list_evaluators_response",
+    "ListEvaluatorsResponseResultsItem": ".list_evaluators_response_results_item",
+    "ListEvaluatorsResponseResultsItemCategoricalChoicesItem": ".list_evaluators_response_results_item_categorical_choices_item",
+    "ListEvaluatorsResponseResultsItemCategoricalChoicesItemValue": ".list_evaluators_response_results_item_categorical_choices_item_value",
+    "ListEvaluatorsResponseResultsItemCodeConfig": ".list_evaluators_response_results_item_code_config",
+    "ListEvaluatorsResponseResultsItemCreatedBy": ".list_evaluators_response_results_item_created_by",
+    "ListEvaluatorsResponseResultsItemEditor": ".list_evaluators_response_results_item_editor",
+    "ListEvaluatorsResponseResultsItemEvalClass": ".list_evaluators_response_results_item_eval_class",
+    "ListEvaluatorsResponseResultsItemLlmConfig": ".list_evaluators_response_results_item_llm_config",
+    "ListEvaluatorsResponseResultsItemScoreConfig": ".list_evaluators_response_results_item_score_config",
+    "ListEvaluatorsResponseResultsItemScoreConfigChoicesItem": ".list_evaluators_response_results_item_score_config_choices_item",
+    "ListEvaluatorsResponseResultsItemScoreConfigChoicesItemValue": ".list_evaluators_response_results_item_score_config_choices_item_value",
+    "ListEvaluatorsResponseResultsItemScoreValueType": ".list_evaluators_response_results_item_score_value_type",
+    "ListEvaluatorsResponseResultsItemTagsItem": ".list_evaluators_response_results_item_tags_item",
+    "ListEvaluatorsResponseResultsItemType": ".list_evaluators_response_results_item_type",
+    "ListEvaluatorsResponseResultsItemUpdatedBy": ".list_evaluators_response_results_item_updated_by",
+    "ListEvaluatorsRootResponse": ".list_evaluators_root_response",
+    "ListEvaluatorsRootResponseResultsItem": ".list_evaluators_root_response_results_item",
+    "ListEvaluatorsRootResponseResultsItemCategoricalChoicesItem": ".list_evaluators_root_response_results_item_categorical_choices_item",
+    "ListEvaluatorsRootResponseResultsItemCategoricalChoicesItemValue": ".list_evaluators_root_response_results_item_categorical_choices_item_value",
+    "ListEvaluatorsRootResponseResultsItemCodeConfig": ".list_evaluators_root_response_results_item_code_config",
+    "ListEvaluatorsRootResponseResultsItemCreatedBy": ".list_evaluators_root_response_results_item_created_by",
+    "ListEvaluatorsRootResponseResultsItemEditor": ".list_evaluators_root_response_results_item_editor",
+    "ListEvaluatorsRootResponseResultsItemEvalClass": ".list_evaluators_root_response_results_item_eval_class",
+    "ListEvaluatorsRootResponseResultsItemLlmConfig": ".list_evaluators_root_response_results_item_llm_config",
+    "ListEvaluatorsRootResponseResultsItemScoreConfig": ".list_evaluators_root_response_results_item_score_config",
+    "ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItem": ".list_evaluators_root_response_results_item_score_config_choices_item",
+    "ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItemValue": ".list_evaluators_root_response_results_item_score_config_choices_item_value",
+    "ListEvaluatorsRootResponseResultsItemScoreValueType": ".list_evaluators_root_response_results_item_score_value_type",
+    "ListEvaluatorsRootResponseResultsItemTagsItem": ".list_evaluators_root_response_results_item_tags_item",
+    "ListEvaluatorsRootResponseResultsItemType": ".list_evaluators_root_response_results_item_type",
+    "ListEvaluatorsRootResponseResultsItemUpdatedBy": ".list_evaluators_root_response_results_item_updated_by",
+    "ReplaceEvaluatorRequestCategoricalChoicesItem": ".replace_evaluator_request_categorical_choices_item",
+    "ReplaceEvaluatorRequestCategoricalChoicesItemValue": ".replace_evaluator_request_categorical_choices_item_value",
+    "ReplaceEvaluatorRequestCodeConfig": ".replace_evaluator_request_code_config",
+    "ReplaceEvaluatorRequestEvalClass": ".replace_evaluator_request_eval_class",
+    "ReplaceEvaluatorRequestLlmConfig": ".replace_evaluator_request_llm_config",
+    "ReplaceEvaluatorRequestScoreConfig": ".replace_evaluator_request_score_config",
+    "ReplaceEvaluatorRequestScoreConfigChoicesItem": ".replace_evaluator_request_score_config_choices_item",
+    "ReplaceEvaluatorRequestScoreConfigChoicesItemValue": ".replace_evaluator_request_score_config_choices_item_value",
+    "ReplaceEvaluatorRequestScoreValueType": ".replace_evaluator_request_score_value_type",
+    "ReplaceEvaluatorRequestType": ".replace_evaluator_request_type",
+    "ReplaceEvaluatorResponse": ".replace_evaluator_response",
+    "ReplaceEvaluatorResponseCategoricalChoicesItem": ".replace_evaluator_response_categorical_choices_item",
+    "ReplaceEvaluatorResponseCategoricalChoicesItemValue": ".replace_evaluator_response_categorical_choices_item_value",
+    "ReplaceEvaluatorResponseCodeConfig": ".replace_evaluator_response_code_config",
+    "ReplaceEvaluatorResponseCreatedBy": ".replace_evaluator_response_created_by",
+    "ReplaceEvaluatorResponseEditor": ".replace_evaluator_response_editor",
+    "ReplaceEvaluatorResponseEvalClass": ".replace_evaluator_response_eval_class",
+    "ReplaceEvaluatorResponseLlmConfig": ".replace_evaluator_response_llm_config",
+    "ReplaceEvaluatorResponseScoreConfig": ".replace_evaluator_response_score_config",
+    "ReplaceEvaluatorResponseScoreConfigChoicesItem": ".replace_evaluator_response_score_config_choices_item",
+    "ReplaceEvaluatorResponseScoreConfigChoicesItemValue": ".replace_evaluator_response_score_config_choices_item_value",
+    "ReplaceEvaluatorResponseScoreValueType": ".replace_evaluator_response_score_value_type",
+    "ReplaceEvaluatorResponseTagsItem": ".replace_evaluator_response_tags_item",
+    "ReplaceEvaluatorResponseType": ".replace_evaluator_response_type",
+    "ReplaceEvaluatorResponseUpdatedBy": ".replace_evaluator_response_updated_by",
+    "ReplaceEvaluatorVersionRequestCategoricalChoicesItem": ".replace_evaluator_version_request_categorical_choices_item",
+    "ReplaceEvaluatorVersionRequestCategoricalChoicesItemValue": ".replace_evaluator_version_request_categorical_choices_item_value",
+    "ReplaceEvaluatorVersionRequestCodeConfig": ".replace_evaluator_version_request_code_config",
+    "ReplaceEvaluatorVersionRequestEvalClass": ".replace_evaluator_version_request_eval_class",
+    "ReplaceEvaluatorVersionRequestLlmConfig": ".replace_evaluator_version_request_llm_config",
+    "ReplaceEvaluatorVersionRequestScoreConfig": ".replace_evaluator_version_request_score_config",
+    "ReplaceEvaluatorVersionRequestScoreConfigChoicesItem": ".replace_evaluator_version_request_score_config_choices_item",
+    "ReplaceEvaluatorVersionRequestScoreConfigChoicesItemValue": ".replace_evaluator_version_request_score_config_choices_item_value",
+    "ReplaceEvaluatorVersionRequestScoreValueType": ".replace_evaluator_version_request_score_value_type",
+    "ReplaceEvaluatorVersionRequestType": ".replace_evaluator_version_request_type",
+    "ReplaceEvaluatorVersionResponse": ".replace_evaluator_version_response",
+    "ReplaceEvaluatorVersionResponseCategoricalChoicesItem": ".replace_evaluator_version_response_categorical_choices_item",
+    "ReplaceEvaluatorVersionResponseCategoricalChoicesItemValue": ".replace_evaluator_version_response_categorical_choices_item_value",
+    "ReplaceEvaluatorVersionResponseCodeConfig": ".replace_evaluator_version_response_code_config",
+    "ReplaceEvaluatorVersionResponseCreatedBy": ".replace_evaluator_version_response_created_by",
+    "ReplaceEvaluatorVersionResponseEvalClass": ".replace_evaluator_version_response_eval_class",
+    "ReplaceEvaluatorVersionResponseLlmConfig": ".replace_evaluator_version_response_llm_config",
+    "ReplaceEvaluatorVersionResponseScoreConfig": ".replace_evaluator_version_response_score_config",
+    "ReplaceEvaluatorVersionResponseScoreConfigChoicesItem": ".replace_evaluator_version_response_score_config_choices_item",
+    "ReplaceEvaluatorVersionResponseScoreConfigChoicesItemValue": ".replace_evaluator_version_response_score_config_choices_item_value",
+    "ReplaceEvaluatorVersionResponseScoreValueType": ".replace_evaluator_version_response_score_value_type",
+    "ReplaceEvaluatorVersionResponseType": ".replace_evaluator_version_response_type",
+    "ReplaceEvaluatorVersionResponseUpdatedBy": ".replace_evaluator_version_response_updated_by",
     "RetrieveEvaluatorResponse": ".retrieve_evaluator_response",
     "RetrieveEvaluatorResponseCategoricalChoicesItem": ".retrieve_evaluator_response_categorical_choices_item",
     "RetrieveEvaluatorResponseCategoricalChoicesItemValue": ".retrieve_evaluator_response_categorical_choices_item_value",
-    "RetrieveEvaluatorResponseConfigurations": ".retrieve_evaluator_response_configurations",
+    "RetrieveEvaluatorResponseCodeConfig": ".retrieve_evaluator_response_code_config",
     "RetrieveEvaluatorResponseCreatedBy": ".retrieve_evaluator_response_created_by",
+    "RetrieveEvaluatorResponseEditor": ".retrieve_evaluator_response_editor",
+    "RetrieveEvaluatorResponseEvalClass": ".retrieve_evaluator_response_eval_class",
     "RetrieveEvaluatorResponseLlmConfig": ".retrieve_evaluator_response_llm_config",
-    "RetrieveEvaluatorResponsePassingConditions": ".retrieve_evaluator_response_passing_conditions",
-    "RetrieveEvaluatorResponsePassingConditionsPrimaryScore": ".retrieve_evaluator_response_passing_conditions_primary_score",
     "RetrieveEvaluatorResponseScoreConfig": ".retrieve_evaluator_response_score_config",
     "RetrieveEvaluatorResponseScoreConfigChoicesItem": ".retrieve_evaluator_response_score_config_choices_item",
+    "RetrieveEvaluatorResponseScoreConfigChoicesItemValue": ".retrieve_evaluator_response_score_config_choices_item_value",
+    "RetrieveEvaluatorResponseScoreValueType": ".retrieve_evaluator_response_score_value_type",
+    "RetrieveEvaluatorResponseTagsItem": ".retrieve_evaluator_response_tags_item",
+    "RetrieveEvaluatorResponseType": ".retrieve_evaluator_response_type",
     "RetrieveEvaluatorResponseUpdatedBy": ".retrieve_evaluator_response_updated_by",
+    "RetrieveEvaluatorVersionResponse": ".retrieve_evaluator_version_response",
+    "RetrieveEvaluatorVersionResponseCategoricalChoicesItem": ".retrieve_evaluator_version_response_categorical_choices_item",
+    "RetrieveEvaluatorVersionResponseCategoricalChoicesItemValue": ".retrieve_evaluator_version_response_categorical_choices_item_value",
+    "RetrieveEvaluatorVersionResponseCodeConfig": ".retrieve_evaluator_version_response_code_config",
+    "RetrieveEvaluatorVersionResponseCreatedBy": ".retrieve_evaluator_version_response_created_by",
+    "RetrieveEvaluatorVersionResponseEvalClass": ".retrieve_evaluator_version_response_eval_class",
+    "RetrieveEvaluatorVersionResponseLlmConfig": ".retrieve_evaluator_version_response_llm_config",
+    "RetrieveEvaluatorVersionResponseScoreConfig": ".retrieve_evaluator_version_response_score_config",
+    "RetrieveEvaluatorVersionResponseScoreConfigChoicesItem": ".retrieve_evaluator_version_response_score_config_choices_item",
+    "RetrieveEvaluatorVersionResponseScoreConfigChoicesItemValue": ".retrieve_evaluator_version_response_score_config_choices_item_value",
+    "RetrieveEvaluatorVersionResponseScoreValueType": ".retrieve_evaluator_version_response_score_value_type",
+    "RetrieveEvaluatorVersionResponseType": ".retrieve_evaluator_version_response_type",
+    "RetrieveEvaluatorVersionResponseUpdatedBy": ".retrieve_evaluator_version_response_updated_by",
+    "RunEvaluatorRequestGenerationMethod": ".run_evaluator_request_generation_method",
+    "RunEvaluatorRequestInputs": ".run_evaluator_request_inputs",
     "RunEvaluatorResponse": ".run_evaluator_response",
+    "RunEvaluatorResponseEvaluator": ".run_evaluator_response_evaluator",
+    "RunEvaluatorResponseEvaluatorCategoricalChoicesItem": ".run_evaluator_response_evaluator_categorical_choices_item",
+    "RunEvaluatorResponseEvaluatorCategoricalChoicesItemValue": ".run_evaluator_response_evaluator_categorical_choices_item_value",
+    "RunEvaluatorResponseEvaluatorCodeConfig": ".run_evaluator_response_evaluator_code_config",
+    "RunEvaluatorResponseEvaluatorCreatedBy": ".run_evaluator_response_evaluator_created_by",
+    "RunEvaluatorResponseEvaluatorEditor": ".run_evaluator_response_evaluator_editor",
+    "RunEvaluatorResponseEvaluatorEvalClass": ".run_evaluator_response_evaluator_eval_class",
+    "RunEvaluatorResponseEvaluatorLlmConfig": ".run_evaluator_response_evaluator_llm_config",
+    "RunEvaluatorResponseEvaluatorScoreConfig": ".run_evaluator_response_evaluator_score_config",
+    "RunEvaluatorResponseEvaluatorScoreConfigChoicesItem": ".run_evaluator_response_evaluator_score_config_choices_item",
+    "RunEvaluatorResponseEvaluatorScoreConfigChoicesItemValue": ".run_evaluator_response_evaluator_score_config_choices_item_value",
+    "RunEvaluatorResponseEvaluatorScoreValueType": ".run_evaluator_response_evaluator_score_value_type",
+    "RunEvaluatorResponseEvaluatorTagsItem": ".run_evaluator_response_evaluator_tags_item",
+    "RunEvaluatorResponseEvaluatorType": ".run_evaluator_response_evaluator_type",
+    "RunEvaluatorResponseEvaluatorUpdatedBy": ".run_evaluator_response_evaluator_updated_by",
     "RunEvaluatorResponseInputs": ".run_evaluator_response_inputs",
-    "RunEvaluatorResponseInputsInput": ".run_evaluator_response_inputs_input",
-    "RunEvaluatorResponseInputsMetadata": ".run_evaluator_response_inputs_metadata",
-    "RunEvaluatorResponseInputsMetrics": ".run_evaluator_response_inputs_metrics",
-    "RunEvaluatorResponseInputsOutput": ".run_evaluator_response_inputs_output",
+    "UpdateEvaluatorRequestCategoricalChoicesItem": ".update_evaluator_request_categorical_choices_item",
+    "UpdateEvaluatorRequestCategoricalChoicesItemValue": ".update_evaluator_request_categorical_choices_item_value",
+    "UpdateEvaluatorRequestCodeConfig": ".update_evaluator_request_code_config",
+    "UpdateEvaluatorRequestEvalClass": ".update_evaluator_request_eval_class",
+    "UpdateEvaluatorRequestLlmConfig": ".update_evaluator_request_llm_config",
+    "UpdateEvaluatorRequestScoreConfig": ".update_evaluator_request_score_config",
+    "UpdateEvaluatorRequestScoreConfigChoicesItem": ".update_evaluator_request_score_config_choices_item",
+    "UpdateEvaluatorRequestScoreConfigChoicesItemValue": ".update_evaluator_request_score_config_choices_item_value",
     "UpdateEvaluatorRequestScoreValueType": ".update_evaluator_request_score_value_type",
+    "UpdateEvaluatorRequestType": ".update_evaluator_request_type",
     "UpdateEvaluatorResponse": ".update_evaluator_response",
     "UpdateEvaluatorResponseCategoricalChoicesItem": ".update_evaluator_response_categorical_choices_item",
     "UpdateEvaluatorResponseCategoricalChoicesItemValue": ".update_evaluator_response_categorical_choices_item_value",
-    "UpdateEvaluatorResponseConfigurations": ".update_evaluator_response_configurations",
-    "UpdateEvaluatorResponseConfigurationsModelOptions": ".update_evaluator_response_configurations_model_options",
+    "UpdateEvaluatorResponseCodeConfig": ".update_evaluator_response_code_config",
     "UpdateEvaluatorResponseCreatedBy": ".update_evaluator_response_created_by",
+    "UpdateEvaluatorResponseEditor": ".update_evaluator_response_editor",
+    "UpdateEvaluatorResponseEvalClass": ".update_evaluator_response_eval_class",
+    "UpdateEvaluatorResponseLlmConfig": ".update_evaluator_response_llm_config",
+    "UpdateEvaluatorResponseScoreConfig": ".update_evaluator_response_score_config",
+    "UpdateEvaluatorResponseScoreConfigChoicesItem": ".update_evaluator_response_score_config_choices_item",
+    "UpdateEvaluatorResponseScoreConfigChoicesItemValue": ".update_evaluator_response_score_config_choices_item_value",
+    "UpdateEvaluatorResponseScoreValueType": ".update_evaluator_response_score_value_type",
+    "UpdateEvaluatorResponseTagsItem": ".update_evaluator_response_tags_item",
+    "UpdateEvaluatorResponseType": ".update_evaluator_response_type",
     "UpdateEvaluatorResponseUpdatedBy": ".update_evaluator_response_updated_by",
+    "UpdateEvaluatorVersionRequestCategoricalChoicesItem": ".update_evaluator_version_request_categorical_choices_item",
+    "UpdateEvaluatorVersionRequestCategoricalChoicesItemValue": ".update_evaluator_version_request_categorical_choices_item_value",
+    "UpdateEvaluatorVersionRequestCodeConfig": ".update_evaluator_version_request_code_config",
+    "UpdateEvaluatorVersionRequestEvalClass": ".update_evaluator_version_request_eval_class",
+    "UpdateEvaluatorVersionRequestLlmConfig": ".update_evaluator_version_request_llm_config",
+    "UpdateEvaluatorVersionRequestScoreConfig": ".update_evaluator_version_request_score_config",
+    "UpdateEvaluatorVersionRequestScoreConfigChoicesItem": ".update_evaluator_version_request_score_config_choices_item",
+    "UpdateEvaluatorVersionRequestScoreConfigChoicesItemValue": ".update_evaluator_version_request_score_config_choices_item_value",
+    "UpdateEvaluatorVersionRequestScoreValueType": ".update_evaluator_version_request_score_value_type",
+    "UpdateEvaluatorVersionRequestType": ".update_evaluator_version_request_type",
+    "UpdateEvaluatorVersionResponse": ".update_evaluator_version_response",
+    "UpdateEvaluatorVersionResponseCategoricalChoicesItem": ".update_evaluator_version_response_categorical_choices_item",
+    "UpdateEvaluatorVersionResponseCategoricalChoicesItemValue": ".update_evaluator_version_response_categorical_choices_item_value",
+    "UpdateEvaluatorVersionResponseCodeConfig": ".update_evaluator_version_response_code_config",
+    "UpdateEvaluatorVersionResponseCreatedBy": ".update_evaluator_version_response_created_by",
+    "UpdateEvaluatorVersionResponseEvalClass": ".update_evaluator_version_response_eval_class",
+    "UpdateEvaluatorVersionResponseLlmConfig": ".update_evaluator_version_response_llm_config",
+    "UpdateEvaluatorVersionResponseScoreConfig": ".update_evaluator_version_response_score_config",
+    "UpdateEvaluatorVersionResponseScoreConfigChoicesItem": ".update_evaluator_version_response_score_config_choices_item",
+    "UpdateEvaluatorVersionResponseScoreConfigChoicesItemValue": ".update_evaluator_version_response_score_config_choices_item_value",
+    "UpdateEvaluatorVersionResponseScoreValueType": ".update_evaluator_version_response_score_value_type",
+    "UpdateEvaluatorVersionResponseType": ".update_evaluator_version_response_type",
+    "UpdateEvaluatorVersionResponseUpdatedBy": ".update_evaluator_version_response_updated_by",
 }
 
 
@@ -113,39 +609,233 @@ def __dir__():
 
 __all__ = [
     "CreateEvaluatorRequestCategoricalChoicesItem",
+    "CreateEvaluatorRequestCategoricalChoicesItemValue",
     "CreateEvaluatorRequestCodeConfig",
-    "CreateEvaluatorRequestConfigurations",
     "CreateEvaluatorRequestEvalClass",
     "CreateEvaluatorRequestLlmConfig",
     "CreateEvaluatorRequestScoreConfig",
     "CreateEvaluatorRequestScoreConfigChoicesItem",
+    "CreateEvaluatorRequestScoreConfigChoicesItemValue",
     "CreateEvaluatorRequestScoreValueType",
     "CreateEvaluatorRequestType",
     "CreateEvaluatorResponse",
-    "ListEvaluatorsResponseItem",
+    "CreateEvaluatorResponseCategoricalChoicesItem",
+    "CreateEvaluatorResponseCategoricalChoicesItemValue",
+    "CreateEvaluatorResponseCodeConfig",
+    "CreateEvaluatorResponseCreatedBy",
+    "CreateEvaluatorResponseEditor",
+    "CreateEvaluatorResponseEvalClass",
+    "CreateEvaluatorResponseLlmConfig",
+    "CreateEvaluatorResponseScoreConfig",
+    "CreateEvaluatorResponseScoreConfigChoicesItem",
+    "CreateEvaluatorResponseScoreConfigChoicesItemValue",
+    "CreateEvaluatorResponseScoreValueType",
+    "CreateEvaluatorResponseTagsItem",
+    "CreateEvaluatorResponseType",
+    "CreateEvaluatorResponseUpdatedBy",
+    "CreateEvaluatorVersionRequestCategoricalChoicesItem",
+    "CreateEvaluatorVersionRequestCategoricalChoicesItemValue",
+    "CreateEvaluatorVersionRequestCodeConfig",
+    "CreateEvaluatorVersionRequestEvalClass",
+    "CreateEvaluatorVersionRequestLlmConfig",
+    "CreateEvaluatorVersionRequestScoreConfig",
+    "CreateEvaluatorVersionRequestScoreConfigChoicesItem",
+    "CreateEvaluatorVersionRequestScoreConfigChoicesItemValue",
+    "CreateEvaluatorVersionRequestScoreValueType",
+    "CreateEvaluatorVersionRequestType",
+    "CreateEvaluatorVersionResponse",
+    "CreateEvaluatorVersionResponseCategoricalChoicesItem",
+    "CreateEvaluatorVersionResponseCategoricalChoicesItemValue",
+    "CreateEvaluatorVersionResponseCodeConfig",
+    "CreateEvaluatorVersionResponseCreatedBy",
+    "CreateEvaluatorVersionResponseEvalClass",
+    "CreateEvaluatorVersionResponseLlmConfig",
+    "CreateEvaluatorVersionResponseScoreConfig",
+    "CreateEvaluatorVersionResponseScoreConfigChoicesItem",
+    "CreateEvaluatorVersionResponseScoreConfigChoicesItemValue",
+    "CreateEvaluatorVersionResponseScoreValueType",
+    "CreateEvaluatorVersionResponseType",
+    "CreateEvaluatorVersionResponseUpdatedBy",
+    "GetEvaluatorsSummaryResponse",
+    "GetFilteredEvaluatorsSummaryResponse",
+    "ListEvaluatorVersionsResponse",
+    "ListEvaluatorVersionsResponseResultsItem",
+    "ListEvaluatorVersionsResponseResultsItemCreatedBy",
+    "ListEvaluatorVersionsResponseResultsItemScoreValueType",
+    "ListEvaluatorVersionsResponseResultsItemType",
+    "ListEvaluatorsResponse",
+    "ListEvaluatorsResponseResultsItem",
+    "ListEvaluatorsResponseResultsItemCategoricalChoicesItem",
+    "ListEvaluatorsResponseResultsItemCategoricalChoicesItemValue",
+    "ListEvaluatorsResponseResultsItemCodeConfig",
+    "ListEvaluatorsResponseResultsItemCreatedBy",
+    "ListEvaluatorsResponseResultsItemEditor",
+    "ListEvaluatorsResponseResultsItemEvalClass",
+    "ListEvaluatorsResponseResultsItemLlmConfig",
+    "ListEvaluatorsResponseResultsItemScoreConfig",
+    "ListEvaluatorsResponseResultsItemScoreConfigChoicesItem",
+    "ListEvaluatorsResponseResultsItemScoreConfigChoicesItemValue",
+    "ListEvaluatorsResponseResultsItemScoreValueType",
+    "ListEvaluatorsResponseResultsItemTagsItem",
+    "ListEvaluatorsResponseResultsItemType",
+    "ListEvaluatorsResponseResultsItemUpdatedBy",
+    "ListEvaluatorsRootResponse",
+    "ListEvaluatorsRootResponseResultsItem",
+    "ListEvaluatorsRootResponseResultsItemCategoricalChoicesItem",
+    "ListEvaluatorsRootResponseResultsItemCategoricalChoicesItemValue",
+    "ListEvaluatorsRootResponseResultsItemCodeConfig",
+    "ListEvaluatorsRootResponseResultsItemCreatedBy",
+    "ListEvaluatorsRootResponseResultsItemEditor",
+    "ListEvaluatorsRootResponseResultsItemEvalClass",
+    "ListEvaluatorsRootResponseResultsItemLlmConfig",
+    "ListEvaluatorsRootResponseResultsItemScoreConfig",
+    "ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItem",
+    "ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItemValue",
+    "ListEvaluatorsRootResponseResultsItemScoreValueType",
+    "ListEvaluatorsRootResponseResultsItemTagsItem",
+    "ListEvaluatorsRootResponseResultsItemType",
+    "ListEvaluatorsRootResponseResultsItemUpdatedBy",
+    "ReplaceEvaluatorRequestCategoricalChoicesItem",
+    "ReplaceEvaluatorRequestCategoricalChoicesItemValue",
+    "ReplaceEvaluatorRequestCodeConfig",
+    "ReplaceEvaluatorRequestEvalClass",
+    "ReplaceEvaluatorRequestLlmConfig",
+    "ReplaceEvaluatorRequestScoreConfig",
+    "ReplaceEvaluatorRequestScoreConfigChoicesItem",
+    "ReplaceEvaluatorRequestScoreConfigChoicesItemValue",
+    "ReplaceEvaluatorRequestScoreValueType",
+    "ReplaceEvaluatorRequestType",
+    "ReplaceEvaluatorResponse",
+    "ReplaceEvaluatorResponseCategoricalChoicesItem",
+    "ReplaceEvaluatorResponseCategoricalChoicesItemValue",
+    "ReplaceEvaluatorResponseCodeConfig",
+    "ReplaceEvaluatorResponseCreatedBy",
+    "ReplaceEvaluatorResponseEditor",
+    "ReplaceEvaluatorResponseEvalClass",
+    "ReplaceEvaluatorResponseLlmConfig",
+    "ReplaceEvaluatorResponseScoreConfig",
+    "ReplaceEvaluatorResponseScoreConfigChoicesItem",
+    "ReplaceEvaluatorResponseScoreConfigChoicesItemValue",
+    "ReplaceEvaluatorResponseScoreValueType",
+    "ReplaceEvaluatorResponseTagsItem",
+    "ReplaceEvaluatorResponseType",
+    "ReplaceEvaluatorResponseUpdatedBy",
+    "ReplaceEvaluatorVersionRequestCategoricalChoicesItem",
+    "ReplaceEvaluatorVersionRequestCategoricalChoicesItemValue",
+    "ReplaceEvaluatorVersionRequestCodeConfig",
+    "ReplaceEvaluatorVersionRequestEvalClass",
+    "ReplaceEvaluatorVersionRequestLlmConfig",
+    "ReplaceEvaluatorVersionRequestScoreConfig",
+    "ReplaceEvaluatorVersionRequestScoreConfigChoicesItem",
+    "ReplaceEvaluatorVersionRequestScoreConfigChoicesItemValue",
+    "ReplaceEvaluatorVersionRequestScoreValueType",
+    "ReplaceEvaluatorVersionRequestType",
+    "ReplaceEvaluatorVersionResponse",
+    "ReplaceEvaluatorVersionResponseCategoricalChoicesItem",
+    "ReplaceEvaluatorVersionResponseCategoricalChoicesItemValue",
+    "ReplaceEvaluatorVersionResponseCodeConfig",
+    "ReplaceEvaluatorVersionResponseCreatedBy",
+    "ReplaceEvaluatorVersionResponseEvalClass",
+    "ReplaceEvaluatorVersionResponseLlmConfig",
+    "ReplaceEvaluatorVersionResponseScoreConfig",
+    "ReplaceEvaluatorVersionResponseScoreConfigChoicesItem",
+    "ReplaceEvaluatorVersionResponseScoreConfigChoicesItemValue",
+    "ReplaceEvaluatorVersionResponseScoreValueType",
+    "ReplaceEvaluatorVersionResponseType",
+    "ReplaceEvaluatorVersionResponseUpdatedBy",
     "RetrieveEvaluatorResponse",
     "RetrieveEvaluatorResponseCategoricalChoicesItem",
     "RetrieveEvaluatorResponseCategoricalChoicesItemValue",
-    "RetrieveEvaluatorResponseConfigurations",
+    "RetrieveEvaluatorResponseCodeConfig",
     "RetrieveEvaluatorResponseCreatedBy",
+    "RetrieveEvaluatorResponseEditor",
+    "RetrieveEvaluatorResponseEvalClass",
     "RetrieveEvaluatorResponseLlmConfig",
-    "RetrieveEvaluatorResponsePassingConditions",
-    "RetrieveEvaluatorResponsePassingConditionsPrimaryScore",
     "RetrieveEvaluatorResponseScoreConfig",
     "RetrieveEvaluatorResponseScoreConfigChoicesItem",
+    "RetrieveEvaluatorResponseScoreConfigChoicesItemValue",
+    "RetrieveEvaluatorResponseScoreValueType",
+    "RetrieveEvaluatorResponseTagsItem",
+    "RetrieveEvaluatorResponseType",
     "RetrieveEvaluatorResponseUpdatedBy",
+    "RetrieveEvaluatorVersionResponse",
+    "RetrieveEvaluatorVersionResponseCategoricalChoicesItem",
+    "RetrieveEvaluatorVersionResponseCategoricalChoicesItemValue",
+    "RetrieveEvaluatorVersionResponseCodeConfig",
+    "RetrieveEvaluatorVersionResponseCreatedBy",
+    "RetrieveEvaluatorVersionResponseEvalClass",
+    "RetrieveEvaluatorVersionResponseLlmConfig",
+    "RetrieveEvaluatorVersionResponseScoreConfig",
+    "RetrieveEvaluatorVersionResponseScoreConfigChoicesItem",
+    "RetrieveEvaluatorVersionResponseScoreConfigChoicesItemValue",
+    "RetrieveEvaluatorVersionResponseScoreValueType",
+    "RetrieveEvaluatorVersionResponseType",
+    "RetrieveEvaluatorVersionResponseUpdatedBy",
+    "RunEvaluatorRequestGenerationMethod",
+    "RunEvaluatorRequestInputs",
     "RunEvaluatorResponse",
+    "RunEvaluatorResponseEvaluator",
+    "RunEvaluatorResponseEvaluatorCategoricalChoicesItem",
+    "RunEvaluatorResponseEvaluatorCategoricalChoicesItemValue",
+    "RunEvaluatorResponseEvaluatorCodeConfig",
+    "RunEvaluatorResponseEvaluatorCreatedBy",
+    "RunEvaluatorResponseEvaluatorEditor",
+    "RunEvaluatorResponseEvaluatorEvalClass",
+    "RunEvaluatorResponseEvaluatorLlmConfig",
+    "RunEvaluatorResponseEvaluatorScoreConfig",
+    "RunEvaluatorResponseEvaluatorScoreConfigChoicesItem",
+    "RunEvaluatorResponseEvaluatorScoreConfigChoicesItemValue",
+    "RunEvaluatorResponseEvaluatorScoreValueType",
+    "RunEvaluatorResponseEvaluatorTagsItem",
+    "RunEvaluatorResponseEvaluatorType",
+    "RunEvaluatorResponseEvaluatorUpdatedBy",
     "RunEvaluatorResponseInputs",
-    "RunEvaluatorResponseInputsInput",
-    "RunEvaluatorResponseInputsMetadata",
-    "RunEvaluatorResponseInputsMetrics",
-    "RunEvaluatorResponseInputsOutput",
+    "UpdateEvaluatorRequestCategoricalChoicesItem",
+    "UpdateEvaluatorRequestCategoricalChoicesItemValue",
+    "UpdateEvaluatorRequestCodeConfig",
+    "UpdateEvaluatorRequestEvalClass",
+    "UpdateEvaluatorRequestLlmConfig",
+    "UpdateEvaluatorRequestScoreConfig",
+    "UpdateEvaluatorRequestScoreConfigChoicesItem",
+    "UpdateEvaluatorRequestScoreConfigChoicesItemValue",
     "UpdateEvaluatorRequestScoreValueType",
+    "UpdateEvaluatorRequestType",
     "UpdateEvaluatorResponse",
     "UpdateEvaluatorResponseCategoricalChoicesItem",
     "UpdateEvaluatorResponseCategoricalChoicesItemValue",
-    "UpdateEvaluatorResponseConfigurations",
-    "UpdateEvaluatorResponseConfigurationsModelOptions",
+    "UpdateEvaluatorResponseCodeConfig",
     "UpdateEvaluatorResponseCreatedBy",
+    "UpdateEvaluatorResponseEditor",
+    "UpdateEvaluatorResponseEvalClass",
+    "UpdateEvaluatorResponseLlmConfig",
+    "UpdateEvaluatorResponseScoreConfig",
+    "UpdateEvaluatorResponseScoreConfigChoicesItem",
+    "UpdateEvaluatorResponseScoreConfigChoicesItemValue",
+    "UpdateEvaluatorResponseScoreValueType",
+    "UpdateEvaluatorResponseTagsItem",
+    "UpdateEvaluatorResponseType",
     "UpdateEvaluatorResponseUpdatedBy",
+    "UpdateEvaluatorVersionRequestCategoricalChoicesItem",
+    "UpdateEvaluatorVersionRequestCategoricalChoicesItemValue",
+    "UpdateEvaluatorVersionRequestCodeConfig",
+    "UpdateEvaluatorVersionRequestEvalClass",
+    "UpdateEvaluatorVersionRequestLlmConfig",
+    "UpdateEvaluatorVersionRequestScoreConfig",
+    "UpdateEvaluatorVersionRequestScoreConfigChoicesItem",
+    "UpdateEvaluatorVersionRequestScoreConfigChoicesItemValue",
+    "UpdateEvaluatorVersionRequestScoreValueType",
+    "UpdateEvaluatorVersionRequestType",
+    "UpdateEvaluatorVersionResponse",
+    "UpdateEvaluatorVersionResponseCategoricalChoicesItem",
+    "UpdateEvaluatorVersionResponseCategoricalChoicesItemValue",
+    "UpdateEvaluatorVersionResponseCodeConfig",
+    "UpdateEvaluatorVersionResponseCreatedBy",
+    "UpdateEvaluatorVersionResponseEvalClass",
+    "UpdateEvaluatorVersionResponseLlmConfig",
+    "UpdateEvaluatorVersionResponseScoreConfig",
+    "UpdateEvaluatorVersionResponseScoreConfigChoicesItem",
+    "UpdateEvaluatorVersionResponseScoreConfigChoicesItemValue",
+    "UpdateEvaluatorVersionResponseScoreValueType",
+    "UpdateEvaluatorVersionResponseType",
+    "UpdateEvaluatorVersionResponseUpdatedBy",
 ]

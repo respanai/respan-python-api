@@ -8,8 +8,12 @@ from .retrieve_evaluator_response_score_config_choices_item import RetrieveEvalu
 
 
 class RetrieveEvaluatorResponseScoreConfig(UniversalBaseModel):
-    min_score: typing.Optional[int] = None
-    max_score: typing.Optional[int] = None
+    """
+    Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+    """
+
+    min_score: typing.Optional[float] = None
+    max_score: typing.Optional[float] = None
     choices: typing.Optional[typing.List[RetrieveEvaluatorResponseScoreConfigChoicesItem]] = None
 
     if IS_PYDANTIC_V2:

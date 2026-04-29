@@ -7,6 +7,7 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
 class UpdateEvaluatorResponseCreatedBy(UniversalBaseModel):
+    id: typing.Optional[int] = None
     first_name: typing.Optional[str] = None
     last_name: typing.Optional[str] = None
     email: typing.Optional[str] = None

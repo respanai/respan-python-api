@@ -5,24 +5,92 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .create_evaluator_response_categorical_choices_item import CreateEvaluatorResponseCategoricalChoicesItem
+from .create_evaluator_response_code_config import CreateEvaluatorResponseCodeConfig
+from .create_evaluator_response_created_by import CreateEvaluatorResponseCreatedBy
+from .create_evaluator_response_editor import CreateEvaluatorResponseEditor
+from .create_evaluator_response_eval_class import CreateEvaluatorResponseEvalClass
+from .create_evaluator_response_llm_config import CreateEvaluatorResponseLlmConfig
+from .create_evaluator_response_score_config import CreateEvaluatorResponseScoreConfig
+from .create_evaluator_response_score_value_type import CreateEvaluatorResponseScoreValueType
+from .create_evaluator_response_tags_item import CreateEvaluatorResponseTagsItem
+from .create_evaluator_response_type import CreateEvaluatorResponseType
+from .create_evaluator_response_updated_by import CreateEvaluatorResponseUpdatedBy
 
 
 class CreateEvaluatorResponse(UniversalBaseModel):
-    id: typing.Optional[str] = pydantic.Field(default=None)
+    id: str = pydantic.Field()
     """
-    Evaluator ID.
+    Stable evaluator ID shared by all versions.
     """
 
-    name: typing.Optional[str] = None
-    type: typing.Optional[str] = None
-    score_value_type: typing.Optional[str] = None
-    evaluator_slug: typing.Optional[str] = None
+    version_id: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Unique ID for this evaluator version.
+    """
+
+    version: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Version number. The first draft is version 0.
+    """
+
+    is_read_only: typing.Optional[bool] = pydantic.Field(default=None)
+    """
+    Whether this version is committed and immutable.
+    """
+
+    version_description: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Commit message for this version.
+    """
+
+    name: str
+    evaluator_slug: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Organization-scoped evaluator slug.
+    """
+
+    type: CreateEvaluatorResponseType
+    score_value_type: CreateEvaluatorResponseScoreValueType
+    eval_class: typing.Optional[CreateEvaluatorResponseEvalClass] = pydantic.Field(default=None)
+    """
+    Optional pre-built evaluator template.
+    """
+
     description: typing.Optional[str] = None
-    score_config: typing.Optional[typing.Dict[str, typing.Any]] = None
-    llm_config: typing.Optional[typing.Dict[str, typing.Any]] = None
-    code_config: typing.Optional[typing.Dict[str, typing.Any]] = None
-    passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = None
+    score_config: typing.Optional[CreateEvaluatorResponseScoreConfig] = pydantic.Field(default=None)
+    """
+    Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+    """
+
+    passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Passing conditions in the standard Respan filter format.
+    """
+
+    llm_config: typing.Optional[CreateEvaluatorResponseLlmConfig] = pydantic.Field(default=None)
+    """
+    LLM grader configuration. The backend validates this against the selected evaluator form.
+    """
+
+    code_config: typing.Optional[CreateEvaluatorResponseCodeConfig] = pydantic.Field(default=None)
+    """
+    Code grader configuration.
+    """
+
+    configurations: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
+    """
+
+    categorical_choices: typing.Optional[typing.List[CreateEvaluatorResponseCategoricalChoicesItem]] = None
+    starred: typing.Optional[bool] = None
     created_at: typing.Optional[dt.datetime] = None
+    updated_at: typing.Optional[dt.datetime] = None
+    created_by: typing.Optional[CreateEvaluatorResponseCreatedBy] = None
+    updated_by: typing.Optional[CreateEvaluatorResponseUpdatedBy] = None
+    editor: typing.Optional[CreateEvaluatorResponseEditor] = None
+    tags: typing.Optional[typing.List[CreateEvaluatorResponseTagsItem]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

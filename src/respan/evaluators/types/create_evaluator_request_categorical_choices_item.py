@@ -4,11 +4,12 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .create_evaluator_request_categorical_choices_item_value import CreateEvaluatorRequestCategoricalChoicesItemValue
 
 
 class CreateEvaluatorRequestCategoricalChoicesItem(UniversalBaseModel):
-    name: typing.Optional[str] = None
-    value: typing.Optional[typing.Any] = None
+    name: str
+    value: CreateEvaluatorRequestCategoricalChoicesItemValue
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

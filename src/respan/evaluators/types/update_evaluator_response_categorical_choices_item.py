@@ -8,8 +8,8 @@ from .update_evaluator_response_categorical_choices_item_value import UpdateEval
 
 
 class UpdateEvaluatorResponseCategoricalChoicesItem(UniversalBaseModel):
-    name: typing.Optional[str] = None
-    value: typing.Optional[UpdateEvaluatorResponseCategoricalChoicesItemValue] = None
+    name: str
+    value: UpdateEvaluatorResponseCategoricalChoicesItemValue
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

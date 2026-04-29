@@ -4,7 +4,7 @@ import typing
 
 CreateEvaluatorRequestScoreValueType = typing.Union[
     typing.Literal[
-        "numerical", "boolean", "percentage", "single_select", "multi_select", "json", "text", "categorical", "comment"
+        "numerical", "boolean", "percentage", "single_select", "multi_select", "text", "json", "comment", "categorical"
     ],
     typing.Any,
 ]
