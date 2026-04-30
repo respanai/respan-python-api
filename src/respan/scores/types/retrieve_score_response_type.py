@@ -2,4 +2,17 @@
 
 import typing
 
-RetrieveScoreResponseType = typing.Union[typing.Literal["llm", "human", "code"], typing.Any]
+RetrieveScoreResponseType = typing.Union[
+    typing.Literal[
+        "llm",
+        "human",
+        "code",
+        "function",
+        "human_numerical",
+        "human_boolean",
+        "human_categorical",
+        "human_text",
+        "custom",
+    ],
+    typing.Any,
+]

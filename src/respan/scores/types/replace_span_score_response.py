@@ -5,10 +5,10 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .create_score_response_type import CreateScoreResponseType
+from .replace_span_score_response_type import ReplaceSpanScoreResponseType
 
 
-class CreateScoreResponse(UniversalBaseModel):
+class ReplaceSpanScoreResponse(UniversalBaseModel):
     id: str = pydantic.Field()
     """
     Score ID.
@@ -19,7 +19,7 @@ class CreateScoreResponse(UniversalBaseModel):
     When the score was created.
     """
 
-    type: typing.Optional[CreateScoreResponseType] = pydantic.Field(default=None)
+    type: typing.Optional[ReplaceSpanScoreResponseType] = pydantic.Field(default=None)
     """
     Evaluator execution type. Legacy rows may contain legacy type values.
     """

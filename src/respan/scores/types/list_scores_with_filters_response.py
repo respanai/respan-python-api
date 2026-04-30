@@ -4,10 +4,10 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .list_scores_response_results_item import ListScoresResponseResultsItem
+from .list_scores_with_filters_response_results_item import ListScoresWithFiltersResponseResultsItem
 
 
-class ListScoresResponse(UniversalBaseModel):
+class ListScoresWithFiltersResponse(UniversalBaseModel):
     count: int = pydantic.Field()
     """
     Number of scores returned on this page.
@@ -28,7 +28,7 @@ class ListScoresResponse(UniversalBaseModel):
     Normalized filters applied to this request.
     """
 
-    results: typing.List[ListScoresResponseResultsItem]
+    results: typing.List[ListScoresWithFiltersResponseResultsItem]
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

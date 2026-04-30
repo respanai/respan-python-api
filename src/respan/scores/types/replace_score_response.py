@@ -5,10 +5,11 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .create_score_response_type import CreateScoreResponseType
+from .replace_score_response_inputs import ReplaceScoreResponseInputs
+from .replace_score_response_type import ReplaceScoreResponseType
 
 
-class CreateScoreResponse(UniversalBaseModel):
+class ReplaceScoreResponse(UniversalBaseModel):
     id: str = pydantic.Field()
     """
     Score ID.
@@ -19,7 +20,7 @@ class CreateScoreResponse(UniversalBaseModel):
     When the score was created.
     """
 
-    type: typing.Optional[CreateScoreResponseType] = pydantic.Field(default=None)
+    type: typing.Optional[ReplaceScoreResponseType] = pydantic.Field(default=None)
     """
     Evaluator execution type. Legacy rows may contain legacy type values.
     """
@@ -117,6 +118,16 @@ class CreateScoreResponse(UniversalBaseModel):
     error_message: typing.Optional[str] = pydantic.Field(default=None)
     """
     Evaluation error message, when available.
+    """
+
+    inputs: typing.Optional[ReplaceScoreResponseInputs] = pydantic.Field(default=None)
+    """
+    Unified evaluator inputs stored with the score, when available.
+    """
+
+    evaluator: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Evaluator metadata when the score is associated with a platform evaluator.
     """
 
     if IS_PYDANTIC_V2:

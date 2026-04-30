@@ -5,78 +5,129 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .retrieve_score_response_inputs import RetrieveScoreResponseInputs
 from .retrieve_score_response_type import RetrieveScoreResponseType
 
 
 class RetrieveScoreResponse(UniversalBaseModel):
-    id: typing.Optional[str] = pydantic.Field(default=None)
+    id: str = pydantic.Field()
     """
     Score ID.
     """
 
-    created_at: typing.Optional[dt.datetime] = pydantic.Field(default=None)
+    created_at: dt.datetime = pydantic.Field()
     """
-    Creation timestamp.
+    When the score was created.
     """
 
     type: typing.Optional[RetrieveScoreResponseType] = pydantic.Field(default=None)
     """
-    Evaluator type.
+    Evaluator execution type. Legacy rows may contain legacy type values.
     """
 
     environment: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Environment.
+    Environment associated with the score.
     """
 
     numerical_value: typing.Optional[float] = pydantic.Field(default=None)
     """
-    Numerical score value.
+    Numeric score value. Use for `numerical` and `percentage` evaluators.
     """
 
     string_value: typing.Optional[str] = pydantic.Field(default=None)
     """
-    String/text score value.
+    Text score value. Use for `text` and legacy `comment` evaluators.
     """
 
     boolean_value: typing.Optional[bool] = pydantic.Field(default=None)
     """
-    Boolean score value.
+    Boolean score value. Use for `boolean` evaluators.
     """
 
     categorical_value: typing.Optional[typing.List[str]] = pydantic.Field(default=None)
     """
-    Categorical score value (array of strings).
+    Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+    """
+
+    json_value: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    JSON score value encoded as a string. Use for `json` evaluators.
     """
 
     is_passed: typing.Optional[bool] = pydantic.Field(default=None)
     """
-    Whether the score passes the evaluator's conditions.
+    Whether the score passes the evaluator conditions.
     """
 
     cost: typing.Optional[float] = pydantic.Field(default=None)
     """
-    Cost of running the evaluation.
+    Evaluation cost in USD, when available.
     """
 
     evaluator_id: typing.Optional[str] = pydantic.Field(default=None)
     """
-    UUID of the Respan platform evaluator.
+    Evaluator ID associated with the score.
     """
 
     evaluator_slug: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Custom string identifier for the evaluator.
+    Evaluator slug associated with the score.
+    """
+
+    evaluator_name: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Human-readable evaluator name, when available.
+    """
+
+    scorer: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Who or what produced the score. For log-scoped score writes, the backend derives this from the authenticated user.
     """
 
     log_id: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Associated span ID.
+    Associated log/span ID.
+    """
+
+    prompt_id: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Associated prompt ID, when available.
+    """
+
+    prompt_version_number: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Associated prompt version number, when available.
     """
 
     dataset_id: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Associated dataset ID.
+    Associated dataset ID, when available.
+    """
+
+    automation_id: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Associated automation ID, when available.
+    """
+
+    status: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Evaluation status, when available.
+    """
+
+    error_message: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Evaluation error message, when available.
+    """
+
+    inputs: typing.Optional[RetrieveScoreResponseInputs] = pydantic.Field(default=None)
+    """
+    Unified evaluator inputs stored with the score, when available.
+    """
+
+    evaluator: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Evaluator metadata when the score is associated with a platform evaluator.
     """
 
     if IS_PYDANTIC_V2:

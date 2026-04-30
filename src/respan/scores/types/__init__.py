@@ -10,17 +10,30 @@ if typing.TYPE_CHECKING:
     from .create_score_response_type import CreateScoreResponseType
     from .create_span_score_response import CreateSpanScoreResponse
     from .create_span_score_response_type import CreateSpanScoreResponseType
+    from .filter_scores_response import FilterScoresResponse
+    from .filter_scores_response_results_item import FilterScoresResponseResultsItem
+    from .filter_scores_response_results_item_type import FilterScoresResponseResultsItemType
     from .list_scores_response import ListScoresResponse
     from .list_scores_response_results_item import ListScoresResponseResultsItem
     from .list_scores_response_results_item_type import ListScoresResponseResultsItemType
+    from .list_scores_with_filters_response import ListScoresWithFiltersResponse
+    from .list_scores_with_filters_response_results_item import ListScoresWithFiltersResponseResultsItem
+    from .list_scores_with_filters_response_results_item_type import ListScoresWithFiltersResponseResultsItemType
     from .list_span_scores_response import ListSpanScoresResponse
     from .list_span_scores_response_results_item import ListSpanScoresResponseResultsItem
     from .list_span_scores_response_results_item_type import ListSpanScoresResponseResultsItemType
+    from .replace_score_response import ReplaceScoreResponse
+    from .replace_score_response_inputs import ReplaceScoreResponseInputs
+    from .replace_score_response_type import ReplaceScoreResponseType
+    from .replace_span_score_response import ReplaceSpanScoreResponse
+    from .replace_span_score_response_type import ReplaceSpanScoreResponseType
     from .retrieve_score_response import RetrieveScoreResponse
+    from .retrieve_score_response_inputs import RetrieveScoreResponseInputs
     from .retrieve_score_response_type import RetrieveScoreResponseType
     from .retrieve_span_score_response import RetrieveSpanScoreResponse
     from .retrieve_span_score_response_type import RetrieveSpanScoreResponseType
     from .update_score_response import UpdateScoreResponse
+    from .update_score_response_inputs import UpdateScoreResponseInputs
     from .update_score_response_type import UpdateScoreResponseType
     from .update_span_score_response import UpdateSpanScoreResponse
     from .update_span_score_response_type import UpdateSpanScoreResponseType
@@ -29,17 +42,30 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateScoreResponseType": ".create_score_response_type",
     "CreateSpanScoreResponse": ".create_span_score_response",
     "CreateSpanScoreResponseType": ".create_span_score_response_type",
+    "FilterScoresResponse": ".filter_scores_response",
+    "FilterScoresResponseResultsItem": ".filter_scores_response_results_item",
+    "FilterScoresResponseResultsItemType": ".filter_scores_response_results_item_type",
     "ListScoresResponse": ".list_scores_response",
     "ListScoresResponseResultsItem": ".list_scores_response_results_item",
     "ListScoresResponseResultsItemType": ".list_scores_response_results_item_type",
+    "ListScoresWithFiltersResponse": ".list_scores_with_filters_response",
+    "ListScoresWithFiltersResponseResultsItem": ".list_scores_with_filters_response_results_item",
+    "ListScoresWithFiltersResponseResultsItemType": ".list_scores_with_filters_response_results_item_type",
     "ListSpanScoresResponse": ".list_span_scores_response",
     "ListSpanScoresResponseResultsItem": ".list_span_scores_response_results_item",
     "ListSpanScoresResponseResultsItemType": ".list_span_scores_response_results_item_type",
+    "ReplaceScoreResponse": ".replace_score_response",
+    "ReplaceScoreResponseInputs": ".replace_score_response_inputs",
+    "ReplaceScoreResponseType": ".replace_score_response_type",
+    "ReplaceSpanScoreResponse": ".replace_span_score_response",
+    "ReplaceSpanScoreResponseType": ".replace_span_score_response_type",
     "RetrieveScoreResponse": ".retrieve_score_response",
+    "RetrieveScoreResponseInputs": ".retrieve_score_response_inputs",
     "RetrieveScoreResponseType": ".retrieve_score_response_type",
     "RetrieveSpanScoreResponse": ".retrieve_span_score_response",
     "RetrieveSpanScoreResponseType": ".retrieve_span_score_response_type",
     "UpdateScoreResponse": ".update_score_response",
+    "UpdateScoreResponseInputs": ".update_score_response_inputs",
     "UpdateScoreResponseType": ".update_score_response_type",
     "UpdateSpanScoreResponse": ".update_span_score_response",
     "UpdateSpanScoreResponseType": ".update_span_score_response_type",
@@ -72,17 +98,30 @@ __all__ = [
     "CreateScoreResponseType",
     "CreateSpanScoreResponse",
     "CreateSpanScoreResponseType",
+    "FilterScoresResponse",
+    "FilterScoresResponseResultsItem",
+    "FilterScoresResponseResultsItemType",
     "ListScoresResponse",
     "ListScoresResponseResultsItem",
     "ListScoresResponseResultsItemType",
+    "ListScoresWithFiltersResponse",
+    "ListScoresWithFiltersResponseResultsItem",
+    "ListScoresWithFiltersResponseResultsItemType",
     "ListSpanScoresResponse",
     "ListSpanScoresResponseResultsItem",
     "ListSpanScoresResponseResultsItemType",
+    "ReplaceScoreResponse",
+    "ReplaceScoreResponseInputs",
+    "ReplaceScoreResponseType",
+    "ReplaceSpanScoreResponse",
+    "ReplaceSpanScoreResponseType",
     "RetrieveScoreResponse",
+    "RetrieveScoreResponseInputs",
     "RetrieveScoreResponseType",
     "RetrieveSpanScoreResponse",
     "RetrieveSpanScoreResponseType",
     "UpdateScoreResponse",
+    "UpdateScoreResponseInputs",
     "UpdateScoreResponseType",
     "UpdateSpanScoreResponse",
     "UpdateSpanScoreResponseType",

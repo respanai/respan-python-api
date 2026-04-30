@@ -2,7 +2,7 @@
 
 import typing
 
-CreateScoreResponseType = typing.Union[
+ListScoresWithFiltersResponseResultsItemType = typing.Union[
     typing.Literal[
         "llm",
         "human",

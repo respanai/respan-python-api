@@ -8,7 +8,6 @@ from importlib import import_module
 if typing.TYPE_CHECKING:
     from .bad_request_error_body import BadRequestErrorBody
     from .bad_request_error_body_value import BadRequestErrorBodyValue
-    from .conflict_error_body import ConflictErrorBody
     from .filter_value import FilterValue
     from .filter_value_operator import FilterValueOperator
     from .filters import Filters
@@ -23,7 +22,6 @@ if typing.TYPE_CHECKING:
 _dynamic_imports: typing.Dict[str, str] = {
     "BadRequestErrorBody": ".bad_request_error_body",
     "BadRequestErrorBodyValue": ".bad_request_error_body_value",
-    "ConflictErrorBody": ".conflict_error_body",
     "FilterValue": ".filter_value",
     "FilterValueOperator": ".filter_value_operator",
     "Filters": ".filters",
@@ -62,7 +60,6 @@ def __dir__():
 __all__ = [
     "BadRequestErrorBody",
     "BadRequestErrorBodyValue",
-    "ConflictErrorBody",
     "FilterValue",
     "FilterValueOperator",
     "Filters",

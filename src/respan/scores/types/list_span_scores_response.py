@@ -8,22 +8,27 @@ from .list_span_scores_response_results_item import ListSpanScoresResponseResult
 
 
 class ListSpanScoresResponse(UniversalBaseModel):
-    count: typing.Optional[int] = pydantic.Field(default=None)
+    count: int = pydantic.Field()
     """
-    Total scores.
+    Number of scores returned on this page.
     """
 
     next: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Next page URL.
+    URL for the next page, if any.
     """
 
     previous: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Previous page URL.
+    URL for the previous page, if any.
     """
 
-    results: typing.Optional[typing.List[ListSpanScoresResponseResultsItem]] = None
+    current_filters: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Normalized filters applied to this request.
+    """
+
+    results: typing.List[ListSpanScoresResponseResultsItem]
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

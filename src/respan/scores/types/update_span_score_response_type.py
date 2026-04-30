@@ -2,4 +2,17 @@
 
 import typing
 
-UpdateSpanScoreResponseType = typing.Union[typing.Literal["llm", "human", "code"], typing.Any]
+UpdateSpanScoreResponseType = typing.Union[
+    typing.Literal[
+        "llm",
+        "human",
+        "code",
+        "function",
+        "human_numerical",
+        "human_boolean",
+        "human_categorical",
+        "human_text",
+        "custom",
+    ],
+    typing.Any,
+]
