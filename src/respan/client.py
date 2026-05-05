@@ -12,6 +12,7 @@ from .environment import RespanClientEnvironment
 if typing.TYPE_CHECKING:
     from .caches.client import AsyncCachesClient, CachesClient
     from .credit_transactions.client import AsyncCreditTransactionsClient, CreditTransactionsClient
+    from .dashboard.client import AsyncDashboardClient, DashboardClient
     from .datasets.client import AsyncDatasetsClient, DatasetsClient
     from .evaluators.client import AsyncEvaluatorsClient, EvaluatorsClient
     from .experiments.client import AsyncExperimentsClient, ExperimentsClient
@@ -115,6 +116,7 @@ class RespanClient:
         self._temporary_api_keys: typing.Optional[TemporaryApiKeysClient] = None
         self._credit_transactions: typing.Optional[CreditTransactionsClient] = None
         self._workflows: typing.Optional[WorkflowsClient] = None
+        self._dashboard: typing.Optional[DashboardClient] = None
 
     @property
     def traces(self):
@@ -268,6 +270,14 @@ class RespanClient:
             self._workflows = WorkflowsClient(client_wrapper=self._client_wrapper)
         return self._workflows
 
+    @property
+    def dashboard(self):
+        if self._dashboard is None:
+            from .dashboard.client import DashboardClient  # noqa: E402
+
+            self._dashboard = DashboardClient(client_wrapper=self._client_wrapper)
+        return self._dashboard
+
 
 class AsyncRespanClient:
     """
@@ -353,6 +363,7 @@ class AsyncRespanClient:
         self._temporary_api_keys: typing.Optional[AsyncTemporaryApiKeysClient] = None
         self._credit_transactions: typing.Optional[AsyncCreditTransactionsClient] = None
         self._workflows: typing.Optional[AsyncWorkflowsClient] = None
+        self._dashboard: typing.Optional[AsyncDashboardClient] = None
 
     @property
     def traces(self):
@@ -505,6 +516,14 @@ class AsyncRespanClient:
 
             self._workflows = AsyncWorkflowsClient(client_wrapper=self._client_wrapper)
         return self._workflows
+
+    @property
+    def dashboard(self):
+        if self._dashboard is None:
+            from .dashboard.client import AsyncDashboardClient  # noqa: E402
+
+            self._dashboard = AsyncDashboardClient(client_wrapper=self._client_wrapper)
+        return self._dashboard
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: RespanClientEnvironment) -> str:
