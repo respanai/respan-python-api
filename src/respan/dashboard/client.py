@@ -28,35 +28,21 @@ from ..types.platform_stats_response import PlatformStatsResponse
 from .raw_client import AsyncRawDashboardClient, RawDashboardClient
 from .types.dashboard_breakdown_request_breakdown_by import DashboardBreakdownRequestBreakdownBy
 from .types.dashboard_breakdown_request_metrics_to_aggregate_item import DashboardBreakdownRequestMetricsToAggregateItem
-from .types.dashboard_storage_volume_summary_request_time_tick import DashboardStorageVolumeSummaryRequestTimeTick
-from .types.dashboard_storage_volume_time_series_request_time_tick import (
-    DashboardStorageVolumeTimeSeriesRequestTimeTick,
-)
-from .types.dashboard_top_deployments_get_request_sort_by import DashboardTopDeploymentsGetRequestSortBy
-from .types.dashboard_top_deployments_get_request_summary_type import DashboardTopDeploymentsGetRequestSummaryType
-from .types.dashboard_top_deployments_post_request_sort_by import DashboardTopDeploymentsPostRequestSortBy
-from .types.dashboard_top_deployments_post_request_summary_type import DashboardTopDeploymentsPostRequestSummaryType
-from .types.dashboard_top_keys_get_request_sort_by import DashboardTopKeysGetRequestSortBy
-from .types.dashboard_top_keys_get_request_summary_type import DashboardTopKeysGetRequestSummaryType
-from .types.dashboard_top_keys_post_request_sort_by import DashboardTopKeysPostRequestSortBy
-from .types.dashboard_top_keys_post_request_summary_type import DashboardTopKeysPostRequestSummaryType
-from .types.dashboard_top_models_get_request_sort_by import DashboardTopModelsGetRequestSortBy
-from .types.dashboard_top_models_get_request_summary_type import DashboardTopModelsGetRequestSummaryType
-from .types.dashboard_top_models_post_request_sort_by import DashboardTopModelsPostRequestSortBy
-from .types.dashboard_top_models_post_request_summary_type import DashboardTopModelsPostRequestSummaryType
-from .types.dashboard_top_prompts_get_request_sort_by import DashboardTopPromptsGetRequestSortBy
-from .types.dashboard_top_prompts_get_request_summary_type import DashboardTopPromptsGetRequestSummaryType
-from .types.dashboard_top_prompts_post_request_sort_by import DashboardTopPromptsPostRequestSortBy
-from .types.dashboard_top_prompts_post_request_summary_type import DashboardTopPromptsPostRequestSummaryType
-from .types.dashboard_top_providers_get_request_sort_by import DashboardTopProvidersGetRequestSortBy
-from .types.dashboard_top_providers_get_request_summary_type import DashboardTopProvidersGetRequestSummaryType
-from .types.dashboard_top_providers_post_request_sort_by import DashboardTopProvidersPostRequestSortBy
-from .types.dashboard_top_providers_post_request_summary_type import DashboardTopProvidersPostRequestSummaryType
-from .types.dashboard_top_users_get_request_sort_by import DashboardTopUsersGetRequestSortBy
-from .types.dashboard_top_users_get_request_summary_type import DashboardTopUsersGetRequestSummaryType
-from .types.dashboard_top_users_post_request_sort_by import DashboardTopUsersPostRequestSortBy
-from .types.dashboard_top_users_post_request_summary_type import DashboardTopUsersPostRequestSummaryType
-from .types.platform_public_stats_request_breakdown_by import PlatformPublicStatsRequestBreakdownBy
+from .types.get_platform_stats_request_breakdown_by import GetPlatformStatsRequestBreakdownBy
+from .types.get_storage_volume_summary_request_time_tick import GetStorageVolumeSummaryRequestTimeTick
+from .types.list_storage_volume_request_time_tick import ListStorageVolumeRequestTimeTick
+from .types.list_top_api_keys_request_sort_by import ListTopApiKeysRequestSortBy
+from .types.list_top_api_keys_request_summary_type import ListTopApiKeysRequestSummaryType
+from .types.list_top_deployments_request_sort_by import ListTopDeploymentsRequestSortBy
+from .types.list_top_deployments_request_summary_type import ListTopDeploymentsRequestSummaryType
+from .types.list_top_models_request_sort_by import ListTopModelsRequestSortBy
+from .types.list_top_models_request_summary_type import ListTopModelsRequestSummaryType
+from .types.list_top_prompts_request_sort_by import ListTopPromptsRequestSortBy
+from .types.list_top_prompts_request_summary_type import ListTopPromptsRequestSummaryType
+from .types.list_top_providers_request_sort_by import ListTopProvidersRequestSortBy
+from .types.list_top_providers_request_summary_type import ListTopProvidersRequestSummaryType
+from .types.list_top_users_request_sort_by import ListTopUsersRequestSortBy
+from .types.list_top_users_request_summary_type import ListTopUsersRequestSummaryType
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -77,7 +63,7 @@ class DashboardClient:
         """
         return self._raw_client
 
-    def dashboard_llm_metrics_time_series(
+    def list_llm_metrics(
         self,
         *,
         authorization: str,
@@ -125,7 +111,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.dashboard_llm_metrics_time_series(
+        client.dashboard.list_llm_metrics(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -135,7 +121,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.dashboard_llm_metrics_time_series(
+        _response = self._raw_client.list_llm_metrics(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -146,7 +132,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def dashboard_llm_metrics_summary(
+    def get_llm_metrics_summary(
         self,
         *,
         authorization: str,
@@ -194,7 +180,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.dashboard_llm_metrics_summary(
+        client.dashboard.get_llm_metrics_summary(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -204,7 +190,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.dashboard_llm_metrics_summary(
+        _response = self._raw_client.get_llm_metrics_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -215,7 +201,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def quantiles_time_series(
+    def list_quantiles(
         self,
         *,
         authorization: str,
@@ -259,7 +245,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.quantiles_time_series(
+        client.dashboard.list_quantiles(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -269,7 +255,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.quantiles_time_series(
+        _response = self._raw_client.list_quantiles(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -279,7 +265,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def quantiles_summary(
+    def get_quantiles_summary(
         self,
         *,
         authorization: str,
@@ -323,7 +309,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.quantiles_summary(
+        client.dashboard.get_quantiles_summary(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -333,7 +319,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.quantiles_summary(
+        _response = self._raw_client.get_quantiles_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -343,89 +329,27 @@ class DashboardClient:
         )
         return _response.data
 
-    def top_models_get(
+    def list_top_models(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopModelsGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopModelsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopModelsGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N models ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopModelsGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopModelsGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.dashboard.top_models_get(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.top_models_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def top_models_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopModelsPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopModelsPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopModelsRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N models ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N models ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopModelsPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopModelsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -434,7 +358,7 @@ class DashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopModelsPostRequestSortBy]
+        sort_by : typing.Optional[ListTopModelsRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -455,11 +379,11 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.top_models_post(
+        client.dashboard.list_top_models(
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.top_models_post(
+        _response = self._raw_client.list_top_models(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -471,89 +395,27 @@ class DashboardClient:
         )
         return _response.data
 
-    def top_keys_get(
+    def list_top_api_keys(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopKeysGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopApiKeysRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopKeysGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N API keys ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopKeysGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopKeysGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.dashboard.top_keys_get(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.top_keys_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def top_keys_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopKeysPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopKeysPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopApiKeysRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N API keys ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N API keys ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopKeysPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopApiKeysRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -562,7 +424,7 @@ class DashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopKeysPostRequestSortBy]
+        sort_by : typing.Optional[ListTopApiKeysRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -583,11 +445,11 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.top_keys_post(
+        client.dashboard.list_top_api_keys(
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.top_keys_post(
+        _response = self._raw_client.list_top_api_keys(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -599,89 +461,27 @@ class DashboardClient:
         )
         return _response.data
 
-    def top_prompts_get(
+    def list_top_prompts(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopPromptsGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopPromptsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopPromptsGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N prompts ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopPromptsGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopPromptsGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.dashboard.top_prompts_get(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.top_prompts_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def top_prompts_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopPromptsPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopPromptsPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopPromptsRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N prompts ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N prompts ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopPromptsPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopPromptsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -690,7 +490,7 @@ class DashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopPromptsPostRequestSortBy]
+        sort_by : typing.Optional[ListTopPromptsRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -711,11 +511,11 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.top_prompts_post(
+        client.dashboard.list_top_prompts(
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.top_prompts_post(
+        _response = self._raw_client.list_top_prompts(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -727,89 +527,27 @@ class DashboardClient:
         )
         return _response.data
 
-    def top_deployments_get(
+    def list_top_deployments(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopDeploymentsGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopDeploymentsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopDeploymentsGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N deployments ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopDeploymentsGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopDeploymentsGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.dashboard.top_deployments_get(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.top_deployments_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def top_deployments_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopDeploymentsPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopDeploymentsPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopDeploymentsRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N deployments ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N deployments ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopDeploymentsPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopDeploymentsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -818,7 +556,7 @@ class DashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopDeploymentsPostRequestSortBy]
+        sort_by : typing.Optional[ListTopDeploymentsRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -839,11 +577,11 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.top_deployments_post(
+        client.dashboard.list_top_deployments(
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.top_deployments_post(
+        _response = self._raw_client.list_top_deployments(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -855,89 +593,27 @@ class DashboardClient:
         )
         return _response.data
 
-    def top_users_get(
+    def list_top_users(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopUsersGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopUsersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopUsersGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N customer identifiers ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopUsersGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopUsersGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.dashboard.top_users_get(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.top_users_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def top_users_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopUsersPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopUsersPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopUsersRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N customer identifiers ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N customer identifiers ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopUsersPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopUsersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -946,7 +622,7 @@ class DashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopUsersPostRequestSortBy]
+        sort_by : typing.Optional[ListTopUsersRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -967,11 +643,11 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.top_users_post(
+        client.dashboard.list_top_users(
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.top_users_post(
+        _response = self._raw_client.list_top_users(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -983,89 +659,27 @@ class DashboardClient:
         )
         return _response.data
 
-    def top_providers_get(
+    def list_top_providers(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopProvidersGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopProvidersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopProvidersGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N providers ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopProvidersGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopProvidersGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.dashboard.top_providers_get(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.top_providers_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def top_providers_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopProvidersPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopProvidersPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopProvidersRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N providers ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N providers ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopProvidersPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopProvidersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -1074,7 +688,7 @@ class DashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopProvidersPostRequestSortBy]
+        sort_by : typing.Optional[ListTopProvidersRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -1095,11 +709,11 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.top_providers_post(
+        client.dashboard.list_top_providers(
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.top_providers_post(
+        _response = self._raw_client.list_top_providers(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -1111,7 +725,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def time_series_breakdown(
+    def list_metrics_breakdown(
         self,
         *,
         authorization: str,
@@ -1163,7 +777,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.time_series_breakdown(
+        client.dashboard.list_metrics_breakdown(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -1174,7 +788,7 @@ class DashboardClient:
             breakdown_by="model",
         )
         """
-        _response = self._raw_client.time_series_breakdown(
+        _response = self._raw_client.list_metrics_breakdown(
             authorization=authorization,
             breakdown_by=breakdown_by,
             start_time=start_time,
@@ -1186,7 +800,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def active_users(
+    def list_active_users(
         self,
         *,
         authorization: str,
@@ -1230,7 +844,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.active_users(
+        client.dashboard.list_active_users(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -1240,7 +854,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.active_users(
+        _response = self._raw_client.list_active_users(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1250,7 +864,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def total_users(
+    def get_total_users(
         self,
         *,
         authorization: str,
@@ -1294,7 +908,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.total_users(
+        client.dashboard.get_total_users(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -1304,7 +918,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.total_users(
+        _response = self._raw_client.get_total_users(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1314,7 +928,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def cache_hit_time_series(
+    def list_cache_hit_metrics(
         self,
         *,
         authorization: str,
@@ -1358,7 +972,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.cache_hit_time_series(
+        client.dashboard.list_cache_hit_metrics(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -1368,7 +982,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.cache_hit_time_series(
+        _response = self._raw_client.list_cache_hit_metrics(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1378,7 +992,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def cache_hit_summary(
+    def get_cache_hit_metrics_summary(
         self,
         *,
         authorization: str,
@@ -1422,7 +1036,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.cache_hit_summary(
+        client.dashboard.get_cache_hit_metrics_summary(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -1432,7 +1046,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.cache_hit_summary(
+        _response = self._raw_client.get_cache_hit_metrics_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1442,7 +1056,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def cache_hit_lifetime_totals(
+    def get_lifetime_cache_hit_totals(
         self,
         *,
         authorization: str,
@@ -1486,7 +1100,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.cache_hit_lifetime_totals(
+        client.dashboard.get_lifetime_cache_hit_totals(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -1496,7 +1110,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.cache_hit_lifetime_totals(
+        _response = self._raw_client.get_lifetime_cache_hit_totals(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1506,7 +1120,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def eval_results_time_series(
+    def list_eval_results(
         self,
         *,
         authorization: str,
@@ -1550,7 +1164,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.eval_results_time_series(
+        client.dashboard.list_eval_results(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -1560,7 +1174,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.eval_results_time_series(
+        _response = self._raw_client.list_eval_results(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1570,7 +1184,7 @@ class DashboardClient:
         )
         return _response.data
 
-    def eval_results_summary(
+    def get_eval_results_summary(
         self,
         *,
         authorization: str,
@@ -1614,7 +1228,7 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.eval_results_summary(
+        client.dashboard.get_eval_results_summary(
             authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2026-02-01 00:00:00+00:00",
@@ -1624,7 +1238,7 @@ class DashboardClient:
             ),
         )
         """
-        _response = self._raw_client.eval_results_summary(
+        _response = self._raw_client.get_eval_results_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1634,13 +1248,13 @@ class DashboardClient:
         )
         return _response.data
 
-    def storage_volume_time_series(
+    def list_storage_volume(
         self,
         *,
         authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[DashboardStorageVolumeTimeSeriesRequestTimeTick] = None,
+        time_tick: typing.Optional[ListStorageVolumeRequestTimeTick] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardStorageRow]:
         """
@@ -1657,7 +1271,7 @@ class DashboardClient:
         end_time : typing.Optional[dt.datetime]
             ISO end time.
 
-        time_tick : typing.Optional[DashboardStorageVolumeTimeSeriesRequestTimeTick]
+        time_tick : typing.Optional[ListStorageVolumeRequestTimeTick]
             Bucket granularity.
 
         request_options : typing.Optional[RequestOptions]
@@ -1673,11 +1287,11 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.storage_volume_time_series(
+        client.dashboard.list_storage_volume(
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.storage_volume_time_series(
+        _response = self._raw_client.list_storage_volume(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1686,13 +1300,13 @@ class DashboardClient:
         )
         return _response.data
 
-    def storage_volume_summary(
+    def get_storage_volume_summary(
         self,
         *,
         authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[DashboardStorageVolumeSummaryRequestTimeTick] = None,
+        time_tick: typing.Optional[GetStorageVolumeSummaryRequestTimeTick] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardStorageSummary:
         """
@@ -1709,7 +1323,7 @@ class DashboardClient:
         end_time : typing.Optional[dt.datetime]
             ISO end time.
 
-        time_tick : typing.Optional[DashboardStorageVolumeSummaryRequestTimeTick]
+        time_tick : typing.Optional[GetStorageVolumeSummaryRequestTimeTick]
             Bucket granularity.
 
         request_options : typing.Optional[RequestOptions]
@@ -1725,11 +1339,11 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.storage_volume_summary(
+        client.dashboard.get_storage_volume_summary(
             authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.storage_volume_summary(
+        _response = self._raw_client.get_storage_volume_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1738,10 +1352,10 @@ class DashboardClient:
         )
         return _response.data
 
-    def platform_public_stats(
+    def get_platform_stats(
         self,
         *,
-        breakdown_by: typing.Optional[PlatformPublicStatsRequestBreakdownBy] = None,
+        breakdown_by: typing.Optional[GetPlatformStatsRequestBreakdownBy] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> PlatformStatsResponse:
         """
@@ -1749,7 +1363,7 @@ class DashboardClient:
 
         Parameters
         ----------
-        breakdown_by : typing.Optional[PlatformPublicStatsRequestBreakdownBy]
+        breakdown_by : typing.Optional[GetPlatformStatsRequestBreakdownBy]
             Dimension to break the weekly totals down by.
 
         request_options : typing.Optional[RequestOptions]
@@ -1765,9 +1379,9 @@ class DashboardClient:
         from respan import RespanClient
 
         client = RespanClient()
-        client.dashboard.platform_public_stats()
+        client.dashboard.get_platform_stats()
         """
-        _response = self._raw_client.platform_public_stats(breakdown_by=breakdown_by, request_options=request_options)
+        _response = self._raw_client.get_platform_stats(breakdown_by=breakdown_by, request_options=request_options)
         return _response.data
 
 
@@ -1786,7 +1400,7 @@ class AsyncDashboardClient:
         """
         return self._raw_client
 
-    async def dashboard_llm_metrics_time_series(
+    async def list_llm_metrics(
         self,
         *,
         authorization: str,
@@ -1838,7 +1452,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.dashboard_llm_metrics_time_series(
+            await client.dashboard.list_llm_metrics(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -1851,7 +1465,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.dashboard_llm_metrics_time_series(
+        _response = await self._raw_client.list_llm_metrics(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1862,7 +1476,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def dashboard_llm_metrics_summary(
+    async def get_llm_metrics_summary(
         self,
         *,
         authorization: str,
@@ -1914,7 +1528,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.dashboard_llm_metrics_summary(
+            await client.dashboard.get_llm_metrics_summary(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -1927,7 +1541,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.dashboard_llm_metrics_summary(
+        _response = await self._raw_client.get_llm_metrics_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -1938,7 +1552,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def quantiles_time_series(
+    async def list_quantiles(
         self,
         *,
         authorization: str,
@@ -1986,7 +1600,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.quantiles_time_series(
+            await client.dashboard.list_quantiles(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -1999,7 +1613,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.quantiles_time_series(
+        _response = await self._raw_client.list_quantiles(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -2009,7 +1623,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def quantiles_summary(
+    async def get_quantiles_summary(
         self,
         *,
         authorization: str,
@@ -2057,7 +1671,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.quantiles_summary(
+            await client.dashboard.get_quantiles_summary(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -2070,7 +1684,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.quantiles_summary(
+        _response = await self._raw_client.get_quantiles_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -2080,97 +1694,27 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def top_models_get(
+    async def list_top_models(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopModelsGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopModelsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopModelsGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N models ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopModelsGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopModelsGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.dashboard.top_models_get(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.top_models_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def top_models_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopModelsPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopModelsPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopModelsRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N models ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N models ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopModelsPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopModelsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -2179,7 +1723,7 @@ class AsyncDashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopModelsPostRequestSortBy]
+        sort_by : typing.Optional[ListTopModelsRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -2205,14 +1749,14 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.top_models_post(
+            await client.dashboard.list_top_models(
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.top_models_post(
+        _response = await self._raw_client.list_top_models(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -2224,97 +1768,27 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def top_keys_get(
+    async def list_top_api_keys(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopKeysGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopApiKeysRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopKeysGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N API keys ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopKeysGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopKeysGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.dashboard.top_keys_get(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.top_keys_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def top_keys_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopKeysPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopKeysPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopApiKeysRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N API keys ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N API keys ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopKeysPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopApiKeysRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -2323,7 +1797,7 @@ class AsyncDashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopKeysPostRequestSortBy]
+        sort_by : typing.Optional[ListTopApiKeysRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -2349,14 +1823,14 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.top_keys_post(
+            await client.dashboard.list_top_api_keys(
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.top_keys_post(
+        _response = await self._raw_client.list_top_api_keys(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -2368,97 +1842,27 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def top_prompts_get(
+    async def list_top_prompts(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopPromptsGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopPromptsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopPromptsGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N prompts ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopPromptsGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopPromptsGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.dashboard.top_prompts_get(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.top_prompts_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def top_prompts_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopPromptsPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopPromptsPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopPromptsRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N prompts ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N prompts ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopPromptsPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopPromptsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -2467,7 +1871,7 @@ class AsyncDashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopPromptsPostRequestSortBy]
+        sort_by : typing.Optional[ListTopPromptsRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -2493,14 +1897,14 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.top_prompts_post(
+            await client.dashboard.list_top_prompts(
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.top_prompts_post(
+        _response = await self._raw_client.list_top_prompts(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -2512,97 +1916,27 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def top_deployments_get(
+    async def list_top_deployments(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopDeploymentsGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopDeploymentsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopDeploymentsGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N deployments ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopDeploymentsGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopDeploymentsGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.dashboard.top_deployments_get(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.top_deployments_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def top_deployments_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopDeploymentsPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopDeploymentsPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopDeploymentsRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N deployments ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N deployments ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopDeploymentsPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopDeploymentsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -2611,7 +1945,7 @@ class AsyncDashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopDeploymentsPostRequestSortBy]
+        sort_by : typing.Optional[ListTopDeploymentsRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -2637,14 +1971,14 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.top_deployments_post(
+            await client.dashboard.list_top_deployments(
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.top_deployments_post(
+        _response = await self._raw_client.list_top_deployments(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -2656,97 +1990,27 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def top_users_get(
+    async def list_top_users(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopUsersGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopUsersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopUsersGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N customer identifiers ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopUsersGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopUsersGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.dashboard.top_users_get(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.top_users_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def top_users_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopUsersPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopUsersPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopUsersRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N customer identifiers ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N customer identifiers ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopUsersPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopUsersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -2755,7 +2019,7 @@ class AsyncDashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopUsersPostRequestSortBy]
+        sort_by : typing.Optional[ListTopUsersRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -2781,14 +2045,14 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.top_users_post(
+            await client.dashboard.list_top_users(
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.top_users_post(
+        _response = await self._raw_client.list_top_users(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -2800,97 +2064,27 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def top_providers_get(
+    async def list_top_providers(
         self,
         *,
         authorization: str,
-        summary_type: typing.Optional[DashboardTopProvidersGetRequestSummaryType] = None,
+        summary_type: typing.Optional[ListTopProvidersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopProvidersGetRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTopNResponse:
-        """
-        Returns the top-N providers ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        summary_type : typing.Optional[DashboardTopProvidersGetRequestSummaryType]
-            Preset time range. Use this OR `start_time`/`end_time`.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional explicit ISO start. Use with `end_time` for custom ranges.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional explicit ISO end. Use with `start_time`.
-
-        sort_by : typing.Optional[DashboardTopProvidersGetRequestSortBy]
-            Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DashboardTopNResponse
-            Successful response.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.dashboard.top_providers_get(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.top_providers_get(
-            authorization=authorization,
-            summary_type=summary_type,
-            start_time=start_time,
-            end_time=end_time,
-            sort_by=sort_by,
-            limit=limit,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def top_providers_post(
-        self,
-        *,
-        authorization: str,
-        summary_type: typing.Optional[DashboardTopProvidersPostRequestSummaryType] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        sort_by: typing.Optional[DashboardTopProvidersPostRequestSortBy] = None,
+        sort_by: typing.Optional[ListTopProvidersRequestSortBy] = None,
         limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
         """
-        Returns the top-N providers ranked by a chosen LLM metric. Authenticated; regular users are scoped to their own organization. Both `GET` and `POST` are supported — query params apply to both methods. Use `POST` with a `filters` body when you need to scope the ranking.
+        Returns the top-N providers ranked by a chosen LLM metric. Pass a `filters` body to scope the ranking (for example to a single customer or model). Authenticated; regular users are scoped to their own organization.
 
         Parameters
         ----------
         authorization : str
             Bearer token. Use `Bearer YOUR_API_KEY`.
 
-        summary_type : typing.Optional[DashboardTopProvidersPostRequestSummaryType]
+        summary_type : typing.Optional[ListTopProvidersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
         start_time : typing.Optional[dt.datetime]
@@ -2899,7 +2093,7 @@ class AsyncDashboardClient:
         end_time : typing.Optional[dt.datetime]
             Optional explicit ISO end. Use with `start_time`.
 
-        sort_by : typing.Optional[DashboardTopProvidersPostRequestSortBy]
+        sort_by : typing.Optional[ListTopProvidersRequestSortBy]
             Metric to sort the ranking by.
 
         limit : typing.Optional[int]
@@ -2925,14 +2119,14 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.top_providers_post(
+            await client.dashboard.list_top_providers(
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.top_providers_post(
+        _response = await self._raw_client.list_top_providers(
             authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
@@ -2944,7 +2138,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def time_series_breakdown(
+    async def list_metrics_breakdown(
         self,
         *,
         authorization: str,
@@ -3000,7 +2194,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.time_series_breakdown(
+            await client.dashboard.list_metrics_breakdown(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -3014,7 +2208,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.time_series_breakdown(
+        _response = await self._raw_client.list_metrics_breakdown(
             authorization=authorization,
             breakdown_by=breakdown_by,
             start_time=start_time,
@@ -3026,7 +2220,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def active_users(
+    async def list_active_users(
         self,
         *,
         authorization: str,
@@ -3074,7 +2268,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.active_users(
+            await client.dashboard.list_active_users(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -3087,7 +2281,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.active_users(
+        _response = await self._raw_client.list_active_users(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -3097,7 +2291,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def total_users(
+    async def get_total_users(
         self,
         *,
         authorization: str,
@@ -3145,7 +2339,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.total_users(
+            await client.dashboard.get_total_users(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -3158,7 +2352,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.total_users(
+        _response = await self._raw_client.get_total_users(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -3168,7 +2362,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def cache_hit_time_series(
+    async def list_cache_hit_metrics(
         self,
         *,
         authorization: str,
@@ -3216,7 +2410,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.cache_hit_time_series(
+            await client.dashboard.list_cache_hit_metrics(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -3229,7 +2423,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.cache_hit_time_series(
+        _response = await self._raw_client.list_cache_hit_metrics(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -3239,7 +2433,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def cache_hit_summary(
+    async def get_cache_hit_metrics_summary(
         self,
         *,
         authorization: str,
@@ -3287,7 +2481,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.cache_hit_summary(
+            await client.dashboard.get_cache_hit_metrics_summary(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -3300,7 +2494,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.cache_hit_summary(
+        _response = await self._raw_client.get_cache_hit_metrics_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -3310,7 +2504,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def cache_hit_lifetime_totals(
+    async def get_lifetime_cache_hit_totals(
         self,
         *,
         authorization: str,
@@ -3358,7 +2552,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.cache_hit_lifetime_totals(
+            await client.dashboard.get_lifetime_cache_hit_totals(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -3371,7 +2565,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.cache_hit_lifetime_totals(
+        _response = await self._raw_client.get_lifetime_cache_hit_totals(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -3381,7 +2575,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def eval_results_time_series(
+    async def list_eval_results(
         self,
         *,
         authorization: str,
@@ -3429,7 +2623,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.eval_results_time_series(
+            await client.dashboard.list_eval_results(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -3442,7 +2636,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.eval_results_time_series(
+        _response = await self._raw_client.list_eval_results(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -3452,7 +2646,7 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def eval_results_summary(
+    async def get_eval_results_summary(
         self,
         *,
         authorization: str,
@@ -3500,7 +2694,7 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.eval_results_summary(
+            await client.dashboard.get_eval_results_summary(
                 authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2026-02-01 00:00:00+00:00",
@@ -3513,7 +2707,7 @@ class AsyncDashboardClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.eval_results_summary(
+        _response = await self._raw_client.get_eval_results_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -3523,13 +2717,13 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def storage_volume_time_series(
+    async def list_storage_volume(
         self,
         *,
         authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[DashboardStorageVolumeTimeSeriesRequestTimeTick] = None,
+        time_tick: typing.Optional[ListStorageVolumeRequestTimeTick] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardStorageRow]:
         """
@@ -3546,7 +2740,7 @@ class AsyncDashboardClient:
         end_time : typing.Optional[dt.datetime]
             ISO end time.
 
-        time_tick : typing.Optional[DashboardStorageVolumeTimeSeriesRequestTimeTick]
+        time_tick : typing.Optional[ListStorageVolumeRequestTimeTick]
             Bucket granularity.
 
         request_options : typing.Optional[RequestOptions]
@@ -3567,14 +2761,14 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.storage_volume_time_series(
+            await client.dashboard.list_storage_volume(
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.storage_volume_time_series(
+        _response = await self._raw_client.list_storage_volume(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -3583,13 +2777,13 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def storage_volume_summary(
+    async def get_storage_volume_summary(
         self,
         *,
         authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[DashboardStorageVolumeSummaryRequestTimeTick] = None,
+        time_tick: typing.Optional[GetStorageVolumeSummaryRequestTimeTick] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardStorageSummary:
         """
@@ -3606,7 +2800,7 @@ class AsyncDashboardClient:
         end_time : typing.Optional[dt.datetime]
             ISO end time.
 
-        time_tick : typing.Optional[DashboardStorageVolumeSummaryRequestTimeTick]
+        time_tick : typing.Optional[GetStorageVolumeSummaryRequestTimeTick]
             Bucket granularity.
 
         request_options : typing.Optional[RequestOptions]
@@ -3627,14 +2821,14 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.storage_volume_summary(
+            await client.dashboard.get_storage_volume_summary(
                 authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.storage_volume_summary(
+        _response = await self._raw_client.get_storage_volume_summary(
             authorization=authorization,
             start_time=start_time,
             end_time=end_time,
@@ -3643,10 +2837,10 @@ class AsyncDashboardClient:
         )
         return _response.data
 
-    async def platform_public_stats(
+    async def get_platform_stats(
         self,
         *,
-        breakdown_by: typing.Optional[PlatformPublicStatsRequestBreakdownBy] = None,
+        breakdown_by: typing.Optional[GetPlatformStatsRequestBreakdownBy] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> PlatformStatsResponse:
         """
@@ -3654,7 +2848,7 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        breakdown_by : typing.Optional[PlatformPublicStatsRequestBreakdownBy]
+        breakdown_by : typing.Optional[GetPlatformStatsRequestBreakdownBy]
             Dimension to break the weekly totals down by.
 
         request_options : typing.Optional[RequestOptions]
@@ -3675,12 +2869,12 @@ class AsyncDashboardClient:
 
 
         async def main() -> None:
-            await client.dashboard.platform_public_stats()
+            await client.dashboard.get_platform_stats()
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.platform_public_stats(
+        _response = await self._raw_client.get_platform_stats(
             breakdown_by=breakdown_by, request_options=request_options
         )
         return _response.data

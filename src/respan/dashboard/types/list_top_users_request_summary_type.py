@@ -2,6 +2,6 @@
 
 import typing
 
-DashboardTopPromptsGetRequestSummaryType = typing.Union[
+ListTopUsersRequestSummaryType = typing.Union[
     typing.Literal["daily", "weekly", "monthly", "quarterly", "yearly", "last_24h"], typing.Any
 ]

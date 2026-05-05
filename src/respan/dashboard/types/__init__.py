@@ -8,63 +8,39 @@ from importlib import import_module
 if typing.TYPE_CHECKING:
     from .dashboard_breakdown_request_breakdown_by import DashboardBreakdownRequestBreakdownBy
     from .dashboard_breakdown_request_metrics_to_aggregate_item import DashboardBreakdownRequestMetricsToAggregateItem
-    from .dashboard_storage_volume_summary_request_time_tick import DashboardStorageVolumeSummaryRequestTimeTick
-    from .dashboard_storage_volume_time_series_request_time_tick import DashboardStorageVolumeTimeSeriesRequestTimeTick
-    from .dashboard_top_deployments_get_request_sort_by import DashboardTopDeploymentsGetRequestSortBy
-    from .dashboard_top_deployments_get_request_summary_type import DashboardTopDeploymentsGetRequestSummaryType
-    from .dashboard_top_deployments_post_request_sort_by import DashboardTopDeploymentsPostRequestSortBy
-    from .dashboard_top_deployments_post_request_summary_type import DashboardTopDeploymentsPostRequestSummaryType
-    from .dashboard_top_keys_get_request_sort_by import DashboardTopKeysGetRequestSortBy
-    from .dashboard_top_keys_get_request_summary_type import DashboardTopKeysGetRequestSummaryType
-    from .dashboard_top_keys_post_request_sort_by import DashboardTopKeysPostRequestSortBy
-    from .dashboard_top_keys_post_request_summary_type import DashboardTopKeysPostRequestSummaryType
-    from .dashboard_top_models_get_request_sort_by import DashboardTopModelsGetRequestSortBy
-    from .dashboard_top_models_get_request_summary_type import DashboardTopModelsGetRequestSummaryType
-    from .dashboard_top_models_post_request_sort_by import DashboardTopModelsPostRequestSortBy
-    from .dashboard_top_models_post_request_summary_type import DashboardTopModelsPostRequestSummaryType
-    from .dashboard_top_prompts_get_request_sort_by import DashboardTopPromptsGetRequestSortBy
-    from .dashboard_top_prompts_get_request_summary_type import DashboardTopPromptsGetRequestSummaryType
-    from .dashboard_top_prompts_post_request_sort_by import DashboardTopPromptsPostRequestSortBy
-    from .dashboard_top_prompts_post_request_summary_type import DashboardTopPromptsPostRequestSummaryType
-    from .dashboard_top_providers_get_request_sort_by import DashboardTopProvidersGetRequestSortBy
-    from .dashboard_top_providers_get_request_summary_type import DashboardTopProvidersGetRequestSummaryType
-    from .dashboard_top_providers_post_request_sort_by import DashboardTopProvidersPostRequestSortBy
-    from .dashboard_top_providers_post_request_summary_type import DashboardTopProvidersPostRequestSummaryType
-    from .dashboard_top_users_get_request_sort_by import DashboardTopUsersGetRequestSortBy
-    from .dashboard_top_users_get_request_summary_type import DashboardTopUsersGetRequestSummaryType
-    from .dashboard_top_users_post_request_sort_by import DashboardTopUsersPostRequestSortBy
-    from .dashboard_top_users_post_request_summary_type import DashboardTopUsersPostRequestSummaryType
-    from .platform_public_stats_request_breakdown_by import PlatformPublicStatsRequestBreakdownBy
+    from .get_platform_stats_request_breakdown_by import GetPlatformStatsRequestBreakdownBy
+    from .get_storage_volume_summary_request_time_tick import GetStorageVolumeSummaryRequestTimeTick
+    from .list_storage_volume_request_time_tick import ListStorageVolumeRequestTimeTick
+    from .list_top_api_keys_request_sort_by import ListTopApiKeysRequestSortBy
+    from .list_top_api_keys_request_summary_type import ListTopApiKeysRequestSummaryType
+    from .list_top_deployments_request_sort_by import ListTopDeploymentsRequestSortBy
+    from .list_top_deployments_request_summary_type import ListTopDeploymentsRequestSummaryType
+    from .list_top_models_request_sort_by import ListTopModelsRequestSortBy
+    from .list_top_models_request_summary_type import ListTopModelsRequestSummaryType
+    from .list_top_prompts_request_sort_by import ListTopPromptsRequestSortBy
+    from .list_top_prompts_request_summary_type import ListTopPromptsRequestSummaryType
+    from .list_top_providers_request_sort_by import ListTopProvidersRequestSortBy
+    from .list_top_providers_request_summary_type import ListTopProvidersRequestSummaryType
+    from .list_top_users_request_sort_by import ListTopUsersRequestSortBy
+    from .list_top_users_request_summary_type import ListTopUsersRequestSummaryType
 _dynamic_imports: typing.Dict[str, str] = {
     "DashboardBreakdownRequestBreakdownBy": ".dashboard_breakdown_request_breakdown_by",
     "DashboardBreakdownRequestMetricsToAggregateItem": ".dashboard_breakdown_request_metrics_to_aggregate_item",
-    "DashboardStorageVolumeSummaryRequestTimeTick": ".dashboard_storage_volume_summary_request_time_tick",
-    "DashboardStorageVolumeTimeSeriesRequestTimeTick": ".dashboard_storage_volume_time_series_request_time_tick",
-    "DashboardTopDeploymentsGetRequestSortBy": ".dashboard_top_deployments_get_request_sort_by",
-    "DashboardTopDeploymentsGetRequestSummaryType": ".dashboard_top_deployments_get_request_summary_type",
-    "DashboardTopDeploymentsPostRequestSortBy": ".dashboard_top_deployments_post_request_sort_by",
-    "DashboardTopDeploymentsPostRequestSummaryType": ".dashboard_top_deployments_post_request_summary_type",
-    "DashboardTopKeysGetRequestSortBy": ".dashboard_top_keys_get_request_sort_by",
-    "DashboardTopKeysGetRequestSummaryType": ".dashboard_top_keys_get_request_summary_type",
-    "DashboardTopKeysPostRequestSortBy": ".dashboard_top_keys_post_request_sort_by",
-    "DashboardTopKeysPostRequestSummaryType": ".dashboard_top_keys_post_request_summary_type",
-    "DashboardTopModelsGetRequestSortBy": ".dashboard_top_models_get_request_sort_by",
-    "DashboardTopModelsGetRequestSummaryType": ".dashboard_top_models_get_request_summary_type",
-    "DashboardTopModelsPostRequestSortBy": ".dashboard_top_models_post_request_sort_by",
-    "DashboardTopModelsPostRequestSummaryType": ".dashboard_top_models_post_request_summary_type",
-    "DashboardTopPromptsGetRequestSortBy": ".dashboard_top_prompts_get_request_sort_by",
-    "DashboardTopPromptsGetRequestSummaryType": ".dashboard_top_prompts_get_request_summary_type",
-    "DashboardTopPromptsPostRequestSortBy": ".dashboard_top_prompts_post_request_sort_by",
-    "DashboardTopPromptsPostRequestSummaryType": ".dashboard_top_prompts_post_request_summary_type",
-    "DashboardTopProvidersGetRequestSortBy": ".dashboard_top_providers_get_request_sort_by",
-    "DashboardTopProvidersGetRequestSummaryType": ".dashboard_top_providers_get_request_summary_type",
-    "DashboardTopProvidersPostRequestSortBy": ".dashboard_top_providers_post_request_sort_by",
-    "DashboardTopProvidersPostRequestSummaryType": ".dashboard_top_providers_post_request_summary_type",
-    "DashboardTopUsersGetRequestSortBy": ".dashboard_top_users_get_request_sort_by",
-    "DashboardTopUsersGetRequestSummaryType": ".dashboard_top_users_get_request_summary_type",
-    "DashboardTopUsersPostRequestSortBy": ".dashboard_top_users_post_request_sort_by",
-    "DashboardTopUsersPostRequestSummaryType": ".dashboard_top_users_post_request_summary_type",
-    "PlatformPublicStatsRequestBreakdownBy": ".platform_public_stats_request_breakdown_by",
+    "GetPlatformStatsRequestBreakdownBy": ".get_platform_stats_request_breakdown_by",
+    "GetStorageVolumeSummaryRequestTimeTick": ".get_storage_volume_summary_request_time_tick",
+    "ListStorageVolumeRequestTimeTick": ".list_storage_volume_request_time_tick",
+    "ListTopApiKeysRequestSortBy": ".list_top_api_keys_request_sort_by",
+    "ListTopApiKeysRequestSummaryType": ".list_top_api_keys_request_summary_type",
+    "ListTopDeploymentsRequestSortBy": ".list_top_deployments_request_sort_by",
+    "ListTopDeploymentsRequestSummaryType": ".list_top_deployments_request_summary_type",
+    "ListTopModelsRequestSortBy": ".list_top_models_request_sort_by",
+    "ListTopModelsRequestSummaryType": ".list_top_models_request_summary_type",
+    "ListTopPromptsRequestSortBy": ".list_top_prompts_request_sort_by",
+    "ListTopPromptsRequestSummaryType": ".list_top_prompts_request_summary_type",
+    "ListTopProvidersRequestSortBy": ".list_top_providers_request_sort_by",
+    "ListTopProvidersRequestSummaryType": ".list_top_providers_request_summary_type",
+    "ListTopUsersRequestSortBy": ".list_top_users_request_sort_by",
+    "ListTopUsersRequestSummaryType": ".list_top_users_request_summary_type",
 }
 
 
@@ -92,31 +68,19 @@ def __dir__():
 __all__ = [
     "DashboardBreakdownRequestBreakdownBy",
     "DashboardBreakdownRequestMetricsToAggregateItem",
-    "DashboardStorageVolumeSummaryRequestTimeTick",
-    "DashboardStorageVolumeTimeSeriesRequestTimeTick",
-    "DashboardTopDeploymentsGetRequestSortBy",
-    "DashboardTopDeploymentsGetRequestSummaryType",
-    "DashboardTopDeploymentsPostRequestSortBy",
-    "DashboardTopDeploymentsPostRequestSummaryType",
-    "DashboardTopKeysGetRequestSortBy",
-    "DashboardTopKeysGetRequestSummaryType",
-    "DashboardTopKeysPostRequestSortBy",
-    "DashboardTopKeysPostRequestSummaryType",
-    "DashboardTopModelsGetRequestSortBy",
-    "DashboardTopModelsGetRequestSummaryType",
-    "DashboardTopModelsPostRequestSortBy",
-    "DashboardTopModelsPostRequestSummaryType",
-    "DashboardTopPromptsGetRequestSortBy",
-    "DashboardTopPromptsGetRequestSummaryType",
-    "DashboardTopPromptsPostRequestSortBy",
-    "DashboardTopPromptsPostRequestSummaryType",
-    "DashboardTopProvidersGetRequestSortBy",
-    "DashboardTopProvidersGetRequestSummaryType",
-    "DashboardTopProvidersPostRequestSortBy",
-    "DashboardTopProvidersPostRequestSummaryType",
-    "DashboardTopUsersGetRequestSortBy",
-    "DashboardTopUsersGetRequestSummaryType",
-    "DashboardTopUsersPostRequestSortBy",
-    "DashboardTopUsersPostRequestSummaryType",
-    "PlatformPublicStatsRequestBreakdownBy",
+    "GetPlatformStatsRequestBreakdownBy",
+    "GetStorageVolumeSummaryRequestTimeTick",
+    "ListStorageVolumeRequestTimeTick",
+    "ListTopApiKeysRequestSortBy",
+    "ListTopApiKeysRequestSummaryType",
+    "ListTopDeploymentsRequestSortBy",
+    "ListTopDeploymentsRequestSummaryType",
+    "ListTopModelsRequestSortBy",
+    "ListTopModelsRequestSummaryType",
+    "ListTopPromptsRequestSortBy",
+    "ListTopPromptsRequestSummaryType",
+    "ListTopProvidersRequestSortBy",
+    "ListTopProvidersRequestSummaryType",
+    "ListTopUsersRequestSortBy",
+    "ListTopUsersRequestSummaryType",
 ]

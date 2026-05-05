@@ -2,7 +2,7 @@
 
 import typing
 
-DashboardTopUsersPostRequestSortBy = typing.Union[
+ListTopUsersRequestSortBy = typing.Union[
     typing.Literal[
         "number_of_requests",
         "total_cost",
