@@ -10,12 +10,14 @@ if typing.TYPE_CHECKING:
         CreateChatCompletionRequestCacheOptions,
         CreateChatCompletionResponse,
         CreateChatCompletionResponseContentItem,
+        CreateResponseRequestCacheOptions,
         CreateResponseRequestInput,
     )
 _dynamic_imports: typing.Dict[str, str] = {
     "CreateChatCompletionRequestCacheOptions": ".types",
     "CreateChatCompletionResponse": ".types",
     "CreateChatCompletionResponseContentItem": ".types",
+    "CreateResponseRequestCacheOptions": ".types",
     "CreateResponseRequestInput": ".types",
 }
 
@@ -45,5 +47,6 @@ __all__ = [
     "CreateChatCompletionRequestCacheOptions",
     "CreateChatCompletionResponse",
     "CreateChatCompletionResponseContentItem",
+    "CreateResponseRequestCacheOptions",
     "CreateResponseRequestInput",
 ]

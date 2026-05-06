@@ -7,6 +7,7 @@ from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawGatewayClient, RawGatewayClient
 from .types.create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
 from .types.create_chat_completion_response import CreateChatCompletionResponse
+from .types.create_response_request_cache_options import CreateResponseRequestCacheOptions
 from .types.create_response_request_input import CreateResponseRequestInput
 
 # this is used as the default value for optional parameters
@@ -35,6 +36,7 @@ class GatewayClient:
         messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         stream: typing.Optional[bool] = OMIT,
         tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
@@ -109,6 +111,9 @@ class GatewayClient:
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
 
@@ -170,7 +175,7 @@ class GatewayClient:
             Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
 
         cache_ttl : typing.Optional[float]
-            Cache time-to-live in seconds.
+            Cache time-to-live in seconds. Default: 30 days.
 
         cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
             Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
@@ -250,6 +255,7 @@ class GatewayClient:
         client = RespanClient()
         client.gateway.create_chat_completion(
             authorization="Bearer sk_live_xxxxx",
+            respan_route_provider="vertex_ai",
             messages=[{"key": "value"}],
             model="gpt-4o",
         )
@@ -259,6 +265,7 @@ class GatewayClient:
             messages=messages,
             model=model,
             data_respan_params=data_respan_params,
+            respan_route_provider=respan_route_provider,
             respan_beta=respan_beta,
             stream=stream,
             tools=tools,
@@ -312,6 +319,7 @@ class GatewayClient:
         model: str,
         input: CreateResponseRequestInput,
         data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         instructions: typing.Optional[str] = OMIT,
         stream: typing.Optional[bool] = OMIT,
@@ -325,6 +333,9 @@ class GatewayClient:
         credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         cache_enabled: typing.Optional[bool] = OMIT,
         cache_ttl: typing.Optional[int] = OMIT,
+        cache_options: typing.Optional[CreateResponseRequestCacheOptions] = OMIT,
+        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_breakdown: typing.Optional[bool] = OMIT,
         prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -369,6 +380,9 @@ class GatewayClient:
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
 
@@ -406,7 +420,16 @@ class GatewayClient:
             Enable response caching.
 
         cache_ttl : typing.Optional[int]
-            Cache TTL in seconds.
+            Cache TTL in seconds. Default: 30 days.
+
+        cache_options : typing.Optional[CreateResponseRequestCacheOptions]
+            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
+
+        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
+            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
+
+        request_breakdown : typing.Optional[bool]
+            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
 
         prompt : typing.Optional[typing.Dict[str, typing.Any]]
             Prompt template config. Properties: `prompt_id` (required), `variables`, `version`, `echo`. See [Prompt management](/docs/documentation/features/prompt-management/advanced).
@@ -465,6 +488,7 @@ class GatewayClient:
         client = RespanClient()
         client.gateway.create_response(
             authorization="Bearer sk_live_xxxxx",
+            respan_route_provider="vertex_ai",
             model="gpt-4o",
             input="input",
         )
@@ -474,6 +498,7 @@ class GatewayClient:
             model=model,
             input=input,
             data_respan_params=data_respan_params,
+            respan_route_provider=respan_route_provider,
             respan_beta=respan_beta,
             instructions=instructions,
             stream=stream,
@@ -487,6 +512,9 @@ class GatewayClient:
             credential_override=credential_override,
             cache_enabled=cache_enabled,
             cache_ttl=cache_ttl,
+            cache_options=cache_options,
+            load_balance_group=load_balance_group,
+            request_breakdown=request_breakdown,
             prompt=prompt,
             retry_params=retry_params,
             disable_log=disable_log,
@@ -528,6 +556,7 @@ class AsyncGatewayClient:
         messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         stream: typing.Optional[bool] = OMIT,
         tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
@@ -602,6 +631,9 @@ class AsyncGatewayClient:
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
 
@@ -663,7 +695,7 @@ class AsyncGatewayClient:
             Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
 
         cache_ttl : typing.Optional[float]
-            Cache time-to-live in seconds.
+            Cache time-to-live in seconds. Default: 30 days.
 
         cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
             Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
@@ -748,6 +780,7 @@ class AsyncGatewayClient:
         async def main() -> None:
             await client.gateway.create_chat_completion(
                 authorization="Bearer sk_live_xxxxx",
+                respan_route_provider="vertex_ai",
                 messages=[{"key": "value"}],
                 model="gpt-4o",
             )
@@ -760,6 +793,7 @@ class AsyncGatewayClient:
             messages=messages,
             model=model,
             data_respan_params=data_respan_params,
+            respan_route_provider=respan_route_provider,
             respan_beta=respan_beta,
             stream=stream,
             tools=tools,
@@ -813,6 +847,7 @@ class AsyncGatewayClient:
         model: str,
         input: CreateResponseRequestInput,
         data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         instructions: typing.Optional[str] = OMIT,
         stream: typing.Optional[bool] = OMIT,
@@ -826,6 +861,9 @@ class AsyncGatewayClient:
         credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         cache_enabled: typing.Optional[bool] = OMIT,
         cache_ttl: typing.Optional[int] = OMIT,
+        cache_options: typing.Optional[CreateResponseRequestCacheOptions] = OMIT,
+        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_breakdown: typing.Optional[bool] = OMIT,
         prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -870,6 +908,9 @@ class AsyncGatewayClient:
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
 
@@ -907,7 +948,16 @@ class AsyncGatewayClient:
             Enable response caching.
 
         cache_ttl : typing.Optional[int]
-            Cache TTL in seconds.
+            Cache TTL in seconds. Default: 30 days.
+
+        cache_options : typing.Optional[CreateResponseRequestCacheOptions]
+            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
+
+        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
+            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
+
+        request_breakdown : typing.Optional[bool]
+            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
 
         prompt : typing.Optional[typing.Dict[str, typing.Any]]
             Prompt template config. Properties: `prompt_id` (required), `variables`, `version`, `echo`. See [Prompt management](/docs/documentation/features/prompt-management/advanced).
@@ -971,6 +1021,7 @@ class AsyncGatewayClient:
         async def main() -> None:
             await client.gateway.create_response(
                 authorization="Bearer sk_live_xxxxx",
+                respan_route_provider="vertex_ai",
                 model="gpt-4o",
                 input="input",
             )
@@ -983,6 +1034,7 @@ class AsyncGatewayClient:
             model=model,
             input=input,
             data_respan_params=data_respan_params,
+            respan_route_provider=respan_route_provider,
             respan_beta=respan_beta,
             instructions=instructions,
             stream=stream,
@@ -996,6 +1048,9 @@ class AsyncGatewayClient:
             credential_override=credential_override,
             cache_enabled=cache_enabled,
             cache_ttl=cache_ttl,
+            cache_options=cache_options,
+            load_balance_group=load_balance_group,
+            request_breakdown=request_breakdown,
             prompt=prompt,
             retry_params=retry_params,
             disable_log=disable_log,

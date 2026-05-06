@@ -13,6 +13,7 @@ from ..errors.bad_request_error import BadRequestError
 from ..errors.unauthorized_error import UnauthorizedError
 from .types.create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
 from .types.create_chat_completion_response import CreateChatCompletionResponse
+from .types.create_response_request_cache_options import CreateResponseRequestCacheOptions
 from .types.create_response_request_input import CreateResponseRequestInput
 
 # this is used as the default value for optional parameters
@@ -30,6 +31,7 @@ class RawGatewayClient:
         messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         stream: typing.Optional[bool] = OMIT,
         tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
@@ -104,6 +106,9 @@ class RawGatewayClient:
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
 
@@ -165,7 +170,7 @@ class RawGatewayClient:
             Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
 
         cache_ttl : typing.Optional[float]
-            Cache time-to-live in seconds.
+            Cache time-to-live in seconds. Default: 30 days.
 
         cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
             Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
@@ -292,6 +297,7 @@ class RawGatewayClient:
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
+                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
                 "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
             },
             request_options=request_options,
@@ -330,6 +336,7 @@ class RawGatewayClient:
         model: str,
         input: CreateResponseRequestInput,
         data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         instructions: typing.Optional[str] = OMIT,
         stream: typing.Optional[bool] = OMIT,
@@ -343,6 +350,9 @@ class RawGatewayClient:
         credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         cache_enabled: typing.Optional[bool] = OMIT,
         cache_ttl: typing.Optional[int] = OMIT,
+        cache_options: typing.Optional[CreateResponseRequestCacheOptions] = OMIT,
+        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_breakdown: typing.Optional[bool] = OMIT,
         prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -387,6 +397,9 @@ class RawGatewayClient:
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
 
@@ -424,7 +437,16 @@ class RawGatewayClient:
             Enable response caching.
 
         cache_ttl : typing.Optional[int]
-            Cache TTL in seconds.
+            Cache TTL in seconds. Default: 30 days.
+
+        cache_options : typing.Optional[CreateResponseRequestCacheOptions]
+            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
+
+        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
+            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
+
+        request_breakdown : typing.Optional[bool]
+            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
 
         prompt : typing.Optional[typing.Dict[str, typing.Any]]
             Prompt template config. Properties: `prompt_id` (required), `variables`, `version`, `echo`. See [Prompt management](/docs/documentation/features/prompt-management/advanced).
@@ -496,6 +518,11 @@ class RawGatewayClient:
                 "credential_override": credential_override,
                 "cache_enabled": cache_enabled,
                 "cache_ttl": cache_ttl,
+                "cache_options": convert_and_respect_annotation_metadata(
+                    object_=cache_options, annotation=CreateResponseRequestCacheOptions, direction="write"
+                ),
+                "load_balance_group": load_balance_group,
+                "request_breakdown": request_breakdown,
                 "prompt": prompt,
                 "retry_params": retry_params,
                 "disable_log": disable_log,
@@ -515,6 +542,7 @@ class RawGatewayClient:
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
+                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
                 "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
             },
             request_options=request_options,
@@ -569,6 +597,7 @@ class AsyncRawGatewayClient:
         messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         stream: typing.Optional[bool] = OMIT,
         tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
@@ -643,6 +672,9 @@ class AsyncRawGatewayClient:
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
 
@@ -704,7 +736,7 @@ class AsyncRawGatewayClient:
             Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
 
         cache_ttl : typing.Optional[float]
-            Cache time-to-live in seconds.
+            Cache time-to-live in seconds. Default: 30 days.
 
         cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
             Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
@@ -831,6 +863,7 @@ class AsyncRawGatewayClient:
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
+                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
                 "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
             },
             request_options=request_options,
@@ -869,6 +902,7 @@ class AsyncRawGatewayClient:
         model: str,
         input: CreateResponseRequestInput,
         data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
         respan_beta: typing.Optional[str] = None,
         instructions: typing.Optional[str] = OMIT,
         stream: typing.Optional[bool] = OMIT,
@@ -882,6 +916,9 @@ class AsyncRawGatewayClient:
         credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         cache_enabled: typing.Optional[bool] = OMIT,
         cache_ttl: typing.Optional[int] = OMIT,
+        cache_options: typing.Optional[CreateResponseRequestCacheOptions] = OMIT,
+        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_breakdown: typing.Optional[bool] = OMIT,
         prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         disable_log: typing.Optional[bool] = OMIT,
@@ -926,6 +963,9 @@ class AsyncRawGatewayClient:
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
         respan_beta : typing.Optional[str]
             Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
 
@@ -963,7 +1003,16 @@ class AsyncRawGatewayClient:
             Enable response caching.
 
         cache_ttl : typing.Optional[int]
-            Cache TTL in seconds.
+            Cache TTL in seconds. Default: 30 days.
+
+        cache_options : typing.Optional[CreateResponseRequestCacheOptions]
+            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
+
+        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
+            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
+
+        request_breakdown : typing.Optional[bool]
+            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
 
         prompt : typing.Optional[typing.Dict[str, typing.Any]]
             Prompt template config. Properties: `prompt_id` (required), `variables`, `version`, `echo`. See [Prompt management](/docs/documentation/features/prompt-management/advanced).
@@ -1035,6 +1084,11 @@ class AsyncRawGatewayClient:
                 "credential_override": credential_override,
                 "cache_enabled": cache_enabled,
                 "cache_ttl": cache_ttl,
+                "cache_options": convert_and_respect_annotation_metadata(
+                    object_=cache_options, annotation=CreateResponseRequestCacheOptions, direction="write"
+                ),
+                "load_balance_group": load_balance_group,
+                "request_breakdown": request_breakdown,
                 "prompt": prompt,
                 "retry_params": retry_params,
                 "disable_log": disable_log,
@@ -1054,6 +1108,7 @@ class AsyncRawGatewayClient:
                 "content-type": "application/json",
                 "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
+                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
                 "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
             },
             request_options=request_options,

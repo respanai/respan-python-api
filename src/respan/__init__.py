@@ -410,6 +410,7 @@ if typing.TYPE_CHECKING:
         CreateChatCompletionRequestCacheOptions,
         CreateChatCompletionResponse,
         CreateChatCompletionResponseContentItem,
+        CreateResponseRequestCacheOptions,
         CreateResponseRequestInput,
     )
     from .health import CheckResponse, CheckResponseStatus
@@ -804,6 +805,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreatePromptVersionResponse": ".prompts",
     "CreatePromptVersionResponseEditedBy": ".prompts",
     "CreatePromptVersionResponseToolChoice": ".prompts",
+    "CreateResponseRequestCacheOptions": ".gateway",
     "CreateResponseRequestInput": ".gateway",
     "CreateScoreResponse": ".scores",
     "CreateScoreResponseType": ".scores",
@@ -1483,6 +1485,7 @@ __all__ = [
     "CreatePromptVersionResponse",
     "CreatePromptVersionResponseEditedBy",
     "CreatePromptVersionResponseToolChoice",
+    "CreateResponseRequestCacheOptions",
     "CreateResponseRequestInput",
     "CreateScoreResponse",
     "CreateScoreResponseType",
