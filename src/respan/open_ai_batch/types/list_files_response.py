@@ -8,7 +8,8 @@ from .list_files_response_data_item import ListFilesResponseDataItem
 
 
 class ListFilesResponse(UniversalBaseModel):
-    data: typing.Optional[typing.List[ListFilesResponseDataItem]] = None
+    object: typing.Optional[str] = None
+    data: typing.List[ListFilesResponseDataItem]
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

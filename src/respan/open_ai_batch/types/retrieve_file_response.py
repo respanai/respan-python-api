@@ -4,16 +4,15 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .retrieve_file_response_status import RetrieveFileResponseStatus
 
 
 class RetrieveFileResponse(UniversalBaseModel):
-    id: typing.Optional[str] = pydantic.Field(default=None)
+    id: str = pydantic.Field()
     """
     File ID.
     """
 
-    object: typing.Optional[str] = None
+    object: str
     bytes: typing.Optional[int] = pydantic.Field(default=None)
     """
     File size in bytes.
@@ -26,9 +25,14 @@ class RetrieveFileResponse(UniversalBaseModel):
 
     filename: typing.Optional[str] = None
     purpose: typing.Optional[str] = None
-    status: typing.Optional[RetrieveFileResponseStatus] = pydantic.Field(default=None)
+    status: typing.Optional[str] = pydantic.Field(default=None)
     """
     File status.
+    """
+
+    status_details: typing.Optional[typing.Any] = pydantic.Field(default=None)
+    """
+    Provider status details, when available.
     """
 
     if IS_PYDANTIC_V2:

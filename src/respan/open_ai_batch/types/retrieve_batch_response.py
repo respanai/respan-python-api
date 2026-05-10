@@ -9,33 +9,45 @@ from .retrieve_batch_response_status import RetrieveBatchResponseStatus
 
 
 class RetrieveBatchResponse(UniversalBaseModel):
-    id: typing.Optional[str] = pydantic.Field(default=None)
+    id: str = pydantic.Field()
     """
     Batch ID.
     """
 
-    status: typing.Optional[RetrieveBatchResponseStatus] = pydantic.Field(default=None)
-    """
-    Batch status.
-    """
-
+    object: typing.Optional[str] = None
+    endpoint: typing.Optional[str] = None
     input_file_id: typing.Optional[str] = None
     output_file_id: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Output file ID (available when completed).
+    Output file ID, available when the batch completes.
     """
 
     error_file_id: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Error file ID (if errors occurred).
+    Error file ID, when provider errors are available.
     """
 
-    endpoint: typing.Optional[str] = None
     completion_window: typing.Optional[str] = None
-    created_at: typing.Optional[int] = None
+    status: RetrieveBatchResponseStatus
+    created_at: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Unix timestamp.
+    """
+
+    in_progress_at: typing.Optional[int] = None
+    expires_at: typing.Optional[int] = None
+    finalizing_at: typing.Optional[int] = None
     completed_at: typing.Optional[int] = None
+    failed_at: typing.Optional[int] = None
+    expired_at: typing.Optional[int] = None
+    cancelling_at: typing.Optional[int] = None
+    cancelled_at: typing.Optional[int] = None
     request_counts: typing.Optional[RetrieveBatchResponseRequestCounts] = None
     metadata: typing.Optional[typing.Dict[str, typing.Any]] = None
+    errors: typing.Optional[typing.Any] = pydantic.Field(default=None)
+    """
+    Provider error details, when available.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

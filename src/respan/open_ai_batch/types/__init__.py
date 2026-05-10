@@ -15,19 +15,26 @@ if typing.TYPE_CHECKING:
     from .create_batch_response_request_counts import CreateBatchResponseRequestCounts
     from .create_batch_response_status import CreateBatchResponseStatus
     from .delete_file_response import DeleteFileResponse
+    from .filter_batch_jobs_response import FilterBatchJobsResponse
+    from .filter_batch_jobs_response_results_item import FilterBatchJobsResponseResultsItem
+    from .filter_batch_jobs_response_results_item_status import FilterBatchJobsResponseResultsItemStatus
+    from .filter_batch_jobs_summary_response import FilterBatchJobsSummaryResponse
+    from .get_batch_jobs_summary_response import GetBatchJobsSummaryResponse
+    from .list_batch_jobs_with_filters_response import ListBatchJobsWithFiltersResponse
+    from .list_batch_jobs_with_filters_response_results_item import ListBatchJobsWithFiltersResponseResultsItem
+    from .list_batch_jobs_with_filters_response_results_item_status import (
+        ListBatchJobsWithFiltersResponseResultsItemStatus,
+    )
     from .list_batches_response import ListBatchesResponse
     from .list_batches_response_data_item import ListBatchesResponseDataItem
     from .list_batches_response_data_item_request_counts import ListBatchesResponseDataItemRequestCounts
     from .list_batches_response_data_item_status import ListBatchesResponseDataItemStatus
     from .list_files_response import ListFilesResponse
     from .list_files_response_data_item import ListFilesResponseDataItem
-    from .list_files_response_data_item_status import ListFilesResponseDataItemStatus
     from .retrieve_batch_response import RetrieveBatchResponse
     from .retrieve_batch_response_request_counts import RetrieveBatchResponseRequestCounts
     from .retrieve_batch_response_status import RetrieveBatchResponseStatus
     from .retrieve_file_response import RetrieveFileResponse
-    from .retrieve_file_response_status import RetrieveFileResponseStatus
-    from .upload_file_request_purpose import UploadFileRequestPurpose
     from .upload_file_response import UploadFileResponse
 _dynamic_imports: typing.Dict[str, str] = {
     "CancelBatchResponse": ".cancel_batch_response",
@@ -39,19 +46,24 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateBatchResponseRequestCounts": ".create_batch_response_request_counts",
     "CreateBatchResponseStatus": ".create_batch_response_status",
     "DeleteFileResponse": ".delete_file_response",
+    "FilterBatchJobsResponse": ".filter_batch_jobs_response",
+    "FilterBatchJobsResponseResultsItem": ".filter_batch_jobs_response_results_item",
+    "FilterBatchJobsResponseResultsItemStatus": ".filter_batch_jobs_response_results_item_status",
+    "FilterBatchJobsSummaryResponse": ".filter_batch_jobs_summary_response",
+    "GetBatchJobsSummaryResponse": ".get_batch_jobs_summary_response",
+    "ListBatchJobsWithFiltersResponse": ".list_batch_jobs_with_filters_response",
+    "ListBatchJobsWithFiltersResponseResultsItem": ".list_batch_jobs_with_filters_response_results_item",
+    "ListBatchJobsWithFiltersResponseResultsItemStatus": ".list_batch_jobs_with_filters_response_results_item_status",
     "ListBatchesResponse": ".list_batches_response",
     "ListBatchesResponseDataItem": ".list_batches_response_data_item",
     "ListBatchesResponseDataItemRequestCounts": ".list_batches_response_data_item_request_counts",
     "ListBatchesResponseDataItemStatus": ".list_batches_response_data_item_status",
     "ListFilesResponse": ".list_files_response",
     "ListFilesResponseDataItem": ".list_files_response_data_item",
-    "ListFilesResponseDataItemStatus": ".list_files_response_data_item_status",
     "RetrieveBatchResponse": ".retrieve_batch_response",
     "RetrieveBatchResponseRequestCounts": ".retrieve_batch_response_request_counts",
     "RetrieveBatchResponseStatus": ".retrieve_batch_response_status",
     "RetrieveFileResponse": ".retrieve_file_response",
-    "RetrieveFileResponseStatus": ".retrieve_file_response_status",
-    "UploadFileRequestPurpose": ".upload_file_request_purpose",
     "UploadFileResponse": ".upload_file_response",
 }
 
@@ -87,18 +99,23 @@ __all__ = [
     "CreateBatchResponseRequestCounts",
     "CreateBatchResponseStatus",
     "DeleteFileResponse",
+    "FilterBatchJobsResponse",
+    "FilterBatchJobsResponseResultsItem",
+    "FilterBatchJobsResponseResultsItemStatus",
+    "FilterBatchJobsSummaryResponse",
+    "GetBatchJobsSummaryResponse",
+    "ListBatchJobsWithFiltersResponse",
+    "ListBatchJobsWithFiltersResponseResultsItem",
+    "ListBatchJobsWithFiltersResponseResultsItemStatus",
     "ListBatchesResponse",
     "ListBatchesResponseDataItem",
     "ListBatchesResponseDataItemRequestCounts",
     "ListBatchesResponseDataItemStatus",
     "ListFilesResponse",
     "ListFilesResponseDataItem",
-    "ListFilesResponseDataItemStatus",
     "RetrieveBatchResponse",
     "RetrieveBatchResponseRequestCounts",
     "RetrieveBatchResponseStatus",
     "RetrieveFileResponse",
-    "RetrieveFileResponseStatus",
-    "UploadFileRequestPurpose",
     "UploadFileResponse",
 ]

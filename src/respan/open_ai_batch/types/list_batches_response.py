@@ -8,7 +8,8 @@ from .list_batches_response_data_item import ListBatchesResponseDataItem
 
 
 class ListBatchesResponse(UniversalBaseModel):
-    data: typing.Optional[typing.List[ListBatchesResponseDataItem]] = None
+    object: typing.Optional[str] = None
+    data: typing.List[ListBatchesResponseDataItem]
     has_more: typing.Optional[bool] = None
     last_id: typing.Optional[str] = None
 

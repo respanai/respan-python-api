@@ -2,7 +2,7 @@
 
 import typing
 
-RetrieveBatchResponseStatus = typing.Union[
+ListBatchJobsWithFiltersResponseResultsItemStatus = typing.Union[
     typing.Literal[
         "validating",
         "pending",

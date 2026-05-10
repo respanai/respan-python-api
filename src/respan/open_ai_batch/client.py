@@ -4,6 +4,7 @@ import typing
 
 from .. import core
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
+from ..core.pagination import AsyncPager, SyncPager
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawOpenAiBatchClient, RawOpenAiBatchClient
 from .types.cancel_batch_response import CancelBatchResponse
@@ -11,11 +12,16 @@ from .types.create_batch_request_completion_window import CreateBatchRequestComp
 from .types.create_batch_request_endpoint import CreateBatchRequestEndpoint
 from .types.create_batch_response import CreateBatchResponse
 from .types.delete_file_response import DeleteFileResponse
+from .types.filter_batch_jobs_response import FilterBatchJobsResponse
+from .types.filter_batch_jobs_response_results_item import FilterBatchJobsResponseResultsItem
+from .types.filter_batch_jobs_summary_response import FilterBatchJobsSummaryResponse
+from .types.get_batch_jobs_summary_response import GetBatchJobsSummaryResponse
+from .types.list_batch_jobs_with_filters_response import ListBatchJobsWithFiltersResponse
+from .types.list_batch_jobs_with_filters_response_results_item import ListBatchJobsWithFiltersResponseResultsItem
 from .types.list_batches_response import ListBatchesResponse
 from .types.list_files_response import ListFilesResponse
 from .types.retrieve_batch_response import RetrieveBatchResponse
 from .types.retrieve_file_response import RetrieveFileResponse
-from .types.upload_file_request_purpose import UploadFileRequestPurpose
 from .types.upload_file_response import UploadFileResponse
 
 # this is used as the default value for optional parameters
@@ -41,12 +47,12 @@ class OpenAiBatchClient:
         self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> ListFilesResponse:
         """
-        List all uploaded files.
+        List files from the upstream OpenAI Files API using the authenticated organization key's OpenAI credentials.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -73,22 +79,22 @@ class OpenAiBatchClient:
         *,
         authorization: str,
         file: core.File,
-        purpose: UploadFileRequestPurpose,
+        purpose: str,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UploadFileResponse:
         """
-        Upload a JSONL file for batch processing.
+        Upload a file to the upstream OpenAI Files API. Batch jobs use JSONL files with `purpose=batch`.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         file : core.File
             See core.File for more documentation
 
-        purpose : UploadFileRequestPurpose
-            Intended purpose of the file.
+        purpose : str
+            File purpose.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -105,7 +111,7 @@ class OpenAiBatchClient:
         client = RespanClient()
         client.open_ai_batch.upload_file(
             authorization="Bearer sk_live_xxxxx",
-            purpose="batch",
+            purpose="purpose",
         )
         """
         _response = self._raw_client.upload_file(
@@ -117,15 +123,15 @@ class OpenAiBatchClient:
         self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveFileResponse:
         """
-        Retrieve metadata for a specific file.
+        Retrieve metadata for a file from the upstream OpenAI Files API.
 
         Parameters
         ----------
         file_id : str
-            The unique identifier of the file to retrieve. Format: file-xxxxx
+            OpenAI file ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -141,7 +147,7 @@ class OpenAiBatchClient:
 
         client = RespanClient()
         client.open_ai_batch.retrieve_file(
-            file_id="file_id",
+            file_id="file-abc123",
             authorization="Bearer sk_live_xxxxx",
         )
         """
@@ -154,15 +160,15 @@ class OpenAiBatchClient:
         self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> DeleteFileResponse:
         """
-        Delete an uploaded file.
+        Delete a file from the upstream OpenAI Files API.
 
         Parameters
         ----------
         file_id : str
-            The unique identifier of the file to delete. Format: file-xxxxx
+            OpenAI file ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -178,7 +184,7 @@ class OpenAiBatchClient:
 
         client = RespanClient()
         client.open_ai_batch.delete_file(
-            file_id="file_id",
+            file_id="file-abc123",
             authorization="Bearer sk_live_xxxxx",
         )
         """
@@ -189,15 +195,15 @@ class OpenAiBatchClient:
         self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.Iterator[bytes]:
         """
-        Download the content of a file. For batch output files, returns JSONL with results for each request.
+        Download file content. Batch output files are returned as JSONL.
 
         Parameters
         ----------
         file_id : str
-            The unique identifier of the file whose content you want to download. Format: file-xxxxx
+            OpenAI file ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -205,7 +211,7 @@ class OpenAiBatchClient:
         Returns
         -------
         typing.Iterator[bytes]
-            File content (JSONL for batch output files).
+            File content.
 
         Examples
         --------
@@ -232,21 +238,21 @@ class OpenAiBatchClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListBatchesResponse:
         """
-        List batch processing jobs with pagination.
+        List OpenAI-compatible batch jobs.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         limit : typing.Optional[int]
-            Maximum number of batches to return.
+            Maximum number of batches to return for the OpenAI-compatible list route.
 
         after : typing.Optional[str]
-            Cursor for pagination. Use the last_id from a previous response to get the next page.
+            Cursor for the next page of the OpenAI-compatible list route.
 
         data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -290,36 +296,35 @@ class OpenAiBatchClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateBatchResponse:
         """
-        Create a new batch processing job from an uploaded JSONL file.
+        Create an OpenAI-compatible batch processing job from an uploaded JSONL file.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         input_file_id : str
-            ID of the uploaded JSONL file. Get from Upload file endpoint.
+            Uploaded JSONL file ID.
 
         endpoint : CreateBatchRequestEndpoint
-            API endpoint for batch requests.
+            Endpoint each JSONL request targets.
 
         completion_window : CreateBatchRequestCompletionWindow
-            Processing time frame.
 
         data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value pairs for tracking.
+            Custom metadata for tracking.
 
         customer_identifier : typing.Optional[str]
-            End user identifier.
+            End-user identifier for logging.
 
         custom_identifier : typing.Optional[str]
-            Custom identifier for fast querying.
+            Custom identifier for querying.
 
         thread_identifier : typing.Optional[str]
-            Conversation thread ID.
+            Conversation thread identifier.
 
         environment : typing.Optional[str]
             Environment tag.
@@ -368,18 +373,18 @@ class OpenAiBatchClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveBatchResponse:
         """
-        Retrieve details of a batch processing job.
+        Retrieve an OpenAI-compatible batch job by ID.
 
         Parameters
         ----------
         batch_id : str
-            The unique identifier of the batch to retrieve. Format: batch_xxxxx
+            Batch ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -395,7 +400,7 @@ class OpenAiBatchClient:
 
         client = RespanClient()
         client.open_ai_batch.retrieve_batch(
-            batch_id="batch_id",
+            batch_id="batch_abc123",
             authorization="Bearer sk_live_xxxxx",
         )
         """
@@ -417,20 +422,20 @@ class OpenAiBatchClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CancelBatchResponse:
         """
-        Cancel an in-progress batch. Already completed requests in the batch are not affected.
+        Cancel an in-progress OpenAI-compatible batch. Already completed requests are not affected.
 
         Parameters
         ----------
         batch_id : str
-            The unique identifier of the batch to cancel. Format: batch_xxxxx
+            Batch ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request : typing.Dict[str, typing.Any]
 
         data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -446,7 +451,7 @@ class OpenAiBatchClient:
 
         client = RespanClient()
         client.open_ai_batch.cancel_batch(
-            batch_id="batch_id",
+            batch_id="batch_abc123",
             authorization="Bearer sk_live_xxxxx",
             request={"key": "value"},
         )
@@ -456,6 +461,233 @@ class OpenAiBatchClient:
             authorization=authorization,
             request=request,
             data_respan_params=data_respan_params,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def list_batch_jobs_with_filters(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        status: typing.Optional[str] = None,
+        provider_id: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> SyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]:
+        """
+        Dashboard-authenticated extension for paginated batch job listing with status and provider filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer <JWT>` dashboard authentication.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results per page. Maximum 100.
+
+        status : typing.Optional[str]
+            Filter dashboard batch jobs by normalized batch status.
+
+        provider_id : typing.Optional[str]
+            Filter dashboard batch jobs by provider ID.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]
+            Paginated list of batch jobs.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        response = client.open_ai_batch.list_batch_jobs_with_filters(
+            authorization="Bearer eyJhbGciOi...",
+            status="completed",
+            provider_id="openai",
+        )
+        for item in response:
+            yield item
+        # alternatively, you can paginate page-by-page
+        for page in response.iter_pages():
+            yield page
+        """
+        return self._raw_client.list_batch_jobs_with_filters(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            status=status,
+            provider_id=provider_id,
+            request_options=request_options,
+        )
+
+    def filter_batch_jobs(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        status: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> SyncPager[FilterBatchJobsResponseResultsItem, FilterBatchJobsResponse]:
+        """
+        Dashboard-authenticated POST-for-filtering route for batch jobs. Returns the same paginated response shape as `GET /api/v1/batches/list/`.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer <JWT>` dashboard authentication.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results per page. Maximum 100.
+
+        status : typing.Optional[str]
+            Batch status filter.
+
+        provider_id : typing.Optional[str]
+            Provider filter.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Reserved for dashboard filter payloads.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SyncPager[FilterBatchJobsResponseResultsItem, FilterBatchJobsResponse]
+            Paginated filtered list of batch jobs.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        response = client.open_ai_batch.filter_batch_jobs(
+            authorization="Bearer eyJhbGciOi...",
+        )
+        for item in response:
+            yield item
+        # alternatively, you can paginate page-by-page
+        for page in response.iter_pages():
+            yield page
+        """
+        return self._raw_client.filter_batch_jobs(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            status=status,
+            provider_id=provider_id,
+            filters=filters,
+            request_options=request_options,
+        )
+
+    def get_batch_jobs_summary(
+        self,
+        *,
+        authorization: str,
+        status: typing.Optional[str] = None,
+        provider_id: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> GetBatchJobsSummaryResponse:
+        """
+        Dashboard-authenticated extension for aggregated batch job statistics.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer <JWT>` dashboard authentication.
+
+        status : typing.Optional[str]
+            Filter dashboard batch jobs by normalized batch status.
+
+        provider_id : typing.Optional[str]
+            Filter dashboard batch jobs by provider ID.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetBatchJobsSummaryResponse
+            Batch job summary.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.open_ai_batch.get_batch_jobs_summary(
+            authorization="Bearer eyJhbGciOi...",
+            status="completed",
+            provider_id="openai",
+        )
+        """
+        _response = self._raw_client.get_batch_jobs_summary(
+            authorization=authorization, status=status, provider_id=provider_id, request_options=request_options
+        )
+        return _response.data
+
+    def filter_batch_jobs_summary(
+        self,
+        *,
+        authorization: str,
+        status: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FilterBatchJobsSummaryResponse:
+        """
+        Dashboard-authenticated extension for aggregated batch job statistics after applying filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer <JWT>` dashboard authentication.
+
+        status : typing.Optional[str]
+            Batch status filter.
+
+        provider_id : typing.Optional[str]
+            Provider filter.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Reserved for dashboard filter payloads.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        FilterBatchJobsSummaryResponse
+            Batch job summary.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient()
+        client.open_ai_batch.filter_batch_jobs_summary(
+            authorization="Bearer eyJhbGciOi...",
+        )
+        """
+        _response = self._raw_client.filter_batch_jobs_summary(
+            authorization=authorization,
+            status=status,
+            provider_id=provider_id,
+            filters=filters,
             request_options=request_options,
         )
         return _response.data
@@ -480,12 +712,12 @@ class AsyncOpenAiBatchClient:
         self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> ListFilesResponse:
         """
-        List all uploaded files.
+        List files from the upstream OpenAI Files API using the authenticated organization key's OpenAI credentials.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -520,22 +752,22 @@ class AsyncOpenAiBatchClient:
         *,
         authorization: str,
         file: core.File,
-        purpose: UploadFileRequestPurpose,
+        purpose: str,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UploadFileResponse:
         """
-        Upload a JSONL file for batch processing.
+        Upload a file to the upstream OpenAI Files API. Batch jobs use JSONL files with `purpose=batch`.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         file : core.File
             See core.File for more documentation
 
-        purpose : UploadFileRequestPurpose
-            Intended purpose of the file.
+        purpose : str
+            File purpose.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -557,7 +789,7 @@ class AsyncOpenAiBatchClient:
         async def main() -> None:
             await client.open_ai_batch.upload_file(
                 authorization="Bearer sk_live_xxxxx",
-                purpose="batch",
+                purpose="purpose",
             )
 
 
@@ -572,15 +804,15 @@ class AsyncOpenAiBatchClient:
         self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveFileResponse:
         """
-        Retrieve metadata for a specific file.
+        Retrieve metadata for a file from the upstream OpenAI Files API.
 
         Parameters
         ----------
         file_id : str
-            The unique identifier of the file to retrieve. Format: file-xxxxx
+            OpenAI file ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -601,7 +833,7 @@ class AsyncOpenAiBatchClient:
 
         async def main() -> None:
             await client.open_ai_batch.retrieve_file(
-                file_id="file_id",
+                file_id="file-abc123",
                 authorization="Bearer sk_live_xxxxx",
             )
 
@@ -617,15 +849,15 @@ class AsyncOpenAiBatchClient:
         self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> DeleteFileResponse:
         """
-        Delete an uploaded file.
+        Delete a file from the upstream OpenAI Files API.
 
         Parameters
         ----------
         file_id : str
-            The unique identifier of the file to delete. Format: file-xxxxx
+            OpenAI file ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -646,7 +878,7 @@ class AsyncOpenAiBatchClient:
 
         async def main() -> None:
             await client.open_ai_batch.delete_file(
-                file_id="file_id",
+                file_id="file-abc123",
                 authorization="Bearer sk_live_xxxxx",
             )
 
@@ -662,15 +894,15 @@ class AsyncOpenAiBatchClient:
         self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.AsyncIterator[bytes]:
         """
-        Download the content of a file. For batch output files, returns JSONL with results for each request.
+        Download file content. Batch output files are returned as JSONL.
 
         Parameters
         ----------
         file_id : str
-            The unique identifier of the file whose content you want to download. Format: file-xxxxx
+            OpenAI file ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -678,7 +910,7 @@ class AsyncOpenAiBatchClient:
         Returns
         -------
         typing.AsyncIterator[bytes]
-            File content (JSONL for batch output files).
+            File content.
 
         Examples
         --------
@@ -714,21 +946,21 @@ class AsyncOpenAiBatchClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListBatchesResponse:
         """
-        List batch processing jobs with pagination.
+        List OpenAI-compatible batch jobs.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         limit : typing.Optional[int]
-            Maximum number of batches to return.
+            Maximum number of batches to return for the OpenAI-compatible list route.
 
         after : typing.Optional[str]
-            Cursor for pagination. Use the last_id from a previous response to get the next page.
+            Cursor for the next page of the OpenAI-compatible list route.
 
         data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -780,36 +1012,35 @@ class AsyncOpenAiBatchClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateBatchResponse:
         """
-        Create a new batch processing job from an uploaded JSONL file.
+        Create an OpenAI-compatible batch processing job from an uploaded JSONL file.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         input_file_id : str
-            ID of the uploaded JSONL file. Get from Upload file endpoint.
+            Uploaded JSONL file ID.
 
         endpoint : CreateBatchRequestEndpoint
-            API endpoint for batch requests.
+            Endpoint each JSONL request targets.
 
         completion_window : CreateBatchRequestCompletionWindow
-            Processing time frame.
 
         data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value pairs for tracking.
+            Custom metadata for tracking.
 
         customer_identifier : typing.Optional[str]
-            End user identifier.
+            End-user identifier for logging.
 
         custom_identifier : typing.Optional[str]
-            Custom identifier for fast querying.
+            Custom identifier for querying.
 
         thread_identifier : typing.Optional[str]
-            Conversation thread ID.
+            Conversation thread identifier.
 
         environment : typing.Optional[str]
             Environment tag.
@@ -866,18 +1097,18 @@ class AsyncOpenAiBatchClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveBatchResponse:
         """
-        Retrieve details of a batch processing job.
+        Retrieve an OpenAI-compatible batch job by ID.
 
         Parameters
         ----------
         batch_id : str
-            The unique identifier of the batch to retrieve. Format: batch_xxxxx
+            Batch ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -898,7 +1129,7 @@ class AsyncOpenAiBatchClient:
 
         async def main() -> None:
             await client.open_ai_batch.retrieve_batch(
-                batch_id="batch_id",
+                batch_id="batch_abc123",
                 authorization="Bearer sk_live_xxxxx",
             )
 
@@ -923,20 +1154,20 @@ class AsyncOpenAiBatchClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CancelBatchResponse:
         """
-        Cancel an in-progress batch. Already completed requests in the batch are not affected.
+        Cancel an in-progress OpenAI-compatible batch. Already completed requests are not affected.
 
         Parameters
         ----------
         batch_id : str
-            The unique identifier of the batch to cancel. Format: batch_xxxxx
+            Batch ID.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request : typing.Dict[str, typing.Any]
 
         data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -957,7 +1188,7 @@ class AsyncOpenAiBatchClient:
 
         async def main() -> None:
             await client.open_ai_batch.cancel_batch(
-                batch_id="batch_id",
+                batch_id="batch_abc123",
                 authorization="Bearer sk_live_xxxxx",
                 request={"key": "value"},
             )
@@ -970,6 +1201,267 @@ class AsyncOpenAiBatchClient:
             authorization=authorization,
             request=request,
             data_respan_params=data_respan_params,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def list_batch_jobs_with_filters(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        status: typing.Optional[str] = None,
+        provider_id: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]:
+        """
+        Dashboard-authenticated extension for paginated batch job listing with status and provider filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer <JWT>` dashboard authentication.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results per page. Maximum 100.
+
+        status : typing.Optional[str]
+            Filter dashboard batch jobs by normalized batch status.
+
+        provider_id : typing.Optional[str]
+            Filter dashboard batch jobs by provider ID.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]
+            Paginated list of batch jobs.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            response = await client.open_ai_batch.list_batch_jobs_with_filters(
+                authorization="Bearer eyJhbGciOi...",
+                status="completed",
+                provider_id="openai",
+            )
+            async for item in response:
+                yield item
+
+            # alternatively, you can paginate page-by-page
+            async for page in response.iter_pages():
+                yield page
+
+
+        asyncio.run(main())
+        """
+        return await self._raw_client.list_batch_jobs_with_filters(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            status=status,
+            provider_id=provider_id,
+            request_options=request_options,
+        )
+
+    async def filter_batch_jobs(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        status: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncPager[FilterBatchJobsResponseResultsItem, FilterBatchJobsResponse]:
+        """
+        Dashboard-authenticated POST-for-filtering route for batch jobs. Returns the same paginated response shape as `GET /api/v1/batches/list/`.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer <JWT>` dashboard authentication.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results per page. Maximum 100.
+
+        status : typing.Optional[str]
+            Batch status filter.
+
+        provider_id : typing.Optional[str]
+            Provider filter.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Reserved for dashboard filter payloads.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncPager[FilterBatchJobsResponseResultsItem, FilterBatchJobsResponse]
+            Paginated filtered list of batch jobs.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            response = await client.open_ai_batch.filter_batch_jobs(
+                authorization="Bearer eyJhbGciOi...",
+            )
+            async for item in response:
+                yield item
+
+            # alternatively, you can paginate page-by-page
+            async for page in response.iter_pages():
+                yield page
+
+
+        asyncio.run(main())
+        """
+        return await self._raw_client.filter_batch_jobs(
+            authorization=authorization,
+            page=page,
+            page_size=page_size,
+            status=status,
+            provider_id=provider_id,
+            filters=filters,
+            request_options=request_options,
+        )
+
+    async def get_batch_jobs_summary(
+        self,
+        *,
+        authorization: str,
+        status: typing.Optional[str] = None,
+        provider_id: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> GetBatchJobsSummaryResponse:
+        """
+        Dashboard-authenticated extension for aggregated batch job statistics.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer <JWT>` dashboard authentication.
+
+        status : typing.Optional[str]
+            Filter dashboard batch jobs by normalized batch status.
+
+        provider_id : typing.Optional[str]
+            Filter dashboard batch jobs by provider ID.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetBatchJobsSummaryResponse
+            Batch job summary.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.open_ai_batch.get_batch_jobs_summary(
+                authorization="Bearer eyJhbGciOi...",
+                status="completed",
+                provider_id="openai",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.get_batch_jobs_summary(
+            authorization=authorization, status=status, provider_id=provider_id, request_options=request_options
+        )
+        return _response.data
+
+    async def filter_batch_jobs_summary(
+        self,
+        *,
+        authorization: str,
+        status: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FilterBatchJobsSummaryResponse:
+        """
+        Dashboard-authenticated extension for aggregated batch job statistics after applying filters.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer <JWT>` dashboard authentication.
+
+        status : typing.Optional[str]
+            Batch status filter.
+
+        provider_id : typing.Optional[str]
+            Provider filter.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Reserved for dashboard filter payloads.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        FilterBatchJobsSummaryResponse
+            Batch job summary.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient()
+
+
+        async def main() -> None:
+            await client.open_ai_batch.filter_batch_jobs_summary(
+                authorization="Bearer eyJhbGciOi...",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.filter_batch_jobs_summary(
+            authorization=authorization,
+            status=status,
+            provider_id=provider_id,
+            filters=filters,
             request_options=request_options,
         )
         return _response.data

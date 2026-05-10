@@ -3,5 +3,16 @@
 import typing
 
 CancelBatchResponseStatus = typing.Union[
-    typing.Literal["validating", "in_progress", "completed", "failed", "expired", "cancelling", "cancelled"], typing.Any
+    typing.Literal[
+        "validating",
+        "pending",
+        "in_progress",
+        "finalizing",
+        "completed",
+        "failed",
+        "expired",
+        "cancelling",
+        "cancelled",
+    ],
+    typing.Any,
 ]

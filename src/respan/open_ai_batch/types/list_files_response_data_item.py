@@ -4,16 +4,15 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .list_files_response_data_item_status import ListFilesResponseDataItemStatus
 
 
 class ListFilesResponseDataItem(UniversalBaseModel):
-    id: typing.Optional[str] = pydantic.Field(default=None)
+    id: str = pydantic.Field()
     """
     File ID.
     """
 
-    object: typing.Optional[str] = None
+    object: str
     bytes: typing.Optional[int] = pydantic.Field(default=None)
     """
     File size in bytes.
@@ -26,9 +25,14 @@ class ListFilesResponseDataItem(UniversalBaseModel):
 
     filename: typing.Optional[str] = None
     purpose: typing.Optional[str] = None
-    status: typing.Optional[ListFilesResponseDataItemStatus] = pydantic.Field(default=None)
+    status: typing.Optional[str] = pydantic.Field(default=None)
     """
     File status.
+    """
+
+    status_details: typing.Optional[typing.Any] = pydantic.Field(default=None)
+    """
+    Provider status details, when available.
     """
 
     if IS_PYDANTIC_V2:

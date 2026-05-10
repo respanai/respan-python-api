@@ -7,16 +7,33 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
 class UploadFileResponse(UniversalBaseModel):
-    id: typing.Optional[str] = pydantic.Field(default=None)
+    id: str = pydantic.Field()
     """
     File ID.
     """
 
+    object: str
+    bytes: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    File size in bytes.
+    """
+
+    created_at: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Unix timestamp.
+    """
+
     filename: typing.Optional[str] = None
     purpose: typing.Optional[str] = None
-    bytes: typing.Optional[int] = None
-    created_at: typing.Optional[int] = None
-    status: typing.Optional[str] = None
+    status: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    File status.
+    """
+
+    status_details: typing.Optional[typing.Any] = pydantic.Field(default=None)
+    """
+    Provider status details, when available.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

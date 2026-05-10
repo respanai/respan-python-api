@@ -7,8 +7,9 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
 class DeleteFileResponse(UniversalBaseModel):
-    id: typing.Optional[str] = None
-    deleted: typing.Optional[bool] = None
+    id: str
+    object: typing.Optional[str] = None
+    deleted: bool
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
