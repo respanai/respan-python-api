@@ -3,12 +3,14 @@
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class ForbiddenErrorBody(UniversalBaseModel):
-    detail: typing.Optional[str] = None
-    error: typing.Optional[str] = None
+class ListModelsResponseModelsModelsItemProvider(UniversalBaseModel):
+    provider_name: typing.Optional[str] = None
+    provider_id: typing.Optional[str] = None
+    moderation: typing.Optional[str] = None
+    credential_fields: typing.Optional[typing.List[str]] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

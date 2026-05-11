@@ -8,19 +8,24 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
 class CreateCustomProviderResponse(UniversalBaseModel):
-    id: typing.Optional[str] = pydantic.Field(default=None)
+    id: str = pydantic.Field()
     """
-    Provider ID.
-    """
-
-    provider_id: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Unique provider identifier.
+    Provider string ID. Same value as `provider_id`.
     """
 
-    provider_name: typing.Optional[str] = pydantic.Field(default=None)
+    provider_id: str = pydantic.Field()
     """
-    Provider display name.
+    Unique provider identifier within your organization.
+    """
+
+    provider_name: str = pydantic.Field()
+    """
+    Human-readable provider name.
+    """
+
+    extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    Provider configuration such as `base_url` and timeout values. Secret values are not returned here.
     """
 
     created_at: typing.Optional[dt.datetime] = None

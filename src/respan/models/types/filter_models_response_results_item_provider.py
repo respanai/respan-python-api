@@ -7,7 +7,7 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class UpdateCustomProviderResponse(UniversalBaseModel):
+class FilterModelsResponseResultsItemProvider(UniversalBaseModel):
     id: str = pydantic.Field()
     """
     Provider string ID. Same value as `provider_id`.

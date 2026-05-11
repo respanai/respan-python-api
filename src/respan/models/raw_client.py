@@ -7,16 +7,26 @@ from ..core.api_error import ApiError
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.http_response import AsyncHttpResponse, HttpResponse
 from ..core.jsonable_encoder import jsonable_encoder
+from ..core.pagination import AsyncPager, SyncPager
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
 from ..errors.unauthorized_error import UnauthorizedError
 from .types.create_custom_model_response import CreateCustomModelResponse
 from .types.create_custom_provider_response import CreateCustomProviderResponse
+from .types.filter_models_response import FilterModelsResponse
+from .types.filter_models_response_results_item import FilterModelsResponseResultsItem
+from .types.filter_models_summary_response import FilterModelsSummaryResponse
+from .types.get_models_summary_response import GetModelsSummaryResponse
 from .types.list_custom_models_response_item import ListCustomModelsResponseItem
 from .types.list_custom_providers_response_item import ListCustomProvidersResponseItem
-from .types.list_models_response_item import ListModelsResponseItem
+from .types.list_models_response import ListModelsResponse
+from .types.list_models_with_filters_response import ListModelsWithFiltersResponse
+from .types.list_models_with_filters_response_results_item import ListModelsWithFiltersResponseResultsItem
+from .types.replace_custom_model_response import ReplaceCustomModelResponse
+from .types.replace_custom_provider_response import ReplaceCustomProviderResponse
 from .types.retrieve_custom_model_response import RetrieveCustomModelResponse
 from .types.retrieve_custom_provider_response import RetrieveCustomProviderResponse
 from .types.update_custom_model_response import UpdateCustomModelResponse
@@ -31,53 +41,42 @@ class RawModelsClient:
         self._client_wrapper = client_wrapper
 
     def list_models(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[typing.List[ListModelsResponseItem]]:
+        self, *, unnest: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[ListModelsResponse]:
         """
-        List all available models including pricing, context window, and provider info.
+        List built-in public models and provider metadata. This endpoint does not require authentication. By default the response is `{ "models": [...] }`; pass `unnest=true` to return the array directly.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        unnest : typing.Optional[bool]
+            If `true`, return the public model catalog as an array instead of `{ "models": [...] }`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[typing.List[ListModelsResponseItem]]
-            List of models.
+        HttpResponse[ListModelsResponse]
+            Public model catalog.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/models/public",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+            params={
+                "unnest": unnest,
             },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    typing.List[ListModelsResponseItem],
+                    ListModelsResponse,
                     parse_obj_as(
-                        type_=typing.List[ListModelsResponseItem],  # type: ignore
+                        type_=ListModelsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -92,18 +91,18 @@ class RawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.List[ListCustomModelsResponseItem]]:
         """
-        List all models accessible to your organization, including global models and custom models.
+        List all models accessible to the authenticated organization, including built-in models and organization-specific custom models. For paginated filtering with throughput metrics, use `/api/models/list/`.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         sort_by : typing.Optional[str]
-            Field to sort by.
+            Field to sort by. Prefix with `-` for descending order.
 
         all_ : typing.Optional[bool]
-            If true, returns all models without pagination.
+            If `true`, return all matching models without pagination for routes that support it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -172,15 +171,15 @@ class RawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateCustomModelResponse]:
         """
-        Create a new custom model or update an existing one (upsert by `model_name`). Custom models allow organization-specific configurations with custom pricing, capabilities, and provider associations.
+        Create an organization-specific custom model. If a model with the same `model_name` already exists in your organization, it is updated and the endpoint returns `200`.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         model_name : str
-            Unique model name. Used to reference the model in API calls.
+            Unique model name within your organization.
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
@@ -189,37 +188,34 @@ class RawModelsClient:
             Human-readable display name.
 
         custom_provider_id : typing.Optional[str]
-            ID of the custom provider to associate.
+            Custom provider string ID or provider identifier to associate.
 
         provider_id : typing.Optional[str]
             Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
-            Cost per 1M input tokens (USD).
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
-            Cost per 1M output tokens (USD).
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
-            Cost per 1M cached input tokens (USD).
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
-            Cost per 1M cache creation tokens (USD).
+            Cost per 1M cache creation input tokens in USD.
 
         max_context_window : typing.Optional[int]
             Maximum context window size.
 
         streaming_support : typing.Optional[int]
-            Streaming support. `0` = no, `1` = yes.
 
         function_call : typing.Optional[int]
-            Function calling support. `0` = no, `1` = yes.
 
         image_support : typing.Optional[int]
-            Image/vision support. `0` = no, `1` = yes.
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
-            Override UI parameter support for Playground.
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -227,7 +223,7 @@ class RawModelsClient:
         Returns
         -------
         HttpResponse[CreateCustomModelResponse]
-            Created/updated model.
+            Updated existing model.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/models/",
@@ -287,6 +283,363 @@ class RawModelsClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def list_models_with_filters(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        all_: typing.Optional[bool] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> SyncPager[ListModelsWithFiltersResponseResultsItem, ListModelsWithFiltersResponse]:
+        """
+        List models with pagination, standard filters, sorting, and recent global throughput metrics.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        all_ : typing.Optional[bool]
+            If `true`, return all matching models without pagination for routes that support it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SyncPager[ListModelsWithFiltersResponseResultsItem, ListModelsWithFiltersResponse]
+            Paginated list of models.
+        """
+        page = page if page is not None else 1
+
+        _response = self._client_wrapper.httpx_client.request(
+            "api/models/list/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "all": all_,
+            },
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _parsed_response = typing.cast(
+                    ListModelsWithFiltersResponse,
+                    parse_obj_as(
+                        type_=ListModelsWithFiltersResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                _items = _parsed_response.results
+                _has_next = True
+                _get_next = lambda: self.list_models_with_filters(
+                    authorization=authorization,
+                    page=page + 1,
+                    page_size=page_size,
+                    sort_by=sort_by,
+                    all_=all_,
+                    request_options=request_options,
+                )
+                return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def filter_models(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> SyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
+        """
+        List models using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/models/list/`.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]
+            Paginated filtered list of models.
+        """
+        page = page if page is not None else 1
+
+        _response = self._client_wrapper.httpx_client.request(
+            "api/models/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
+            json={
+                "filters": filters,
+                "is_exporting": is_exporting,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _parsed_response = typing.cast(
+                    FilterModelsResponse,
+                    parse_obj_as(
+                        type_=FilterModelsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                _items = _parsed_response.results
+                _has_next = True
+                _get_next = lambda: self.filter_models(
+                    authorization=authorization,
+                    page=page + 1,
+                    page_size=page_size,
+                    sort_by=sort_by,
+                    filters=filters,
+                    is_exporting=is_exporting,
+                    request_options=request_options,
+                )
+                return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def get_models_summary(
+        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[GetModelsSummaryResponse]:
+        """
+        Get model counts for all models accessible to the authenticated organization.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[GetModelsSummaryResponse]
+            Models summary.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/models/summary/",
+            method="GET",
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetModelsSummaryResponse,
+                    parse_obj_as(
+                        type_=GetModelsSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def filter_models_summary(
+        self,
+        *,
+        authorization: str,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[FilterModelsSummaryResponse]:
+        """
+        Get model counts after applying a POST filter payload.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[FilterModelsSummaryResponse]
+            Models summary.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/models/summary/",
+            method="POST",
+            json={
+                "filters": filters,
+                "is_exporting": is_exporting,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FilterModelsSummaryResponse,
+                    parse_obj_as(
+                        type_=FilterModelsSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -296,15 +649,15 @@ class RawModelsClient:
         self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveCustomModelResponse]:
         """
-        Retrieve a model by name. Global models are accessible by anyone. Custom models are only accessible by the owning organization.
+        Retrieve a built-in or custom model by model name. Custom models are only visible to the owning organization.
 
         Parameters
         ----------
         model_name : str
-            The model's unique name. Can include slashes (e.g., openai/gpt-4).
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -359,19 +712,178 @@ class RawModelsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def delete_custom_model(
-        self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
+    def replace_custom_model(
+        self,
+        model_name: str,
+        *,
+        authorization: str,
+        base_model_name: typing.Optional[str] = OMIT,
+        display_name: typing.Optional[str] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
+        input_cost: typing.Optional[float] = OMIT,
+        output_cost: typing.Optional[float] = OMIT,
+        cache_hit_input_cost: typing.Optional[float] = OMIT,
+        cache_creation_input_cost: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
+        streaming_support: typing.Optional[int] = OMIT,
+        function_call: typing.Optional[int] = OMIT,
+        image_support: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ReplaceCustomModelResponse]:
         """
-        Delete a custom model. Only custom models (`source: "db"`) can be deleted. This action is permanent.
+        Replace editable fields for a custom model. The `model_name` path value remains the identifier.
 
         Parameters
         ----------
         model_name : str
-            The model's unique name to delete.
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
+
+        display_name : typing.Optional[str]
+            Human-readable display name.
+
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
+
+        input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
+
+        output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
+
+        cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
+
+        cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
+
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
+
+        streaming_support : typing.Optional[int]
+
+        function_call : typing.Optional[int]
+
+        image_support : typing.Optional[int]
+
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ReplaceCustomModelResponse]
+            Updated model.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/models/{jsonable_encoder(model_name)}/",
+            method="PUT",
+            json={
+                "base_model_name": base_model_name,
+                "display_name": display_name,
+                "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
+                "input_cost": input_cost,
+                "output_cost": output_cost,
+                "cache_hit_input_cost": cache_hit_input_cost,
+                "cache_creation_input_cost": cache_creation_input_cost,
+                "max_context_window": max_context_window,
+                "streaming_support": streaming_support,
+                "function_call": function_call,
+                "image_support": image_support,
+                "supported_params_override": supported_params_override,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceCustomModelResponse,
+                    parse_obj_as(
+                        type_=ReplaceCustomModelResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_custom_model(
+        self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[None]:
+        """
+        Delete a custom model by model name.
+
+        Parameters
+        ----------
+        model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -402,6 +914,17 @@ class RawModelsClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 404:
                 raise NotFoundError(
                     headers=dict(_response.headers),
@@ -423,9 +946,10 @@ class RawModelsClient:
         model_name: str,
         *,
         authorization: str,
-        display_name: typing.Optional[str] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
+        display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
@@ -438,36 +962,42 @@ class RawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateCustomModelResponse]:
         """
-        Update a custom model. Only provided fields are updated. The `model_name` field is read-only. Only the owning organization can update their custom models.
+        Partially update editable fields for a custom model. The `model_name` field is read-only.
 
         Parameters
         ----------
         model_name : str
-            The model's unique name to update.
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        display_name : typing.Optional[str]
-            Display name.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         base_model_name : typing.Optional[str]
-            Base model.
+            Base model to inherit properties from.
+
+        display_name : typing.Optional[str]
+            Human-readable display name.
 
         custom_provider_id : typing.Optional[str]
-            Custom provider ID.
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
-            Cost per 1M input tokens (USD).
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
-            Cost per 1M output tokens (USD).
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
         max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -476,6 +1006,7 @@ class RawModelsClient:
         image_support : typing.Optional[int]
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -489,9 +1020,10 @@ class RawModelsClient:
             f"api/models/{jsonable_encoder(model_name)}/",
             method="PATCH",
             json={
-                "display_name": display_name,
                 "base_model_name": base_model_name,
+                "display_name": display_name,
                 "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
                 "input_cost": input_cost,
                 "output_cost": output_cost,
                 "cache_hit_input_cost": cache_hit_input_cost,
@@ -519,8 +1051,30 @@ class RawModelsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -550,12 +1104,12 @@ class RawModelsClient:
         self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[typing.List[ListCustomProvidersResponseItem]]:
         """
-        List all custom providers. The `api_key` and `extra_kwargs` fields are write-only and never returned for security.
+        List custom providers for the authenticated organization.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -563,7 +1117,7 @@ class RawModelsClient:
         Returns
         -------
         HttpResponse[typing.List[ListCustomProvidersResponseItem]]
-            List of providers.
+            List of custom providers.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/providers/",
@@ -610,24 +1164,24 @@ class RawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateCustomProviderResponse]:
         """
-        Create a new custom provider or update an existing one (upsert by `provider_id`). The `api_key` and `extra_kwargs` fields are write-only and never returned for security.
+        Create a custom provider. Use `PATCH /api/providers/{provider_id}/` to update an existing provider.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         provider_id : str
-            Unique provider identifier.
+            Unique provider identifier within your organization.
 
         provider_name : str
             Human-readable provider name.
 
         api_key : typing.Optional[str]
-            API key for the provider (write-only, never returned).
+            Provider API key. This field is write-only and is never returned.
 
         extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
-            Additional provider config (write-only). Common fields: `base_url`, `timeout`, `temperature`, `max_tokens`.
+            Additional provider configuration.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -635,7 +1189,7 @@ class RawModelsClient:
         Returns
         -------
         HttpResponse[CreateCustomProviderResponse]
-            Created/updated provider.
+            Created provider.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/providers/",
@@ -663,6 +1217,17 @@ class RawModelsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -680,18 +1245,18 @@ class RawModelsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_custom_provider(
-        self, provider_id: int, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, provider_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveCustomProviderResponse]:
         """
-        Retrieve a custom provider by ID. Sensitive fields (`api_key`, `extra_kwargs`) are never returned. The `api_key` and `extra_kwargs` fields are write-only and never returned.
+        Retrieve a custom provider by its string provider ID. The provider API key is never returned.
 
         Parameters
         ----------
-        provider_id : int
-            The provider's primary key ID (numeric database ID).
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -746,19 +1311,131 @@ class RawModelsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def delete_custom_provider(
-        self, provider_id: int, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
+    def replace_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        authorization: str,
+        provider_name: typing.Optional[str] = OMIT,
+        api_key: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ReplaceCustomProviderResponse]:
         """
-        Delete a custom provider. Managed providers cannot be deleted. Deleting a provider may affect models that reference it. This action is permanent.
+        Replace editable fields for a custom provider. The `provider_id` path value remains the identifier.
 
         Parameters
         ----------
-        provider_id : int
-            The provider's primary key ID to delete.
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        api_key : typing.Optional[str]
+            Provider API key. This field is write-only and is never returned.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional provider configuration.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ReplaceCustomProviderResponse]
+            Updated provider.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="PUT",
+            json={
+                "provider_name": provider_name,
+                "api_key": api_key,
+                "extra_kwargs": extra_kwargs,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceCustomProviderResponse,
+                    parse_obj_as(
+                        type_=ReplaceCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_custom_provider(
+        self, provider_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[None]:
+        """
+        Delete a custom provider by string provider ID.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -789,6 +1466,17 @@ class RawModelsClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 404:
                 raise NotFoundError(
                     headers=dict(_response.headers),
@@ -807,7 +1495,7 @@ class RawModelsClient:
 
     def update_custom_provider(
         self,
-        provider_id: int,
+        provider_id: str,
         *,
         authorization: str,
         provider_name: typing.Optional[str] = OMIT,
@@ -816,24 +1504,24 @@ class RawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateCustomProviderResponse]:
         """
-        Update a custom provider. Only provided fields are updated. The `provider_id` is read-only. Managed providers cannot have critical fields modified.
+        Partially update editable fields for a custom provider. The `provider_id` field is read-only.
 
         Parameters
         ----------
-        provider_id : int
-            The provider's primary key ID to update.
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         provider_name : typing.Optional[str]
-            Provider name.
+            Human-readable provider name.
 
         api_key : typing.Optional[str]
-            API key (write-only).
+            Provider API key. This field is write-only and is never returned.
 
         extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
-            Additional config (write-only).
+            Additional provider configuration.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -868,8 +1556,30 @@ class RawModelsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -901,53 +1611,42 @@ class AsyncRawModelsClient:
         self._client_wrapper = client_wrapper
 
     async def list_models(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[typing.List[ListModelsResponseItem]]:
+        self, *, unnest: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[ListModelsResponse]:
         """
-        List all available models including pricing, context window, and provider info.
+        List built-in public models and provider metadata. This endpoint does not require authentication. By default the response is `{ "models": [...] }`; pass `unnest=true` to return the array directly.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        unnest : typing.Optional[bool]
+            If `true`, return the public model catalog as an array instead of `{ "models": [...] }`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[typing.List[ListModelsResponseItem]]
-            List of models.
+        AsyncHttpResponse[ListModelsResponse]
+            Public model catalog.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/models/public",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+            params={
+                "unnest": unnest,
             },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    typing.List[ListModelsResponseItem],
+                    ListModelsResponse,
                     parse_obj_as(
-                        type_=typing.List[ListModelsResponseItem],  # type: ignore
+                        type_=ListModelsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -962,18 +1661,18 @@ class AsyncRawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.List[ListCustomModelsResponseItem]]:
         """
-        List all models accessible to your organization, including global models and custom models.
+        List all models accessible to the authenticated organization, including built-in models and organization-specific custom models. For paginated filtering with throughput metrics, use `/api/models/list/`.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         sort_by : typing.Optional[str]
-            Field to sort by.
+            Field to sort by. Prefix with `-` for descending order.
 
         all_ : typing.Optional[bool]
-            If true, returns all models without pagination.
+            If `true`, return all matching models without pagination for routes that support it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1042,15 +1741,15 @@ class AsyncRawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateCustomModelResponse]:
         """
-        Create a new custom model or update an existing one (upsert by `model_name`). Custom models allow organization-specific configurations with custom pricing, capabilities, and provider associations.
+        Create an organization-specific custom model. If a model with the same `model_name` already exists in your organization, it is updated and the endpoint returns `200`.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         model_name : str
-            Unique model name. Used to reference the model in API calls.
+            Unique model name within your organization.
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
@@ -1059,37 +1758,34 @@ class AsyncRawModelsClient:
             Human-readable display name.
 
         custom_provider_id : typing.Optional[str]
-            ID of the custom provider to associate.
+            Custom provider string ID or provider identifier to associate.
 
         provider_id : typing.Optional[str]
             Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
-            Cost per 1M input tokens (USD).
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
-            Cost per 1M output tokens (USD).
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
-            Cost per 1M cached input tokens (USD).
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
-            Cost per 1M cache creation tokens (USD).
+            Cost per 1M cache creation input tokens in USD.
 
         max_context_window : typing.Optional[int]
             Maximum context window size.
 
         streaming_support : typing.Optional[int]
-            Streaming support. `0` = no, `1` = yes.
 
         function_call : typing.Optional[int]
-            Function calling support. `0` = no, `1` = yes.
 
         image_support : typing.Optional[int]
-            Image/vision support. `0` = no, `1` = yes.
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
-            Override UI parameter support for Playground.
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1097,7 +1793,7 @@ class AsyncRawModelsClient:
         Returns
         -------
         AsyncHttpResponse[CreateCustomModelResponse]
-            Created/updated model.
+            Updated existing model.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/models/",
@@ -1157,6 +1853,369 @@ class AsyncRawModelsClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_models_with_filters(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        all_: typing.Optional[bool] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncPager[ListModelsWithFiltersResponseResultsItem, ListModelsWithFiltersResponse]:
+        """
+        List models with pagination, standard filters, sorting, and recent global throughput metrics.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        all_ : typing.Optional[bool]
+            If `true`, return all matching models without pagination for routes that support it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncPager[ListModelsWithFiltersResponseResultsItem, ListModelsWithFiltersResponse]
+            Paginated list of models.
+        """
+        page = page if page is not None else 1
+
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/models/list/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "all": all_,
+            },
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _parsed_response = typing.cast(
+                    ListModelsWithFiltersResponse,
+                    parse_obj_as(
+                        type_=ListModelsWithFiltersResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                _items = _parsed_response.results
+                _has_next = True
+
+                async def _get_next():
+                    return await self.list_models_with_filters(
+                        authorization=authorization,
+                        page=page + 1,
+                        page_size=page_size,
+                        sort_by=sort_by,
+                        all_=all_,
+                        request_options=request_options,
+                    )
+
+                return AsyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def filter_models(
+        self,
+        *,
+        authorization: str,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
+        """
+        List models using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/models/list/`.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]
+            Paginated filtered list of models.
+        """
+        page = page if page is not None else 1
+
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/models/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
+            json={
+                "filters": filters,
+                "is_exporting": is_exporting,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _parsed_response = typing.cast(
+                    FilterModelsResponse,
+                    parse_obj_as(
+                        type_=FilterModelsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                _items = _parsed_response.results
+                _has_next = True
+
+                async def _get_next():
+                    return await self.filter_models(
+                        authorization=authorization,
+                        page=page + 1,
+                        page_size=page_size,
+                        sort_by=sort_by,
+                        filters=filters,
+                        is_exporting=is_exporting,
+                        request_options=request_options,
+                    )
+
+                return AsyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def get_models_summary(
+        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[GetModelsSummaryResponse]:
+        """
+        Get model counts for all models accessible to the authenticated organization.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[GetModelsSummaryResponse]
+            Models summary.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/models/summary/",
+            method="GET",
+            headers={
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetModelsSummaryResponse,
+                    parse_obj_as(
+                        type_=GetModelsSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def filter_models_summary(
+        self,
+        *,
+        authorization: str,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[FilterModelsSummaryResponse]:
+        """
+        Get model counts after applying a POST filter payload.
+
+        Parameters
+        ----------
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[FilterModelsSummaryResponse]
+            Models summary.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/models/summary/",
+            method="POST",
+            json={
+                "filters": filters,
+                "is_exporting": is_exporting,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FilterModelsSummaryResponse,
+                    parse_obj_as(
+                        type_=FilterModelsSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1166,15 +2225,15 @@ class AsyncRawModelsClient:
         self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveCustomModelResponse]:
         """
-        Retrieve a model by name. Global models are accessible by anyone. Custom models are only accessible by the owning organization.
+        Retrieve a built-in or custom model by model name. Custom models are only visible to the owning organization.
 
         Parameters
         ----------
         model_name : str
-            The model's unique name. Can include slashes (e.g., openai/gpt-4).
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1229,19 +2288,178 @@ class AsyncRawModelsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def delete_custom_model(
-        self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
+    async def replace_custom_model(
+        self,
+        model_name: str,
+        *,
+        authorization: str,
+        base_model_name: typing.Optional[str] = OMIT,
+        display_name: typing.Optional[str] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
+        input_cost: typing.Optional[float] = OMIT,
+        output_cost: typing.Optional[float] = OMIT,
+        cache_hit_input_cost: typing.Optional[float] = OMIT,
+        cache_creation_input_cost: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
+        streaming_support: typing.Optional[int] = OMIT,
+        function_call: typing.Optional[int] = OMIT,
+        image_support: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ReplaceCustomModelResponse]:
         """
-        Delete a custom model. Only custom models (`source: "db"`) can be deleted. This action is permanent.
+        Replace editable fields for a custom model. The `model_name` path value remains the identifier.
 
         Parameters
         ----------
         model_name : str
-            The model's unique name to delete.
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
+
+        display_name : typing.Optional[str]
+            Human-readable display name.
+
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
+
+        input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
+
+        output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
+
+        cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
+
+        cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
+
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
+
+        streaming_support : typing.Optional[int]
+
+        function_call : typing.Optional[int]
+
+        image_support : typing.Optional[int]
+
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ReplaceCustomModelResponse]
+            Updated model.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/models/{jsonable_encoder(model_name)}/",
+            method="PUT",
+            json={
+                "base_model_name": base_model_name,
+                "display_name": display_name,
+                "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
+                "input_cost": input_cost,
+                "output_cost": output_cost,
+                "cache_hit_input_cost": cache_hit_input_cost,
+                "cache_creation_input_cost": cache_creation_input_cost,
+                "max_context_window": max_context_window,
+                "streaming_support": streaming_support,
+                "function_call": function_call,
+                "image_support": image_support,
+                "supported_params_override": supported_params_override,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceCustomModelResponse,
+                    parse_obj_as(
+                        type_=ReplaceCustomModelResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_custom_model(
+        self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
+        """
+        Delete a custom model by model name.
+
+        Parameters
+        ----------
+        model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1272,6 +2490,17 @@ class AsyncRawModelsClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 404:
                 raise NotFoundError(
                     headers=dict(_response.headers),
@@ -1293,9 +2522,10 @@ class AsyncRawModelsClient:
         model_name: str,
         *,
         authorization: str,
-        display_name: typing.Optional[str] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
+        display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
@@ -1308,36 +2538,42 @@ class AsyncRawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateCustomModelResponse]:
         """
-        Update a custom model. Only provided fields are updated. The `model_name` field is read-only. Only the owning organization can update their custom models.
+        Partially update editable fields for a custom model. The `model_name` field is read-only.
 
         Parameters
         ----------
         model_name : str
-            The model's unique name to update.
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        display_name : typing.Optional[str]
-            Display name.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         base_model_name : typing.Optional[str]
-            Base model.
+            Base model to inherit properties from.
+
+        display_name : typing.Optional[str]
+            Human-readable display name.
 
         custom_provider_id : typing.Optional[str]
-            Custom provider ID.
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
-            Cost per 1M input tokens (USD).
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
-            Cost per 1M output tokens (USD).
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
         max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -1346,6 +2582,7 @@ class AsyncRawModelsClient:
         image_support : typing.Optional[int]
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1359,9 +2596,10 @@ class AsyncRawModelsClient:
             f"api/models/{jsonable_encoder(model_name)}/",
             method="PATCH",
             json={
-                "display_name": display_name,
                 "base_model_name": base_model_name,
+                "display_name": display_name,
                 "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
                 "input_cost": input_cost,
                 "output_cost": output_cost,
                 "cache_hit_input_cost": cache_hit_input_cost,
@@ -1389,8 +2627,30 @@ class AsyncRawModelsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1420,12 +2680,12 @@ class AsyncRawModelsClient:
         self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[typing.List[ListCustomProvidersResponseItem]]:
         """
-        List all custom providers. The `api_key` and `extra_kwargs` fields are write-only and never returned for security.
+        List custom providers for the authenticated organization.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1433,7 +2693,7 @@ class AsyncRawModelsClient:
         Returns
         -------
         AsyncHttpResponse[typing.List[ListCustomProvidersResponseItem]]
-            List of providers.
+            List of custom providers.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/providers/",
@@ -1480,24 +2740,24 @@ class AsyncRawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateCustomProviderResponse]:
         """
-        Create a new custom provider or update an existing one (upsert by `provider_id`). The `api_key` and `extra_kwargs` fields are write-only and never returned for security.
+        Create a custom provider. Use `PATCH /api/providers/{provider_id}/` to update an existing provider.
 
         Parameters
         ----------
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         provider_id : str
-            Unique provider identifier.
+            Unique provider identifier within your organization.
 
         provider_name : str
             Human-readable provider name.
 
         api_key : typing.Optional[str]
-            API key for the provider (write-only, never returned).
+            Provider API key. This field is write-only and is never returned.
 
         extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
-            Additional provider config (write-only). Common fields: `base_url`, `timeout`, `temperature`, `max_tokens`.
+            Additional provider configuration.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1505,7 +2765,7 @@ class AsyncRawModelsClient:
         Returns
         -------
         AsyncHttpResponse[CreateCustomProviderResponse]
-            Created/updated provider.
+            Created provider.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/providers/",
@@ -1533,6 +2793,17 @@ class AsyncRawModelsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -1550,18 +2821,18 @@ class AsyncRawModelsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_custom_provider(
-        self, provider_id: int, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, provider_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveCustomProviderResponse]:
         """
-        Retrieve a custom provider by ID. Sensitive fields (`api_key`, `extra_kwargs`) are never returned. The `api_key` and `extra_kwargs` fields are write-only and never returned.
+        Retrieve a custom provider by its string provider ID. The provider API key is never returned.
 
         Parameters
         ----------
-        provider_id : int
-            The provider's primary key ID (numeric database ID).
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1616,19 +2887,131 @@ class AsyncRawModelsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def delete_custom_provider(
-        self, provider_id: int, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
+    async def replace_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        authorization: str,
+        provider_name: typing.Optional[str] = OMIT,
+        api_key: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ReplaceCustomProviderResponse]:
         """
-        Delete a custom provider. Managed providers cannot be deleted. Deleting a provider may affect models that reference it. This action is permanent.
+        Replace editable fields for a custom provider. The `provider_id` path value remains the identifier.
 
         Parameters
         ----------
-        provider_id : int
-            The provider's primary key ID to delete.
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        api_key : typing.Optional[str]
+            Provider API key. This field is write-only and is never returned.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional provider configuration.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ReplaceCustomProviderResponse]
+            Updated provider.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="PUT",
+            json={
+                "provider_name": provider_name,
+                "api_key": api_key,
+                "extra_kwargs": extra_kwargs,
+            },
+            headers={
+                "content-type": "application/json",
+                "Authorization": str(authorization) if authorization is not None else None,
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceCustomProviderResponse,
+                    parse_obj_as(
+                        type_=ReplaceCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_custom_provider(
+        self, provider_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
+        """
+        Delete a custom provider by string provider ID.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        authorization : str
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1659,6 +3042,17 @@ class AsyncRawModelsClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 404:
                 raise NotFoundError(
                     headers=dict(_response.headers),
@@ -1677,7 +3071,7 @@ class AsyncRawModelsClient:
 
     async def update_custom_provider(
         self,
-        provider_id: int,
+        provider_id: str,
         *,
         authorization: str,
         provider_name: typing.Optional[str] = OMIT,
@@ -1686,24 +3080,24 @@ class AsyncRawModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateCustomProviderResponse]:
         """
-        Update a custom provider. Only provided fields are updated. The `provider_id` is read-only. Managed providers cannot have critical fields modified.
+        Partially update editable fields for a custom provider. The `provider_id` field is read-only.
 
         Parameters
         ----------
-        provider_id : int
-            The provider's primary key ID to update.
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
 
         authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         provider_name : typing.Optional[str]
-            Provider name.
+            Human-readable provider name.
 
         api_key : typing.Optional[str]
-            API key (write-only).
+            Provider API key. This field is write-only and is never returned.
 
         extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
-            Additional config (write-only).
+            Additional provider configuration.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1738,8 +3132,30 @@ class AsyncRawModelsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

@@ -7,6 +7,7 @@ from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
 class BadRequestErrorBody(UniversalBaseModel):
+    detail: typing.Optional[str] = None
     error: typing.Optional[str] = None
 
     if IS_PYDANTIC_V2:

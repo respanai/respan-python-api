@@ -5,14 +5,14 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .list_custom_models_response_item_affiliation_category import ListCustomModelsResponseItemAffiliationCategory
-from .list_custom_models_response_item_model_type import ListCustomModelsResponseItemModelType
-from .list_custom_models_response_item_provider import ListCustomModelsResponseItemProvider
-from .list_custom_models_response_item_source import ListCustomModelsResponseItemSource
-from .list_custom_models_response_item_throughput import ListCustomModelsResponseItemThroughput
+from .filter_models_response_results_item_affiliation_category import FilterModelsResponseResultsItemAffiliationCategory
+from .filter_models_response_results_item_model_type import FilterModelsResponseResultsItemModelType
+from .filter_models_response_results_item_provider import FilterModelsResponseResultsItemProvider
+from .filter_models_response_results_item_source import FilterModelsResponseResultsItemSource
+from .filter_models_response_results_item_throughput import FilterModelsResponseResultsItemThroughput
 
 
-class ListCustomModelsResponseItem(UniversalBaseModel):
+class FilterModelsResponseResultsItem(UniversalBaseModel):
     id: str = pydantic.Field()
     """
     Model string ID. Same value as `model_name`.
@@ -33,7 +33,7 @@ class ListCustomModelsResponseItem(UniversalBaseModel):
     Base model inherited from, when configured.
     """
 
-    affiliation_category: typing.Optional[ListCustomModelsResponseItemAffiliationCategory] = pydantic.Field(
+    affiliation_category: typing.Optional[FilterModelsResponseResultsItemAffiliationCategory] = pydantic.Field(
         default=None
     )
     """
@@ -85,12 +85,12 @@ class ListCustomModelsResponseItem(UniversalBaseModel):
     Vision input support. `0` = no, `1` = yes.
     """
 
-    source: typing.Optional[ListCustomModelsResponseItemSource] = pydantic.Field(default=None)
+    source: typing.Optional[FilterModelsResponseResultsItemSource] = pydantic.Field(default=None)
     """
     Source of the model definition.
     """
 
-    model_type: typing.Optional[ListCustomModelsResponseItemModelType] = pydantic.Field(default=None)
+    model_type: typing.Optional[FilterModelsResponseResultsItemModelType] = pydantic.Field(default=None)
     """
     Model type.
     """
@@ -100,8 +100,8 @@ class ListCustomModelsResponseItem(UniversalBaseModel):
     Computed parameter support after applying model-specific overrides.
     """
 
-    throughput: typing.Optional[ListCustomModelsResponseItemThroughput] = None
-    provider: typing.Optional[ListCustomModelsResponseItemProvider] = None
+    throughput: typing.Optional[FilterModelsResponseResultsItemThroughput] = None
+    provider: typing.Optional[FilterModelsResponseResultsItemProvider] = None
     created_at: typing.Optional[dt.datetime] = None
     updated_at: typing.Optional[dt.datetime] = None
 

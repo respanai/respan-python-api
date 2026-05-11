@@ -3,12 +3,12 @@
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .get_models_summary_response_summary import GetModelsSummaryResponseSummary
 
 
-class ForbiddenErrorBody(UniversalBaseModel):
-    detail: typing.Optional[str] = None
-    error: typing.Optional[str] = None
+class GetModelsSummaryResponse(UniversalBaseModel):
+    summary: GetModelsSummaryResponseSummary
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

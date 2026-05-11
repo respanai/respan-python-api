@@ -6,7 +6,7 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class ListModelsResponseItemProvider(UniversalBaseModel):
+class ListModelsResponseOneItemProvider(UniversalBaseModel):
     provider_name: typing.Optional[str] = None
     provider_id: typing.Optional[str] = None
     moderation: typing.Optional[str] = None
