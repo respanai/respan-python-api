@@ -6,9 +6,11 @@ import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class CreateExperimentResponseWorkflowsItemConfig(UniversalBaseModel):
-    allow_submission: typing.Optional[bool] = None
-    timeout_hours: typing.Optional[int] = None
+class GetExperimentsSummaryResponse(UniversalBaseModel):
+    total_count: int = pydantic.Field()
+    """
+    Number of experiments matching the filters.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

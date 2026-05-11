@@ -5,10 +5,9 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .create_experiment_response_workflow_item import CreateExperimentResponseWorkflowItem
 
 
-class CreateExperimentResponse(UniversalBaseModel):
+class ListExperimentsResponseResultsItem(UniversalBaseModel):
     id: str = pydantic.Field()
     """
     Experiment ID.
@@ -60,34 +59,6 @@ class CreateExperimentResponse(UniversalBaseModel):
     tags: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = pydantic.Field(default=None)
     """
     Tags attached to the experiment.
-    """
-
-    workflow: typing.Optional[typing.List[CreateExperimentResponseWorkflowItem]] = pydantic.Field(default=None)
-    """
-    Workflow tasks configured for the experiment.
-    """
-
-    evaluator_ids: typing.Optional[typing.List[str]] = pydantic.Field(default=None)
-    """
-    Evaluator IDs used for scoring.
-    """
-
-    evaluator_slugs: typing.Optional[typing.List[str]] = pydantic.Field(default=None)
-    """
-    Backward-compatible evaluator identifiers stored by the backend.
-    """
-
-    evaluator_workflow_ids: typing.Optional[typing.List[str]] = pydantic.Field(default=None)
-    """
-    Eval-only workflow versions used for scoring.
-    """
-
-    batch_size: typing.Optional[int] = None
-    concurrency: typing.Optional[int] = None
-    enable_tracing: typing.Optional[bool] = None
-    error_message: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Failure details when status is failed.
     """
 
     if IS_PYDANTIC_V2:

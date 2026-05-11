@@ -2,36 +2,7 @@
 
 import typing
 
-import pydantic
-from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .export_experiment_spans_response_count import ExportExperimentSpansResponseCount
+from .export_experiment_spans_response_message import ExportExperimentSpansResponseMessage
 
-
-class ExportExperimentSpansResponse(UniversalBaseModel):
-    count: int = pydantic.Field()
-    """
-    Total number of results
-    """
-
-    next: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    URL for the next page of results
-    """
-
-    previous: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    URL for the previous page of results
-    """
-
-    results: typing.List[typing.Dict[str, typing.Any]] = pydantic.Field()
-    """
-    Array of results for the current page
-    """
-
-    if IS_PYDANTIC_V2:
-        model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
-    else:
-
-        class Config:
-            frozen = True
-            smart_union = True
-            extra = pydantic.Extra.allow
+ExportExperimentSpansResponse = typing.Union[ExportExperimentSpansResponseCount, ExportExperimentSpansResponseMessage]

@@ -5,10 +5,10 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .create_experiment_response_workflow_item import CreateExperimentResponseWorkflowItem
+from .update_experiment_response_workflow_item import UpdateExperimentResponseWorkflowItem
 
 
-class CreateExperimentResponse(UniversalBaseModel):
+class UpdateExperimentResponse(UniversalBaseModel):
     id: str = pydantic.Field()
     """
     Experiment ID.
@@ -62,7 +62,7 @@ class CreateExperimentResponse(UniversalBaseModel):
     Tags attached to the experiment.
     """
 
-    workflow: typing.Optional[typing.List[CreateExperimentResponseWorkflowItem]] = pydantic.Field(default=None)
+    workflow: typing.Optional[typing.List[UpdateExperimentResponseWorkflowItem]] = pydantic.Field(default=None)
     """
     Workflow tasks configured for the experiment.
     """
