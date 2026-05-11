@@ -24,8 +24,6 @@ from .types.filter_batch_jobs_response import FilterBatchJobsResponse
 from .types.filter_batch_jobs_response_results_item import FilterBatchJobsResponseResultsItem
 from .types.filter_batch_jobs_summary_response import FilterBatchJobsSummaryResponse
 from .types.get_batch_jobs_summary_response import GetBatchJobsSummaryResponse
-from .types.list_batch_jobs_with_filters_response import ListBatchJobsWithFiltersResponse
-from .types.list_batch_jobs_with_filters_response_results_item import ListBatchJobsWithFiltersResponseResultsItem
 from .types.list_batches_response import ListBatchesResponse
 from .types.list_files_response import ListFilesResponse
 from .types.retrieve_batch_response import RetrieveBatchResponse
@@ -724,96 +722,6 @@ class RawOpenAiBatchClient:
                 )
             if _response.status_code == 404:
                 raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def list_batch_jobs_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        status: typing.Optional[str] = None,
-        provider_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]:
-        """
-        Dashboard-authenticated extension for paginated batch job listing with status and provider filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results per page. Maximum 100.
-
-        status : typing.Optional[str]
-            Filter dashboard batch jobs by normalized batch status.
-
-        provider_id : typing.Optional[str]
-            Filter dashboard batch jobs by provider ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        SyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]
-            Paginated list of batch jobs.
-        """
-        page = page if page is not None else 1
-
-        _response = self._client_wrapper.httpx_client.request(
-            "api/v1/batches/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "status": status,
-                "provider_id": provider_id,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _parsed_response = typing.cast(
-                    ListBatchJobsWithFiltersResponse,
-                    parse_obj_as(
-                        type_=ListBatchJobsWithFiltersResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                _items = _parsed_response.results
-                _has_next = True
-                _get_next = lambda: self.list_batch_jobs_with_filters(
-                    authorization=authorization,
-                    page=page + 1,
-                    page_size=page_size,
-                    status=status,
-                    provider_id=provider_id,
-                    request_options=request_options,
-                )
-                return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1783,99 +1691,6 @@ class AsyncRawOpenAiBatchClient:
                 )
             if _response.status_code == 404:
                 raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_batch_jobs_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        status: typing.Optional[str] = None,
-        provider_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]:
-        """
-        Dashboard-authenticated extension for paginated batch job listing with status and provider filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results per page. Maximum 100.
-
-        status : typing.Optional[str]
-            Filter dashboard batch jobs by normalized batch status.
-
-        provider_id : typing.Optional[str]
-            Filter dashboard batch jobs by provider ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]
-            Paginated list of batch jobs.
-        """
-        page = page if page is not None else 1
-
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/v1/batches/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "status": status,
-                "provider_id": provider_id,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _parsed_response = typing.cast(
-                    ListBatchJobsWithFiltersResponse,
-                    parse_obj_as(
-                        type_=ListBatchJobsWithFiltersResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                _items = _parsed_response.results
-                _has_next = True
-
-                async def _get_next():
-                    return await self.list_batch_jobs_with_filters(
-                        authorization=authorization,
-                        page=page + 1,
-                        page_size=page_size,
-                        status=status,
-                        provider_id=provider_id,
-                        request_options=request_options,
-                    )
-
-                return AsyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

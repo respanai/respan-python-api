@@ -20,11 +20,6 @@ if typing.TYPE_CHECKING:
     from .filter_batch_jobs_response_results_item_status import FilterBatchJobsResponseResultsItemStatus
     from .filter_batch_jobs_summary_response import FilterBatchJobsSummaryResponse
     from .get_batch_jobs_summary_response import GetBatchJobsSummaryResponse
-    from .list_batch_jobs_with_filters_response import ListBatchJobsWithFiltersResponse
-    from .list_batch_jobs_with_filters_response_results_item import ListBatchJobsWithFiltersResponseResultsItem
-    from .list_batch_jobs_with_filters_response_results_item_status import (
-        ListBatchJobsWithFiltersResponseResultsItemStatus,
-    )
     from .list_batches_response import ListBatchesResponse
     from .list_batches_response_data_item import ListBatchesResponseDataItem
     from .list_batches_response_data_item_request_counts import ListBatchesResponseDataItemRequestCounts
@@ -51,9 +46,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "FilterBatchJobsResponseResultsItemStatus": ".filter_batch_jobs_response_results_item_status",
     "FilterBatchJobsSummaryResponse": ".filter_batch_jobs_summary_response",
     "GetBatchJobsSummaryResponse": ".get_batch_jobs_summary_response",
-    "ListBatchJobsWithFiltersResponse": ".list_batch_jobs_with_filters_response",
-    "ListBatchJobsWithFiltersResponseResultsItem": ".list_batch_jobs_with_filters_response_results_item",
-    "ListBatchJobsWithFiltersResponseResultsItemStatus": ".list_batch_jobs_with_filters_response_results_item_status",
     "ListBatchesResponse": ".list_batches_response",
     "ListBatchesResponseDataItem": ".list_batches_response_data_item",
     "ListBatchesResponseDataItemRequestCounts": ".list_batches_response_data_item_request_counts",
@@ -104,9 +96,6 @@ __all__ = [
     "FilterBatchJobsResponseResultsItemStatus",
     "FilterBatchJobsSummaryResponse",
     "GetBatchJobsSummaryResponse",
-    "ListBatchJobsWithFiltersResponse",
-    "ListBatchJobsWithFiltersResponseResultsItem",
-    "ListBatchJobsWithFiltersResponseResultsItemStatus",
     "ListBatchesResponse",
     "ListBatchesResponseDataItem",
     "ListBatchesResponseDataItemRequestCounts",

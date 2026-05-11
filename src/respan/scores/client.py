@@ -10,7 +10,6 @@ from .types.create_score_response import CreateScoreResponse
 from .types.create_span_score_response import CreateSpanScoreResponse
 from .types.filter_scores_response import FilterScoresResponse
 from .types.list_scores_response import ListScoresResponse
-from .types.list_scores_with_filters_response import ListScoresWithFiltersResponse
 from .types.list_span_scores_response import ListSpanScoresResponse
 from .types.replace_score_response import ReplaceScoreResponse
 from .types.replace_span_score_response import ReplaceSpanScoreResponse
@@ -207,69 +206,6 @@ class ScoresClient:
             boolean_value=boolean_value,
             categorical_value=categorical_value,
             json_value=json_value,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def list_scores_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListScoresWithFiltersResponse:
-        """
-        List scores from the ClickHouse-backed score index. Supports pagination and query-parameter filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter scores created at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter scores created before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListScoresWithFiltersResponse
-            Paginated list of scores.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.scores.list_scores_with_filters(
-            authorization="Bearer sk_live_xxxxx",
-            sort_by="-created_at",
-        )
-        """
-        _response = self._raw_client.list_scores_with_filters(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
             request_options=request_options,
         )
         return _response.data
@@ -1242,77 +1178,6 @@ class AsyncScoresClient:
             boolean_value=boolean_value,
             categorical_value=categorical_value,
             json_value=json_value,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def list_scores_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListScoresWithFiltersResponse:
-        """
-        List scores from the ClickHouse-backed score index. Supports pagination and query-parameter filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter scores created at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter scores created before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListScoresWithFiltersResponse
-            Paginated list of scores.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.scores.list_scores_with_filters(
-                authorization="Bearer sk_live_xxxxx",
-                sort_by="-created_at",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_scores_with_filters(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
             request_options=request_options,
         )
         return _response.data

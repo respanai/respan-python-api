@@ -18,7 +18,6 @@ from .types.create_score_response import CreateScoreResponse
 from .types.create_span_score_response import CreateSpanScoreResponse
 from .types.filter_scores_response import FilterScoresResponse
 from .types.list_scores_response import ListScoresResponse
-from .types.list_scores_with_filters_response import ListScoresWithFiltersResponse
 from .types.list_span_scores_response import ListSpanScoresResponse
 from .types.replace_score_response import ReplaceScoreResponse
 from .types.replace_span_score_response import ReplaceSpanScoreResponse
@@ -239,89 +238,6 @@ class RawScoresClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def list_scores_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListScoresWithFiltersResponse]:
-        """
-        List scores from the ClickHouse-backed score index. Supports pagination and query-parameter filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter scores created at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter scores created before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ListScoresWithFiltersResponse]
-            Paginated list of scores.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/scores/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListScoresWithFiltersResponse,
-                    parse_obj_as(
-                        type_=ListScoresWithFiltersResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -1677,89 +1593,6 @@ class AsyncRawScoresClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_scores_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListScoresWithFiltersResponse]:
-        """
-        List scores from the ClickHouse-backed score index. Supports pagination and query-parameter filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter scores created at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter scores created before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ListScoresWithFiltersResponse]
-            Paginated list of scores.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/scores/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListScoresWithFiltersResponse,
-                    parse_obj_as(
-                        type_=ListScoresWithFiltersResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),

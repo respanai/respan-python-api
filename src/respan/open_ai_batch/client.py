@@ -16,8 +16,6 @@ from .types.filter_batch_jobs_response import FilterBatchJobsResponse
 from .types.filter_batch_jobs_response_results_item import FilterBatchJobsResponseResultsItem
 from .types.filter_batch_jobs_summary_response import FilterBatchJobsSummaryResponse
 from .types.get_batch_jobs_summary_response import GetBatchJobsSummaryResponse
-from .types.list_batch_jobs_with_filters_response import ListBatchJobsWithFiltersResponse
-from .types.list_batch_jobs_with_filters_response_results_item import ListBatchJobsWithFiltersResponseResultsItem
 from .types.list_batches_response import ListBatchesResponse
 from .types.list_files_response import ListFilesResponse
 from .types.retrieve_batch_response import RetrieveBatchResponse
@@ -464,69 +462,6 @@ class OpenAiBatchClient:
             request_options=request_options,
         )
         return _response.data
-
-    def list_batch_jobs_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        status: typing.Optional[str] = None,
-        provider_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]:
-        """
-        Dashboard-authenticated extension for paginated batch job listing with status and provider filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results per page. Maximum 100.
-
-        status : typing.Optional[str]
-            Filter dashboard batch jobs by normalized batch status.
-
-        provider_id : typing.Optional[str]
-            Filter dashboard batch jobs by provider ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        SyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]
-            Paginated list of batch jobs.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        response = client.open_ai_batch.list_batch_jobs_with_filters(
-            authorization="Bearer eyJhbGciOi...",
-            status="completed",
-            provider_id="openai",
-        )
-        for item in response:
-            yield item
-        # alternatively, you can paginate page-by-page
-        for page in response.iter_pages():
-            yield page
-        """
-        return self._raw_client.list_batch_jobs_with_filters(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            status=status,
-            provider_id=provider_id,
-            request_options=request_options,
-        )
 
     def filter_batch_jobs(
         self,
@@ -1204,78 +1139,6 @@ class AsyncOpenAiBatchClient:
             request_options=request_options,
         )
         return _response.data
-
-    async def list_batch_jobs_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        status: typing.Optional[str] = None,
-        provider_id: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]:
-        """
-        Dashboard-authenticated extension for paginated batch job listing with status and provider filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results per page. Maximum 100.
-
-        status : typing.Optional[str]
-            Filter dashboard batch jobs by normalized batch status.
-
-        provider_id : typing.Optional[str]
-            Filter dashboard batch jobs by provider ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncPager[ListBatchJobsWithFiltersResponseResultsItem, ListBatchJobsWithFiltersResponse]
-            Paginated list of batch jobs.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            response = await client.open_ai_batch.list_batch_jobs_with_filters(
-                authorization="Bearer eyJhbGciOi...",
-                status="completed",
-                provider_id="openai",
-            )
-            async for item in response:
-                yield item
-
-            # alternatively, you can paginate page-by-page
-            async for page in response.iter_pages():
-                yield page
-
-
-        asyncio.run(main())
-        """
-        return await self._raw_client.list_batch_jobs_with_filters(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            status=status,
-            provider_id=provider_id,
-            request_options=request_options,
-        )
 
     async def filter_batch_jobs(
         self,
