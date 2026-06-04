@@ -7,7 +7,6 @@ from ..core.pagination import AsyncPager, SyncPager
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawThreadsClient, RawThreadsClient
 from .types.list_threads_request_filters import ListThreadsRequestFilters
-from .types.list_threads_request_operator import ListThreadsRequestOperator
 from .types.list_threads_response import ListThreadsResponse
 from .types.list_threads_response_results_item import ListThreadsResponseResultsItem
 
@@ -33,12 +32,10 @@ class ThreadsClient:
     def list_threads(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[ListThreadsRequestFilters] = OMIT,
-        operator: typing.Optional[ListThreadsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
@@ -46,9 +43,6 @@ class ThreadsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             The page number to retrieve.
 
@@ -60,9 +54,6 @@ class ThreadsClient:
 
         filters : typing.Optional[ListThreadsRequestFilters]
             Filter criteria. See [Filters API Reference](/docs/apis/reference/filters-api-reference).
-
-        operator : typing.Optional[ListThreadsRequestOperator]
-            Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -76,10 +67,10 @@ class ThreadsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        response = client.threads.list_threads(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        response = client.threads.list_threads()
         for item in response:
             yield item
         # alternatively, you can paginate page-by-page
@@ -87,13 +78,7 @@ class ThreadsClient:
             yield page
         """
         return self._raw_client.list_threads(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            environment=environment,
-            filters=filters,
-            operator=operator,
-            request_options=request_options,
+            page=page, page_size=page_size, environment=environment, filters=filters, request_options=request_options
         )
 
 
@@ -115,12 +100,10 @@ class AsyncThreadsClient:
     async def list_threads(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[ListThreadsRequestFilters] = OMIT,
-        operator: typing.Optional[ListThreadsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
@@ -128,9 +111,6 @@ class AsyncThreadsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             The page number to retrieve.
 
@@ -142,9 +122,6 @@ class AsyncThreadsClient:
 
         filters : typing.Optional[ListThreadsRequestFilters]
             Filter criteria. See [Filters API Reference](/docs/apis/reference/filters-api-reference).
-
-        operator : typing.Optional[ListThreadsRequestOperator]
-            Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -160,13 +137,13 @@ class AsyncThreadsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            response = await client.threads.list_threads(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            response = await client.threads.list_threads()
             async for item in response:
                 yield item
 
@@ -178,11 +155,5 @@ class AsyncThreadsClient:
         asyncio.run(main())
         """
         return await self._raw_client.list_threads(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            environment=environment,
-            filters=filters,
-            operator=operator,
-            request_options=request_options,
+            page=page, page_size=page_size, environment=environment, filters=filters, request_options=request_options
         )

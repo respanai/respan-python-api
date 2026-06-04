@@ -8,12 +8,31 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 class CreateSpanRequestUsage(UniversalBaseModel):
     """
-    Token usage for the request.
+    Provider usage object. Cache token fields such as `cache_creation_input_tokens` and `cache_read_input_tokens` are accepted and normalized into Respan cache-token counters.
     """
 
     prompt_tokens: typing.Optional[int] = None
     completion_tokens: typing.Optional[int] = None
     total_tokens: typing.Optional[int] = None
+    input_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Anthropic input token count.
+    """
+
+    output_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Anthropic output token count.
+    """
+
+    cache_creation_input_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Anthropic cache-creation input tokens. Normalized to `prompt_cache_creation_tokens`.
+    """
+
+    cache_read_input_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Anthropic cache-read input tokens. Normalized to `prompt_cache_hit_tokens`.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

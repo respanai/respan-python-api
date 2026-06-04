@@ -10,7 +10,6 @@ from .types.create_testset_response import CreateTestsetResponse
 from .types.create_testset_rows_request_body import CreateTestsetRowsRequestBody
 from .types.create_testset_rows_response import CreateTestsetRowsResponse
 from .types.get_filtered_testsets_summary_response import GetFilteredTestsetsSummaryResponse
-from .types.get_testsets_summary_response import GetTestsetsSummaryResponse
 from .types.list_testset_rows_response import ListTestsetRowsResponse
 from .types.list_testsets_response import ListTestsetsResponse
 from .types.replace_testset_request_column_definitions_item import ReplaceTestsetRequestColumnDefinitionsItem
@@ -44,7 +43,6 @@ class TestsetsClient:
     def create_testset(
         self,
         *,
-        authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -56,9 +54,6 @@ class TestsetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : str
             Testset name.
 
@@ -83,14 +78,14 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.create_testset(
-            authorization="Bearer sk_live_xxxxx",
             name="QA Test Set",
         )
         """
         _response = self._raw_client.create_testset(
-            authorization=authorization,
             name=name,
             description=description,
             starred=starred,
@@ -102,7 +97,6 @@ class TestsetsClient:
     def list_testsets(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -114,9 +108,6 @@ class TestsetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -141,57 +132,21 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.list_testsets(
-            authorization="Bearer sk_live_xxxxx",
             sort_by="-created_at",
         )
         """
         _response = self._raw_client.list_testsets(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            request_options=request_options,
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
         )
-        return _response.data
-
-    def get_testsets_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetTestsetsSummaryResponse:
-        """
-        Return summary statistics for testsets.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetTestsetsSummaryResponse
-            Summary statistics.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.testsets.get_testsets_summary(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.get_testsets_summary(authorization=authorization, request_options=request_options)
         return _response.data
 
     def get_filtered_testsets_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredTestsetsSummaryResponse:
@@ -200,9 +155,6 @@ class TestsetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -218,18 +170,16 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.testsets.get_filtered_testsets_summary(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.testsets.get_filtered_testsets_summary()
         """
-        _response = self._raw_client.get_filtered_testsets_summary(
-            authorization=authorization, filters=filters, request_options=request_options
-        )
+        _response = self._raw_client.get_filtered_testsets_summary(filters=filters, request_options=request_options)
         return _response.data
 
     def retrieve_testset(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetResponse:
         """
         Retrieve a testset by ID.
@@ -238,9 +188,6 @@ class TestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -254,22 +201,20 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.retrieve_testset(
             testset_id="testset_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_testset(
-            testset_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_testset(testset_id, request_options=request_options)
         return _response.data
 
     def replace_testset(
         self,
         testset_id: str,
         *,
-        authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -283,9 +228,6 @@ class TestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : str
             Testset name.
@@ -311,16 +253,16 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.replace_testset(
             testset_id="testset_id",
-            authorization="Bearer sk_live_xxxxx",
             name="QA Test Set",
         )
         """
         _response = self._raw_client.replace_testset(
             testset_id,
-            authorization=authorization,
             name=name,
             description=description,
             starred=starred,
@@ -329,9 +271,7 @@ class TestsetsClient:
         )
         return _response.data
 
-    def delete_testset(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def delete_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a testset and all of its rows.
 
@@ -339,9 +279,6 @@ class TestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -354,22 +291,20 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.delete_testset(
             testset_id="testset_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_testset(
-            testset_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_testset(testset_id, request_options=request_options)
         return _response.data
 
     def update_testset(
         self,
         testset_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -383,9 +318,6 @@ class TestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Testset name.
@@ -411,15 +343,15 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.update_testset(
             testset_id="testset_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.update_testset(
             testset_id,
-            authorization=authorization,
             name=name,
             description=description,
             starred=starred,
@@ -432,7 +364,6 @@ class TestsetsClient:
         self,
         testset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -444,9 +375,6 @@ class TestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -466,14 +394,15 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.list_testset_rows(
             testset_id="testset_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.list_testset_rows(
-            testset_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            testset_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -481,7 +410,6 @@ class TestsetsClient:
         self,
         testset_id: str,
         *,
-        authorization: str,
         request: CreateTestsetRowsRequestBody,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTestsetRowsResponse:
@@ -492,9 +420,6 @@ class TestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request : CreateTestsetRowsRequestBody
 
@@ -511,25 +436,23 @@ class TestsetsClient:
         from respan import RespanClient
         from respan.testsets import CreateTestsetRowsRequestBodyRowData
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.create_testset_rows(
             testset_id="testset_id",
-            authorization="Bearer sk_live_xxxxx",
             request=CreateTestsetRowsRequestBodyRowData(
                 row_data={"input": "What is 2 + 2?", "expected_output": "4"},
             ),
         )
         """
-        _response = self._raw_client.create_testset_rows(
-            testset_id, authorization=authorization, request=request, request_options=request_options
-        )
+        _response = self._raw_client.create_testset_rows(testset_id, request=request, request_options=request_options)
         return _response.data
 
     def delete_testset_rows(
         self,
         testset_id: str,
         *,
-        authorization: str,
         row_indexes: typing.Sequence[float],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
@@ -540,9 +463,6 @@ class TestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_indexes : typing.Sequence[float]
             Row indexes to delete.
@@ -558,25 +478,21 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.delete_testset_rows(
             testset_id="testset_id",
-            authorization="Bearer sk_live_xxxxx",
             row_indexes=[1.0, 2.0],
         )
         """
         _response = self._raw_client.delete_testset_rows(
-            testset_id, authorization=authorization, row_indexes=row_indexes, request_options=request_options
+            testset_id, row_indexes=row_indexes, request_options=request_options
         )
         return _response.data
 
     def retrieve_testset_row(
-        self,
-        testset_id: str,
-        row_index: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetRowResponse:
         """
         Retrieve a single row from a testset.
@@ -588,9 +504,6 @@ class TestsetsClient:
 
         row_index : str
             The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -604,16 +517,15 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.retrieve_testset_row(
             testset_id="testset_id",
             row_index="row_index",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_testset_row(
-            testset_id, row_index, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_testset_row(testset_id, row_index, request_options=request_options)
         return _response.data
 
     def replace_testset_row(
@@ -621,7 +533,6 @@ class TestsetsClient:
         testset_id: str,
         row_index: str,
         *,
-        authorization: str,
         row_data: typing.Dict[str, typing.Any],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceTestsetRowResponse:
@@ -635,9 +546,6 @@ class TestsetsClient:
 
         row_index : str
             The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_data : typing.Dict[str, typing.Any]
             Updated row payload keyed by testset column field.
@@ -654,26 +562,22 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.replace_testset_row(
             testset_id="testset_id",
             row_index="row_index",
-            authorization="Bearer sk_live_xxxxx",
             row_data={"input": "What is 3 + 3?", "expected_output": "6"},
         )
         """
         _response = self._raw_client.replace_testset_row(
-            testset_id, row_index, authorization=authorization, row_data=row_data, request_options=request_options
+            testset_id, row_index, row_data=row_data, request_options=request_options
         )
         return _response.data
 
     def delete_testset_row(
-        self,
-        testset_id: str,
-        row_index: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a single row from a testset.
@@ -686,9 +590,6 @@ class TestsetsClient:
         row_index : str
             The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -700,16 +601,15 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.delete_testset_row(
             testset_id="testset_id",
             row_index="row_index",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_testset_row(
-            testset_id, row_index, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_testset_row(testset_id, row_index, request_options=request_options)
         return _response.data
 
     def update_testset_row(
@@ -717,7 +617,6 @@ class TestsetsClient:
         testset_id: str,
         row_index: str,
         *,
-        authorization: str,
         row_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetRowResponse:
@@ -731,9 +630,6 @@ class TestsetsClient:
 
         row_index : str
             The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_data : typing.Optional[typing.Dict[str, typing.Any]]
             Updated row payload keyed by testset column field.
@@ -750,15 +646,16 @@ class TestsetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.testsets.update_testset_row(
             testset_id="testset_id",
             row_index="row_index",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.update_testset_row(
-            testset_id, row_index, authorization=authorization, row_data=row_data, request_options=request_options
+            testset_id, row_index, row_data=row_data, request_options=request_options
         )
         return _response.data
 
@@ -781,7 +678,6 @@ class AsyncTestsetsClient:
     async def create_testset(
         self,
         *,
-        authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -793,9 +689,6 @@ class AsyncTestsetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : str
             Testset name.
 
@@ -822,12 +715,13 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.create_testset(
-                authorization="Bearer sk_live_xxxxx",
                 name="QA Test Set",
             )
 
@@ -835,7 +729,6 @@ class AsyncTestsetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_testset(
-            authorization=authorization,
             name=name,
             description=description,
             starred=starred,
@@ -847,7 +740,6 @@ class AsyncTestsetsClient:
     async def list_testsets(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -859,9 +751,6 @@ class AsyncTestsetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -888,12 +777,13 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.list_testsets(
-                authorization="Bearer sk_live_xxxxx",
                 sort_by="-created_at",
             )
 
@@ -901,60 +791,13 @@ class AsyncTestsetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.list_testsets(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def get_testsets_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetTestsetsSummaryResponse:
-        """
-        Return summary statistics for testsets.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetTestsetsSummaryResponse
-            Summary statistics.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.testsets.get_testsets_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_testsets_summary(
-            authorization=authorization, request_options=request_options
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
         )
         return _response.data
 
     async def get_filtered_testsets_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredTestsetsSummaryResponse:
@@ -963,9 +806,6 @@ class AsyncTestsetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -983,24 +823,24 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.testsets.get_filtered_testsets_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.testsets.get_filtered_testsets_summary()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_filtered_testsets_summary(
-            authorization=authorization, filters=filters, request_options=request_options
+            filters=filters, request_options=request_options
         )
         return _response.data
 
     async def retrieve_testset(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetResponse:
         """
         Retrieve a testset by ID.
@@ -1009,9 +849,6 @@ class AsyncTestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1027,28 +864,26 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.retrieve_testset(
                 testset_id="testset_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_testset(
-            testset_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_testset(testset_id, request_options=request_options)
         return _response.data
 
     async def replace_testset(
         self,
         testset_id: str,
         *,
-        authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -1062,9 +897,6 @@ class AsyncTestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : str
             Testset name.
@@ -1092,13 +924,14 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.replace_testset(
                 testset_id="testset_id",
-                authorization="Bearer sk_live_xxxxx",
                 name="QA Test Set",
             )
 
@@ -1107,7 +940,6 @@ class AsyncTestsetsClient:
         """
         _response = await self._raw_client.replace_testset(
             testset_id,
-            authorization=authorization,
             name=name,
             description=description,
             starred=starred,
@@ -1116,9 +948,7 @@ class AsyncTestsetsClient:
         )
         return _response.data
 
-    async def delete_testset(
-        self, testset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    async def delete_testset(self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a testset and all of its rows.
 
@@ -1126,9 +956,6 @@ class AsyncTestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1143,28 +970,26 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.delete_testset(
                 testset_id="testset_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_testset(
-            testset_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_testset(testset_id, request_options=request_options)
         return _response.data
 
     async def update_testset(
         self,
         testset_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -1178,9 +1003,6 @@ class AsyncTestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Testset name.
@@ -1208,13 +1030,14 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.update_testset(
                 testset_id="testset_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
@@ -1222,7 +1045,6 @@ class AsyncTestsetsClient:
         """
         _response = await self._raw_client.update_testset(
             testset_id,
-            authorization=authorization,
             name=name,
             description=description,
             starred=starred,
@@ -1235,7 +1057,6 @@ class AsyncTestsetsClient:
         self,
         testset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1247,9 +1068,6 @@ class AsyncTestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -1271,20 +1089,21 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.list_testset_rows(
                 testset_id="testset_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_testset_rows(
-            testset_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            testset_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -1292,7 +1111,6 @@ class AsyncTestsetsClient:
         self,
         testset_id: str,
         *,
-        authorization: str,
         request: CreateTestsetRowsRequestBody,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTestsetRowsResponse:
@@ -1303,9 +1121,6 @@ class AsyncTestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request : CreateTestsetRowsRequestBody
 
@@ -1324,13 +1139,14 @@ class AsyncTestsetsClient:
         from respan import AsyncRespanClient
         from respan.testsets import CreateTestsetRowsRequestBodyRowData
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.create_testset_rows(
                 testset_id="testset_id",
-                authorization="Bearer sk_live_xxxxx",
                 request=CreateTestsetRowsRequestBodyRowData(
                     row_data={"input": "What is 2 + 2?", "expected_output": "4"},
                 ),
@@ -1340,7 +1156,7 @@ class AsyncTestsetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_testset_rows(
-            testset_id, authorization=authorization, request=request, request_options=request_options
+            testset_id, request=request, request_options=request_options
         )
         return _response.data
 
@@ -1348,7 +1164,6 @@ class AsyncTestsetsClient:
         self,
         testset_id: str,
         *,
-        authorization: str,
         row_indexes: typing.Sequence[float],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
@@ -1359,9 +1174,6 @@ class AsyncTestsetsClient:
         ----------
         testset_id : str
             The testset ID returned as `id` by the API.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_indexes : typing.Sequence[float]
             Row indexes to delete.
@@ -1379,13 +1191,14 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.delete_testset_rows(
                 testset_id="testset_id",
-                authorization="Bearer sk_live_xxxxx",
                 row_indexes=[1.0, 2.0],
             )
 
@@ -1393,17 +1206,12 @@ class AsyncTestsetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.delete_testset_rows(
-            testset_id, authorization=authorization, row_indexes=row_indexes, request_options=request_options
+            testset_id, row_indexes=row_indexes, request_options=request_options
         )
         return _response.data
 
     async def retrieve_testset_row(
-        self,
-        testset_id: str,
-        row_index: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetRowResponse:
         """
         Retrieve a single row from a testset.
@@ -1415,9 +1223,6 @@ class AsyncTestsetsClient:
 
         row_index : str
             The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1433,22 +1238,21 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.retrieve_testset_row(
                 testset_id="testset_id",
                 row_index="row_index",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_testset_row(
-            testset_id, row_index, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_testset_row(testset_id, row_index, request_options=request_options)
         return _response.data
 
     async def replace_testset_row(
@@ -1456,7 +1260,6 @@ class AsyncTestsetsClient:
         testset_id: str,
         row_index: str,
         *,
-        authorization: str,
         row_data: typing.Dict[str, typing.Any],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceTestsetRowResponse:
@@ -1470,9 +1273,6 @@ class AsyncTestsetsClient:
 
         row_index : str
             The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_data : typing.Dict[str, typing.Any]
             Updated row payload keyed by testset column field.
@@ -1491,14 +1291,15 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.replace_testset_row(
                 testset_id="testset_id",
                 row_index="row_index",
-                authorization="Bearer sk_live_xxxxx",
                 row_data={"input": "What is 3 + 3?", "expected_output": "6"},
             )
 
@@ -1506,17 +1307,12 @@ class AsyncTestsetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.replace_testset_row(
-            testset_id, row_index, authorization=authorization, row_data=row_data, request_options=request_options
+            testset_id, row_index, row_data=row_data, request_options=request_options
         )
         return _response.data
 
     async def delete_testset_row(
-        self,
-        testset_id: str,
-        row_index: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a single row from a testset.
@@ -1528,9 +1324,6 @@ class AsyncTestsetsClient:
 
         row_index : str
             The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1545,22 +1338,21 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.delete_testset_row(
                 testset_id="testset_id",
                 row_index="row_index",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_testset_row(
-            testset_id, row_index, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_testset_row(testset_id, row_index, request_options=request_options)
         return _response.data
 
     async def update_testset_row(
@@ -1568,7 +1360,6 @@ class AsyncTestsetsClient:
         testset_id: str,
         row_index: str,
         *,
-        authorization: str,
         row_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetRowResponse:
@@ -1582,9 +1373,6 @@ class AsyncTestsetsClient:
 
         row_index : str
             The row index returned by the API. Decimal values are allowed, for example `1` or `1.5`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         row_data : typing.Optional[typing.Dict[str, typing.Any]]
             Updated row payload keyed by testset column field.
@@ -1603,20 +1391,21 @@ class AsyncTestsetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.testsets.update_testset_row(
                 testset_id="testset_id",
                 row_index="row_index",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.update_testset_row(
-            testset_id, row_index, authorization=authorization, row_data=row_data, request_options=request_options
+            testset_id, row_index, row_data=row_data, request_options=request_options
         )
         return _response.data

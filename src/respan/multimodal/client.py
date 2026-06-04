@@ -39,7 +39,6 @@ class MultimodalClient:
     def create_embeddings(
         self,
         *,
-        authorization: str,
         model: CreateEmbeddingsRequestModel,
         input: typing.Any,
         data_respan_params: typing.Optional[str] = None,
@@ -57,9 +56,6 @@ class MultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : CreateEmbeddingsRequestModel
             Embedding model ID.
 
@@ -101,15 +97,15 @@ class MultimodalClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.multimodal.create_embeddings(
-            authorization="Bearer sk_live_xxxxx",
             model="text-embedding-3-small",
             input="Hello world",
         )
         """
         _response = self._raw_client.create_embeddings(
-            authorization=authorization,
             model=model,
             input=input,
             data_respan_params=data_respan_params,
@@ -127,7 +123,6 @@ class MultimodalClient:
     def speech_to_text(
         self,
         *,
-        authorization: str,
         file: core.File,
         model: SpeechToTextRequestModel,
         data_respan_params: typing.Optional[str] = None,
@@ -148,9 +143,6 @@ class MultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         file : core.File
             See core.File for more documentation
 
@@ -202,14 +194,14 @@ class MultimodalClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.multimodal.speech_to_text(
-            authorization="Bearer sk_live_xxxxx",
             model="whisper-1",
         )
         """
         _response = self._raw_client.speech_to_text(
-            authorization=authorization,
             file=file,
             model=model,
             data_respan_params=data_respan_params,
@@ -230,7 +222,6 @@ class MultimodalClient:
     def text_to_speech(
         self,
         *,
-        authorization: str,
         model: TextToSpeechRequestModel,
         input: str,
         voice: TextToSpeechRequestVoice,
@@ -249,9 +240,6 @@ class MultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : TextToSpeechRequestModel
             TTS model.
 
@@ -297,16 +285,16 @@ class MultimodalClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.multimodal.text_to_speech(
-            authorization="authorization",
             model="tts-1",
             input="input",
             voice="alloy",
         )
         """
         with self._raw_client.text_to_speech(
-            authorization=authorization,
             model=model,
             input=input,
             voice=voice,
@@ -323,12 +311,7 @@ class MultimodalClient:
             yield from r.data
 
     def retrieve_assemblyai_transcript(
-        self,
-        transcript_id: str,
-        *,
-        authorization: str,
-        assemblyai_api_key: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, transcript_id: str, *, assemblyai_api_key: str, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveAssemblyaiTranscriptResponse:
         """
         Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
@@ -337,9 +320,6 @@ class MultimodalClient:
         ----------
         transcript_id : str
             The AssemblyAI transcript ID to retrieve.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         assemblyai_api_key : str
             Your AssemblyAI API key for authentication with AssemblyAI services.
@@ -356,18 +336,16 @@ class MultimodalClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.multimodal.retrieve_assemblyai_transcript(
             transcript_id="transcript_id",
-            authorization="Bearer sk_live_xxxxx",
             assemblyai_api_key="X-Assemblyai-Api-Key",
         )
         """
         _response = self._raw_client.retrieve_assemblyai_transcript(
-            transcript_id,
-            authorization=authorization,
-            assemblyai_api_key=assemblyai_api_key,
-            request_options=request_options,
+            transcript_id, assemblyai_api_key=assemblyai_api_key, request_options=request_options
         )
         return _response.data
 
@@ -390,7 +368,6 @@ class AsyncMultimodalClient:
     async def create_embeddings(
         self,
         *,
-        authorization: str,
         model: CreateEmbeddingsRequestModel,
         input: typing.Any,
         data_respan_params: typing.Optional[str] = None,
@@ -408,9 +385,6 @@ class AsyncMultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : CreateEmbeddingsRequestModel
             Embedding model ID.
 
@@ -454,12 +428,13 @@ class AsyncMultimodalClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.multimodal.create_embeddings(
-                authorization="Bearer sk_live_xxxxx",
                 model="text-embedding-3-small",
                 input="Hello world",
             )
@@ -468,7 +443,6 @@ class AsyncMultimodalClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_embeddings(
-            authorization=authorization,
             model=model,
             input=input,
             data_respan_params=data_respan_params,
@@ -486,7 +460,6 @@ class AsyncMultimodalClient:
     async def speech_to_text(
         self,
         *,
-        authorization: str,
         file: core.File,
         model: SpeechToTextRequestModel,
         data_respan_params: typing.Optional[str] = None,
@@ -507,9 +480,6 @@ class AsyncMultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         file : core.File
             See core.File for more documentation
 
@@ -563,12 +533,13 @@ class AsyncMultimodalClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.multimodal.speech_to_text(
-                authorization="Bearer sk_live_xxxxx",
                 model="whisper-1",
             )
 
@@ -576,7 +547,6 @@ class AsyncMultimodalClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.speech_to_text(
-            authorization=authorization,
             file=file,
             model=model,
             data_respan_params=data_respan_params,
@@ -597,7 +567,6 @@ class AsyncMultimodalClient:
     async def text_to_speech(
         self,
         *,
-        authorization: str,
         model: TextToSpeechRequestModel,
         input: str,
         voice: TextToSpeechRequestVoice,
@@ -616,9 +585,6 @@ class AsyncMultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : TextToSpeechRequestModel
             TTS model.
 
@@ -666,12 +632,13 @@ class AsyncMultimodalClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.multimodal.text_to_speech(
-                authorization="authorization",
                 model="tts-1",
                 input="input",
                 voice="alloy",
@@ -681,7 +648,6 @@ class AsyncMultimodalClient:
         asyncio.run(main())
         """
         async with self._raw_client.text_to_speech(
-            authorization=authorization,
             model=model,
             input=input,
             voice=voice,
@@ -699,12 +665,7 @@ class AsyncMultimodalClient:
                 yield _chunk
 
     async def retrieve_assemblyai_transcript(
-        self,
-        transcript_id: str,
-        *,
-        authorization: str,
-        assemblyai_api_key: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, transcript_id: str, *, assemblyai_api_key: str, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveAssemblyaiTranscriptResponse:
         """
         Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
@@ -713,9 +674,6 @@ class AsyncMultimodalClient:
         ----------
         transcript_id : str
             The AssemblyAI transcript ID to retrieve.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         assemblyai_api_key : str
             Your AssemblyAI API key for authentication with AssemblyAI services.
@@ -734,13 +692,14 @@ class AsyncMultimodalClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.multimodal.retrieve_assemblyai_transcript(
                 transcript_id="transcript_id",
-                authorization="Bearer sk_live_xxxxx",
                 assemblyai_api_key="X-Assemblyai-Api-Key",
             )
 
@@ -748,9 +707,6 @@ class AsyncMultimodalClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.retrieve_assemblyai_transcript(
-            transcript_id,
-            authorization=authorization,
-            assemblyai_api_key=assemblyai_api_key,
-            request_options=request_options,
+            transcript_id, assemblyai_api_key=assemblyai_api_key, request_options=request_options
         )
         return _response.data

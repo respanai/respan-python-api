@@ -7,44 +7,49 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
 class GetSpansSummaryResponse(UniversalBaseModel):
-    total_cost: typing.Optional[float] = pydantic.Field(default=None)
+    number_of_requests: int = pydantic.Field()
     """
-    Total cost in USD for all matching spans.
-    """
-
-    total_tokens: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Total tokens across all matching spans.
+    Total number of matching spans/log rows.
     """
 
-    total_prompt_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    total_cost: float = pydantic.Field()
+    """
+    Total cost in USD for all matching spans/log rows.
+    """
+
+    total_tokens: int = pydantic.Field()
+    """
+    Total tokens across all matching spans/log rows.
+    """
+
+    total_prompt_tokens: int = pydantic.Field()
     """
     Total prompt/input tokens.
     """
 
-    total_completion_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    total_completion_tokens: int = pydantic.Field()
     """
     Total completion/output tokens.
     """
 
-    average_latency: typing.Optional[float] = pydantic.Field(default=None)
+    avg_latency: float = pydantic.Field()
     """
     Average latency in seconds.
     """
 
-    average_cost: typing.Optional[float] = pydantic.Field(default=None)
+    avg_tps: float = pydantic.Field()
     """
-    Average cost per span in USD.
-    """
-
-    total_requests: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Total number of matching spans.
+    Average tokens per second.
     """
 
-    error_count: typing.Optional[int] = pydantic.Field(default=None)
+    avg_ttft: float = pydantic.Field()
     """
-    Number of spans with errors.
+    Average time to first token in seconds.
+    """
+
+    scores: typing.Dict[str, typing.Any] = pydantic.Field()
+    """
+    Aggregated score summaries grouped by evaluator ID.
     """
 
     if IS_PYDANTIC_V2:

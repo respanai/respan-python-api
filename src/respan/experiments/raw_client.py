@@ -18,23 +18,14 @@ from ..errors.not_found_error import NotFoundError
 from ..errors.unauthorized_error import UnauthorizedError
 from .types.create_experiment_request_workflow_item import CreateExperimentRequestWorkflowItem
 from .types.create_experiment_response import CreateExperimentResponse
-from .types.export_experiment_spans_request_detail import ExportExperimentSpansRequestDetail
-from .types.export_experiment_spans_request_export import ExportExperimentSpansRequestExport
-from .types.export_experiment_spans_response import ExportExperimentSpansResponse
 from .types.filter_experiment_score_histogram_response import FilterExperimentScoreHistogramResponse
 from .types.filter_experiment_spans_summary_response import FilterExperimentSpansSummaryResponse
 from .types.filter_experiments_summary_response import FilterExperimentsSummaryResponse
-from .types.get_experiment_score_histogram_response import GetExperimentScoreHistogramResponse
-from .types.get_experiment_spans_summary_response import GetExperimentSpansSummaryResponse
-from .types.get_experiments_summary_response import GetExperimentsSummaryResponse
 from .types.list_experiment_spans_request_detail import ListExperimentSpansRequestDetail
 from .types.list_experiment_spans_response import ListExperimentSpansResponse
 from .types.list_experiment_spans_response_results_item import ListExperimentSpansResponseResultsItem
 from .types.list_experiments_response import ListExperimentsResponse
 from .types.list_experiments_response_results_item import ListExperimentsResponseResultsItem
-from .types.list_experiments_root_response_item import ListExperimentsRootResponseItem
-from .types.list_experiments_with_query_response import ListExperimentsWithQueryResponse
-from .types.list_experiments_with_query_response_results_item import ListExperimentsWithQueryResponseResultsItem
 from .types.replace_experiment_request_workflow_item import ReplaceExperimentRequestWorkflowItem
 from .types.replace_experiment_response import ReplaceExperimentResponse
 from .types.retrieve_experiment_response import RetrieveExperimentResponse
@@ -51,78 +42,9 @@ class RawExperimentsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def list_experiments_root(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.List[ListExperimentsRootResponseItem]]:
-        """
-        List experiments for the authenticated organization. For complex filters, use `POST /api/v2/experiments/list/`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[typing.List[ListExperimentsRootResponseItem]]
-            List of experiments.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/v2/experiments/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[ListExperimentsRootResponseItem],
-                    parse_obj_as(
-                        type_=typing.List[ListExperimentsRootResponseItem],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def create_experiment(
         self,
         *,
-        authorization: str,
         dataset_id: str,
         workflow: typing.Sequence[CreateExperimentRequestWorkflowItem],
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -143,9 +65,6 @@ class RawExperimentsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         dataset_id : str
             Dataset ID to process.
 
@@ -215,7 +134,6 @@ class RawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -268,94 +186,9 @@ class RawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def list_experiments_with_query(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[ListExperimentsWithQueryResponseResultsItem, ListExperimentsWithQueryResponse]:
-        """
-        List experiments with pagination, sorting, and query-parameter filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Defaults to `-created_at`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        SyncPager[ListExperimentsWithQueryResponseResultsItem, ListExperimentsWithQueryResponse]
-            Paginated list of experiments.
-        """
-        page = page if page is not None else 1
-
-        _response = self._client_wrapper.httpx_client.request(
-            "api/v2/experiments/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _parsed_response = typing.cast(
-                    ListExperimentsWithQueryResponse,
-                    parse_obj_as(
-                        type_=ListExperimentsWithQueryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                _items = _parsed_response.results
-                _has_next = True
-                _get_next = lambda: self.list_experiments_with_query(
-                    authorization=authorization,
-                    page=page + 1,
-                    page_size=page_size,
-                    sort_by=sort_by,
-                    request_options=request_options,
-                )
-                return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def list_experiments(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -364,13 +197,10 @@ class RawExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]:
         """
-        List experiments using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/v2/experiments/list/`.
+        List experiments using POST-for-filtering.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -410,7 +240,6 @@ class RawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -427,7 +256,6 @@ class RawExperimentsClient:
                 _items = _parsed_response.results
                 _has_next = True
                 _get_next = lambda: self.list_experiments(
-                    authorization=authorization,
                     page=page + 1,
                     page_size=page_size,
                     sort_by=sort_by,
@@ -463,63 +291,9 @@ class RawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def get_experiments_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[GetExperimentsSummaryResponse]:
-        """
-        Return the number of experiments matching the current filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[GetExperimentsSummaryResponse]
-            Experiment summary.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/v2/experiments/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetExperimentsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetExperimentsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def filter_experiments_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -529,9 +303,6 @@ class RawExperimentsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -555,7 +326,6 @@ class RawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -598,7 +368,7 @@ class RawExperimentsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_experiment(
-        self, experiment_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveExperimentResponse]:
         """
         Retrieve an experiment by ID, including workflow and scoring configuration.
@@ -607,9 +377,6 @@ class RawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -622,9 +389,6 @@ class RawExperimentsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/v2/experiments/{jsonable_encoder(experiment_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -668,7 +432,6 @@ class RawExperimentsClient:
         self,
         experiment_id: str,
         *,
-        authorization: str,
         dataset_id: typing.Optional[str] = OMIT,
         workflow: typing.Optional[typing.Sequence[ReplaceExperimentRequestWorkflowItem]] = OMIT,
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -691,9 +454,6 @@ class RawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         dataset_id : typing.Optional[str]
             Dataset ID to process.
@@ -766,7 +526,6 @@ class RawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -820,7 +579,7 @@ class RawExperimentsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def delete_experiment(
-        self, experiment_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
         Delete an experiment by ID.
@@ -829,9 +588,6 @@ class RawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -843,9 +599,6 @@ class RawExperimentsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/v2/experiments/{jsonable_encoder(experiment_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -882,7 +635,6 @@ class RawExperimentsClient:
         self,
         experiment_id: str,
         *,
-        authorization: str,
         dataset_id: typing.Optional[str] = OMIT,
         workflow: typing.Optional[typing.Sequence[UpdateExperimentRequestWorkflowItem]] = OMIT,
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -905,9 +657,6 @@ class RawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         dataset_id : typing.Optional[str]
             Dataset ID to process.
@@ -978,7 +727,6 @@ class RawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1031,119 +779,10 @@ class RawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def export_experiment_spans(
-        self,
-        experiment_id: str,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        detail: typing.Optional[ExportExperimentSpansRequestDetail] = None,
-        export: typing.Optional[ExportExperimentSpansRequestExport] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ExportExperimentSpansResponse]:
-        """
-        List experiment traces. Set `export=1` or `export=true` to export matching traces instead of returning a page of results.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter results at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter results before this timestamp.
-
-        detail : typing.Optional[ExportExperimentSpansRequestDetail]
-            Set to `1` or `true` to include span tree details in list responses.
-
-        export : typing.Optional[ExportExperimentSpansRequestExport]
-            Set to `1` or `true` to export matching traces. The response contains an export status message instead of paginated results.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ExportExperimentSpansResponse]
-            Paginated list of experiment traces, or an export status message when `export` is set.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/v2/experiments/{jsonable_encoder(experiment_id)}/logs/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "detail": detail,
-                "export": export,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ExportExperimentSpansResponse,
-                    parse_obj_as(
-                        type_=ExportExperimentSpansResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def list_experiment_spans(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -1161,9 +800,6 @@ class RawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -1216,7 +852,6 @@ class RawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1234,7 +869,6 @@ class RawExperimentsClient:
                 _has_next = True
                 _get_next = lambda: self.list_experiment_spans(
                     experiment_id,
-                    authorization=authorization,
                     page=page + 1,
                     page_size=page_size,
                     sort_by=sort_by,
@@ -1285,12 +919,7 @@ class RawExperimentsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_experiment_span(
-        self,
-        experiment_id: str,
-        log_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, experiment_id: str, log_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveExperimentSpanResponse]:
         """
         Retrieve one experiment trace with its full span tree and enriched evaluator scores.
@@ -1303,9 +932,6 @@ class RawExperimentsClient:
         log_id : str
             Trace ID returned as `id` in experiment trace list responses.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1317,9 +943,6 @@ class RawExperimentsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/v2/experiments/{jsonable_encoder(experiment_id)}/logs/{jsonable_encoder(log_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1364,7 +987,6 @@ class RawExperimentsClient:
         experiment_id: str,
         log_id: str,
         *,
-        authorization: str,
         input: typing.Any,
         output: typing.Any,
         metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -1381,9 +1003,6 @@ class RawExperimentsClient:
 
         log_id : str
             Trace ID returned as `id` in experiment trace list responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         input : typing.Any
 
@@ -1414,7 +1033,6 @@ class RawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1467,94 +1085,10 @@ class RawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def get_experiment_spans_summary(
-        self,
-        experiment_id: str,
-        *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[GetExperimentSpansSummaryResponse]:
-        """
-        Get aggregate workflow metrics and evaluator score summaries for experiment traces.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter results at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter results before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[GetExperimentSpansSummaryResponse]
-            Experiment trace summary.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/v2/experiments/{jsonable_encoder(experiment_id)}/logs/summary/",
-            method="GET",
-            params={
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetExperimentSpansSummaryResponse,
-                    parse_obj_as(
-                        type_=GetExperimentSpansSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def filter_experiment_spans_summary(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -1568,9 +1102,6 @@ class RawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         start_time : typing.Optional[dt.datetime]
             Filter results at or after this timestamp.
@@ -1605,7 +1136,6 @@ class RawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1658,113 +1188,16 @@ class RawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def get_experiment_score_histogram(
-        self,
-        experiment_id: str,
-        *,
-        evaluator_id: str,
-        authorization: str,
-        bins: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[GetExperimentScoreHistogramResponse]:
-        """
-        Return histogram bins and summary statistics for a numerical or boolean evaluator score in an experiment.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        evaluator_id : str
-            Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        bins : typing.Optional[int]
-            Number of histogram bins for numerical scores. Maximum 50.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[GetExperimentScoreHistogramResponse]
-            Experiment score histogram.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/v2/experiments/{jsonable_encoder(experiment_id)}/histogram/",
-            method="GET",
-            params={
-                "evaluator_id": evaluator_id,
-                "bins": bins,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetExperimentScoreHistogramResponse,
-                    parse_obj_as(
-                        type_=GetExperimentScoreHistogramResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def filter_experiment_score_histogram(
         self,
         experiment_id: str,
         *,
         evaluator_id: str,
-        authorization: str,
         bins: typing.Optional[int] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[FilterExperimentScoreHistogramResponse]:
         """
-        Return the same histogram response as GET. POST is accepted for consistency with dashboard views.
+        Compute histogram aggregation for experiment evaluation scores. The backend reads `evaluator_id` and `bins` from query parameters; it does not consume a request body.
 
         Parameters
         ----------
@@ -1774,17 +1207,8 @@ class RawExperimentsClient:
         evaluator_id : str
             Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         bins : typing.Optional[int]
             Number of histogram bins for numerical scores. Maximum 50.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1801,16 +1225,7 @@ class RawExperimentsClient:
                 "evaluator_id": evaluator_id,
                 "bins": bins,
             },
-            json={
-                "filters": filters,
-                "is_exporting": is_exporting,
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1865,78 +1280,9 @@ class AsyncRawExperimentsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def list_experiments_root(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.List[ListExperimentsRootResponseItem]]:
-        """
-        List experiments for the authenticated organization. For complex filters, use `POST /api/v2/experiments/list/`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[typing.List[ListExperimentsRootResponseItem]]
-            List of experiments.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/v2/experiments/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[ListExperimentsRootResponseItem],
-                    parse_obj_as(
-                        type_=typing.List[ListExperimentsRootResponseItem],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def create_experiment(
         self,
         *,
-        authorization: str,
         dataset_id: str,
         workflow: typing.Sequence[CreateExperimentRequestWorkflowItem],
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -1957,9 +1303,6 @@ class AsyncRawExperimentsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         dataset_id : str
             Dataset ID to process.
 
@@ -2029,7 +1372,6 @@ class AsyncRawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2082,97 +1424,9 @@ class AsyncRawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def list_experiments_with_query(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[ListExperimentsWithQueryResponseResultsItem, ListExperimentsWithQueryResponse]:
-        """
-        List experiments with pagination, sorting, and query-parameter filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Defaults to `-created_at`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncPager[ListExperimentsWithQueryResponseResultsItem, ListExperimentsWithQueryResponse]
-            Paginated list of experiments.
-        """
-        page = page if page is not None else 1
-
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/v2/experiments/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _parsed_response = typing.cast(
-                    ListExperimentsWithQueryResponse,
-                    parse_obj_as(
-                        type_=ListExperimentsWithQueryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                _items = _parsed_response.results
-                _has_next = True
-
-                async def _get_next():
-                    return await self.list_experiments_with_query(
-                        authorization=authorization,
-                        page=page + 1,
-                        page_size=page_size,
-                        sort_by=sort_by,
-                        request_options=request_options,
-                    )
-
-                return AsyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def list_experiments(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -2181,13 +1435,10 @@ class AsyncRawExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]:
         """
-        List experiments using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/v2/experiments/list/`.
+        List experiments using POST-for-filtering.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -2227,7 +1478,6 @@ class AsyncRawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2246,7 +1496,6 @@ class AsyncRawExperimentsClient:
 
                 async def _get_next():
                     return await self.list_experiments(
-                        authorization=authorization,
                         page=page + 1,
                         page_size=page_size,
                         sort_by=sort_by,
@@ -2283,63 +1532,9 @@ class AsyncRawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def get_experiments_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[GetExperimentsSummaryResponse]:
-        """
-        Return the number of experiments matching the current filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[GetExperimentsSummaryResponse]
-            Experiment summary.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/v2/experiments/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetExperimentsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetExperimentsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def filter_experiments_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -2349,9 +1544,6 @@ class AsyncRawExperimentsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -2375,7 +1567,6 @@ class AsyncRawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2418,7 +1609,7 @@ class AsyncRawExperimentsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_experiment(
-        self, experiment_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveExperimentResponse]:
         """
         Retrieve an experiment by ID, including workflow and scoring configuration.
@@ -2427,9 +1618,6 @@ class AsyncRawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2442,9 +1630,6 @@ class AsyncRawExperimentsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/v2/experiments/{jsonable_encoder(experiment_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -2488,7 +1673,6 @@ class AsyncRawExperimentsClient:
         self,
         experiment_id: str,
         *,
-        authorization: str,
         dataset_id: typing.Optional[str] = OMIT,
         workflow: typing.Optional[typing.Sequence[ReplaceExperimentRequestWorkflowItem]] = OMIT,
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -2511,9 +1695,6 @@ class AsyncRawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         dataset_id : typing.Optional[str]
             Dataset ID to process.
@@ -2586,7 +1767,6 @@ class AsyncRawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2640,7 +1820,7 @@ class AsyncRawExperimentsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_experiment(
-        self, experiment_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
         Delete an experiment by ID.
@@ -2649,9 +1829,6 @@ class AsyncRawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2663,9 +1840,6 @@ class AsyncRawExperimentsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/v2/experiments/{jsonable_encoder(experiment_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -2702,7 +1876,6 @@ class AsyncRawExperimentsClient:
         self,
         experiment_id: str,
         *,
-        authorization: str,
         dataset_id: typing.Optional[str] = OMIT,
         workflow: typing.Optional[typing.Sequence[UpdateExperimentRequestWorkflowItem]] = OMIT,
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -2725,9 +1898,6 @@ class AsyncRawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         dataset_id : typing.Optional[str]
             Dataset ID to process.
@@ -2798,7 +1968,6 @@ class AsyncRawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2851,119 +2020,10 @@ class AsyncRawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def export_experiment_spans(
-        self,
-        experiment_id: str,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        detail: typing.Optional[ExportExperimentSpansRequestDetail] = None,
-        export: typing.Optional[ExportExperimentSpansRequestExport] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ExportExperimentSpansResponse]:
-        """
-        List experiment traces. Set `export=1` or `export=true` to export matching traces instead of returning a page of results.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter results at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter results before this timestamp.
-
-        detail : typing.Optional[ExportExperimentSpansRequestDetail]
-            Set to `1` or `true` to include span tree details in list responses.
-
-        export : typing.Optional[ExportExperimentSpansRequestExport]
-            Set to `1` or `true` to export matching traces. The response contains an export status message instead of paginated results.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ExportExperimentSpansResponse]
-            Paginated list of experiment traces, or an export status message when `export` is set.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/v2/experiments/{jsonable_encoder(experiment_id)}/logs/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "detail": detail,
-                "export": export,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ExportExperimentSpansResponse,
-                    parse_obj_as(
-                        type_=ExportExperimentSpansResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def list_experiment_spans(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -2981,9 +2041,6 @@ class AsyncRawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -3036,7 +2093,6 @@ class AsyncRawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -3056,7 +2112,6 @@ class AsyncRawExperimentsClient:
                 async def _get_next():
                     return await self.list_experiment_spans(
                         experiment_id,
-                        authorization=authorization,
                         page=page + 1,
                         page_size=page_size,
                         sort_by=sort_by,
@@ -3108,12 +2163,7 @@ class AsyncRawExperimentsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_experiment_span(
-        self,
-        experiment_id: str,
-        log_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, experiment_id: str, log_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveExperimentSpanResponse]:
         """
         Retrieve one experiment trace with its full span tree and enriched evaluator scores.
@@ -3126,9 +2176,6 @@ class AsyncRawExperimentsClient:
         log_id : str
             Trace ID returned as `id` in experiment trace list responses.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -3140,9 +2187,6 @@ class AsyncRawExperimentsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/v2/experiments/{jsonable_encoder(experiment_id)}/logs/{jsonable_encoder(log_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -3187,7 +2231,6 @@ class AsyncRawExperimentsClient:
         experiment_id: str,
         log_id: str,
         *,
-        authorization: str,
         input: typing.Any,
         output: typing.Any,
         metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -3204,9 +2247,6 @@ class AsyncRawExperimentsClient:
 
         log_id : str
             Trace ID returned as `id` in experiment trace list responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         input : typing.Any
 
@@ -3237,7 +2277,6 @@ class AsyncRawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -3290,94 +2329,10 @@ class AsyncRawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def get_experiment_spans_summary(
-        self,
-        experiment_id: str,
-        *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[GetExperimentSpansSummaryResponse]:
-        """
-        Get aggregate workflow metrics and evaluator score summaries for experiment traces.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter results at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter results before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[GetExperimentSpansSummaryResponse]
-            Experiment trace summary.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/v2/experiments/{jsonable_encoder(experiment_id)}/logs/summary/",
-            method="GET",
-            params={
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetExperimentSpansSummaryResponse,
-                    parse_obj_as(
-                        type_=GetExperimentSpansSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def filter_experiment_spans_summary(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -3391,9 +2346,6 @@ class AsyncRawExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         start_time : typing.Optional[dt.datetime]
             Filter results at or after this timestamp.
@@ -3428,7 +2380,6 @@ class AsyncRawExperimentsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -3481,113 +2432,16 @@ class AsyncRawExperimentsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def get_experiment_score_histogram(
-        self,
-        experiment_id: str,
-        *,
-        evaluator_id: str,
-        authorization: str,
-        bins: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[GetExperimentScoreHistogramResponse]:
-        """
-        Return histogram bins and summary statistics for a numerical or boolean evaluator score in an experiment.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        evaluator_id : str
-            Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        bins : typing.Optional[int]
-            Number of histogram bins for numerical scores. Maximum 50.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[GetExperimentScoreHistogramResponse]
-            Experiment score histogram.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/v2/experiments/{jsonable_encoder(experiment_id)}/histogram/",
-            method="GET",
-            params={
-                "evaluator_id": evaluator_id,
-                "bins": bins,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetExperimentScoreHistogramResponse,
-                    parse_obj_as(
-                        type_=GetExperimentScoreHistogramResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def filter_experiment_score_histogram(
         self,
         experiment_id: str,
         *,
         evaluator_id: str,
-        authorization: str,
         bins: typing.Optional[int] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[FilterExperimentScoreHistogramResponse]:
         """
-        Return the same histogram response as GET. POST is accepted for consistency with dashboard views.
+        Compute histogram aggregation for experiment evaluation scores. The backend reads `evaluator_id` and `bins` from query parameters; it does not consume a request body.
 
         Parameters
         ----------
@@ -3597,17 +2451,8 @@ class AsyncRawExperimentsClient:
         evaluator_id : str
             Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         bins : typing.Optional[int]
             Number of histogram bins for numerical scores. Maximum 50.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -3624,16 +2469,7 @@ class AsyncRawExperimentsClient:
                 "evaluator_id": evaluator_id,
                 "bins": bins,
             },
-            json={
-                "filters": filters,
-                "is_exporting": is_exporting,
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:

@@ -6,12 +6,8 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .check_response import CheckResponse
-    from .check_response_status import CheckResponseStatus
-_dynamic_imports: typing.Dict[str, str] = {
-    "CheckResponse": ".check_response",
-    "CheckResponseStatus": ".check_response_status",
-}
+    from .api_health_check_response import ApiHealthCheckResponse
+_dynamic_imports: typing.Dict[str, str] = {"ApiHealthCheckResponse": ".api_health_check_response"}
 
 
 def __getattr__(attr_name: str) -> typing.Any:
@@ -35,4 +31,4 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["CheckResponse", "CheckResponseStatus"]
+__all__ = ["ApiHealthCheckResponse"]

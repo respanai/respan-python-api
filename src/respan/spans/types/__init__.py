@@ -6,6 +6,7 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
+    from .create_span_request_customer_params import CreateSpanRequestCustomerParams
     from .create_span_request_input import CreateSpanRequestInput
     from .create_span_request_log_type import CreateSpanRequestLogType
     from .create_span_request_output import CreateSpanRequestOutput
@@ -16,16 +17,16 @@ if typing.TYPE_CHECKING:
     from .create_span_request_warnings import CreateSpanRequestWarnings
     from .create_span_response import CreateSpanResponse
     from .create_span_response_status import CreateSpanResponseStatus
+    from .get_spans_summary_request_environment import GetSpansSummaryRequestEnvironment
     from .get_spans_summary_response import GetSpansSummaryResponse
-    from .list_spans_request_all_envs import ListSpansRequestAllEnvs
-    from .list_spans_request_fetch_filters import ListSpansRequestFetchFilters
-    from .list_spans_request_is_test import ListSpansRequestIsTest
-    from .list_spans_request_operator import ListSpansRequestOperator
+    from .list_spans_request_environment import ListSpansRequestEnvironment
+    from .list_spans_request_log_type import ListSpansRequestLogType
     from .list_spans_response import ListSpansResponse
     from .retrieve_span_response import RetrieveSpanResponse
     from .retrieve_span_response_limit_info import RetrieveSpanResponseLimitInfo
     from .retrieve_span_response_limit_info_limits_item import RetrieveSpanResponseLimitInfoLimitsItem
 _dynamic_imports: typing.Dict[str, str] = {
+    "CreateSpanRequestCustomerParams": ".create_span_request_customer_params",
     "CreateSpanRequestInput": ".create_span_request_input",
     "CreateSpanRequestLogType": ".create_span_request_log_type",
     "CreateSpanRequestOutput": ".create_span_request_output",
@@ -36,11 +37,10 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateSpanRequestWarnings": ".create_span_request_warnings",
     "CreateSpanResponse": ".create_span_response",
     "CreateSpanResponseStatus": ".create_span_response_status",
+    "GetSpansSummaryRequestEnvironment": ".get_spans_summary_request_environment",
     "GetSpansSummaryResponse": ".get_spans_summary_response",
-    "ListSpansRequestAllEnvs": ".list_spans_request_all_envs",
-    "ListSpansRequestFetchFilters": ".list_spans_request_fetch_filters",
-    "ListSpansRequestIsTest": ".list_spans_request_is_test",
-    "ListSpansRequestOperator": ".list_spans_request_operator",
+    "ListSpansRequestEnvironment": ".list_spans_request_environment",
+    "ListSpansRequestLogType": ".list_spans_request_log_type",
     "ListSpansResponse": ".list_spans_response",
     "RetrieveSpanResponse": ".retrieve_span_response",
     "RetrieveSpanResponseLimitInfo": ".retrieve_span_response_limit_info",
@@ -70,6 +70,7 @@ def __dir__():
 
 
 __all__ = [
+    "CreateSpanRequestCustomerParams",
     "CreateSpanRequestInput",
     "CreateSpanRequestLogType",
     "CreateSpanRequestOutput",
@@ -80,11 +81,10 @@ __all__ = [
     "CreateSpanRequestWarnings",
     "CreateSpanResponse",
     "CreateSpanResponseStatus",
+    "GetSpansSummaryRequestEnvironment",
     "GetSpansSummaryResponse",
-    "ListSpansRequestAllEnvs",
-    "ListSpansRequestFetchFilters",
-    "ListSpansRequestIsTest",
-    "ListSpansRequestOperator",
+    "ListSpansRequestEnvironment",
+    "ListSpansRequestLogType",
     "ListSpansResponse",
     "RetrieveSpanResponse",
     "RetrieveSpanResponseLimitInfo",

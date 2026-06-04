@@ -7,14 +7,24 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
+    from .create_chat_completion_request_messages_item import CreateChatCompletionRequestMessagesItem
+    from .create_chat_completion_request_messages_item_content import CreateChatCompletionRequestMessagesItemContent
+    from .create_chat_completion_request_messages_item_role import CreateChatCompletionRequestMessagesItemRole
     from .create_chat_completion_response import CreateChatCompletionResponse
-    from .create_chat_completion_response_content_item import CreateChatCompletionResponseContentItem
+    from .create_chat_completion_response_choices_item import CreateChatCompletionResponseChoicesItem
+    from .create_chat_completion_response_choices_item_message import CreateChatCompletionResponseChoicesItemMessage
+    from .create_chat_completion_response_usage import CreateChatCompletionResponseUsage
     from .create_response_request_cache_options import CreateResponseRequestCacheOptions
     from .create_response_request_input import CreateResponseRequestInput
 _dynamic_imports: typing.Dict[str, str] = {
     "CreateChatCompletionRequestCacheOptions": ".create_chat_completion_request_cache_options",
+    "CreateChatCompletionRequestMessagesItem": ".create_chat_completion_request_messages_item",
+    "CreateChatCompletionRequestMessagesItemContent": ".create_chat_completion_request_messages_item_content",
+    "CreateChatCompletionRequestMessagesItemRole": ".create_chat_completion_request_messages_item_role",
     "CreateChatCompletionResponse": ".create_chat_completion_response",
-    "CreateChatCompletionResponseContentItem": ".create_chat_completion_response_content_item",
+    "CreateChatCompletionResponseChoicesItem": ".create_chat_completion_response_choices_item",
+    "CreateChatCompletionResponseChoicesItemMessage": ".create_chat_completion_response_choices_item_message",
+    "CreateChatCompletionResponseUsage": ".create_chat_completion_response_usage",
     "CreateResponseRequestCacheOptions": ".create_response_request_cache_options",
     "CreateResponseRequestInput": ".create_response_request_input",
 }
@@ -43,8 +53,13 @@ def __dir__():
 
 __all__ = [
     "CreateChatCompletionRequestCacheOptions",
+    "CreateChatCompletionRequestMessagesItem",
+    "CreateChatCompletionRequestMessagesItemContent",
+    "CreateChatCompletionRequestMessagesItemRole",
     "CreateChatCompletionResponse",
-    "CreateChatCompletionResponseContentItem",
+    "CreateChatCompletionResponseChoicesItem",
+    "CreateChatCompletionResponseChoicesItemMessage",
+    "CreateChatCompletionResponseUsage",
     "CreateResponseRequestCacheOptions",
     "CreateResponseRequestInput",
 ]

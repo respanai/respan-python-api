@@ -10,7 +10,6 @@ from ..types.filters import Filters
 from .raw_client import AsyncRawUsersClient, RawUsersClient
 from .types.delete_user_request_environment import DeleteUserRequestEnvironment
 from .types.list_customers_request_environment import ListCustomersRequestEnvironment
-from .types.list_customers_request_operator import ListCustomersRequestOperator
 from .types.list_customers_response import ListCustomersResponse
 from .types.list_customers_response_results_item import ListCustomersResponseResultsItem
 from .types.retrieve_user_request_environment import RetrieveUserRequestEnvironment
@@ -41,13 +40,11 @@ class UsersClient:
     def list_customers(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
         environment: typing.Optional[ListCustomersRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListCustomersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
@@ -55,9 +52,6 @@ class UsersClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -72,9 +66,6 @@ class UsersClient:
 
         filters : typing.Optional[Filters]
 
-        operator : typing.Optional[ListCustomersRequestOperator]
-            Logical operator for combining filters when supported by the client payload.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -87,9 +78,10 @@ class UsersClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         response = client.users.list_customers(
-            authorization="Bearer sk_live_xxxxx",
             sort_by="-total_cost",
         )
         for item in response:
@@ -99,13 +91,11 @@ class UsersClient:
             yield page
         """
         return self._raw_client.list_customers(
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
             environment=environment,
             filters=filters,
-            operator=operator,
             request_options=request_options,
         )
 
@@ -113,7 +103,6 @@ class UsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[RetrieveUserRequestEnvironment] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveUserResponse:
@@ -124,9 +113,6 @@ class UsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[RetrieveUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -143,14 +129,15 @@ class UsersClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.users.retrieve_user(
             customer_identifier="customer_identifier",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.retrieve_user(
-            customer_identifier, authorization=authorization, environment=environment, request_options=request_options
+            customer_identifier, environment=environment, request_options=request_options
         )
         return _response.data
 
@@ -158,7 +145,6 @@ class UsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[DeleteUserRequestEnvironment] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
@@ -169,9 +155,6 @@ class UsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[DeleteUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -187,14 +170,15 @@ class UsersClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.users.delete_user(
             customer_identifier="customer_identifier",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.delete_user(
-            customer_identifier, authorization=authorization, environment=environment, request_options=request_options
+            customer_identifier, environment=environment, request_options=request_options
         )
         return _response.data
 
@@ -202,7 +186,6 @@ class UsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[UpdateUserRequestEnvironment] = None,
         email: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
@@ -222,9 +205,6 @@ class UsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[UpdateUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -268,10 +248,11 @@ class UsersClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.users.update_user(
             customer_identifier="customer_identifier",
-            authorization="Bearer sk_live_xxxxx",
             name="Alice",
             period_budget=200.0,
             budget_duration="monthly",
@@ -279,7 +260,6 @@ class UsersClient:
         """
         _response = self._raw_client.update_user(
             customer_identifier,
-            authorization=authorization,
             environment=environment,
             email=email,
             name=name,
@@ -313,13 +293,11 @@ class AsyncUsersClient:
     async def list_customers(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
         environment: typing.Optional[ListCustomersRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListCustomersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
@@ -327,9 +305,6 @@ class AsyncUsersClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -343,9 +318,6 @@ class AsyncUsersClient:
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
 
         filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListCustomersRequestOperator]
-            Logical operator for combining filters when supported by the client payload.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -361,12 +333,13 @@ class AsyncUsersClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             response = await client.users.list_customers(
-                authorization="Bearer sk_live_xxxxx",
                 sort_by="-total_cost",
             )
             async for item in response:
@@ -380,13 +353,11 @@ class AsyncUsersClient:
         asyncio.run(main())
         """
         return await self._raw_client.list_customers(
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
             environment=environment,
             filters=filters,
-            operator=operator,
             request_options=request_options,
         )
 
@@ -394,7 +365,6 @@ class AsyncUsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[RetrieveUserRequestEnvironment] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveUserResponse:
@@ -405,9 +375,6 @@ class AsyncUsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[RetrieveUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -426,20 +393,21 @@ class AsyncUsersClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.users.retrieve_user(
                 customer_identifier="customer_identifier",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.retrieve_user(
-            customer_identifier, authorization=authorization, environment=environment, request_options=request_options
+            customer_identifier, environment=environment, request_options=request_options
         )
         return _response.data
 
@@ -447,7 +415,6 @@ class AsyncUsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[DeleteUserRequestEnvironment] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
@@ -458,9 +425,6 @@ class AsyncUsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[DeleteUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -478,20 +442,21 @@ class AsyncUsersClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.users.delete_user(
                 customer_identifier="customer_identifier",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.delete_user(
-            customer_identifier, authorization=authorization, environment=environment, request_options=request_options
+            customer_identifier, environment=environment, request_options=request_options
         )
         return _response.data
 
@@ -499,7 +464,6 @@ class AsyncUsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[UpdateUserRequestEnvironment] = None,
         email: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
@@ -519,9 +483,6 @@ class AsyncUsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[UpdateUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -567,13 +528,14 @@ class AsyncUsersClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.users.update_user(
                 customer_identifier="customer_identifier",
-                authorization="Bearer sk_live_xxxxx",
                 name="Alice",
                 period_budget=200.0,
                 budget_duration="monthly",
@@ -584,7 +546,6 @@ class AsyncUsersClient:
         """
         _response = await self._raw_client.update_user(
             customer_identifier,
-            authorization=authorization,
             environment=environment,
             email=email,
             name=name,

@@ -23,8 +23,6 @@ from .types.delete_file_response import DeleteFileResponse
 from .types.filter_batch_jobs_response import FilterBatchJobsResponse
 from .types.filter_batch_jobs_response_results_item import FilterBatchJobsResponseResultsItem
 from .types.filter_batch_jobs_summary_response import FilterBatchJobsSummaryResponse
-from .types.get_batch_jobs_summary_response import GetBatchJobsSummaryResponse
-from .types.list_batches_response import ListBatchesResponse
 from .types.list_files_response import ListFilesResponse
 from .types.retrieve_batch_response import RetrieveBatchResponse
 from .types.retrieve_file_response import RetrieveFileResponse
@@ -38,17 +36,12 @@ class RawOpenAiBatchClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def list_files(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[ListFilesResponse]:
+    def list_files(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[ListFilesResponse]:
         """
         List files from the upstream OpenAI Files API using the authenticated organization key's OpenAI credentials.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -60,9 +53,6 @@ class RawOpenAiBatchClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/files/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -92,21 +82,13 @@ class RawOpenAiBatchClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def upload_file(
-        self,
-        *,
-        authorization: str,
-        file: core.File,
-        purpose: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, *, file: core.File, purpose: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[UploadFileResponse]:
         """
         Upload a file to the upstream OpenAI Files API. Batch jobs use JSONL files with `purpose=batch`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         file : core.File
             See core.File for more documentation
 
@@ -129,9 +111,6 @@ class RawOpenAiBatchClient:
             },
             files={
                 "file": file,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -175,7 +154,7 @@ class RawOpenAiBatchClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_file(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveFileResponse]:
         """
         Retrieve metadata for a file from the upstream OpenAI Files API.
@@ -184,9 +163,6 @@ class RawOpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -199,9 +175,6 @@ class RawOpenAiBatchClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/files/{jsonable_encoder(file_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -242,7 +215,7 @@ class RawOpenAiBatchClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def delete_file(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[DeleteFileResponse]:
         """
         Delete a file from the upstream OpenAI Files API.
@@ -251,9 +224,6 @@ class RawOpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -266,9 +236,6 @@ class RawOpenAiBatchClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/files/{jsonable_encoder(file_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -310,7 +277,7 @@ class RawOpenAiBatchClient:
 
     @contextlib.contextmanager
     def retrieve_file_content(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.Iterator[HttpResponse[typing.Iterator[bytes]]]:
         """
         Download file content. Batch output files are returned as JSONL.
@@ -319,9 +286,6 @@ class RawOpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -334,9 +298,6 @@ class RawOpenAiBatchClient:
         with self._client_wrapper.httpx_client.stream(
             f"api/files/{jsonable_encoder(file_id)}/content/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         ) as _response:
 
@@ -379,83 +340,9 @@ class RawOpenAiBatchClient:
 
             yield _stream()
 
-    def list_batches(
-        self,
-        *,
-        authorization: str,
-        limit: typing.Optional[int] = None,
-        after: typing.Optional[str] = None,
-        data_respan_params: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListBatchesResponse]:
-        """
-        List OpenAI-compatible batch jobs.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
-        limit : typing.Optional[int]
-            Maximum number of batches to return for the OpenAI-compatible list route.
-
-        after : typing.Optional[str]
-            Cursor for the next page of the OpenAI-compatible list route.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ListBatchesResponse]
-            List of batches.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/v1/batches",
-            method="GET",
-            params={
-                "limit": limit,
-                "after": after,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListBatchesResponse,
-                    parse_obj_as(
-                        type_=ListBatchesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def create_batch(
         self,
         *,
-        authorization: str,
         input_file_id: str,
         endpoint: CreateBatchRequestEndpoint,
         completion_window: CreateBatchRequestCompletionWindow,
@@ -472,9 +359,6 @@ class RawOpenAiBatchClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         input_file_id : str
             Uploaded JSONL file ID.
 
@@ -524,7 +408,6 @@ class RawOpenAiBatchClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -571,7 +454,6 @@ class RawOpenAiBatchClient:
         self,
         batch_id: str,
         *,
-        authorization: str,
         data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[RetrieveBatchResponse]:
@@ -582,9 +464,6 @@ class RawOpenAiBatchClient:
         ----------
         batch_id : str
             Batch ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
@@ -601,7 +480,6 @@ class RawOpenAiBatchClient:
             f"api/v1/batches/{jsonable_encoder(batch_id)}",
             method="GET",
             headers={
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -647,7 +525,6 @@ class RawOpenAiBatchClient:
         self,
         batch_id: str,
         *,
-        authorization: str,
         request: typing.Dict[str, typing.Any],
         data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -659,9 +536,6 @@ class RawOpenAiBatchClient:
         ----------
         batch_id : str
             Batch ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request : typing.Dict[str, typing.Any]
 
@@ -682,7 +556,6 @@ class RawOpenAiBatchClient:
             json=request,
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -739,22 +612,17 @@ class RawOpenAiBatchClient:
     def filter_batch_jobs(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
-        status: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        status: typing.Optional[str] = None,
+        provider_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[FilterBatchJobsResponseResultsItem, FilterBatchJobsResponse]:
         """
-        Dashboard-authenticated POST-for-filtering route for batch jobs. Returns the same paginated response shape as `GET /api/v1/batches/list/`.
+        Dashboard-authenticated POST-for-filtering route for batch jobs. The backend delegates POST to GET, so filters are query parameters (`status`, `provider_id`) and request bodies are ignored.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
         page : typing.Optional[int]
             Page number.
 
@@ -762,13 +630,10 @@ class RawOpenAiBatchClient:
             Number of results per page. Maximum 100.
 
         status : typing.Optional[str]
-            Batch status filter.
+            Filter dashboard batch jobs by normalized batch status.
 
         provider_id : typing.Optional[str]
-            Provider filter.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Reserved for dashboard filter payloads.
+            Filter dashboard batch jobs by provider ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -786,18 +651,10 @@ class RawOpenAiBatchClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            json={
                 "status": status,
                 "provider_id": provider_id,
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -811,12 +668,10 @@ class RawOpenAiBatchClient:
                 _items = _parsed_response.results
                 _has_next = True
                 _get_next = lambda: self.filter_batch_jobs(
-                    authorization=authorization,
                     page=page + 1,
                     page_size=page_size,
                     status=status,
                     provider_id=provider_id,
-                    filters=filters,
                     request_options=request_options,
                 )
                 return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
@@ -847,99 +702,23 @@ class RawOpenAiBatchClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def get_batch_jobs_summary(
+    def filter_batch_jobs_summary(
         self,
         *,
-        authorization: str,
         status: typing.Optional[str] = None,
         provider_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[GetBatchJobsSummaryResponse]:
+    ) -> HttpResponse[FilterBatchJobsSummaryResponse]:
         """
-        Dashboard-authenticated extension for aggregated batch job statistics.
+        Dashboard-authenticated extension for aggregated batch job statistics. The backend delegates POST to GET, so filters are query parameters (`status`, `provider_id`) and request bodies are ignored.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
         status : typing.Optional[str]
             Filter dashboard batch jobs by normalized batch status.
 
         provider_id : typing.Optional[str]
             Filter dashboard batch jobs by provider ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[GetBatchJobsSummaryResponse]
-            Batch job summary.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/v1/batches/summary/",
-            method="GET",
-            params={
-                "status": status,
-                "provider_id": provider_id,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetBatchJobsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetBatchJobsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def filter_batch_jobs_summary(
-        self,
-        *,
-        authorization: str,
-        status: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[FilterBatchJobsSummaryResponse]:
-        """
-        Dashboard-authenticated extension for aggregated batch job statistics after applying filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
-        status : typing.Optional[str]
-            Batch status filter.
-
-        provider_id : typing.Optional[str]
-            Provider filter.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Reserved for dashboard filter payloads.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -952,17 +731,11 @@ class RawOpenAiBatchClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/v1/batches/summary/",
             method="POST",
-            json={
+            params={
                 "status": status,
                 "provider_id": provider_id,
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1007,16 +780,13 @@ class AsyncRawOpenAiBatchClient:
         self._client_wrapper = client_wrapper
 
     async def list_files(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[ListFilesResponse]:
         """
         List files from the upstream OpenAI Files API using the authenticated organization key's OpenAI credentials.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1028,9 +798,6 @@ class AsyncRawOpenAiBatchClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/files/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1060,21 +827,13 @@ class AsyncRawOpenAiBatchClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def upload_file(
-        self,
-        *,
-        authorization: str,
-        file: core.File,
-        purpose: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, *, file: core.File, purpose: str, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[UploadFileResponse]:
         """
         Upload a file to the upstream OpenAI Files API. Batch jobs use JSONL files with `purpose=batch`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         file : core.File
             See core.File for more documentation
 
@@ -1097,9 +856,6 @@ class AsyncRawOpenAiBatchClient:
             },
             files={
                 "file": file,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1143,7 +899,7 @@ class AsyncRawOpenAiBatchClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_file(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveFileResponse]:
         """
         Retrieve metadata for a file from the upstream OpenAI Files API.
@@ -1152,9 +908,6 @@ class AsyncRawOpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1167,9 +920,6 @@ class AsyncRawOpenAiBatchClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/files/{jsonable_encoder(file_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1210,7 +960,7 @@ class AsyncRawOpenAiBatchClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_file(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[DeleteFileResponse]:
         """
         Delete a file from the upstream OpenAI Files API.
@@ -1219,9 +969,6 @@ class AsyncRawOpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1234,9 +981,6 @@ class AsyncRawOpenAiBatchClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/files/{jsonable_encoder(file_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1278,7 +1022,7 @@ class AsyncRawOpenAiBatchClient:
 
     @contextlib.asynccontextmanager
     async def retrieve_file_content(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.AsyncIterator[AsyncHttpResponse[typing.AsyncIterator[bytes]]]:
         """
         Download file content. Batch output files are returned as JSONL.
@@ -1287,9 +1031,6 @@ class AsyncRawOpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -1302,9 +1043,6 @@ class AsyncRawOpenAiBatchClient:
         async with self._client_wrapper.httpx_client.stream(
             f"api/files/{jsonable_encoder(file_id)}/content/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         ) as _response:
 
@@ -1348,83 +1086,9 @@ class AsyncRawOpenAiBatchClient:
 
             yield await _stream()
 
-    async def list_batches(
-        self,
-        *,
-        authorization: str,
-        limit: typing.Optional[int] = None,
-        after: typing.Optional[str] = None,
-        data_respan_params: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListBatchesResponse]:
-        """
-        List OpenAI-compatible batch jobs.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
-        limit : typing.Optional[int]
-            Maximum number of batches to return for the OpenAI-compatible list route.
-
-        after : typing.Optional[str]
-            Cursor for the next page of the OpenAI-compatible list route.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ListBatchesResponse]
-            List of batches.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/v1/batches",
-            method="GET",
-            params={
-                "limit": limit,
-                "after": after,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListBatchesResponse,
-                    parse_obj_as(
-                        type_=ListBatchesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def create_batch(
         self,
         *,
-        authorization: str,
         input_file_id: str,
         endpoint: CreateBatchRequestEndpoint,
         completion_window: CreateBatchRequestCompletionWindow,
@@ -1441,9 +1105,6 @@ class AsyncRawOpenAiBatchClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         input_file_id : str
             Uploaded JSONL file ID.
 
@@ -1493,7 +1154,6 @@ class AsyncRawOpenAiBatchClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -1540,7 +1200,6 @@ class AsyncRawOpenAiBatchClient:
         self,
         batch_id: str,
         *,
-        authorization: str,
         data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[RetrieveBatchResponse]:
@@ -1551,9 +1210,6 @@ class AsyncRawOpenAiBatchClient:
         ----------
         batch_id : str
             Batch ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
@@ -1570,7 +1226,6 @@ class AsyncRawOpenAiBatchClient:
             f"api/v1/batches/{jsonable_encoder(batch_id)}",
             method="GET",
             headers={
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -1616,7 +1271,6 @@ class AsyncRawOpenAiBatchClient:
         self,
         batch_id: str,
         *,
-        authorization: str,
         request: typing.Dict[str, typing.Any],
         data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1628,9 +1282,6 @@ class AsyncRawOpenAiBatchClient:
         ----------
         batch_id : str
             Batch ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request : typing.Dict[str, typing.Any]
 
@@ -1651,7 +1302,6 @@ class AsyncRawOpenAiBatchClient:
             json=request,
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -1708,22 +1358,17 @@ class AsyncRawOpenAiBatchClient:
     async def filter_batch_jobs(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
-        status: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        status: typing.Optional[str] = None,
+        provider_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[FilterBatchJobsResponseResultsItem, FilterBatchJobsResponse]:
         """
-        Dashboard-authenticated POST-for-filtering route for batch jobs. Returns the same paginated response shape as `GET /api/v1/batches/list/`.
+        Dashboard-authenticated POST-for-filtering route for batch jobs. The backend delegates POST to GET, so filters are query parameters (`status`, `provider_id`) and request bodies are ignored.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1731,13 +1376,10 @@ class AsyncRawOpenAiBatchClient:
             Number of results per page. Maximum 100.
 
         status : typing.Optional[str]
-            Batch status filter.
+            Filter dashboard batch jobs by normalized batch status.
 
         provider_id : typing.Optional[str]
-            Provider filter.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Reserved for dashboard filter payloads.
+            Filter dashboard batch jobs by provider ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1755,18 +1397,10 @@ class AsyncRawOpenAiBatchClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            json={
                 "status": status,
                 "provider_id": provider_id,
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1782,12 +1416,10 @@ class AsyncRawOpenAiBatchClient:
 
                 async def _get_next():
                     return await self.filter_batch_jobs(
-                        authorization=authorization,
                         page=page + 1,
                         page_size=page_size,
                         status=status,
                         provider_id=provider_id,
-                        filters=filters,
                         request_options=request_options,
                     )
 
@@ -1819,99 +1451,23 @@ class AsyncRawOpenAiBatchClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def get_batch_jobs_summary(
+    async def filter_batch_jobs_summary(
         self,
         *,
-        authorization: str,
         status: typing.Optional[str] = None,
         provider_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[GetBatchJobsSummaryResponse]:
+    ) -> AsyncHttpResponse[FilterBatchJobsSummaryResponse]:
         """
-        Dashboard-authenticated extension for aggregated batch job statistics.
+        Dashboard-authenticated extension for aggregated batch job statistics. The backend delegates POST to GET, so filters are query parameters (`status`, `provider_id`) and request bodies are ignored.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
         status : typing.Optional[str]
             Filter dashboard batch jobs by normalized batch status.
 
         provider_id : typing.Optional[str]
             Filter dashboard batch jobs by provider ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[GetBatchJobsSummaryResponse]
-            Batch job summary.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/v1/batches/summary/",
-            method="GET",
-            params={
-                "status": status,
-                "provider_id": provider_id,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetBatchJobsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetBatchJobsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def filter_batch_jobs_summary(
-        self,
-        *,
-        authorization: str,
-        status: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[FilterBatchJobsSummaryResponse]:
-        """
-        Dashboard-authenticated extension for aggregated batch job statistics after applying filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
-        status : typing.Optional[str]
-            Batch status filter.
-
-        provider_id : typing.Optional[str]
-            Provider filter.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Reserved for dashboard filter payloads.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1924,17 +1480,11 @@ class AsyncRawOpenAiBatchClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/v1/batches/summary/",
             method="POST",
-            json={
+            params={
                 "status": status,
                 "provider_id": provider_id,
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:

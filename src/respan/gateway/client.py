@@ -6,6 +6,7 @@ from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawGatewayClient, RawGatewayClient
 from .types.create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
+from .types.create_chat_completion_request_messages_item import CreateChatCompletionRequestMessagesItem
 from .types.create_chat_completion_response import CreateChatCompletionResponse
 from .types.create_response_request_cache_options import CreateResponseRequestCacheOptions
 from .types.create_response_request_input import CreateResponseRequestInput
@@ -32,8 +33,7 @@ class GatewayClient:
     def create_chat_completion(
         self,
         *,
-        authorization: str,
-        messages: typing.Sequence[typing.Dict[str, typing.Any]],
+        messages: typing.Sequence[CreateChatCompletionRequestMessagesItem],
         model: str,
         data_respan_params: typing.Optional[str] = None,
         respan_route_provider: typing.Optional[str] = None,
@@ -99,10 +99,7 @@ class GatewayClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        messages : typing.Sequence[typing.Dict[str, typing.Any]]
+        messages : typing.Sequence[CreateChatCompletionRequestMessagesItem]
             Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
 
         model : str
@@ -251,17 +248,25 @@ class GatewayClient:
         Examples
         --------
         from respan import RespanClient
+        from respan.gateway import CreateChatCompletionRequestMessagesItem
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.gateway.create_chat_completion(
-            authorization="Bearer sk_live_xxxxx",
             respan_route_provider="vertex_ai",
-            messages=[{"key": "value"}],
-            model="gpt-4o",
+            messages=[
+                CreateChatCompletionRequestMessagesItem(
+                    role="user",
+                    content="Reply with exactly ok.",
+                )
+            ],
+            model="gpt-4o-mini",
+            max_tokens=16.0,
+            temperature=0.0,
         )
         """
         _response = self._raw_client.create_chat_completion(
-            authorization=authorization,
             messages=messages,
             model=model,
             data_respan_params=data_respan_params,
@@ -315,7 +320,6 @@ class GatewayClient:
     def create_response(
         self,
         *,
-        authorization: str,
         model: str,
         input: CreateResponseRequestInput,
         data_respan_params: typing.Optional[str] = None,
@@ -353,7 +357,9 @@ class GatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Send a response request through the Respan gateway using the OpenAI Responses API format. Supports streaming, tool use, and prompt management.
+        Send an OpenAI Responses API request through Respan provider passthrough. This endpoint currently routes to OpenAI direct by default, or Azure OpenAI when `X-Respan-Route-Provider: azure` is set. It requires OpenAI or Azure OpenAI provider credentials configured in Settings -> Providers, or supplied with `credential_override`. In the API reference auth field, enter your Respan API key. Paste the OpenAI or Azure OpenAI provider token in `credential_override.<model>.api_key`; a Respan API key with managed credits alone is not enough for this Responses API passthrough path today.
+
+        For credit-backed gateway model calls with only a Respan API key, use `POST /api/chat/completions`.
 
         Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
@@ -368,11 +374,8 @@ class GatewayClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : str
-            Model to use.
+            OpenAI Responses API model to use. This passthrough path supports OpenAI direct by default and Azure OpenAI with `X-Respan-Route-Provider: azure`; use `/api/chat/completions` for credit-backed gateway calls with only a Respan API key.
 
         input : CreateResponseRequestInput
             Input text or array of conversation messages.
@@ -414,7 +417,7 @@ class GatewayClient:
             Per-customer LLM provider credentials.
 
         credential_override : typing.Optional[typing.Dict[str, typing.Any]]
-            One-off credential overrides per provider.
+            One-off OpenAI or Azure OpenAI provider credentials for this request. This is where you paste the provider token for /api/responses. Do not put your Respan API key here. For OpenAI direct, use `{ "gpt-4o-mini": { "api_key": "OPENAI_API_KEY" } }`. For Azure OpenAI, provide `api_key`, `api_base`, and `api_version` for the Azure-routed model.
 
         cache_enabled : typing.Optional[bool]
             Enable response caching.
@@ -485,16 +488,19 @@ class GatewayClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.gateway.create_response(
-            authorization="Bearer sk_live_xxxxx",
             respan_route_provider="vertex_ai",
-            model="gpt-4o",
-            input="input",
+            model="gpt-4o-mini",
+            input="Reply with exactly ok.",
+            temperature=0.0,
+            max_output_tokens=16,
+            credential_override={"gpt-4o-mini": {"api_key": "OPENAI_API_KEY"}},
         )
         """
         _response = self._raw_client.create_response(
-            authorization=authorization,
             model=model,
             input=input,
             data_respan_params=data_respan_params,
@@ -552,8 +558,7 @@ class AsyncGatewayClient:
     async def create_chat_completion(
         self,
         *,
-        authorization: str,
-        messages: typing.Sequence[typing.Dict[str, typing.Any]],
+        messages: typing.Sequence[CreateChatCompletionRequestMessagesItem],
         model: str,
         data_respan_params: typing.Optional[str] = None,
         respan_route_provider: typing.Optional[str] = None,
@@ -619,10 +624,7 @@ class AsyncGatewayClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        messages : typing.Sequence[typing.Dict[str, typing.Any]]
+        messages : typing.Sequence[CreateChatCompletionRequestMessagesItem]
             Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
 
         model : str
@@ -773,23 +775,31 @@ class AsyncGatewayClient:
         import asyncio
 
         from respan import AsyncRespanClient
+        from respan.gateway import CreateChatCompletionRequestMessagesItem
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.gateway.create_chat_completion(
-                authorization="Bearer sk_live_xxxxx",
                 respan_route_provider="vertex_ai",
-                messages=[{"key": "value"}],
-                model="gpt-4o",
+                messages=[
+                    CreateChatCompletionRequestMessagesItem(
+                        role="user",
+                        content="Reply with exactly ok.",
+                    )
+                ],
+                model="gpt-4o-mini",
+                max_tokens=16.0,
+                temperature=0.0,
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.create_chat_completion(
-            authorization=authorization,
             messages=messages,
             model=model,
             data_respan_params=data_respan_params,
@@ -843,7 +853,6 @@ class AsyncGatewayClient:
     async def create_response(
         self,
         *,
-        authorization: str,
         model: str,
         input: CreateResponseRequestInput,
         data_respan_params: typing.Optional[str] = None,
@@ -881,7 +890,9 @@ class AsyncGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Send a response request through the Respan gateway using the OpenAI Responses API format. Supports streaming, tool use, and prompt management.
+        Send an OpenAI Responses API request through Respan provider passthrough. This endpoint currently routes to OpenAI direct by default, or Azure OpenAI when `X-Respan-Route-Provider: azure` is set. It requires OpenAI or Azure OpenAI provider credentials configured in Settings -> Providers, or supplied with `credential_override`. In the API reference auth field, enter your Respan API key. Paste the OpenAI or Azure OpenAI provider token in `credential_override.<model>.api_key`; a Respan API key with managed credits alone is not enough for this Responses API passthrough path today.
+
+        For credit-backed gateway model calls with only a Respan API key, use `POST /api/chat/completions`.
 
         Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
@@ -896,11 +907,8 @@ class AsyncGatewayClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : str
-            Model to use.
+            OpenAI Responses API model to use. This passthrough path supports OpenAI direct by default and Azure OpenAI with `X-Respan-Route-Provider: azure`; use `/api/chat/completions` for credit-backed gateway calls with only a Respan API key.
 
         input : CreateResponseRequestInput
             Input text or array of conversation messages.
@@ -942,7 +950,7 @@ class AsyncGatewayClient:
             Per-customer LLM provider credentials.
 
         credential_override : typing.Optional[typing.Dict[str, typing.Any]]
-            One-off credential overrides per provider.
+            One-off OpenAI or Azure OpenAI provider credentials for this request. This is where you paste the provider token for /api/responses. Do not put your Respan API key here. For OpenAI direct, use `{ "gpt-4o-mini": { "api_key": "OPENAI_API_KEY" } }`. For Azure OpenAI, provide `api_key`, `api_base`, and `api_version` for the Azure-routed model.
 
         cache_enabled : typing.Optional[bool]
             Enable response caching.
@@ -1015,22 +1023,25 @@ class AsyncGatewayClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.gateway.create_response(
-                authorization="Bearer sk_live_xxxxx",
                 respan_route_provider="vertex_ai",
-                model="gpt-4o",
-                input="input",
+                model="gpt-4o-mini",
+                input="Reply with exactly ok.",
+                temperature=0.0,
+                max_output_tokens=16,
+                credential_override={"gpt-4o-mini": {"api_key": "OPENAI_API_KEY"}},
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.create_response(
-            authorization=authorization,
             model=model,
             input=input,
             data_respan_params=data_respan_params,

@@ -26,16 +26,13 @@ class RawTemporaryApiKeysClient:
         self._client_wrapper = client_wrapper
 
     def list_api_keys(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[typing.List[ListApiKeysResponseItem]]:
         """
         List all API keys for your organization.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -47,9 +44,6 @@ class RawTemporaryApiKeysClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/temporary-keys/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -81,7 +75,6 @@ class RawTemporaryApiKeysClient:
     def create_api_key(
         self,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
@@ -95,9 +88,6 @@ class RawTemporaryApiKeysClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : typing.Optional[str]
             Key name.
 
@@ -137,7 +127,6 @@ class RawTemporaryApiKeysClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -169,7 +158,7 @@ class RawTemporaryApiKeysClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_api_key(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveApiKeyResponse]:
         """
         Retrieve an API key by ID.
@@ -178,9 +167,6 @@ class RawTemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to retrieve.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -193,9 +179,6 @@ class RawTemporaryApiKeysClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/temporary-keys/{jsonable_encoder(id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -235,9 +218,7 @@ class RawTemporaryApiKeysClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def delete_api_key(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
+    def delete_api_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
         """
         Delete an API key. This action is irreversible.
 
@@ -245,9 +226,6 @@ class RawTemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to delete.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -259,9 +237,6 @@ class RawTemporaryApiKeysClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/temporary-keys/{jsonable_encoder(id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -298,7 +273,6 @@ class RawTemporaryApiKeysClient:
         self,
         id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
@@ -312,9 +286,6 @@ class RawTemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to update.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Key name.
@@ -347,7 +318,6 @@ class RawTemporaryApiKeysClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -395,16 +365,13 @@ class AsyncRawTemporaryApiKeysClient:
         self._client_wrapper = client_wrapper
 
     async def list_api_keys(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[typing.List[ListApiKeysResponseItem]]:
         """
         List all API keys for your organization.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -416,9 +383,6 @@ class AsyncRawTemporaryApiKeysClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/temporary-keys/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -450,7 +414,6 @@ class AsyncRawTemporaryApiKeysClient:
     async def create_api_key(
         self,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
@@ -464,9 +427,6 @@ class AsyncRawTemporaryApiKeysClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : typing.Optional[str]
             Key name.
 
@@ -506,7 +466,6 @@ class AsyncRawTemporaryApiKeysClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -538,7 +497,7 @@ class AsyncRawTemporaryApiKeysClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_api_key(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveApiKeyResponse]:
         """
         Retrieve an API key by ID.
@@ -547,9 +506,6 @@ class AsyncRawTemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to retrieve.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -562,9 +518,6 @@ class AsyncRawTemporaryApiKeysClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/temporary-keys/{jsonable_encoder(id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -605,7 +558,7 @@ class AsyncRawTemporaryApiKeysClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_api_key(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
         Delete an API key. This action is irreversible.
@@ -614,9 +567,6 @@ class AsyncRawTemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to delete.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -628,9 +578,6 @@ class AsyncRawTemporaryApiKeysClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/temporary-keys/{jsonable_encoder(id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -667,7 +614,6 @@ class AsyncRawTemporaryApiKeysClient:
         self,
         id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
@@ -681,9 +627,6 @@ class AsyncRawTemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to update.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Key name.
@@ -716,7 +659,6 @@ class AsyncRawTemporaryApiKeysClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,

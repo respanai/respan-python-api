@@ -44,6 +44,31 @@ class CreateSpanResponse(UniversalBaseModel):
     Timestamp when the span was recorded.
     """
 
+    environment: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    Environment derived from the API key used for the log.
+    """
+
+    latency: typing.Optional[float] = pydantic.Field(default=None)
+    """
+    Stored total latency in seconds.
+    """
+
+    time_to_first_token: typing.Optional[float] = pydantic.Field(default=None)
+    """
+    Stored time to first token in seconds.
+    """
+
+    prompt_cache_creation_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Cache creation tokens normalized from usage.
+    """
+
+    prompt_cache_hit_tokens: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Cache read/hit tokens normalized from usage.
+    """
+
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2
     else:

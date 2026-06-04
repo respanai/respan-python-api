@@ -11,7 +11,6 @@ from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.unauthorized_error import UnauthorizedError
 from .types.list_threads_request_filters import ListThreadsRequestFilters
-from .types.list_threads_request_operator import ListThreadsRequestOperator
 from .types.list_threads_response import ListThreadsResponse
 from .types.list_threads_response_results_item import ListThreadsResponseResultsItem
 
@@ -26,12 +25,10 @@ class RawThreadsClient:
     def list_threads(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[ListThreadsRequestFilters] = OMIT,
-        operator: typing.Optional[ListThreadsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
@@ -39,9 +36,6 @@ class RawThreadsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             The page number to retrieve.
 
@@ -53,9 +47,6 @@ class RawThreadsClient:
 
         filters : typing.Optional[ListThreadsRequestFilters]
             Filter criteria. See [Filters API Reference](/docs/apis/reference/filters-api-reference).
-
-        operator : typing.Optional[ListThreadsRequestOperator]
-            Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -79,11 +70,9 @@ class RawThreadsClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=ListThreadsRequestFilters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -100,12 +89,10 @@ class RawThreadsClient:
                 _items = _parsed_response.results
                 _has_next = True
                 _get_next = lambda: self.list_threads(
-                    authorization=authorization,
                     page=page + 1,
                     page_size=page_size,
                     environment=environment,
                     filters=filters,
-                    operator=operator,
                     request_options=request_options,
                 )
                 return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
@@ -133,12 +120,10 @@ class AsyncRawThreadsClient:
     async def list_threads(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[ListThreadsRequestFilters] = OMIT,
-        operator: typing.Optional[ListThreadsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
@@ -146,9 +131,6 @@ class AsyncRawThreadsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             The page number to retrieve.
 
@@ -160,9 +142,6 @@ class AsyncRawThreadsClient:
 
         filters : typing.Optional[ListThreadsRequestFilters]
             Filter criteria. See [Filters API Reference](/docs/apis/reference/filters-api-reference).
-
-        operator : typing.Optional[ListThreadsRequestOperator]
-            Logical operator to combine filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -186,11 +165,9 @@ class AsyncRawThreadsClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=ListThreadsRequestFilters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -209,12 +186,10 @@ class AsyncRawThreadsClient:
 
                 async def _get_next():
                     return await self.list_threads(
-                        authorization=authorization,
                         page=page + 1,
                         page_size=page_size,
                         environment=environment,
                         filters=filters,
-                        operator=operator,
                         request_options=request_options,
                     )
 

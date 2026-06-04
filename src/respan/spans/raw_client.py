@@ -21,6 +21,7 @@ from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.filters import Filters
 from ..types.unprocessable_entity_error_body import UnprocessableEntityErrorBody
+from .types.create_span_request_customer_params import CreateSpanRequestCustomerParams
 from .types.create_span_request_input import CreateSpanRequestInput
 from .types.create_span_request_log_type import CreateSpanRequestLogType
 from .types.create_span_request_output import CreateSpanRequestOutput
@@ -30,11 +31,10 @@ from .types.create_span_request_tool_choice import CreateSpanRequestToolChoice
 from .types.create_span_request_usage import CreateSpanRequestUsage
 from .types.create_span_request_warnings import CreateSpanRequestWarnings
 from .types.create_span_response import CreateSpanResponse
+from .types.get_spans_summary_request_environment import GetSpansSummaryRequestEnvironment
 from .types.get_spans_summary_response import GetSpansSummaryResponse
-from .types.list_spans_request_all_envs import ListSpansRequestAllEnvs
-from .types.list_spans_request_fetch_filters import ListSpansRequestFetchFilters
-from .types.list_spans_request_is_test import ListSpansRequestIsTest
-from .types.list_spans_request_operator import ListSpansRequestOperator
+from .types.list_spans_request_environment import ListSpansRequestEnvironment
+from .types.list_spans_request_log_type import ListSpansRequestLogType
 from .types.list_spans_response import ListSpansResponse
 from .types.retrieve_span_response import RetrieveSpanResponse
 
@@ -49,49 +49,53 @@ class RawSpansClient:
     def create_span(
         self,
         *,
-        authorization: str,
         model: str,
+        prompt_messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        prompt_tokens: typing.Optional[int] = OMIT,
+        completion_tokens: typing.Optional[int] = OMIT,
+        usage: typing.Optional[CreateSpanRequestUsage] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        top_p: typing.Optional[float] = OMIT,
+        max_tokens: typing.Optional[int] = OMIT,
+        generation_time: typing.Optional[float] = OMIT,
+        ttft: typing.Optional[float] = OMIT,
+        customer_params: typing.Optional[CreateSpanRequestCustomerParams] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        stream: typing.Optional[bool] = OMIT,
+        status_code: typing.Optional[int] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_calls: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        trace_unique_id: typing.Optional[str] = OMIT,
+        span_name: typing.Optional[str] = OMIT,
+        span_parent_id: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        custom_identifier: typing.Optional[str] = OMIT,
+        thread_identifier: typing.Optional[str] = OMIT,
+        group_identifier: typing.Optional[str] = OMIT,
+        latency: typing.Optional[float] = OMIT,
+        time_to_first_token: typing.Optional[float] = OMIT,
         log_type: typing.Optional[CreateSpanRequestLogType] = OMIT,
         input: typing.Optional[CreateSpanRequestInput] = OMIT,
         output: typing.Optional[CreateSpanRequestOutput] = OMIT,
         messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        prompt_messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        usage: typing.Optional[CreateSpanRequestUsage] = OMIT,
         cost: typing.Optional[float] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
         tokens_per_second: typing.Optional[float] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         tool_choice: typing.Optional[CreateSpanRequestToolChoice] = OMIT,
         response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
         stop: typing.Optional[CreateSpanRequestStop] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
         error_message: typing.Optional[str] = OMIT,
         warnings: typing.Optional[CreateSpanRequestWarnings] = OMIT,
         status: typing.Optional[CreateSpanRequestStatus] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
         prompt_id: typing.Optional[str] = OMIT,
         prompt_name: typing.Optional[str] = OMIT,
         is_custom_prompt: typing.Optional[bool] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
         start_time: typing.Optional[dt.datetime] = OMIT,
         full_request: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         full_response: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -103,15 +107,90 @@ class RawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateSpanResponse]:
         """
-        Create a span via the logging API. This is the standard create endpoint. `/api/request-logs/create/` remains supported as a legacy alias. Prefer universal `input` and `output` fields; legacy chat fields like `messages`, `prompt_messages`, and `completion_message` are still accepted for backward compatibility. Respan-specific controls can be sent at the top level or nested under `respan_params`.
+        Create a request-log span via the logging API. This is the standard create endpoint; `/api/request-logs/create/` remains supported as a legacy alias. For LLM request logs, send `prompt_messages`, `completion_message`, token counts, timing, metadata, tools, and trace fields directly in the body. `generation_time` is accepted and normalized to `latency`; `ttft` is accepted and normalized to `time_to_first_token`. The stored `environment` is derived from the API key environment, so use a key for the target environment rather than relying on a body override.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : str
             Model used for the span.
+
+        prompt_messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Chat input messages for the request log.
+
+        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
+            Assistant message returned by the model.
+
+        prompt_tokens : typing.Optional[int]
+            Prompt/input tokens for the request. For Anthropic logs this corresponds to `input_tokens` before cache-token normalization.
+
+        completion_tokens : typing.Optional[int]
+            Completion/output tokens for the request. For Anthropic logs this corresponds to `output_tokens`.
+
+        usage : typing.Optional[CreateSpanRequestUsage]
+            Provider usage object. Cache token fields such as `cache_creation_input_tokens` and `cache_read_input_tokens` are accepted and normalized into Respan cache-token counters.
+
+        temperature : typing.Optional[float]
+            Sampling temperature (0-2). Higher = more random.
+
+        top_p : typing.Optional[float]
+            Nucleus sampling parameter.
+
+        max_tokens : typing.Optional[int]
+            Maximum tokens to generate.
+
+        generation_time : typing.Optional[float]
+            Accepted alias for total generation latency in seconds. Stored as `latency` in responses and query results.
+
+        ttft : typing.Optional[float]
+            Accepted alias for time to first token in seconds. Stored as `time_to_first_token` in responses and query results.
+
+        customer_params : typing.Optional[CreateSpanRequestCustomerParams]
+            Extended customer information. `customer_identifier` inside this object is promoted to the log customer identifier.
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Arbitrary key-value pairs for your reference.
+
+        stream : typing.Optional[bool]
+            Whether the response was streamed.
+
+        status_code : typing.Optional[int]
+            HTTP status code of the request.
+
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools available to the model (OpenAI function calling format).
+
+        tool_calls : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tool calls returned by the model.
+
+        timestamp : typing.Optional[dt.datetime]
+            ISO 8601 timestamp when the request completed.
+
+        trace_unique_id : typing.Optional[str]
+            Trace ID to link spans into a trace tree.
+
+        span_name : typing.Optional[str]
+            Name of this span within the workflow.
+
+        span_parent_id : typing.Optional[str]
+            Parent span ID. Builds the trace hierarchy.
+
+        span_workflow_name : typing.Optional[str]
+            Name of the parent workflow.
+
+        custom_identifier : typing.Optional[str]
+            Indexed custom identifier for fast querying.
+
+        thread_identifier : typing.Optional[str]
+            Conversation thread ID for multi-turn conversations.
+
+        group_identifier : typing.Optional[str]
+            Groups related spans together.
+
+        latency : typing.Optional[float]
+            Total request latency in seconds. `generation_time` is also accepted and normalizes to this field.
+
+        time_to_first_token : typing.Optional[float]
+            Time to first token in seconds. `ttft` is also accepted and normalizes to this field.
 
         log_type : typing.Optional[CreateSpanRequestLogType]
             Type of span. Determines how `input` and `output` are parsed.
@@ -125,29 +204,11 @@ class RawSpansClient:
         messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
             Legacy chat input field. Equivalent to `prompt_messages`; prefer `input` for new integrations.
 
-        prompt_messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Legacy chat input field. Prefer `input` for new integrations.
-
-        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy chat output field. Prefer `output` for new integrations.
-
-        usage : typing.Optional[CreateSpanRequestUsage]
-            Token usage for the request.
-
         cost : typing.Optional[float]
             Cost in USD. Auto-calculated from model pricing if omitted.
 
-        latency : typing.Optional[float]
-            Total request latency in seconds.
-
-        time_to_first_token : typing.Optional[float]
-            Time to first token in seconds.
-
         tokens_per_second : typing.Optional[float]
             Generation speed in tokens per second.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Arbitrary key-value pairs for your reference.
 
         properties : typing.Optional[typing.Dict[str, typing.Any]]
             Typed metadata that preserves native JSON types.
@@ -158,44 +219,11 @@ class RawSpansClient:
         customer_identifier : typing.Optional[str]
             Identifier for the end user who made this request.
 
-        customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer information.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID for multi-turn conversations.
-
-        custom_identifier : typing.Optional[str]
-            Indexed custom identifier for fast querying.
-
-        group_identifier : typing.Optional[str]
-            Groups related spans together.
-
-        trace_unique_id : typing.Optional[str]
-            Trace ID to link spans into a trace tree.
-
-        span_workflow_name : typing.Optional[str]
-            Name of the parent workflow.
-
-        span_name : typing.Optional[str]
-            Name of this span within the workflow.
-
-        span_parent_id : typing.Optional[str]
-            Parent span ID. Builds the trace hierarchy.
-
-        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Tools available to the model (OpenAI function calling format).
-
         tool_choice : typing.Optional[CreateSpanRequestToolChoice]
             Controls tool selection. `"none"`, `"auto"`, or a specific tool object.
 
         response_format : typing.Optional[typing.Dict[str, typing.Any]]
             Response format configuration (e.g. JSON mode or structured output).
-
-        temperature : typing.Optional[float]
-            Sampling temperature (0-2). Higher = more random.
-
-        top_p : typing.Optional[float]
-            Nucleus sampling parameter.
 
         frequency_penalty : typing.Optional[float]
             Penalizes repeated tokens (-2 to 2).
@@ -203,14 +231,8 @@ class RawSpansClient:
         presence_penalty : typing.Optional[float]
             Penalizes tokens already present (-2 to 2).
 
-        max_tokens : typing.Optional[int]
-            Maximum tokens to generate.
-
         stop : typing.Optional[CreateSpanRequestStop]
             Stop sequence or sequences where generation halts.
-
-        status_code : typing.Optional[int]
-            HTTP status code of the request.
 
         error_message : typing.Optional[str]
             Error message if the request failed.
@@ -221,9 +243,6 @@ class RawSpansClient:
         status : typing.Optional[CreateSpanRequestStatus]
             Request status.
 
-        stream : typing.Optional[bool]
-            Whether the response was streamed.
-
         prompt_id : typing.Optional[str]
             ID of the Respan prompt template used.
 
@@ -232,9 +251,6 @@ class RawSpansClient:
 
         is_custom_prompt : typing.Optional[bool]
             Set `true` when using a custom `prompt_id`.
-
-        timestamp : typing.Optional[dt.datetime]
-            ISO 8601 timestamp when the request completed.
 
         start_time : typing.Optional[dt.datetime]
             ISO 8601 timestamp when the request started.
@@ -273,6 +289,36 @@ class RawSpansClient:
             method="POST",
             json={
                 "model": model,
+                "prompt_messages": prompt_messages,
+                "completion_message": completion_message,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "usage": convert_and_respect_annotation_metadata(
+                    object_=usage, annotation=CreateSpanRequestUsage, direction="write"
+                ),
+                "temperature": temperature,
+                "top_p": top_p,
+                "max_tokens": max_tokens,
+                "generation_time": generation_time,
+                "ttft": ttft,
+                "customer_params": convert_and_respect_annotation_metadata(
+                    object_=customer_params, annotation=CreateSpanRequestCustomerParams, direction="write"
+                ),
+                "metadata": metadata,
+                "stream": stream,
+                "status_code": status_code,
+                "tools": tools,
+                "tool_calls": tool_calls,
+                "timestamp": timestamp,
+                "trace_unique_id": trace_unique_id,
+                "span_name": span_name,
+                "span_parent_id": span_parent_id,
+                "span_workflow_name": span_workflow_name,
+                "custom_identifier": custom_identifier,
+                "thread_identifier": thread_identifier,
+                "group_identifier": group_identifier,
+                "latency": latency,
+                "time_to_first_token": time_to_first_token,
                 "log_type": log_type,
                 "input": convert_and_respect_annotation_metadata(
                     object_=input, annotation=CreateSpanRequestInput, direction="write"
@@ -281,51 +327,28 @@ class RawSpansClient:
                     object_=output, annotation=CreateSpanRequestOutput, direction="write"
                 ),
                 "messages": messages,
-                "prompt_messages": prompt_messages,
-                "completion_message": completion_message,
-                "usage": convert_and_respect_annotation_metadata(
-                    object_=usage, annotation=CreateSpanRequestUsage, direction="write"
-                ),
                 "cost": cost,
-                "latency": latency,
-                "time_to_first_token": time_to_first_token,
                 "tokens_per_second": tokens_per_second,
-                "metadata": metadata,
                 "properties": properties,
                 "variables": variables,
                 "customer_identifier": customer_identifier,
-                "customer_params": customer_params,
-                "thread_identifier": thread_identifier,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "trace_unique_id": trace_unique_id,
-                "span_workflow_name": span_workflow_name,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "tools": tools,
                 "tool_choice": convert_and_respect_annotation_metadata(
                     object_=tool_choice, annotation=CreateSpanRequestToolChoice, direction="write"
                 ),
                 "response_format": response_format,
-                "temperature": temperature,
-                "top_p": top_p,
                 "frequency_penalty": frequency_penalty,
                 "presence_penalty": presence_penalty,
-                "max_tokens": max_tokens,
                 "stop": convert_and_respect_annotation_metadata(
                     object_=stop, annotation=CreateSpanRequestStop, direction="write"
                 ),
-                "status_code": status_code,
                 "error_message": error_message,
                 "warnings": convert_and_respect_annotation_metadata(
                     object_=warnings, annotation=CreateSpanRequestWarnings, direction="write"
                 ),
                 "status": status,
-                "stream": stream,
                 "prompt_id": prompt_id,
                 "prompt_name": prompt_name,
                 "is_custom_prompt": is_custom_prompt,
-                "timestamp": timestamp,
                 "start_time": start_time,
                 "full_request": full_request,
                 "full_response": full_response,
@@ -337,7 +360,6 @@ class RawSpansClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -415,17 +437,13 @@ class RawSpansClient:
     def list_spans(
         self,
         *,
-        authorization: str,
-        operator: ListSpansRequestOperator,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        is_test: typing.Optional[ListSpansRequestIsTest] = None,
-        all_envs: typing.Optional[ListSpansRequestAllEnvs] = None,
-        fetch_filters: typing.Optional[ListSpansRequestFetchFilters] = None,
+        environment: typing.Optional[ListSpansRequestEnvironment] = None,
+        log_type: typing.Optional[ListSpansRequestLogType] = None,
         include_fields: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -435,12 +453,6 @@ class RawSpansClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        operator : ListSpansRequestOperator
-            Logical operator to combine filters.
-
         page : typing.Optional[int]
             Page number.
 
@@ -456,17 +468,11 @@ class RawSpansClient:
         end_time : typing.Optional[dt.datetime]
             End of time range (ISO 8601).
 
-        environment : typing.Optional[str]
-            Filter by environment.
+        environment : typing.Optional[ListSpansRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
-        is_test : typing.Optional[ListSpansRequestIsTest]
-            Filter by test/production spans.
-
-        all_envs : typing.Optional[ListSpansRequestAllEnvs]
-            Include spans from all environments.
-
-        fetch_filters : typing.Optional[ListSpansRequestFetchFilters]
-            Return available filter options in the response. May slow response.
+        log_type : typing.Optional[ListSpansRequestLogType]
+            Filter by span/log type. Use values like `chat`, `completion`, or `response` to focus on model-inference spans; omitting this can also return non-chat span/log rows such as legacy `text` logs.
 
         include_fields : typing.Optional[str]
             Comma-separated list of fields to include in each span. Reduces response size.
@@ -493,20 +499,16 @@ class RawSpansClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "environment": environment,
-                "is_test": is_test,
-                "all_envs": all_envs,
-                "fetch_filters": fetch_filters,
+                "log_type": log_type,
                 "include_fields": include_fields,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -523,17 +525,13 @@ class RawSpansClient:
                 _items = _parsed_response.results
                 _has_next = True
                 _get_next = lambda: self.list_spans(
-                    authorization=authorization,
-                    operator=operator,
                     page=page + 1,
                     page_size=page_size,
                     sort_by=sort_by,
                     start_time=start_time,
                     end_time=end_time,
                     environment=environment,
-                    is_test=is_test,
-                    all_envs=all_envs,
-                    fetch_filters=fetch_filters,
+                    log_type=log_type,
                     include_fields=include_fields,
                     filters=filters,
                     request_options=request_options,
@@ -589,7 +587,7 @@ class RawSpansClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_span(
-        self, unique_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveSpanResponse]:
         """
         Retrieve a span by its unique ID. Returns the full span including input, output, metrics, metadata, trace context, evaluation scores, and credit/budget info (`limit_info`).
@@ -598,9 +596,6 @@ class RawSpansClient:
         ----------
         unique_id : str
             The unique ID of the log to get.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -613,9 +608,6 @@ class RawSpansClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/request-logs/{jsonable_encoder(unique_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -692,7 +684,6 @@ class RawSpansClient:
         self,
         unique_id: str,
         *,
-        authorization: str,
         is_pinned: typing.Optional[bool] = OMIT,
         positive_feedback: typing.Optional[bool] = OMIT,
         note: typing.Optional[str] = OMIT,
@@ -706,9 +697,6 @@ class RawSpansClient:
         ----------
         unique_id : str
             The unique identifier of the span
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         is_pinned : typing.Optional[bool]
             Pin the span for infinite retention.
@@ -740,7 +728,6 @@ class RawSpansClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -811,29 +798,25 @@ class RawSpansClient:
     def get_spans_summary(
         self,
         *,
-        authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
+        environment: typing.Optional[GetSpansSummaryRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetSpansSummaryResponse]:
         """
-        Get aggregated statistics for spans matching the given filters. Uses the same filters and query parameters as [List spans](/docs/apis/spans/api-request-logs-list).
+        Get aggregated statistics for spans/log rows in a time range. `start_time`, `end_time`, and `environment` are URL query parameters. Additional filters must be sent in the JSON body under `filters`; fields such as `log_type` are not read as summary query parameters. When `filters` is omitted or empty, the backend may use the pre-aggregated summary path; when `filters` is non-empty, it queries raw logs using the same filter object shape as List spans.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         start_time : typing.Optional[dt.datetime]
             Start of time range (ISO 8601).
 
         end_time : typing.Optional[dt.datetime]
             End of time range (ISO 8601).
 
-        environment : typing.Optional[str]
-            Filter by environment.
+        environment : typing.Optional[GetSpansSummaryRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
 
@@ -860,7 +843,6 @@ class RawSpansClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -932,49 +914,53 @@ class AsyncRawSpansClient:
     async def create_span(
         self,
         *,
-        authorization: str,
         model: str,
+        prompt_messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        prompt_tokens: typing.Optional[int] = OMIT,
+        completion_tokens: typing.Optional[int] = OMIT,
+        usage: typing.Optional[CreateSpanRequestUsage] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        top_p: typing.Optional[float] = OMIT,
+        max_tokens: typing.Optional[int] = OMIT,
+        generation_time: typing.Optional[float] = OMIT,
+        ttft: typing.Optional[float] = OMIT,
+        customer_params: typing.Optional[CreateSpanRequestCustomerParams] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        stream: typing.Optional[bool] = OMIT,
+        status_code: typing.Optional[int] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_calls: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        trace_unique_id: typing.Optional[str] = OMIT,
+        span_name: typing.Optional[str] = OMIT,
+        span_parent_id: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        custom_identifier: typing.Optional[str] = OMIT,
+        thread_identifier: typing.Optional[str] = OMIT,
+        group_identifier: typing.Optional[str] = OMIT,
+        latency: typing.Optional[float] = OMIT,
+        time_to_first_token: typing.Optional[float] = OMIT,
         log_type: typing.Optional[CreateSpanRequestLogType] = OMIT,
         input: typing.Optional[CreateSpanRequestInput] = OMIT,
         output: typing.Optional[CreateSpanRequestOutput] = OMIT,
         messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        prompt_messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        usage: typing.Optional[CreateSpanRequestUsage] = OMIT,
         cost: typing.Optional[float] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
         tokens_per_second: typing.Optional[float] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         customer_identifier: typing.Optional[str] = OMIT,
-        customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         tool_choice: typing.Optional[CreateSpanRequestToolChoice] = OMIT,
         response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
         stop: typing.Optional[CreateSpanRequestStop] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
         error_message: typing.Optional[str] = OMIT,
         warnings: typing.Optional[CreateSpanRequestWarnings] = OMIT,
         status: typing.Optional[CreateSpanRequestStatus] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
         prompt_id: typing.Optional[str] = OMIT,
         prompt_name: typing.Optional[str] = OMIT,
         is_custom_prompt: typing.Optional[bool] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
         start_time: typing.Optional[dt.datetime] = OMIT,
         full_request: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         full_response: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -986,15 +972,90 @@ class AsyncRawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateSpanResponse]:
         """
-        Create a span via the logging API. This is the standard create endpoint. `/api/request-logs/create/` remains supported as a legacy alias. Prefer universal `input` and `output` fields; legacy chat fields like `messages`, `prompt_messages`, and `completion_message` are still accepted for backward compatibility. Respan-specific controls can be sent at the top level or nested under `respan_params`.
+        Create a request-log span via the logging API. This is the standard create endpoint; `/api/request-logs/create/` remains supported as a legacy alias. For LLM request logs, send `prompt_messages`, `completion_message`, token counts, timing, metadata, tools, and trace fields directly in the body. `generation_time` is accepted and normalized to `latency`; `ttft` is accepted and normalized to `time_to_first_token`. The stored `environment` is derived from the API key environment, so use a key for the target environment rather than relying on a body override.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : str
             Model used for the span.
+
+        prompt_messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Chat input messages for the request log.
+
+        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
+            Assistant message returned by the model.
+
+        prompt_tokens : typing.Optional[int]
+            Prompt/input tokens for the request. For Anthropic logs this corresponds to `input_tokens` before cache-token normalization.
+
+        completion_tokens : typing.Optional[int]
+            Completion/output tokens for the request. For Anthropic logs this corresponds to `output_tokens`.
+
+        usage : typing.Optional[CreateSpanRequestUsage]
+            Provider usage object. Cache token fields such as `cache_creation_input_tokens` and `cache_read_input_tokens` are accepted and normalized into Respan cache-token counters.
+
+        temperature : typing.Optional[float]
+            Sampling temperature (0-2). Higher = more random.
+
+        top_p : typing.Optional[float]
+            Nucleus sampling parameter.
+
+        max_tokens : typing.Optional[int]
+            Maximum tokens to generate.
+
+        generation_time : typing.Optional[float]
+            Accepted alias for total generation latency in seconds. Stored as `latency` in responses and query results.
+
+        ttft : typing.Optional[float]
+            Accepted alias for time to first token in seconds. Stored as `time_to_first_token` in responses and query results.
+
+        customer_params : typing.Optional[CreateSpanRequestCustomerParams]
+            Extended customer information. `customer_identifier` inside this object is promoted to the log customer identifier.
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Arbitrary key-value pairs for your reference.
+
+        stream : typing.Optional[bool]
+            Whether the response was streamed.
+
+        status_code : typing.Optional[int]
+            HTTP status code of the request.
+
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools available to the model (OpenAI function calling format).
+
+        tool_calls : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tool calls returned by the model.
+
+        timestamp : typing.Optional[dt.datetime]
+            ISO 8601 timestamp when the request completed.
+
+        trace_unique_id : typing.Optional[str]
+            Trace ID to link spans into a trace tree.
+
+        span_name : typing.Optional[str]
+            Name of this span within the workflow.
+
+        span_parent_id : typing.Optional[str]
+            Parent span ID. Builds the trace hierarchy.
+
+        span_workflow_name : typing.Optional[str]
+            Name of the parent workflow.
+
+        custom_identifier : typing.Optional[str]
+            Indexed custom identifier for fast querying.
+
+        thread_identifier : typing.Optional[str]
+            Conversation thread ID for multi-turn conversations.
+
+        group_identifier : typing.Optional[str]
+            Groups related spans together.
+
+        latency : typing.Optional[float]
+            Total request latency in seconds. `generation_time` is also accepted and normalizes to this field.
+
+        time_to_first_token : typing.Optional[float]
+            Time to first token in seconds. `ttft` is also accepted and normalizes to this field.
 
         log_type : typing.Optional[CreateSpanRequestLogType]
             Type of span. Determines how `input` and `output` are parsed.
@@ -1008,29 +1069,11 @@ class AsyncRawSpansClient:
         messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
             Legacy chat input field. Equivalent to `prompt_messages`; prefer `input` for new integrations.
 
-        prompt_messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Legacy chat input field. Prefer `input` for new integrations.
-
-        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy chat output field. Prefer `output` for new integrations.
-
-        usage : typing.Optional[CreateSpanRequestUsage]
-            Token usage for the request.
-
         cost : typing.Optional[float]
             Cost in USD. Auto-calculated from model pricing if omitted.
 
-        latency : typing.Optional[float]
-            Total request latency in seconds.
-
-        time_to_first_token : typing.Optional[float]
-            Time to first token in seconds.
-
         tokens_per_second : typing.Optional[float]
             Generation speed in tokens per second.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Arbitrary key-value pairs for your reference.
 
         properties : typing.Optional[typing.Dict[str, typing.Any]]
             Typed metadata that preserves native JSON types.
@@ -1041,44 +1084,11 @@ class AsyncRawSpansClient:
         customer_identifier : typing.Optional[str]
             Identifier for the end user who made this request.
 
-        customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer information.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID for multi-turn conversations.
-
-        custom_identifier : typing.Optional[str]
-            Indexed custom identifier for fast querying.
-
-        group_identifier : typing.Optional[str]
-            Groups related spans together.
-
-        trace_unique_id : typing.Optional[str]
-            Trace ID to link spans into a trace tree.
-
-        span_workflow_name : typing.Optional[str]
-            Name of the parent workflow.
-
-        span_name : typing.Optional[str]
-            Name of this span within the workflow.
-
-        span_parent_id : typing.Optional[str]
-            Parent span ID. Builds the trace hierarchy.
-
-        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Tools available to the model (OpenAI function calling format).
-
         tool_choice : typing.Optional[CreateSpanRequestToolChoice]
             Controls tool selection. `"none"`, `"auto"`, or a specific tool object.
 
         response_format : typing.Optional[typing.Dict[str, typing.Any]]
             Response format configuration (e.g. JSON mode or structured output).
-
-        temperature : typing.Optional[float]
-            Sampling temperature (0-2). Higher = more random.
-
-        top_p : typing.Optional[float]
-            Nucleus sampling parameter.
 
         frequency_penalty : typing.Optional[float]
             Penalizes repeated tokens (-2 to 2).
@@ -1086,14 +1096,8 @@ class AsyncRawSpansClient:
         presence_penalty : typing.Optional[float]
             Penalizes tokens already present (-2 to 2).
 
-        max_tokens : typing.Optional[int]
-            Maximum tokens to generate.
-
         stop : typing.Optional[CreateSpanRequestStop]
             Stop sequence or sequences where generation halts.
-
-        status_code : typing.Optional[int]
-            HTTP status code of the request.
 
         error_message : typing.Optional[str]
             Error message if the request failed.
@@ -1104,9 +1108,6 @@ class AsyncRawSpansClient:
         status : typing.Optional[CreateSpanRequestStatus]
             Request status.
 
-        stream : typing.Optional[bool]
-            Whether the response was streamed.
-
         prompt_id : typing.Optional[str]
             ID of the Respan prompt template used.
 
@@ -1115,9 +1116,6 @@ class AsyncRawSpansClient:
 
         is_custom_prompt : typing.Optional[bool]
             Set `true` when using a custom `prompt_id`.
-
-        timestamp : typing.Optional[dt.datetime]
-            ISO 8601 timestamp when the request completed.
 
         start_time : typing.Optional[dt.datetime]
             ISO 8601 timestamp when the request started.
@@ -1156,6 +1154,36 @@ class AsyncRawSpansClient:
             method="POST",
             json={
                 "model": model,
+                "prompt_messages": prompt_messages,
+                "completion_message": completion_message,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "usage": convert_and_respect_annotation_metadata(
+                    object_=usage, annotation=CreateSpanRequestUsage, direction="write"
+                ),
+                "temperature": temperature,
+                "top_p": top_p,
+                "max_tokens": max_tokens,
+                "generation_time": generation_time,
+                "ttft": ttft,
+                "customer_params": convert_and_respect_annotation_metadata(
+                    object_=customer_params, annotation=CreateSpanRequestCustomerParams, direction="write"
+                ),
+                "metadata": metadata,
+                "stream": stream,
+                "status_code": status_code,
+                "tools": tools,
+                "tool_calls": tool_calls,
+                "timestamp": timestamp,
+                "trace_unique_id": trace_unique_id,
+                "span_name": span_name,
+                "span_parent_id": span_parent_id,
+                "span_workflow_name": span_workflow_name,
+                "custom_identifier": custom_identifier,
+                "thread_identifier": thread_identifier,
+                "group_identifier": group_identifier,
+                "latency": latency,
+                "time_to_first_token": time_to_first_token,
                 "log_type": log_type,
                 "input": convert_and_respect_annotation_metadata(
                     object_=input, annotation=CreateSpanRequestInput, direction="write"
@@ -1164,51 +1192,28 @@ class AsyncRawSpansClient:
                     object_=output, annotation=CreateSpanRequestOutput, direction="write"
                 ),
                 "messages": messages,
-                "prompt_messages": prompt_messages,
-                "completion_message": completion_message,
-                "usage": convert_and_respect_annotation_metadata(
-                    object_=usage, annotation=CreateSpanRequestUsage, direction="write"
-                ),
                 "cost": cost,
-                "latency": latency,
-                "time_to_first_token": time_to_first_token,
                 "tokens_per_second": tokens_per_second,
-                "metadata": metadata,
                 "properties": properties,
                 "variables": variables,
                 "customer_identifier": customer_identifier,
-                "customer_params": customer_params,
-                "thread_identifier": thread_identifier,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "trace_unique_id": trace_unique_id,
-                "span_workflow_name": span_workflow_name,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "tools": tools,
                 "tool_choice": convert_and_respect_annotation_metadata(
                     object_=tool_choice, annotation=CreateSpanRequestToolChoice, direction="write"
                 ),
                 "response_format": response_format,
-                "temperature": temperature,
-                "top_p": top_p,
                 "frequency_penalty": frequency_penalty,
                 "presence_penalty": presence_penalty,
-                "max_tokens": max_tokens,
                 "stop": convert_and_respect_annotation_metadata(
                     object_=stop, annotation=CreateSpanRequestStop, direction="write"
                 ),
-                "status_code": status_code,
                 "error_message": error_message,
                 "warnings": convert_and_respect_annotation_metadata(
                     object_=warnings, annotation=CreateSpanRequestWarnings, direction="write"
                 ),
                 "status": status,
-                "stream": stream,
                 "prompt_id": prompt_id,
                 "prompt_name": prompt_name,
                 "is_custom_prompt": is_custom_prompt,
-                "timestamp": timestamp,
                 "start_time": start_time,
                 "full_request": full_request,
                 "full_response": full_response,
@@ -1220,7 +1225,6 @@ class AsyncRawSpansClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1298,17 +1302,13 @@ class AsyncRawSpansClient:
     async def list_spans(
         self,
         *,
-        authorization: str,
-        operator: ListSpansRequestOperator,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        is_test: typing.Optional[ListSpansRequestIsTest] = None,
-        all_envs: typing.Optional[ListSpansRequestAllEnvs] = None,
-        fetch_filters: typing.Optional[ListSpansRequestFetchFilters] = None,
+        environment: typing.Optional[ListSpansRequestEnvironment] = None,
+        log_type: typing.Optional[ListSpansRequestLogType] = None,
         include_fields: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1318,12 +1318,6 @@ class AsyncRawSpansClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        operator : ListSpansRequestOperator
-            Logical operator to combine filters.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1339,17 +1333,11 @@ class AsyncRawSpansClient:
         end_time : typing.Optional[dt.datetime]
             End of time range (ISO 8601).
 
-        environment : typing.Optional[str]
-            Filter by environment.
+        environment : typing.Optional[ListSpansRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
-        is_test : typing.Optional[ListSpansRequestIsTest]
-            Filter by test/production spans.
-
-        all_envs : typing.Optional[ListSpansRequestAllEnvs]
-            Include spans from all environments.
-
-        fetch_filters : typing.Optional[ListSpansRequestFetchFilters]
-            Return available filter options in the response. May slow response.
+        log_type : typing.Optional[ListSpansRequestLogType]
+            Filter by span/log type. Use values like `chat`, `completion`, or `response` to focus on model-inference spans; omitting this can also return non-chat span/log rows such as legacy `text` logs.
 
         include_fields : typing.Optional[str]
             Comma-separated list of fields to include in each span. Reduces response size.
@@ -1376,20 +1364,16 @@ class AsyncRawSpansClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "environment": environment,
-                "is_test": is_test,
-                "all_envs": all_envs,
-                "fetch_filters": fetch_filters,
+                "log_type": log_type,
                 "include_fields": include_fields,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1408,17 +1392,13 @@ class AsyncRawSpansClient:
 
                 async def _get_next():
                     return await self.list_spans(
-                        authorization=authorization,
-                        operator=operator,
                         page=page + 1,
                         page_size=page_size,
                         sort_by=sort_by,
                         start_time=start_time,
                         end_time=end_time,
                         environment=environment,
-                        is_test=is_test,
-                        all_envs=all_envs,
-                        fetch_filters=fetch_filters,
+                        log_type=log_type,
                         include_fields=include_fields,
                         filters=filters,
                         request_options=request_options,
@@ -1475,7 +1455,7 @@ class AsyncRawSpansClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_span(
-        self, unique_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveSpanResponse]:
         """
         Retrieve a span by its unique ID. Returns the full span including input, output, metrics, metadata, trace context, evaluation scores, and credit/budget info (`limit_info`).
@@ -1484,9 +1464,6 @@ class AsyncRawSpansClient:
         ----------
         unique_id : str
             The unique ID of the log to get.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1499,9 +1476,6 @@ class AsyncRawSpansClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/request-logs/{jsonable_encoder(unique_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1578,7 +1552,6 @@ class AsyncRawSpansClient:
         self,
         unique_id: str,
         *,
-        authorization: str,
         is_pinned: typing.Optional[bool] = OMIT,
         positive_feedback: typing.Optional[bool] = OMIT,
         note: typing.Optional[str] = OMIT,
@@ -1592,9 +1565,6 @@ class AsyncRawSpansClient:
         ----------
         unique_id : str
             The unique identifier of the span
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         is_pinned : typing.Optional[bool]
             Pin the span for infinite retention.
@@ -1626,7 +1596,6 @@ class AsyncRawSpansClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1697,29 +1666,25 @@ class AsyncRawSpansClient:
     async def get_spans_summary(
         self,
         *,
-        authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
+        environment: typing.Optional[GetSpansSummaryRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetSpansSummaryResponse]:
         """
-        Get aggregated statistics for spans matching the given filters. Uses the same filters and query parameters as [List spans](/docs/apis/spans/api-request-logs-list).
+        Get aggregated statistics for spans/log rows in a time range. `start_time`, `end_time`, and `environment` are URL query parameters. Additional filters must be sent in the JSON body under `filters`; fields such as `log_type` are not read as summary query parameters. When `filters` is omitted or empty, the backend may use the pre-aggregated summary path; when `filters` is non-empty, it queries raw logs using the same filter object shape as List spans.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         start_time : typing.Optional[dt.datetime]
             Start of time range (ISO 8601).
 
         end_time : typing.Optional[dt.datetime]
             End of time range (ISO 8601).
 
-        environment : typing.Optional[str]
-            Filter by environment.
+        environment : typing.Optional[GetSpansSummaryRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
 
@@ -1746,7 +1711,6 @@ class AsyncRawSpansClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,

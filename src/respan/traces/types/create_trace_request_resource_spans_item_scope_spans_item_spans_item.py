@@ -56,13 +56,15 @@ class CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem(UniversalBaseMo
         typing.List[CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem]
     ] = pydantic.Field(default=None)
     """
-    Span attributes as key-value pairs. Values use OTLP typed wrappers: `stringValue`, `intValue`, `doubleValue`, `boolValue`, `arrayValue`, `kvlistValue`.
+    Span attributes as OTLP key-value pairs. Values use OTLP typed wrappers: `stringValue`, `intValue`, `doubleValue`, `boolValue`, `arrayValue`, or `kvlistValue`.
     
-    **Gen AI semantic conventions:** `gen_ai.request.model`, `gen_ai.response.model`, `gen_ai.request.temperature`, `gen_ai.request.max_tokens`, `gen_ai.usage.prompt_tokens`, `gen_ai.usage.completion_tokens`, `gen_ai.usage.total_tokens`, `gen_ai.prompt.{N}.role`, `gen_ai.prompt.{N}.content`, `gen_ai.completion.{N}.role`, `gen_ai.completion.{N}.content`.
+    **Trace shape:** use `traceloop.span.kind` (`workflow`, `task`, `tool`, `chat`, etc.) to classify spans, and `traceloop.workflow.name` to make the workflow name searchable. For chat/completion child spans, include `llm.request.type` (`chat` or `completion`) so model, messages, and token fields are promoted.
     
-    **Respan extensions:** `respan.customer.identifier`, `respan.customer.email`, `respan.customer.name`, `respan.thread.id`, `respan.trace_group.id`, `respan.metadata` (JSON merged into span metadata), `respan.entity.log_type` (span type override).
+    **LLM fields:** `gen_ai.request.model`, `gen_ai.response.model`, `gen_ai.usage.prompt_tokens`, `gen_ai.usage.completion_tokens`, `gen_ai.usage.total_tokens`, `gen_ai.prompt.{N}.role`, `gen_ai.prompt.{N}.content`, `gen_ai.completion.{N}.role`, `gen_ai.completion.{N}.content`.
     
-    All other attributes are stored in the span's metadata and queryable via filters.
+    **Respan fields:** `respan.customer_params.customer_identifier`, `respan.customer_params.email`, `respan.customer_params.name`, `respan.threads.thread_identifier`, `respan.trace.trace_group_identifier`, and `respan.metadata.<key>` for custom metadata.
+    
+    All other attributes are stored in metadata and queryable via metadata filters.
     """
 
     events: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = pydantic.Field(default=None)

@@ -10,27 +10,50 @@ from ..types.dashboard_cache_hit_row import DashboardCacheHitRow
 from ..types.dashboard_cache_hit_summary import DashboardCacheHitSummary
 from ..types.dashboard_eval_results_row import DashboardEvalResultsRow
 from ..types.dashboard_eval_results_summary import DashboardEvalResultsSummary
-from ..types.dashboard_llm_metrics_request_metrics_to_aggregate_item import (
-    DashboardLlmMetricsRequestMetricsToAggregateItem,
-)
 from ..types.dashboard_llm_metrics_row import DashboardLlmMetricsRow
 from ..types.dashboard_llm_metrics_summary import DashboardLlmMetricsSummary
+from ..types.dashboard_quantiles_request_metrics_to_aggregate_item import (
+    DashboardQuantilesRequestMetricsToAggregateItem,
+)
 from ..types.dashboard_quantiles_row import DashboardQuantilesRow
 from ..types.dashboard_quantiles_summary import DashboardQuantilesSummary
 from ..types.dashboard_storage_row import DashboardStorageRow
 from ..types.dashboard_storage_summary import DashboardStorageSummary
-from ..types.dashboard_time_range_request_time_tick import DashboardTimeRangeRequestTimeTick
 from ..types.dashboard_top_n_response import DashboardTopNResponse
 from ..types.dashboard_total_users_summary import DashboardTotalUsersSummary
 from ..types.dashboard_users_row import DashboardUsersRow
 from ..types.filters import Filters
 from ..types.platform_stats_response import PlatformStatsResponse
 from .raw_client import AsyncRawDashboardClient, RawDashboardClient
-from .types.dashboard_breakdown_request_breakdown_by import DashboardBreakdownRequestBreakdownBy
-from .types.dashboard_breakdown_request_metrics_to_aggregate_item import DashboardBreakdownRequestMetricsToAggregateItem
+from .types.get_cache_hit_metrics_summary_request_summary_type import GetCacheHitMetricsSummaryRequestSummaryType
+from .types.get_cache_hit_metrics_summary_request_time_tick import GetCacheHitMetricsSummaryRequestTimeTick
+from .types.get_eval_results_summary_request_summary_type import GetEvalResultsSummaryRequestSummaryType
+from .types.get_eval_results_summary_request_time_tick import GetEvalResultsSummaryRequestTimeTick
+from .types.get_lifetime_cache_hit_totals_request_summary_type import GetLifetimeCacheHitTotalsRequestSummaryType
+from .types.get_lifetime_cache_hit_totals_request_time_tick import GetLifetimeCacheHitTotalsRequestTimeTick
+from .types.get_llm_metrics_summary_request_fetch_filters import GetLlmMetricsSummaryRequestFetchFilters
+from .types.get_llm_metrics_summary_request_summary_type import GetLlmMetricsSummaryRequestSummaryType
+from .types.get_llm_metrics_summary_request_time_tick import GetLlmMetricsSummaryRequestTimeTick
 from .types.get_platform_stats_request_breakdown_by import GetPlatformStatsRequestBreakdownBy
-from .types.get_storage_volume_summary_request_time_tick import GetStorageVolumeSummaryRequestTimeTick
-from .types.list_storage_volume_request_time_tick import ListStorageVolumeRequestTimeTick
+from .types.get_quantiles_summary_request_summary_type import GetQuantilesSummaryRequestSummaryType
+from .types.get_quantiles_summary_request_time_tick import GetQuantilesSummaryRequestTimeTick
+from .types.get_storage_volume_summary_request_summary_type import GetStorageVolumeSummaryRequestSummaryType
+from .types.list_active_users_request_environment import ListActiveUsersRequestEnvironment
+from .types.list_active_users_request_summary_type import ListActiveUsersRequestSummaryType
+from .types.list_active_users_request_time_tick import ListActiveUsersRequestTimeTick
+from .types.list_cache_hit_metrics_request_summary_type import ListCacheHitMetricsRequestSummaryType
+from .types.list_cache_hit_metrics_request_time_tick import ListCacheHitMetricsRequestTimeTick
+from .types.list_eval_results_request_summary_type import ListEvalResultsRequestSummaryType
+from .types.list_eval_results_request_time_tick import ListEvalResultsRequestTimeTick
+from .types.list_llm_metrics_request_fetch_filters import ListLlmMetricsRequestFetchFilters
+from .types.list_llm_metrics_request_summary_type import ListLlmMetricsRequestSummaryType
+from .types.list_llm_metrics_request_time_tick import ListLlmMetricsRequestTimeTick
+from .types.list_metrics_breakdown_request_breakdown_by import ListMetricsBreakdownRequestBreakdownBy
+from .types.list_metrics_breakdown_request_summary_type import ListMetricsBreakdownRequestSummaryType
+from .types.list_metrics_breakdown_request_time_tick import ListMetricsBreakdownRequestTimeTick
+from .types.list_quantiles_request_summary_type import ListQuantilesRequestSummaryType
+from .types.list_quantiles_request_time_tick import ListQuantilesRequestTimeTick
+from .types.list_storage_volume_request_summary_type import ListStorageVolumeRequestSummaryType
 from .types.list_top_api_keys_request_sort_by import ListTopApiKeysRequestSortBy
 from .types.list_top_api_keys_request_summary_type import ListTopApiKeysRequestSummaryType
 from .types.list_top_deployments_request_sort_by import ListTopDeploymentsRequestSortBy
@@ -66,33 +89,41 @@ class DashboardClient:
     def list_llm_metrics(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListLlmMetricsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListLlmMetricsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        fetch_filters: typing.Optional[ListLlmMetricsRequestFetchFilters] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardLlmMetricsRow]:
         """
-        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day). Use `metrics_to_aggregate` to request a subset of metrics.
+        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day).
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListLlmMetricsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]]
-            Optional. If provided, the response includes only these metric fields. If omitted, all LLM metrics are returned.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        time_tick : typing.Optional[ListLlmMetricsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        fetch_filters : typing.Optional[ListLlmMetricsRequestFetchFilters]
+            Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
 
@@ -106,27 +137,21 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_llm_metrics(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_llm_metrics()
         """
         _response = self._raw_client.list_llm_metrics(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
-            metrics_to_aggregate=metrics_to_aggregate,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
+            fetch_filters=fetch_filters,
             filters=filters,
             request_options=request_options,
         )
@@ -135,11 +160,13 @@ class DashboardClient:
     def get_llm_metrics_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[GetLlmMetricsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetLlmMetricsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        fetch_filters: typing.Optional[GetLlmMetricsSummaryRequestFetchFilters] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardLlmMetricsSummary:
@@ -148,20 +175,26 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetLlmMetricsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]]
-            Optional. If provided, the response includes only these metric fields. If omitted, all LLM metrics are returned.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        time_tick : typing.Optional[GetLlmMetricsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        fetch_filters : typing.Optional[GetLlmMetricsSummaryRequestFetchFilters]
+            Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
 
@@ -175,27 +208,21 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.get_llm_metrics_summary(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.get_llm_metrics_summary()
         """
         _response = self._raw_client.get_llm_metrics_summary(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
-            metrics_to_aggregate=metrics_to_aggregate,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
+            fetch_filters=fetch_filters,
             filters=filters,
             request_options=request_options,
         )
@@ -204,11 +231,14 @@ class DashboardClient:
     def list_quantiles(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListQuantilesRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListQuantilesRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         filters: typing.Optional[Filters] = OMIT,
+        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardQuantilesRow]:
         """
@@ -216,19 +246,28 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListQuantilesRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListQuantilesRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+
+        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
+            Metric subset for quantile aggregation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -240,27 +279,22 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_quantiles(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_quantiles()
         """
         _response = self._raw_client.list_quantiles(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
             filters=filters,
+            metrics_to_aggregate=metrics_to_aggregate,
             request_options=request_options,
         )
         return _response.data
@@ -268,11 +302,14 @@ class DashboardClient:
     def get_quantiles_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[GetQuantilesSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetQuantilesSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         filters: typing.Optional[Filters] = OMIT,
+        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardQuantilesSummary:
         """
@@ -280,19 +317,28 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetQuantilesSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[GetQuantilesSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+
+        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
+            Metric subset for quantile aggregation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -304,27 +350,22 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.get_quantiles_summary(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.get_quantiles_summary()
         """
         _response = self._raw_client.get_quantiles_summary(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
             filters=filters,
+            metrics_to_aggregate=metrics_to_aggregate,
             request_options=request_options,
         )
         return _response.data
@@ -332,12 +373,10 @@ class DashboardClient:
     def list_top_models(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopModelsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopModelsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -346,9 +385,6 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopModelsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -361,9 +397,6 @@ class DashboardClient:
         sort_by : typing.Optional[ListTopModelsRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -378,18 +411,16 @@ class DashboardClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_top_models(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_top_models()
         """
         _response = self._raw_client.list_top_models(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -398,12 +429,10 @@ class DashboardClient:
     def list_top_api_keys(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopApiKeysRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopApiKeysRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -412,9 +441,6 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopApiKeysRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -427,9 +453,6 @@ class DashboardClient:
         sort_by : typing.Optional[ListTopApiKeysRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -444,18 +467,16 @@ class DashboardClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_top_api_keys(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_top_api_keys()
         """
         _response = self._raw_client.list_top_api_keys(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -464,12 +485,10 @@ class DashboardClient:
     def list_top_prompts(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopPromptsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopPromptsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -478,9 +497,6 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopPromptsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -493,9 +509,6 @@ class DashboardClient:
         sort_by : typing.Optional[ListTopPromptsRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -510,18 +523,16 @@ class DashboardClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_top_prompts(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_top_prompts()
         """
         _response = self._raw_client.list_top_prompts(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -530,12 +541,10 @@ class DashboardClient:
     def list_top_deployments(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopDeploymentsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopDeploymentsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -544,9 +553,6 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopDeploymentsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -559,9 +565,6 @@ class DashboardClient:
         sort_by : typing.Optional[ListTopDeploymentsRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -576,18 +579,16 @@ class DashboardClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_top_deployments(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_top_deployments()
         """
         _response = self._raw_client.list_top_deployments(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -596,12 +597,10 @@ class DashboardClient:
     def list_top_users(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopUsersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopUsersRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -610,9 +609,6 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopUsersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -625,9 +621,6 @@ class DashboardClient:
         sort_by : typing.Optional[ListTopUsersRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -642,18 +635,16 @@ class DashboardClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_top_users(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_top_users()
         """
         _response = self._raw_client.list_top_users(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -662,12 +653,10 @@ class DashboardClient:
     def list_top_providers(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopProvidersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopProvidersRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -676,9 +665,6 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopProvidersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -691,9 +677,6 @@ class DashboardClient:
         sort_by : typing.Optional[ListTopProvidersRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -708,18 +691,16 @@ class DashboardClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_top_providers(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_top_providers()
         """
         _response = self._raw_client.list_top_providers(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -728,12 +709,13 @@ class DashboardClient:
     def list_metrics_breakdown(
         self,
         *,
-        authorization: str,
-        breakdown_by: DashboardBreakdownRequestBreakdownBy,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardBreakdownRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListMetricsBreakdownRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListMetricsBreakdownRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        breakdown_by: typing.Optional[ListMetricsBreakdownRequestBreakdownBy] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardBreakdownRow]:
@@ -742,23 +724,26 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListMetricsBreakdownRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        breakdown_by : DashboardBreakdownRequestBreakdownBy
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
+
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
+
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListMetricsBreakdownRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        breakdown_by : typing.Optional[ListMetricsBreakdownRequestBreakdownBy]
             Dimension to break the time series down by.
-
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
-
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
-
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardBreakdownRequestMetricsToAggregateItem]]
-            Optional metric subset (default: all metrics).
-
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
 
         filters : typing.Optional[Filters]
 
@@ -772,29 +757,21 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_metrics_breakdown(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
-            breakdown_by="model",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_metrics_breakdown()
         """
         _response = self._raw_client.list_metrics_breakdown(
-            authorization=authorization,
-            breakdown_by=breakdown_by,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
-            metrics_to_aggregate=metrics_to_aggregate,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
+            breakdown_by=breakdown_by,
             filters=filters,
             request_options=request_options,
         )
@@ -803,10 +780,13 @@ class DashboardClient:
     def list_active_users(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListActiveUsersRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListActiveUsersRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        environment: typing.Optional[ListActiveUsersRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardUsersRow]:
@@ -815,17 +795,26 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListActiveUsersRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListActiveUsersRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        environment : typing.Optional[ListActiveUsersRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
 
@@ -839,60 +828,32 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_active_users(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_active_users()
         """
         _response = self._raw_client.list_active_users(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
+            environment=environment,
             filters=filters,
             request_options=request_options,
         )
         return _response.data
 
-    def get_total_users(
-        self,
-        *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DashboardTotalUsersSummary:
+    def get_total_users(self, *, request_options: typing.Optional[RequestOptions] = None) -> DashboardTotalUsersSummary:
         """
-        Returns the total unique user count for the time range.
+        Return the total customer-user count time series. Time controls are query parameters; the backend does not read a request body for this endpoint.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
-
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
-
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
-
-        filters : typing.Optional[Filters]
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -903,39 +864,25 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.get_total_users(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.get_total_users()
         """
-        _response = self._raw_client.get_total_users(
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            time_tick=time_tick,
-            filters=filters,
-            request_options=request_options,
-        )
+        _response = self._raw_client.get_total_users(request_options=request_options)
         return _response.data
 
     def list_cache_hit_metrics(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[ListCacheHitMetricsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListCacheHitMetricsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardCacheHitRow]:
         """
@@ -943,19 +890,23 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListCacheHitMetricsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[ListCacheHitMetricsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -967,27 +918,20 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_cache_hit_metrics(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_cache_hit_metrics()
         """
         _response = self._raw_client.list_cache_hit_metrics(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -995,11 +939,12 @@ class DashboardClient:
     def get_cache_hit_metrics_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetCacheHitMetricsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetCacheHitMetricsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardCacheHitSummary:
         """
@@ -1007,19 +952,23 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetCacheHitMetricsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetCacheHitMetricsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1031,27 +980,20 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.get_cache_hit_metrics_summary(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.get_cache_hit_metrics_summary()
         """
         _response = self._raw_client.get_cache_hit_metrics_summary(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -1059,11 +1001,12 @@ class DashboardClient:
     def get_lifetime_cache_hit_totals(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetLifetimeCacheHitTotalsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetLifetimeCacheHitTotalsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardCacheHitSummary:
         """
@@ -1071,19 +1014,23 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetLifetimeCacheHitTotalsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetLifetimeCacheHitTotalsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1095,27 +1042,20 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.get_lifetime_cache_hit_totals(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.get_lifetime_cache_hit_totals()
         """
         _response = self._raw_client.get_lifetime_cache_hit_totals(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -1123,11 +1063,12 @@ class DashboardClient:
     def list_eval_results(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[ListEvalResultsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListEvalResultsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardEvalResultsRow]:
         """
@@ -1135,19 +1076,23 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListEvalResultsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[ListEvalResultsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1159,27 +1104,20 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_eval_results(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_eval_results()
         """
         _response = self._raw_client.list_eval_results(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -1187,11 +1125,12 @@ class DashboardClient:
     def get_eval_results_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetEvalResultsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetEvalResultsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardEvalResultsSummary:
         """
@@ -1199,19 +1138,23 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetEvalResultsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetEvalResultsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1223,27 +1166,20 @@ class DashboardClient:
 
         Examples
         --------
-        import datetime
-
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.get_eval_results_summary(
-            authorization="Bearer sk_live_xxxxx",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-02-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-02-22 23:59:59+00:00",
-            ),
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.get_eval_results_summary()
         """
         _response = self._raw_client.get_eval_results_summary(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -1251,10 +1187,9 @@ class DashboardClient:
     def list_storage_volume(
         self,
         *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[ListStorageVolumeRequestTimeTick] = None,
+        summary_type: typing.Optional[ListStorageVolumeRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardStorageRow]:
         """
@@ -1262,17 +1197,14 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListStorageVolumeRequestSummaryType]
+            Preset time range for the storage volume query.
 
-        start_time : typing.Optional[dt.datetime]
-            ISO start time.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : typing.Optional[dt.datetime]
-            ISO end time.
-
-        time_tick : typing.Optional[ListStorageVolumeRequestTimeTick]
-            Bucket granularity.
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1286,27 +1218,22 @@ class DashboardClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.list_storage_volume(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.list_storage_volume()
         """
         _response = self._raw_client.list_storage_volume(
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            time_tick=time_tick,
-            request_options=request_options,
+            summary_type=summary_type, date=date, timezone_offset=timezone_offset, request_options=request_options
         )
         return _response.data
 
     def get_storage_volume_summary(
         self,
         *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[GetStorageVolumeSummaryRequestTimeTick] = None,
+        summary_type: typing.Optional[GetStorageVolumeSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardStorageSummary:
         """
@@ -1314,17 +1241,14 @@ class DashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetStorageVolumeSummaryRequestSummaryType]
+            Preset time range for the storage volume query.
 
-        start_time : typing.Optional[dt.datetime]
-            ISO start time.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : typing.Optional[dt.datetime]
-            ISO end time.
-
-        time_tick : typing.Optional[GetStorageVolumeSummaryRequestTimeTick]
-            Bucket granularity.
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1338,17 +1262,13 @@ class DashboardClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.dashboard.get_storage_volume_summary(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.dashboard.get_storage_volume_summary()
         """
         _response = self._raw_client.get_storage_volume_summary(
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            time_tick=time_tick,
-            request_options=request_options,
+            summary_type=summary_type, date=date, timezone_offset=timezone_offset, request_options=request_options
         )
         return _response.data
 
@@ -1378,7 +1298,9 @@ class DashboardClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.dashboard.get_platform_stats()
         """
         _response = self._raw_client.get_platform_stats(breakdown_by=breakdown_by, request_options=request_options)
@@ -1403,33 +1325,41 @@ class AsyncDashboardClient:
     async def list_llm_metrics(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListLlmMetricsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListLlmMetricsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        fetch_filters: typing.Optional[ListLlmMetricsRequestFetchFilters] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardLlmMetricsRow]:
         """
-        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day). Use `metrics_to_aggregate` to request a subset of metrics.
+        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day).
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListLlmMetricsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]]
-            Optional. If provided, the response includes only these metric fields. If omitted, all LLM metrics are returned.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        time_tick : typing.Optional[ListLlmMetricsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        fetch_filters : typing.Optional[ListLlmMetricsRequestFetchFilters]
+            Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
 
@@ -1444,33 +1374,28 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_llm_metrics(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.list_llm_metrics()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_llm_metrics(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
-            metrics_to_aggregate=metrics_to_aggregate,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
+            fetch_filters=fetch_filters,
             filters=filters,
             request_options=request_options,
         )
@@ -1479,11 +1404,13 @@ class AsyncDashboardClient:
     async def get_llm_metrics_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[GetLlmMetricsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetLlmMetricsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        fetch_filters: typing.Optional[GetLlmMetricsSummaryRequestFetchFilters] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardLlmMetricsSummary:
@@ -1492,20 +1419,26 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetLlmMetricsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]]
-            Optional. If provided, the response includes only these metric fields. If omitted, all LLM metrics are returned.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        time_tick : typing.Optional[GetLlmMetricsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        fetch_filters : typing.Optional[GetLlmMetricsSummaryRequestFetchFilters]
+            Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
 
@@ -1520,33 +1453,28 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.get_llm_metrics_summary(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.get_llm_metrics_summary()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_llm_metrics_summary(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
-            metrics_to_aggregate=metrics_to_aggregate,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
+            fetch_filters=fetch_filters,
             filters=filters,
             request_options=request_options,
         )
@@ -1555,11 +1483,14 @@ class AsyncDashboardClient:
     async def list_quantiles(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListQuantilesRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListQuantilesRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         filters: typing.Optional[Filters] = OMIT,
+        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardQuantilesRow]:
         """
@@ -1567,19 +1498,28 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListQuantilesRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListQuantilesRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+
+        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
+            Metric subset for quantile aggregation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1592,33 +1532,29 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_quantiles(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.list_quantiles()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_quantiles(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
             filters=filters,
+            metrics_to_aggregate=metrics_to_aggregate,
             request_options=request_options,
         )
         return _response.data
@@ -1626,11 +1562,14 @@ class AsyncDashboardClient:
     async def get_quantiles_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[GetQuantilesSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetQuantilesSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         filters: typing.Optional[Filters] = OMIT,
+        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardQuantilesSummary:
         """
@@ -1638,19 +1577,28 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetQuantilesSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[GetQuantilesSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+
+        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
+            Metric subset for quantile aggregation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1663,33 +1611,29 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.get_quantiles_summary(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.get_quantiles_summary()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_quantiles_summary(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
             filters=filters,
+            metrics_to_aggregate=metrics_to_aggregate,
             request_options=request_options,
         )
         return _response.data
@@ -1697,12 +1641,10 @@ class AsyncDashboardClient:
     async def list_top_models(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopModelsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopModelsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -1711,9 +1653,6 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopModelsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -1726,9 +1665,6 @@ class AsyncDashboardClient:
         sort_by : typing.Optional[ListTopModelsRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -1745,24 +1681,22 @@ class AsyncDashboardClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_top_models(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.dashboard.list_top_models()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_top_models(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -1771,12 +1705,10 @@ class AsyncDashboardClient:
     async def list_top_api_keys(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopApiKeysRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopApiKeysRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -1785,9 +1717,6 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopApiKeysRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -1800,9 +1729,6 @@ class AsyncDashboardClient:
         sort_by : typing.Optional[ListTopApiKeysRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -1819,24 +1745,22 @@ class AsyncDashboardClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_top_api_keys(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.dashboard.list_top_api_keys()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_top_api_keys(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -1845,12 +1769,10 @@ class AsyncDashboardClient:
     async def list_top_prompts(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopPromptsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopPromptsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -1859,9 +1781,6 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopPromptsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -1874,9 +1793,6 @@ class AsyncDashboardClient:
         sort_by : typing.Optional[ListTopPromptsRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -1893,24 +1809,22 @@ class AsyncDashboardClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_top_prompts(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.dashboard.list_top_prompts()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_top_prompts(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -1919,12 +1833,10 @@ class AsyncDashboardClient:
     async def list_top_deployments(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopDeploymentsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopDeploymentsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -1933,9 +1845,6 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopDeploymentsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -1948,9 +1857,6 @@ class AsyncDashboardClient:
         sort_by : typing.Optional[ListTopDeploymentsRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -1967,24 +1873,22 @@ class AsyncDashboardClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_top_deployments(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.dashboard.list_top_deployments()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_top_deployments(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -1993,12 +1897,10 @@ class AsyncDashboardClient:
     async def list_top_users(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopUsersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopUsersRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -2007,9 +1909,6 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopUsersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -2022,9 +1921,6 @@ class AsyncDashboardClient:
         sort_by : typing.Optional[ListTopUsersRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -2041,24 +1937,22 @@ class AsyncDashboardClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_top_users(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.dashboard.list_top_users()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_top_users(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -2067,12 +1961,10 @@ class AsyncDashboardClient:
     async def list_top_providers(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopProvidersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopProvidersRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardTopNResponse:
@@ -2081,9 +1973,6 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopProvidersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -2096,9 +1985,6 @@ class AsyncDashboardClient:
         sort_by : typing.Optional[ListTopProvidersRequestSortBy]
             Metric to sort the ranking by.
 
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
-
         filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
@@ -2115,24 +2001,22 @@ class AsyncDashboardClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_top_providers(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.dashboard.list_top_providers()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_top_providers(
-            authorization=authorization,
             summary_type=summary_type,
             start_time=start_time,
             end_time=end_time,
             sort_by=sort_by,
-            limit=limit,
             filters=filters,
             request_options=request_options,
         )
@@ -2141,12 +2025,13 @@ class AsyncDashboardClient:
     async def list_metrics_breakdown(
         self,
         *,
-        authorization: str,
-        breakdown_by: DashboardBreakdownRequestBreakdownBy,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardBreakdownRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListMetricsBreakdownRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListMetricsBreakdownRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        breakdown_by: typing.Optional[ListMetricsBreakdownRequestBreakdownBy] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardBreakdownRow]:
@@ -2155,23 +2040,26 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListMetricsBreakdownRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        breakdown_by : DashboardBreakdownRequestBreakdownBy
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
+
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
+
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListMetricsBreakdownRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        breakdown_by : typing.Optional[ListMetricsBreakdownRequestBreakdownBy]
             Dimension to break the time series down by.
-
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
-
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
-
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardBreakdownRequestMetricsToAggregateItem]]
-            Optional metric subset (default: all metrics).
-
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
 
         filters : typing.Optional[Filters]
 
@@ -2186,35 +2074,28 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_metrics_breakdown(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-                breakdown_by="model",
-            )
+            await client.dashboard.list_metrics_breakdown()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_metrics_breakdown(
-            authorization=authorization,
-            breakdown_by=breakdown_by,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
-            metrics_to_aggregate=metrics_to_aggregate,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
+            breakdown_by=breakdown_by,
             filters=filters,
             request_options=request_options,
         )
@@ -2223,10 +2104,13 @@ class AsyncDashboardClient:
     async def list_active_users(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListActiveUsersRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListActiveUsersRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        environment: typing.Optional[ListActiveUsersRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardUsersRow]:
@@ -2235,17 +2119,26 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListActiveUsersRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListActiveUsersRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        environment : typing.Optional[ListActiveUsersRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
 
@@ -2260,66 +2153,41 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_active_users(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.list_active_users()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_active_users(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
+            timezone_offset=timezone_offset,
+            environment=environment,
             filters=filters,
             request_options=request_options,
         )
         return _response.data
 
     async def get_total_users(
-        self,
-        *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> DashboardTotalUsersSummary:
         """
-        Returns the total unique user count for the time range.
+        Return the total customer-user count time series. Time controls are query parameters; the backend does not read a request body for this endpoint.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
-
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
-
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
-
-        filters : typing.Optional[Filters]
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -2331,45 +2199,32 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.get_total_users(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.get_total_users()
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.get_total_users(
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            time_tick=time_tick,
-            filters=filters,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.get_total_users(request_options=request_options)
         return _response.data
 
     async def list_cache_hit_metrics(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[ListCacheHitMetricsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListCacheHitMetricsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardCacheHitRow]:
         """
@@ -2377,19 +2232,23 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListCacheHitMetricsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[ListCacheHitMetricsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2402,33 +2261,27 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_cache_hit_metrics(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.list_cache_hit_metrics()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_cache_hit_metrics(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -2436,11 +2289,12 @@ class AsyncDashboardClient:
     async def get_cache_hit_metrics_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetCacheHitMetricsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetCacheHitMetricsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardCacheHitSummary:
         """
@@ -2448,19 +2302,23 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetCacheHitMetricsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetCacheHitMetricsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2473,33 +2331,27 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.get_cache_hit_metrics_summary(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.get_cache_hit_metrics_summary()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_cache_hit_metrics_summary(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -2507,11 +2359,12 @@ class AsyncDashboardClient:
     async def get_lifetime_cache_hit_totals(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetLifetimeCacheHitTotalsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetLifetimeCacheHitTotalsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardCacheHitSummary:
         """
@@ -2519,19 +2372,23 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetLifetimeCacheHitTotalsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetLifetimeCacheHitTotalsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2544,33 +2401,27 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.get_lifetime_cache_hit_totals(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.get_lifetime_cache_hit_totals()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_lifetime_cache_hit_totals(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -2578,11 +2429,12 @@ class AsyncDashboardClient:
     async def list_eval_results(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[ListEvalResultsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListEvalResultsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardEvalResultsRow]:
         """
@@ -2590,19 +2442,23 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListEvalResultsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[ListEvalResultsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2615,33 +2471,27 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_eval_results(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.list_eval_results()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_eval_results(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -2649,11 +2499,12 @@ class AsyncDashboardClient:
     async def get_eval_results_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetEvalResultsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetEvalResultsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardEvalResultsSummary:
         """
@@ -2661,19 +2512,23 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetEvalResultsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetEvalResultsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2686,33 +2541,27 @@ class AsyncDashboardClient:
         Examples
         --------
         import asyncio
-        import datetime
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.get_eval_results_summary(
-                authorization="Bearer sk_live_xxxxx",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-02-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-02-22 23:59:59+00:00",
-                ),
-            )
+            await client.dashboard.get_eval_results_summary()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_eval_results_summary(
-            authorization=authorization,
+            summary_type=summary_type,
+            date=date,
             start_time=start_time,
             end_time=end_time,
             time_tick=time_tick,
-            filters=filters,
+            timezone_offset=timezone_offset,
             request_options=request_options,
         )
         return _response.data
@@ -2720,10 +2569,9 @@ class AsyncDashboardClient:
     async def list_storage_volume(
         self,
         *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[ListStorageVolumeRequestTimeTick] = None,
+        summary_type: typing.Optional[ListStorageVolumeRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[DashboardStorageRow]:
         """
@@ -2731,17 +2579,14 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListStorageVolumeRequestSummaryType]
+            Preset time range for the storage volume query.
 
-        start_time : typing.Optional[dt.datetime]
-            ISO start time.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : typing.Optional[dt.datetime]
-            ISO end time.
-
-        time_tick : typing.Optional[ListStorageVolumeRequestTimeTick]
-            Bucket granularity.
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2757,33 +2602,28 @@ class AsyncDashboardClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.list_storage_volume(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.dashboard.list_storage_volume()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_storage_volume(
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            time_tick=time_tick,
-            request_options=request_options,
+            summary_type=summary_type, date=date, timezone_offset=timezone_offset, request_options=request_options
         )
         return _response.data
 
     async def get_storage_volume_summary(
         self,
         *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[GetStorageVolumeSummaryRequestTimeTick] = None,
+        summary_type: typing.Optional[GetStorageVolumeSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardStorageSummary:
         """
@@ -2791,17 +2631,14 @@ class AsyncDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetStorageVolumeSummaryRequestSummaryType]
+            Preset time range for the storage volume query.
 
-        start_time : typing.Optional[dt.datetime]
-            ISO start time.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : typing.Optional[dt.datetime]
-            ISO end time.
-
-        time_tick : typing.Optional[GetStorageVolumeSummaryRequestTimeTick]
-            Bucket granularity.
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2817,23 +2654,19 @@ class AsyncDashboardClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.dashboard.get_storage_volume_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.dashboard.get_storage_volume_summary()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_storage_volume_summary(
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            time_tick=time_tick,
-            request_options=request_options,
+            summary_type=summary_type, date=date, timezone_offset=timezone_offset, request_options=request_options
         )
         return _response.data
 
@@ -2865,7 +2698,9 @@ class AsyncDashboardClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:

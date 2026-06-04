@@ -11,12 +11,8 @@ from .types.create_custom_provider_response import CreateCustomProviderResponse
 from .types.filter_models_response import FilterModelsResponse
 from .types.filter_models_response_results_item import FilterModelsResponseResultsItem
 from .types.filter_models_summary_response import FilterModelsSummaryResponse
-from .types.get_models_summary_response import GetModelsSummaryResponse
-from .types.list_custom_models_response_item import ListCustomModelsResponseItem
 from .types.list_custom_providers_response_item import ListCustomProvidersResponseItem
 from .types.list_models_response import ListModelsResponse
-from .types.list_models_with_filters_response import ListModelsWithFiltersResponse
-from .types.list_models_with_filters_response_results_item import ListModelsWithFiltersResponseResultsItem
 from .types.replace_custom_model_response import ReplaceCustomModelResponse
 from .types.replace_custom_provider_response import ReplaceCustomProviderResponse
 from .types.retrieve_custom_model_response import RetrieveCustomModelResponse
@@ -66,61 +62,17 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.list_models()
         """
         _response = self._raw_client.list_models(unnest=unnest, request_options=request_options)
         return _response.data
 
-    def list_custom_models(
-        self,
-        *,
-        authorization: str,
-        sort_by: typing.Optional[str] = None,
-        all_: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.List[ListCustomModelsResponseItem]:
-        """
-        List all models accessible to the authenticated organization, including built-in models and organization-specific custom models. For paginated filtering with throughput metrics, use `/api/models/list/`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        all_ : typing.Optional[bool]
-            If `true`, return all matching models without pagination for routes that support it.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[ListCustomModelsResponseItem]
-            List of models.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.models.list_custom_models(
-            authorization="Bearer sk_live_xxxxx",
-            sort_by="model_name",
-        )
-        """
-        _response = self._raw_client.list_custom_models(
-            authorization=authorization, sort_by=sort_by, all_=all_, request_options=request_options
-        )
-        return _response.data
-
     def create_custom_model(
         self,
         *,
-        authorization: str,
         model_name: str,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
@@ -142,9 +94,6 @@ class ModelsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         model_name : str
             Unique model name within your organization.
 
@@ -196,14 +145,14 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.create_custom_model(
-            authorization="Bearer sk_live_xxxxx",
             model_name="my-custom-gpt-4o",
         )
         """
         _response = self._raw_client.create_custom_model(
-            authorization=authorization,
             model_name=model_name,
             base_model_name=base_model_name,
             display_name=display_name,
@@ -222,72 +171,9 @@ class ModelsClient:
         )
         return _response.data
 
-    def list_models_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        all_: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[ListModelsWithFiltersResponseResultsItem, ListModelsWithFiltersResponse]:
-        """
-        List models with pagination, standard filters, sorting, and recent global throughput metrics.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        all_ : typing.Optional[bool]
-            If `true`, return all matching models without pagination for routes that support it.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        SyncPager[ListModelsWithFiltersResponseResultsItem, ListModelsWithFiltersResponse]
-            Paginated list of models.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        response = client.models.list_models_with_filters(
-            authorization="Bearer sk_live_xxxxx",
-            sort_by="model_name",
-        )
-        for item in response:
-            yield item
-        # alternatively, you can paginate page-by-page
-        for page in response.iter_pages():
-            yield page
-        """
-        return self._raw_client.list_models_with_filters(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            all_=all_,
-            request_options=request_options,
-        )
-
     def filter_models(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -296,13 +182,10 @@ class ModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
         """
-        List models using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/models/list/`.
+        List models using POST-for-filtering.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -330,9 +213,10 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         response = client.models.filter_models(
-            authorization="Bearer sk_live_xxxxx",
             sort_by="model_name",
             filters={"affiliation_category": {"operator": "", "value": ["custom"]}},
         )
@@ -343,7 +227,6 @@ class ModelsClient:
             yield page
         """
         return self._raw_client.filter_models(
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -352,43 +235,10 @@ class ModelsClient:
             request_options=request_options,
         )
 
-    def get_models_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetModelsSummaryResponse:
-        """
-        Get model counts for all models accessible to the authenticated organization.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetModelsSummaryResponse
-            Models summary.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.models.get_models_summary(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.get_models_summary(authorization=authorization, request_options=request_options)
-        return _response.data
-
     def filter_models_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterModelsSummaryResponse:
         """
@@ -396,14 +246,8 @@ class ModelsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -417,19 +261,18 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.filter_models_summary(
-            authorization="Bearer sk_live_xxxxx",
             filters={"affiliation_category": {"operator": "", "value": ["custom"]}},
         )
         """
-        _response = self._raw_client.filter_models_summary(
-            authorization=authorization, filters=filters, is_exporting=is_exporting, request_options=request_options
-        )
+        _response = self._raw_client.filter_models_summary(filters=filters, request_options=request_options)
         return _response.data
 
     def retrieve_custom_model(
-        self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCustomModelResponse:
         """
         Retrieve a built-in or custom model by model name. Custom models are only visible to the owning organization.
@@ -438,9 +281,6 @@ class ModelsClient:
         ----------
         model_name : str
             Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -454,22 +294,20 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.retrieve_custom_model(
             model_name="model_name",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_custom_model(
-            model_name, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_custom_model(model_name, request_options=request_options)
         return _response.data
 
     def replace_custom_model(
         self,
         model_name: str,
         *,
-        authorization: str,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
@@ -492,9 +330,6 @@ class ModelsClient:
         ----------
         model_name : str
             Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
@@ -544,15 +379,15 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.replace_custom_model(
             model_name="model_name",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.replace_custom_model(
             model_name,
-            authorization=authorization,
             base_model_name=base_model_name,
             display_name=display_name,
             custom_provider_id=custom_provider_id,
@@ -570,9 +405,7 @@ class ModelsClient:
         )
         return _response.data
 
-    def delete_custom_model(
-        self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def delete_custom_model(self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a custom model by model name.
 
@@ -580,9 +413,6 @@ class ModelsClient:
         ----------
         model_name : str
             Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -595,22 +425,20 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.delete_custom_model(
             model_name="model_name",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_custom_model(
-            model_name, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_custom_model(model_name, request_options=request_options)
         return _response.data
 
     def update_custom_model(
         self,
         model_name: str,
         *,
-        authorization: str,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
@@ -633,9 +461,6 @@ class ModelsClient:
         ----------
         model_name : str
             Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
@@ -685,15 +510,15 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.update_custom_model(
             model_name="model_name",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.update_custom_model(
             model_name,
-            authorization=authorization,
             base_model_name=base_model_name,
             display_name=display_name,
             custom_provider_id=custom_provider_id,
@@ -712,16 +537,13 @@ class ModelsClient:
         return _response.data
 
     def list_custom_providers(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.List[ListCustomProvidersResponseItem]:
         """
         List custom providers for the authenticated organization.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -734,18 +556,17 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.models.list_custom_providers(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.models.list_custom_providers()
         """
-        _response = self._raw_client.list_custom_providers(authorization=authorization, request_options=request_options)
+        _response = self._raw_client.list_custom_providers(request_options=request_options)
         return _response.data
 
     def create_custom_provider(
         self,
         *,
-        authorization: str,
         provider_id: str,
         provider_name: str,
         api_key: typing.Optional[str] = OMIT,
@@ -757,9 +578,6 @@ class ModelsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         provider_id : str
             Unique provider identifier within your organization.
 
@@ -784,15 +602,15 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.create_custom_provider(
-            authorization="Bearer sk_live_xxxxx",
             provider_id="my-vllm",
             provider_name="My vLLM Server",
         )
         """
         _response = self._raw_client.create_custom_provider(
-            authorization=authorization,
             provider_id=provider_id,
             provider_name=provider_name,
             api_key=api_key,
@@ -802,7 +620,7 @@ class ModelsClient:
         return _response.data
 
     def retrieve_custom_provider(
-        self, provider_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCustomProviderResponse:
         """
         Retrieve a custom provider by its string provider ID. The provider API key is never returned.
@@ -811,9 +629,6 @@ class ModelsClient:
         ----------
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -827,22 +642,20 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.retrieve_custom_provider(
             provider_id="provider_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_custom_provider(
-            provider_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_custom_provider(provider_id, request_options=request_options)
         return _response.data
 
     def replace_custom_provider(
         self,
         provider_id: str,
         *,
-        authorization: str,
         provider_name: typing.Optional[str] = OMIT,
         api_key: typing.Optional[str] = OMIT,
         extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -855,9 +668,6 @@ class ModelsClient:
         ----------
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         provider_name : typing.Optional[str]
             Human-readable provider name.
@@ -880,15 +690,15 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.replace_custom_provider(
             provider_id="provider_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.replace_custom_provider(
             provider_id,
-            authorization=authorization,
             provider_name=provider_name,
             api_key=api_key,
             extra_kwargs=extra_kwargs,
@@ -897,7 +707,7 @@ class ModelsClient:
         return _response.data
 
     def delete_custom_provider(
-        self, provider_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a custom provider by string provider ID.
@@ -906,9 +716,6 @@ class ModelsClient:
         ----------
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -921,22 +728,20 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.delete_custom_provider(
             provider_id="provider_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_custom_provider(
-            provider_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_custom_provider(provider_id, request_options=request_options)
         return _response.data
 
     def update_custom_provider(
         self,
         provider_id: str,
         *,
-        authorization: str,
         provider_name: typing.Optional[str] = OMIT,
         api_key: typing.Optional[str] = OMIT,
         extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -949,9 +754,6 @@ class ModelsClient:
         ----------
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         provider_name : typing.Optional[str]
             Human-readable provider name.
@@ -974,15 +776,15 @@ class ModelsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.models.update_custom_provider(
             provider_id="provider_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.update_custom_provider(
             provider_id,
-            authorization=authorization,
             provider_name=provider_name,
             api_key=api_key,
             extra_kwargs=extra_kwargs,
@@ -1031,7 +833,9 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
@@ -1043,63 +847,9 @@ class AsyncModelsClient:
         _response = await self._raw_client.list_models(unnest=unnest, request_options=request_options)
         return _response.data
 
-    async def list_custom_models(
-        self,
-        *,
-        authorization: str,
-        sort_by: typing.Optional[str] = None,
-        all_: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.List[ListCustomModelsResponseItem]:
-        """
-        List all models accessible to the authenticated organization, including built-in models and organization-specific custom models. For paginated filtering with throughput metrics, use `/api/models/list/`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        all_ : typing.Optional[bool]
-            If `true`, return all matching models without pagination for routes that support it.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[ListCustomModelsResponseItem]
-            List of models.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.models.list_custom_models(
-                authorization="Bearer sk_live_xxxxx",
-                sort_by="model_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_custom_models(
-            authorization=authorization, sort_by=sort_by, all_=all_, request_options=request_options
-        )
-        return _response.data
-
     async def create_custom_model(
         self,
         *,
-        authorization: str,
         model_name: str,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
@@ -1121,9 +871,6 @@ class AsyncModelsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         model_name : str
             Unique model name within your organization.
 
@@ -1177,12 +924,13 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.create_custom_model(
-                authorization="Bearer sk_live_xxxxx",
                 model_name="my-custom-gpt-4o",
             )
 
@@ -1190,7 +938,6 @@ class AsyncModelsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_custom_model(
-            authorization=authorization,
             model_name=model_name,
             base_model_name=base_model_name,
             display_name=display_name,
@@ -1209,81 +956,9 @@ class AsyncModelsClient:
         )
         return _response.data
 
-    async def list_models_with_filters(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        all_: typing.Optional[bool] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[ListModelsWithFiltersResponseResultsItem, ListModelsWithFiltersResponse]:
-        """
-        List models with pagination, standard filters, sorting, and recent global throughput metrics.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        all_ : typing.Optional[bool]
-            If `true`, return all matching models without pagination for routes that support it.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncPager[ListModelsWithFiltersResponseResultsItem, ListModelsWithFiltersResponse]
-            Paginated list of models.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            response = await client.models.list_models_with_filters(
-                authorization="Bearer sk_live_xxxxx",
-                sort_by="model_name",
-            )
-            async for item in response:
-                yield item
-
-            # alternatively, you can paginate page-by-page
-            async for page in response.iter_pages():
-                yield page
-
-
-        asyncio.run(main())
-        """
-        return await self._raw_client.list_models_with_filters(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            all_=all_,
-            request_options=request_options,
-        )
-
     async def filter_models(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -1292,13 +967,10 @@ class AsyncModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
         """
-        List models using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/models/list/`.
+        List models using POST-for-filtering.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1328,12 +1000,13 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             response = await client.models.filter_models(
-                authorization="Bearer sk_live_xxxxx",
                 sort_by="model_name",
                 filters={"affiliation_category": {"operator": "", "value": ["custom"]}},
             )
@@ -1348,7 +1021,6 @@ class AsyncModelsClient:
         asyncio.run(main())
         """
         return await self._raw_client.filter_models(
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -1357,53 +1029,10 @@ class AsyncModelsClient:
             request_options=request_options,
         )
 
-    async def get_models_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetModelsSummaryResponse:
-        """
-        Get model counts for all models accessible to the authenticated organization.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetModelsSummaryResponse
-            Models summary.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.models.get_models_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_models_summary(
-            authorization=authorization, request_options=request_options
-        )
-        return _response.data
-
     async def filter_models_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterModelsSummaryResponse:
         """
@@ -1411,14 +1040,8 @@ class AsyncModelsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1434,25 +1057,24 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.filter_models_summary(
-                authorization="Bearer sk_live_xxxxx",
                 filters={"affiliation_category": {"operator": "", "value": ["custom"]}},
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.filter_models_summary(
-            authorization=authorization, filters=filters, is_exporting=is_exporting, request_options=request_options
-        )
+        _response = await self._raw_client.filter_models_summary(filters=filters, request_options=request_options)
         return _response.data
 
     async def retrieve_custom_model(
-        self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCustomModelResponse:
         """
         Retrieve a built-in or custom model by model name. Custom models are only visible to the owning organization.
@@ -1461,9 +1083,6 @@ class AsyncModelsClient:
         ----------
         model_name : str
             Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1479,28 +1098,26 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.retrieve_custom_model(
                 model_name="model_name",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_custom_model(
-            model_name, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_custom_model(model_name, request_options=request_options)
         return _response.data
 
     async def replace_custom_model(
         self,
         model_name: str,
         *,
-        authorization: str,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
@@ -1523,9 +1140,6 @@ class AsyncModelsClient:
         ----------
         model_name : str
             Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
@@ -1577,13 +1191,14 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.replace_custom_model(
                 model_name="model_name",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
@@ -1591,7 +1206,6 @@ class AsyncModelsClient:
         """
         _response = await self._raw_client.replace_custom_model(
             model_name,
-            authorization=authorization,
             base_model_name=base_model_name,
             display_name=display_name,
             custom_provider_id=custom_provider_id,
@@ -1610,7 +1224,7 @@ class AsyncModelsClient:
         return _response.data
 
     async def delete_custom_model(
-        self, model_name: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a custom model by model name.
@@ -1619,9 +1233,6 @@ class AsyncModelsClient:
         ----------
         model_name : str
             Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1636,28 +1247,26 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.delete_custom_model(
                 model_name="model_name",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_custom_model(
-            model_name, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_custom_model(model_name, request_options=request_options)
         return _response.data
 
     async def update_custom_model(
         self,
         model_name: str,
         *,
-        authorization: str,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
@@ -1680,9 +1289,6 @@ class AsyncModelsClient:
         ----------
         model_name : str
             Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
@@ -1734,13 +1340,14 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.update_custom_model(
                 model_name="model_name",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
@@ -1748,7 +1355,6 @@ class AsyncModelsClient:
         """
         _response = await self._raw_client.update_custom_model(
             model_name,
-            authorization=authorization,
             base_model_name=base_model_name,
             display_name=display_name,
             custom_provider_id=custom_provider_id,
@@ -1767,16 +1373,13 @@ class AsyncModelsClient:
         return _response.data
 
     async def list_custom_providers(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.List[ListCustomProvidersResponseItem]:
         """
         List custom providers for the authenticated organization.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1791,26 +1394,23 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.models.list_custom_providers(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.models.list_custom_providers()
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_custom_providers(
-            authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.list_custom_providers(request_options=request_options)
         return _response.data
 
     async def create_custom_provider(
         self,
         *,
-        authorization: str,
         provider_id: str,
         provider_name: str,
         api_key: typing.Optional[str] = OMIT,
@@ -1822,9 +1422,6 @@ class AsyncModelsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         provider_id : str
             Unique provider identifier within your organization.
 
@@ -1851,12 +1448,13 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.create_custom_provider(
-                authorization="Bearer sk_live_xxxxx",
                 provider_id="my-vllm",
                 provider_name="My vLLM Server",
             )
@@ -1865,7 +1463,6 @@ class AsyncModelsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_custom_provider(
-            authorization=authorization,
             provider_id=provider_id,
             provider_name=provider_name,
             api_key=api_key,
@@ -1875,7 +1472,7 @@ class AsyncModelsClient:
         return _response.data
 
     async def retrieve_custom_provider(
-        self, provider_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCustomProviderResponse:
         """
         Retrieve a custom provider by its string provider ID. The provider API key is never returned.
@@ -1884,9 +1481,6 @@ class AsyncModelsClient:
         ----------
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1902,28 +1496,26 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.retrieve_custom_provider(
                 provider_id="provider_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_custom_provider(
-            provider_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_custom_provider(provider_id, request_options=request_options)
         return _response.data
 
     async def replace_custom_provider(
         self,
         provider_id: str,
         *,
-        authorization: str,
         provider_name: typing.Optional[str] = OMIT,
         api_key: typing.Optional[str] = OMIT,
         extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -1936,9 +1528,6 @@ class AsyncModelsClient:
         ----------
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         provider_name : typing.Optional[str]
             Human-readable provider name.
@@ -1963,13 +1552,14 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.replace_custom_provider(
                 provider_id="provider_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
@@ -1977,7 +1567,6 @@ class AsyncModelsClient:
         """
         _response = await self._raw_client.replace_custom_provider(
             provider_id,
-            authorization=authorization,
             provider_name=provider_name,
             api_key=api_key,
             extra_kwargs=extra_kwargs,
@@ -1986,7 +1575,7 @@ class AsyncModelsClient:
         return _response.data
 
     async def delete_custom_provider(
-        self, provider_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a custom provider by string provider ID.
@@ -1995,9 +1584,6 @@ class AsyncModelsClient:
         ----------
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2012,28 +1598,26 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.delete_custom_provider(
                 provider_id="provider_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_custom_provider(
-            provider_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_custom_provider(provider_id, request_options=request_options)
         return _response.data
 
     async def update_custom_provider(
         self,
         provider_id: str,
         *,
-        authorization: str,
         provider_name: typing.Optional[str] = OMIT,
         api_key: typing.Optional[str] = OMIT,
         extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -2046,9 +1630,6 @@ class AsyncModelsClient:
         ----------
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         provider_name : typing.Optional[str]
             Human-readable provider name.
@@ -2073,13 +1654,14 @@ class AsyncModelsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.models.update_custom_provider(
                 provider_id="provider_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
@@ -2087,7 +1669,6 @@ class AsyncModelsClient:
         """
         _response = await self._raw_client.update_custom_provider(
             provider_id,
-            authorization=authorization,
             provider_name=provider_name,
             api_key=api_key,
             extra_kwargs=extra_kwargs,

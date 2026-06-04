@@ -18,7 +18,6 @@ if typing.TYPE_CHECKING:
     from .create_testset_rows_response_one_item import CreateTestsetRowsResponseOneItem
     from .create_testset_rows_response_row_data import CreateTestsetRowsResponseRowData
     from .get_filtered_testsets_summary_response import GetFilteredTestsetsSummaryResponse
-    from .get_testsets_summary_response import GetTestsetsSummaryResponse
     from .list_testset_rows_response import ListTestsetRowsResponse
     from .list_testset_rows_response_results_item import ListTestsetRowsResponseResultsItem
     from .list_testsets_response import ListTestsetsResponse
@@ -58,7 +57,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateTestsetRowsResponseOneItem": ".create_testset_rows_response_one_item",
     "CreateTestsetRowsResponseRowData": ".create_testset_rows_response_row_data",
     "GetFilteredTestsetsSummaryResponse": ".get_filtered_testsets_summary_response",
-    "GetTestsetsSummaryResponse": ".get_testsets_summary_response",
     "ListTestsetRowsResponse": ".list_testset_rows_response",
     "ListTestsetRowsResponseResultsItem": ".list_testset_rows_response_results_item",
     "ListTestsetsResponse": ".list_testsets_response",
@@ -118,7 +116,6 @@ __all__ = [
     "CreateTestsetRowsResponseOneItem",
     "CreateTestsetRowsResponseRowData",
     "GetFilteredTestsetsSummaryResponse",
-    "GetTestsetsSummaryResponse",
     "ListTestsetRowsResponse",
     "ListTestsetRowsResponseResultsItem",
     "ListTestsetsResponse",

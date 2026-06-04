@@ -21,7 +21,6 @@ if typing.TYPE_CHECKING:
     from .list_dataset_eval_runs_response_results_item import ListDatasetEvalRunsResponseResultsItem
     from .list_dataset_logs_request_export_format import ListDatasetLogsRequestExportFormat
     from .list_dataset_logs_request_filters_value import ListDatasetLogsRequestFiltersValue
-    from .list_dataset_logs_request_retrieval_mode import ListDatasetLogsRequestRetrievalMode
     from .list_dataset_logs_response import ListDatasetLogsResponse
     from .list_dataset_logs_response_count import ListDatasetLogsResponseCount
     from .list_dataset_logs_response_count_current_filters_value import ListDatasetLogsResponseCountCurrentFiltersValue
@@ -50,8 +49,6 @@ if typing.TYPE_CHECKING:
     from .summarize_dataset_logs_filtered_request_filters_value import SummarizeDatasetLogsFilteredRequestFiltersValue
     from .summarize_dataset_logs_filtered_response import SummarizeDatasetLogsFilteredResponse
     from .summarize_dataset_logs_filtered_response_scores_value import SummarizeDatasetLogsFilteredResponseScoresValue
-    from .summarize_dataset_logs_response import SummarizeDatasetLogsResponse
-    from .summarize_dataset_logs_response_scores_value import SummarizeDatasetLogsResponseScoresValue
     from .update_dataset_log_response import UpdateDatasetLogResponse
     from .update_dataset_response import UpdateDatasetResponse
     from .update_dataset_response_initial_log_filters import UpdateDatasetResponseInitialLogFilters
@@ -74,7 +71,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ListDatasetEvalRunsResponseResultsItem": ".list_dataset_eval_runs_response_results_item",
     "ListDatasetLogsRequestExportFormat": ".list_dataset_logs_request_export_format",
     "ListDatasetLogsRequestFiltersValue": ".list_dataset_logs_request_filters_value",
-    "ListDatasetLogsRequestRetrievalMode": ".list_dataset_logs_request_retrieval_mode",
     "ListDatasetLogsResponse": ".list_dataset_logs_response",
     "ListDatasetLogsResponseCount": ".list_dataset_logs_response_count",
     "ListDatasetLogsResponseCountCurrentFiltersValue": ".list_dataset_logs_response_count_current_filters_value",
@@ -99,8 +95,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "SummarizeDatasetLogsFilteredRequestFiltersValue": ".summarize_dataset_logs_filtered_request_filters_value",
     "SummarizeDatasetLogsFilteredResponse": ".summarize_dataset_logs_filtered_response",
     "SummarizeDatasetLogsFilteredResponseScoresValue": ".summarize_dataset_logs_filtered_response_scores_value",
-    "SummarizeDatasetLogsResponse": ".summarize_dataset_logs_response",
-    "SummarizeDatasetLogsResponseScoresValue": ".summarize_dataset_logs_response_scores_value",
     "UpdateDatasetLogResponse": ".update_dataset_log_response",
     "UpdateDatasetResponse": ".update_dataset_response",
     "UpdateDatasetResponseInitialLogFilters": ".update_dataset_response_initial_log_filters",
@@ -145,7 +139,6 @@ __all__ = [
     "ListDatasetEvalRunsResponseResultsItem",
     "ListDatasetLogsRequestExportFormat",
     "ListDatasetLogsRequestFiltersValue",
-    "ListDatasetLogsRequestRetrievalMode",
     "ListDatasetLogsResponse",
     "ListDatasetLogsResponseCount",
     "ListDatasetLogsResponseCountCurrentFiltersValue",
@@ -170,8 +163,6 @@ __all__ = [
     "SummarizeDatasetLogsFilteredRequestFiltersValue",
     "SummarizeDatasetLogsFilteredResponse",
     "SummarizeDatasetLogsFilteredResponseScoresValue",
-    "SummarizeDatasetLogsResponse",
-    "SummarizeDatasetLogsResponseScoresValue",
     "UpdateDatasetLogResponse",
     "UpdateDatasetResponse",
     "UpdateDatasetResponseInitialLogFilters",

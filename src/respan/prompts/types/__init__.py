@@ -18,16 +18,13 @@ if typing.TYPE_CHECKING:
     from .create_prompt_version_response_tool_choice import CreatePromptVersionResponseToolChoice
     from .deploy_prompt_version_response import DeployPromptVersionResponse
     from .deploy_prompt_version_response_edited_by import DeployPromptVersionResponseEditedBy
-    from .get_prompts_summary_response import GetPromptsSummaryResponse
     from .get_prompts_summary_with_filters_request_filters import GetPromptsSummaryWithFiltersRequestFilters
-    from .get_prompts_summary_with_filters_request_operator import GetPromptsSummaryWithFiltersRequestOperator
     from .get_prompts_summary_with_filters_response import GetPromptsSummaryWithFiltersResponse
     from .list_prompt_versions_response import ListPromptVersionsResponse
     from .list_prompt_versions_response_results_item import ListPromptVersionsResponseResultsItem
     from .list_prompt_versions_response_results_item_edited_by import ListPromptVersionsResponseResultsItemEditedBy
     from .list_prompt_versions_response_results_item_tool_choice import ListPromptVersionsResponseResultsItemToolChoice
     from .list_prompts_request_filters import ListPromptsRequestFilters
-    from .list_prompts_request_operator import ListPromptsRequestOperator
     from .list_prompts_request_sort_by import ListPromptsRequestSortBy
     from .list_prompts_response import ListPromptsResponse
     from .list_prompts_response_results_item import ListPromptsResponseResultsItem
@@ -59,16 +56,13 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreatePromptVersionResponseToolChoice": ".create_prompt_version_response_tool_choice",
     "DeployPromptVersionResponse": ".deploy_prompt_version_response",
     "DeployPromptVersionResponseEditedBy": ".deploy_prompt_version_response_edited_by",
-    "GetPromptsSummaryResponse": ".get_prompts_summary_response",
     "GetPromptsSummaryWithFiltersRequestFilters": ".get_prompts_summary_with_filters_request_filters",
-    "GetPromptsSummaryWithFiltersRequestOperator": ".get_prompts_summary_with_filters_request_operator",
     "GetPromptsSummaryWithFiltersResponse": ".get_prompts_summary_with_filters_response",
     "ListPromptVersionsResponse": ".list_prompt_versions_response",
     "ListPromptVersionsResponseResultsItem": ".list_prompt_versions_response_results_item",
     "ListPromptVersionsResponseResultsItemEditedBy": ".list_prompt_versions_response_results_item_edited_by",
     "ListPromptVersionsResponseResultsItemToolChoice": ".list_prompt_versions_response_results_item_tool_choice",
     "ListPromptsRequestFilters": ".list_prompts_request_filters",
-    "ListPromptsRequestOperator": ".list_prompts_request_operator",
     "ListPromptsRequestSortBy": ".list_prompts_request_sort_by",
     "ListPromptsResponse": ".list_prompts_response",
     "ListPromptsResponseResultsItem": ".list_prompts_response_results_item",
@@ -124,16 +118,13 @@ __all__ = [
     "CreatePromptVersionResponseToolChoice",
     "DeployPromptVersionResponse",
     "DeployPromptVersionResponseEditedBy",
-    "GetPromptsSummaryResponse",
     "GetPromptsSummaryWithFiltersRequestFilters",
-    "GetPromptsSummaryWithFiltersRequestOperator",
     "GetPromptsSummaryWithFiltersResponse",
     "ListPromptVersionsResponse",
     "ListPromptVersionsResponseResultsItem",
     "ListPromptVersionsResponseResultsItemEditedBy",
     "ListPromptVersionsResponseResultsItemToolChoice",
     "ListPromptsRequestFilters",
-    "ListPromptsRequestOperator",
     "ListPromptsRequestSortBy",
     "ListPromptsResponse",
     "ListPromptsResponseResultsItem",

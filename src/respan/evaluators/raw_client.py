@@ -32,11 +32,9 @@ from .types.create_evaluator_version_request_score_config import CreateEvaluator
 from .types.create_evaluator_version_request_score_value_type import CreateEvaluatorVersionRequestScoreValueType
 from .types.create_evaluator_version_request_type import CreateEvaluatorVersionRequestType
 from .types.create_evaluator_version_response import CreateEvaluatorVersionResponse
-from .types.get_evaluators_summary_response import GetEvaluatorsSummaryResponse
 from .types.get_filtered_evaluators_summary_response import GetFilteredEvaluatorsSummaryResponse
 from .types.list_evaluator_versions_response import ListEvaluatorVersionsResponse
 from .types.list_evaluators_response import ListEvaluatorsResponse
-from .types.list_evaluators_root_response import ListEvaluatorsRootResponse
 from .types.replace_evaluator_request_categorical_choices_item import ReplaceEvaluatorRequestCategoricalChoicesItem
 from .types.replace_evaluator_request_code_config import ReplaceEvaluatorRequestCodeConfig
 from .types.replace_evaluator_request_eval_class import ReplaceEvaluatorRequestEvalClass
@@ -87,83 +85,9 @@ class RawEvaluatorsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def list_evaluators_root(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        search: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListEvaluatorsRootResponse]:
-        """
-        List the current draft/latest evaluator for each evaluator ID. This route supports simple pagination and name search. Use `POST /api/evaluators/list/` when you need the full filter format.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        search : typing.Optional[str]
-            Search evaluator names.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ListEvaluatorsRootResponse]
-            Paginated evaluator list.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/evaluators/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "search": search,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListEvaluatorsRootResponse,
-                    parse_obj_as(
-                        type_=ListEvaluatorsRootResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def create_evaluator(
         self,
         *,
-        authorization: str,
         name: str,
         type: CreateEvaluatorRequestType,
         score_value_type: CreateEvaluatorRequestScoreValueType,
@@ -184,9 +108,6 @@ class RawEvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         name : str
 
         type : CreateEvaluatorRequestType
@@ -258,7 +179,6 @@ class RawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -303,7 +223,6 @@ class RawEvaluatorsClient:
     def list_evaluators(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -316,9 +235,6 @@ class RawEvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -356,7 +272,6 @@ class RawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -398,65 +313,10 @@ class RawEvaluatorsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def get_evaluators_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[GetEvaluatorsSummaryResponse]:
-        """
-        Return the total number of current draft/latest evaluators visible to the authenticated organization.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[GetEvaluatorsSummaryResponse]
-            Evaluator summary.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/evaluators/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetEvaluatorsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetEvaluatorsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def get_filtered_evaluators_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetFilteredEvaluatorsSummaryResponse]:
         """
@@ -464,14 +324,8 @@ class RawEvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -486,11 +340,9 @@ class RawEvaluatorsClient:
             method="POST",
             json={
                 "filters": filters,
-                "is_exporting": is_exporting,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -533,7 +385,7 @@ class RawEvaluatorsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveEvaluatorResponse]:
         """
         Retrieve the current draft/latest version of an evaluator by ID.
@@ -542,9 +394,6 @@ class RawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -557,9 +406,6 @@ class RawEvaluatorsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -603,7 +449,6 @@ class RawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: str,
         type: ReplaceEvaluatorRequestType,
         score_value_type: ReplaceEvaluatorRequestScoreValueType,
@@ -626,9 +471,6 @@ class RawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
 
@@ -703,7 +545,6 @@ class RawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -757,7 +598,7 @@ class RawEvaluatorsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def delete_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
         Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
@@ -766,9 +607,6 @@ class RawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -780,9 +618,6 @@ class RawEvaluatorsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -819,7 +654,6 @@ class RawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
@@ -842,9 +676,6 @@ class RawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -917,7 +748,6 @@ class RawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -974,7 +804,6 @@ class RawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         inputs: RunEvaluatorRequestInputs,
         generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
         evaluation_id: typing.Optional[str] = OMIT,
@@ -988,9 +817,6 @@ class RawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         inputs : RunEvaluatorRequestInputs
             Unified evaluator inputs.
@@ -1025,7 +851,6 @@ class RawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1082,7 +907,6 @@ class RawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1094,9 +918,6 @@ class RawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -1118,9 +939,6 @@ class RawEvaluatorsClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -1165,7 +983,6 @@ class RawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
@@ -1191,9 +1008,6 @@ class RawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -1274,7 +1088,6 @@ class RawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1328,12 +1141,7 @@ class RawEvaluatorsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_evaluator_version(
-        self,
-        evaluator_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveEvaluatorVersionResponse]:
         """
         Retrieve a specific evaluator version by version number.
@@ -1346,9 +1154,6 @@ class RawEvaluatorsClient:
         version : int
             Evaluator version number.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1360,9 +1165,6 @@ class RawEvaluatorsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1407,7 +1209,6 @@ class RawEvaluatorsClient:
         evaluator_id: str,
         version: int,
         *,
-        authorization: str,
         name: str,
         type: ReplaceEvaluatorVersionRequestType,
         score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
@@ -1435,9 +1236,6 @@ class RawEvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
 
@@ -1514,7 +1312,6 @@ class RawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1583,7 +1380,6 @@ class RawEvaluatorsClient:
         evaluator_id: str,
         version: int,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
@@ -1611,9 +1407,6 @@ class RawEvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -1690,7 +1483,6 @@ class RawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1759,83 +1551,9 @@ class AsyncRawEvaluatorsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def list_evaluators_root(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        search: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListEvaluatorsRootResponse]:
-        """
-        List the current draft/latest evaluator for each evaluator ID. This route supports simple pagination and name search. Use `POST /api/evaluators/list/` when you need the full filter format.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        search : typing.Optional[str]
-            Search evaluator names.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ListEvaluatorsRootResponse]
-            Paginated evaluator list.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/evaluators/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "search": search,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListEvaluatorsRootResponse,
-                    parse_obj_as(
-                        type_=ListEvaluatorsRootResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def create_evaluator(
         self,
         *,
-        authorization: str,
         name: str,
         type: CreateEvaluatorRequestType,
         score_value_type: CreateEvaluatorRequestScoreValueType,
@@ -1856,9 +1574,6 @@ class AsyncRawEvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         name : str
 
         type : CreateEvaluatorRequestType
@@ -1930,7 +1645,6 @@ class AsyncRawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1975,7 +1689,6 @@ class AsyncRawEvaluatorsClient:
     async def list_evaluators(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -1988,9 +1701,6 @@ class AsyncRawEvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -2028,7 +1738,6 @@ class AsyncRawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2070,65 +1779,10 @@ class AsyncRawEvaluatorsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def get_evaluators_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[GetEvaluatorsSummaryResponse]:
-        """
-        Return the total number of current draft/latest evaluators visible to the authenticated organization.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[GetEvaluatorsSummaryResponse]
-            Evaluator summary.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/evaluators/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetEvaluatorsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetEvaluatorsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def get_filtered_evaluators_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetFilteredEvaluatorsSummaryResponse]:
         """
@@ -2136,14 +1790,8 @@ class AsyncRawEvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2158,11 +1806,9 @@ class AsyncRawEvaluatorsClient:
             method="POST",
             json={
                 "filters": filters,
-                "is_exporting": is_exporting,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2205,7 +1851,7 @@ class AsyncRawEvaluatorsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveEvaluatorResponse]:
         """
         Retrieve the current draft/latest version of an evaluator by ID.
@@ -2214,9 +1860,6 @@ class AsyncRawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2229,9 +1872,6 @@ class AsyncRawEvaluatorsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -2275,7 +1915,6 @@ class AsyncRawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: str,
         type: ReplaceEvaluatorRequestType,
         score_value_type: ReplaceEvaluatorRequestScoreValueType,
@@ -2298,9 +1937,6 @@ class AsyncRawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
 
@@ -2375,7 +2011,6 @@ class AsyncRawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2429,7 +2064,7 @@ class AsyncRawEvaluatorsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
         Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
@@ -2438,9 +2073,6 @@ class AsyncRawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2452,9 +2084,6 @@ class AsyncRawEvaluatorsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -2491,7 +2120,6 @@ class AsyncRawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
@@ -2514,9 +2142,6 @@ class AsyncRawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -2589,7 +2214,6 @@ class AsyncRawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2646,7 +2270,6 @@ class AsyncRawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         inputs: RunEvaluatorRequestInputs,
         generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
         evaluation_id: typing.Optional[str] = OMIT,
@@ -2660,9 +2283,6 @@ class AsyncRawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         inputs : RunEvaluatorRequestInputs
             Unified evaluator inputs.
@@ -2697,7 +2317,6 @@ class AsyncRawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2754,7 +2373,6 @@ class AsyncRawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -2766,9 +2384,6 @@ class AsyncRawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -2790,9 +2405,6 @@ class AsyncRawEvaluatorsClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -2837,7 +2449,6 @@ class AsyncRawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
@@ -2863,9 +2474,6 @@ class AsyncRawEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -2946,7 +2554,6 @@ class AsyncRawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -3000,12 +2607,7 @@ class AsyncRawEvaluatorsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_evaluator_version(
-        self,
-        evaluator_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveEvaluatorVersionResponse]:
         """
         Retrieve a specific evaluator version by version number.
@@ -3018,9 +2620,6 @@ class AsyncRawEvaluatorsClient:
         version : int
             Evaluator version number.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -3032,9 +2631,6 @@ class AsyncRawEvaluatorsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -3079,7 +2675,6 @@ class AsyncRawEvaluatorsClient:
         evaluator_id: str,
         version: int,
         *,
-        authorization: str,
         name: str,
         type: ReplaceEvaluatorVersionRequestType,
         score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
@@ -3107,9 +2702,6 @@ class AsyncRawEvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
 
@@ -3186,7 +2778,6 @@ class AsyncRawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -3255,7 +2846,6 @@ class AsyncRawEvaluatorsClient:
         evaluator_id: str,
         version: int,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
@@ -3283,9 +2873,6 @@ class AsyncRawEvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -3362,7 +2949,6 @@ class AsyncRawEvaluatorsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,

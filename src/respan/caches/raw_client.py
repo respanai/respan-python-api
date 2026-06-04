@@ -12,12 +12,10 @@ from ..core.request_options import RequestOptions
 from ..errors.bad_request_error import BadRequestError
 from ..errors.not_found_error import NotFoundError
 from ..errors.unauthorized_error import UnauthorizedError
-from .types.delete_all_cached_responses_response import DeleteAllCachedResponsesResponse
+from .types.bulk_delete_cached_responses_response import BulkDeleteCachedResponsesResponse
 from .types.delete_cached_responses_response import DeleteCachedResponsesResponse
 from .types.filter_cached_responses_response import FilterCachedResponsesResponse
-from .types.get_cached_responses_summary_response import GetCachedResponsesSummaryResponse
 from .types.get_filtered_cached_responses_summary_response import GetFilteredCachedResponsesSummaryResponse
-from .types.list_cached_responses_response import ListCachedResponsesResponse
 from .types.retrieve_cached_response_response import RetrieveCachedResponseResponse
 
 # this is used as the default value for optional parameters
@@ -28,91 +26,19 @@ class RawCachesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def list_cached_responses(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListCachedResponsesResponse]:
-        """
-        List cached responses with pagination and live hit count enrichment. Returns organization-level cache savings in `summary` and paginated cache entries in `data`. This cache management endpoint currently requires dashboard JWT authentication.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 1000.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ListCachedResponsesResponse]
-            Cached responses plus aggregate cache savings.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/caches/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListCachedResponsesResponse,
-                    parse_obj_as(
-                        type_=ListCachedResponsesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def filter_cached_responses(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[FilterCachedResponsesResponse]:
         """
-        List cached responses using POST-for-filtering. This endpoint returns the same response shape as `GET /api/caches/` and currently requires dashboard JWT authentication.
+        List cached responses using POST-for-filtering. This endpoint accepts filters in the request body and currently requires dashboard JWT authentication.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
         page : typing.Optional[int]
             Page number.
 
@@ -142,7 +68,6 @@ class RawCachesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -185,18 +110,15 @@ class RawCachesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def delete_cached_responses(
-        self, *, authorization: str, ids: typing.Sequence[int], request_options: typing.Optional[RequestOptions] = None
+        self, *, ids: typing.Sequence[int], request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[DeleteCachedResponsesResponse]:
         """
-        Delete cached responses in bulk by numeric cache entry ID. This cache management endpoint currently requires dashboard JWT authentication. To remove every cached response for the current organization, use `DELETE /api/caches/delete-all/`.
+        Deprecated bulk delete endpoint for numeric internal cache entry IDs. Use `DELETE /api/caches/bulk/` for supported bulk deletion by `cache_keys` or `all`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
         ids : typing.Sequence[int]
-            Numeric cache entry IDs to delete.
+            Numeric internal cache entry IDs to delete. JWT only.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -214,7 +136,6 @@ class RawCachesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -257,7 +178,7 @@ class RawCachesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_cached_response(
-        self, id: int, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveCachedResponseResponse]:
         """
         Retrieve a single cached response by numeric cache entry ID. The current backend route is `/api/cache/{id}/`; there is no public lookup route by `cache_key`. This cache management endpoint currently requires dashboard JWT authentication.
@@ -266,9 +187,6 @@ class RawCachesClient:
         ----------
         id : int
             Numeric cache entry ID returned by the list endpoint.
-
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -281,9 +199,6 @@ class RawCachesClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/cache/{jsonable_encoder(id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -323,63 +238,9 @@ class RawCachesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def get_cached_responses_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[GetCachedResponsesSummaryResponse]:
-        """
-        Return the total number of cached responses. This endpoint supports both JWT and API key authentication.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[GetCachedResponsesSummaryResponse]
-            Summary statistics for cached responses.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/caches/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetCachedResponsesSummaryResponse,
-                    parse_obj_as(
-                        type_=GetCachedResponsesSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def get_filtered_cached_responses_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetFilteredCachedResponsesSummaryResponse]:
@@ -388,9 +249,6 @@ class RawCachesClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -410,7 +268,6 @@ class RawCachesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -452,43 +309,55 @@ class RawCachesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def delete_all_cached_responses(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[DeleteAllCachedResponsesResponse]:
+    def bulk_delete_cached_responses(
+        self, *, request: typing.Any, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[BulkDeleteCachedResponsesResponse]:
         """
-        Delete all cached responses for the current organization. This cache management endpoint currently requires dashboard JWT authentication.
+        Bulk delete cached responses. Provide exactly one of `cache_keys`, `ids`, or `all`. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
+        request : typing.Any
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[DeleteAllCachedResponsesResponse]
-            Delete-all result.
+        HttpResponse[BulkDeleteCachedResponsesResponse]
+            Bulk delete result.
         """
         _response = self._client_wrapper.httpx_client.request(
-            "api/caches/delete-all/",
+            "api/caches/bulk/",
             method="DELETE",
+            json=request,
             headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+                "content-type": "application/json",
             },
             request_options=request_options,
+            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DeleteAllCachedResponsesResponse,
+                    BulkDeleteCachedResponsesResponse,
                     parse_obj_as(
-                        type_=DeleteAllCachedResponsesResponse,  # type: ignore
+                        type_=BulkDeleteCachedResponsesResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
@@ -510,91 +379,19 @@ class AsyncRawCachesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def list_cached_responses(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListCachedResponsesResponse]:
-        """
-        List cached responses with pagination and live hit count enrichment. Returns organization-level cache savings in `summary` and paginated cache entries in `data`. This cache management endpoint currently requires dashboard JWT authentication.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 1000.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ListCachedResponsesResponse]
-            Cached responses plus aggregate cache savings.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/caches/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListCachedResponsesResponse,
-                    parse_obj_as(
-                        type_=ListCachedResponsesResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def filter_cached_responses(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[FilterCachedResponsesResponse]:
         """
-        List cached responses using POST-for-filtering. This endpoint returns the same response shape as `GET /api/caches/` and currently requires dashboard JWT authentication.
+        List cached responses using POST-for-filtering. This endpoint accepts filters in the request body and currently requires dashboard JWT authentication.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
         page : typing.Optional[int]
             Page number.
 
@@ -624,7 +421,6 @@ class AsyncRawCachesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -667,18 +463,15 @@ class AsyncRawCachesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_cached_responses(
-        self, *, authorization: str, ids: typing.Sequence[int], request_options: typing.Optional[RequestOptions] = None
+        self, *, ids: typing.Sequence[int], request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[DeleteCachedResponsesResponse]:
         """
-        Delete cached responses in bulk by numeric cache entry ID. This cache management endpoint currently requires dashboard JWT authentication. To remove every cached response for the current organization, use `DELETE /api/caches/delete-all/`.
+        Deprecated bulk delete endpoint for numeric internal cache entry IDs. Use `DELETE /api/caches/bulk/` for supported bulk deletion by `cache_keys` or `all`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
         ids : typing.Sequence[int]
-            Numeric cache entry IDs to delete.
+            Numeric internal cache entry IDs to delete. JWT only.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -696,7 +489,6 @@ class AsyncRawCachesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -739,7 +531,7 @@ class AsyncRawCachesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_cached_response(
-        self, id: int, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveCachedResponseResponse]:
         """
         Retrieve a single cached response by numeric cache entry ID. The current backend route is `/api/cache/{id}/`; there is no public lookup route by `cache_key`. This cache management endpoint currently requires dashboard JWT authentication.
@@ -748,9 +540,6 @@ class AsyncRawCachesClient:
         ----------
         id : int
             Numeric cache entry ID returned by the list endpoint.
-
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -763,9 +552,6 @@ class AsyncRawCachesClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/cache/{jsonable_encoder(id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -805,63 +591,9 @@ class AsyncRawCachesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def get_cached_responses_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[GetCachedResponsesSummaryResponse]:
-        """
-        Return the total number of cached responses. This endpoint supports both JWT and API key authentication.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[GetCachedResponsesSummaryResponse]
-            Summary statistics for cached responses.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/caches/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetCachedResponsesSummaryResponse,
-                    parse_obj_as(
-                        type_=GetCachedResponsesSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def get_filtered_cached_responses_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetFilteredCachedResponsesSummaryResponse]:
@@ -870,9 +602,6 @@ class AsyncRawCachesClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -892,7 +621,6 @@ class AsyncRawCachesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -934,43 +662,55 @@ class AsyncRawCachesClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def delete_all_cached_responses(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[DeleteAllCachedResponsesResponse]:
+    async def bulk_delete_cached_responses(
+        self, *, request: typing.Any, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[BulkDeleteCachedResponsesResponse]:
         """
-        Delete all cached responses for the current organization. This cache management endpoint currently requires dashboard JWT authentication.
+        Bulk delete cached responses. Provide exactly one of `cache_keys`, `ids`, or `all`. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
+        request : typing.Any
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[DeleteAllCachedResponsesResponse]
-            Delete-all result.
+        AsyncHttpResponse[BulkDeleteCachedResponsesResponse]
+            Bulk delete result.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "api/caches/delete-all/",
+            "api/caches/bulk/",
             method="DELETE",
+            json=request,
             headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+                "content-type": "application/json",
             },
             request_options=request_options,
+            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DeleteAllCachedResponsesResponse,
+                    BulkDeleteCachedResponsesResponse,
                     parse_obj_as(
-                        type_=DeleteAllCachedResponsesResponse,  # type: ignore
+                        type_=BulkDeleteCachedResponsesResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),

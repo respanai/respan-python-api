@@ -7,6 +7,7 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
+        CreateSpanRequestCustomerParams,
         CreateSpanRequestInput,
         CreateSpanRequestLogType,
         CreateSpanRequestOutput,
@@ -17,17 +18,17 @@ if typing.TYPE_CHECKING:
         CreateSpanRequestWarnings,
         CreateSpanResponse,
         CreateSpanResponseStatus,
+        GetSpansSummaryRequestEnvironment,
         GetSpansSummaryResponse,
-        ListSpansRequestAllEnvs,
-        ListSpansRequestFetchFilters,
-        ListSpansRequestIsTest,
-        ListSpansRequestOperator,
+        ListSpansRequestEnvironment,
+        ListSpansRequestLogType,
         ListSpansResponse,
         RetrieveSpanResponse,
         RetrieveSpanResponseLimitInfo,
         RetrieveSpanResponseLimitInfoLimitsItem,
     )
 _dynamic_imports: typing.Dict[str, str] = {
+    "CreateSpanRequestCustomerParams": ".types",
     "CreateSpanRequestInput": ".types",
     "CreateSpanRequestLogType": ".types",
     "CreateSpanRequestOutput": ".types",
@@ -38,11 +39,10 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateSpanRequestWarnings": ".types",
     "CreateSpanResponse": ".types",
     "CreateSpanResponseStatus": ".types",
+    "GetSpansSummaryRequestEnvironment": ".types",
     "GetSpansSummaryResponse": ".types",
-    "ListSpansRequestAllEnvs": ".types",
-    "ListSpansRequestFetchFilters": ".types",
-    "ListSpansRequestIsTest": ".types",
-    "ListSpansRequestOperator": ".types",
+    "ListSpansRequestEnvironment": ".types",
+    "ListSpansRequestLogType": ".types",
     "ListSpansResponse": ".types",
     "RetrieveSpanResponse": ".types",
     "RetrieveSpanResponseLimitInfo": ".types",
@@ -72,6 +72,7 @@ def __dir__():
 
 
 __all__ = [
+    "CreateSpanRequestCustomerParams",
     "CreateSpanRequestInput",
     "CreateSpanRequestLogType",
     "CreateSpanRequestOutput",
@@ -82,11 +83,10 @@ __all__ = [
     "CreateSpanRequestWarnings",
     "CreateSpanResponse",
     "CreateSpanResponseStatus",
+    "GetSpansSummaryRequestEnvironment",
     "GetSpansSummaryResponse",
-    "ListSpansRequestAllEnvs",
-    "ListSpansRequestFetchFilters",
-    "ListSpansRequestIsTest",
-    "ListSpansRequestOperator",
+    "ListSpansRequestEnvironment",
+    "ListSpansRequestLogType",
     "ListSpansResponse",
     "RetrieveSpanResponse",
     "RetrieveSpanResponseLimitInfo",

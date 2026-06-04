@@ -4,12 +4,29 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .create_chat_completion_response_content_item import CreateChatCompletionResponseContentItem
+from .create_chat_completion_response_choices_item import CreateChatCompletionResponseChoicesItem
+from .create_chat_completion_response_usage import CreateChatCompletionResponseUsage
 
 
 class CreateChatCompletionResponse(UniversalBaseModel):
-    role: typing.Optional[str] = None
-    content: typing.Optional[typing.List[CreateChatCompletionResponseContentItem]] = None
+    id: str = pydantic.Field()
+    """
+    Chat completion ID.
+    """
+
+    object: str
+    created: int = pydantic.Field()
+    """
+    Unix timestamp for when the completion was created.
+    """
+
+    model: str = pydantic.Field()
+    """
+    Model used for the completion.
+    """
+
+    choices: typing.List[CreateChatCompletionResponseChoicesItem]
+    usage: typing.Optional[CreateChatCompletionResponseUsage] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

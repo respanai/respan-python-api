@@ -10,13 +10,10 @@ from .types.create_prompt_response import CreatePromptResponse
 from .types.create_prompt_version_request_tool_choice import CreatePromptVersionRequestToolChoice
 from .types.create_prompt_version_response import CreatePromptVersionResponse
 from .types.deploy_prompt_version_response import DeployPromptVersionResponse
-from .types.get_prompts_summary_response import GetPromptsSummaryResponse
 from .types.get_prompts_summary_with_filters_request_filters import GetPromptsSummaryWithFiltersRequestFilters
-from .types.get_prompts_summary_with_filters_request_operator import GetPromptsSummaryWithFiltersRequestOperator
 from .types.get_prompts_summary_with_filters_response import GetPromptsSummaryWithFiltersResponse
 from .types.list_prompt_versions_response import ListPromptVersionsResponse
 from .types.list_prompts_request_filters import ListPromptsRequestFilters
-from .types.list_prompts_request_operator import ListPromptsRequestOperator
 from .types.list_prompts_request_sort_by import ListPromptsRequestSortBy
 from .types.list_prompts_response import ListPromptsResponse
 from .types.retrieve_prompt_response import RetrievePromptResponse
@@ -47,12 +44,10 @@ class PromptsClient:
     def list_prompts(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[ListPromptsRequestSortBy] = None,
         filters: typing.Optional[ListPromptsRequestFilters] = OMIT,
-        operator: typing.Optional[ListPromptsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListPromptsResponse:
         """
@@ -60,9 +55,6 @@ class PromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -74,9 +66,6 @@ class PromptsClient:
 
         filters : typing.Optional[ListPromptsRequestFilters]
             Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
-
-        operator : typing.Optional[ListPromptsRequestOperator]
-            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -91,9 +80,10 @@ class PromptsClient:
         from respan import FilterValue, RespanClient
         from respan.prompts import ListPromptsRequestFilters
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.list_prompts(
-            authorization="Bearer sk_live_xxxxx",
             filters=ListPromptsRequestFilters(
                 name=FilterValue(
                     operator="icontains",
@@ -104,24 +94,16 @@ class PromptsClient:
                     value=[True],
                 ),
             ),
-            operator="AND",
         )
         """
         _response = self._raw_client.list_prompts(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            operator=operator,
-            request_options=request_options,
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
         )
         return _response.data
 
     def create_prompt(
         self,
         *,
-        authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -131,9 +113,6 @@ class PromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : str
             Prompt name.
 
@@ -152,19 +131,18 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.create_prompt(
-            authorization="Bearer sk_live_xxxxx",
             name="customer_support",
         )
         """
-        _response = self._raw_client.create_prompt(
-            authorization=authorization, name=name, description=description, request_options=request_options
-        )
+        _response = self._raw_client.create_prompt(name=name, description=description, request_options=request_options)
         return _response.data
 
     def retrieve_prompt(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrievePromptResponse:
         """
         Retrieve a prompt template by ID, including its current and live versions.
@@ -173,9 +151,6 @@ class PromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -189,20 +164,17 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.retrieve_prompt(
             prompt_id="prompt_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_prompt(
-            prompt_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_prompt(prompt_id, request_options=request_options)
         return _response.data
 
-    def delete_prompt(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def delete_prompt(self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a prompt and its versions from the active prompt library.
 
@@ -210,9 +182,6 @@ class PromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -225,22 +194,20 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.delete_prompt(
             prompt_id="prompt_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_prompt(
-            prompt_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_prompt(prompt_id, request_options=request_options)
         return _response.data
 
     def update_prompt(
         self,
         prompt_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -252,9 +219,6 @@ class PromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Updated prompt name.
@@ -274,14 +238,15 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.update_prompt(
             prompt_id="prompt_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.update_prompt(
-            prompt_id, authorization=authorization, name=name, description=description, request_options=request_options
+            prompt_id, name=name, description=description, request_options=request_options
         )
         return _response.data
 
@@ -289,7 +254,6 @@ class PromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -301,9 +265,6 @@ class PromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -323,14 +284,15 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.list_prompt_versions(
             prompt_id="prompt_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.list_prompt_versions(
-            prompt_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            prompt_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -338,7 +300,6 @@ class PromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         description: typing.Optional[str] = OMIT,
@@ -370,9 +331,6 @@ class PromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         messages : typing.Sequence[typing.Dict[str, typing.Any]]
             Messages for this version. Use `{{variable_name}}` placeholders for template variables.
@@ -448,10 +406,11 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.create_prompt_version(
             prompt_id="prompt_id",
-            authorization="Bearer sk_live_xxxxx",
             description="Production version with context awareness",
             messages=[
                 {
@@ -477,7 +436,6 @@ class PromptsClient:
         """
         _response = self._raw_client.create_prompt_version(
             prompt_id,
-            authorization=authorization,
             messages=messages,
             model=model,
             description=description,
@@ -505,12 +463,7 @@ class PromptsClient:
         return _response.data
 
     def retrieve_prompt_version(
-        self,
-        prompt_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrievePromptVersionResponse:
         """
         Retrieve a specific version of a prompt.
@@ -522,9 +475,6 @@ class PromptsClient:
 
         version : int
             The prompt version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -538,25 +488,19 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.retrieve_prompt_version(
             prompt_id="prompt_id",
             version=1,
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_prompt_version(
-            prompt_id, version, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_prompt_version(prompt_id, version, request_options=request_options)
         return _response.data
 
     def delete_prompt_version(
-        self,
-        prompt_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a specific prompt version. The currently deployed live version cannot be deleted.
@@ -569,9 +513,6 @@ class PromptsClient:
         version : int
             The prompt version number.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -583,16 +524,15 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.delete_prompt_version(
             prompt_id="prompt_id",
             version=1,
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_prompt_version(
-            prompt_id, version, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_prompt_version(prompt_id, version, request_options=request_options)
         return _response.data
 
     def update_prompt_version(
@@ -600,7 +540,6 @@ class PromptsClient:
         prompt_id: str,
         version: int,
         *,
-        authorization: str,
         description: typing.Optional[str] = OMIT,
         messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         thinking: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -635,9 +574,6 @@ class PromptsClient:
 
         version : int
             The prompt version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
             Version description.
@@ -713,11 +649,12 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.update_prompt_version(
             prompt_id="prompt_id",
             version=1,
-            authorization="Bearer sk_live_xxxxx",
             description="Production version with context awareness",
             messages=[
                 {
@@ -744,7 +681,6 @@ class PromptsClient:
         _response = self._raw_client.update_prompt_version(
             prompt_id,
             version,
-            authorization=authorization,
             description=description,
             messages=messages,
             thinking=thinking,
@@ -775,7 +711,6 @@ class PromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CommitPromptVersionResponse:
@@ -786,9 +721,6 @@ class PromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
             Optional commit message describing the changes.
@@ -805,24 +737,20 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.commit_prompt_version(
             prompt_id="prompt_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.commit_prompt_version(
-            prompt_id, authorization=authorization, description=description, request_options=request_options
+            prompt_id, description=description, request_options=request_options
         )
         return _response.data
 
     def deploy_prompt_version(
-        self,
-        prompt_id: str,
-        *,
-        authorization: str,
-        version: int,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, *, version: int, request_options: typing.Optional[RequestOptions] = None
     ) -> DeployPromptVersionResponse:
         """
         Deploy a committed version as the live version for this prompt.
@@ -831,9 +759,6 @@ class PromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         version : int
             Version number to deploy as live.
@@ -850,55 +775,21 @@ class PromptsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.deploy_prompt_version(
             prompt_id="prompt_id",
-            authorization="Bearer sk_live_xxxxx",
             version=3,
         )
         """
-        _response = self._raw_client.deploy_prompt_version(
-            prompt_id, authorization=authorization, version=version, request_options=request_options
-        )
-        return _response.data
-
-    def get_prompts_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetPromptsSummaryResponse:
-        """
-        Get summary statistics for prompts in your current auth scope. The response currently includes only `total_count`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetPromptsSummaryResponse
-            Summary statistics for prompts.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.prompts.get_prompts_summary(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.get_prompts_summary(authorization=authorization, request_options=request_options)
+        _response = self._raw_client.deploy_prompt_version(prompt_id, version=version, request_options=request_options)
         return _response.data
 
     def get_prompts_summary_with_filters(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[GetPromptsSummaryWithFiltersRequestFilters] = OMIT,
-        operator: typing.Optional[GetPromptsSummaryWithFiltersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetPromptsSummaryWithFiltersResponse:
         """
@@ -906,14 +797,8 @@ class PromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
             Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
-
-        operator : typing.Optional[GetPromptsSummaryWithFiltersRequestOperator]
-            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -928,21 +813,19 @@ class PromptsClient:
         from respan import FilterValue, RespanClient
         from respan.prompts import GetPromptsSummaryWithFiltersRequestFilters
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.prompts.get_prompts_summary_with_filters(
-            authorization="Bearer sk_live_xxxxx",
             filters=GetPromptsSummaryWithFiltersRequestFilters(
                 name=FilterValue(
                     operator="icontains",
                     value=["support"],
                 ),
             ),
-            operator="AND",
         )
         """
-        _response = self._raw_client.get_prompts_summary_with_filters(
-            authorization=authorization, filters=filters, operator=operator, request_options=request_options
-        )
+        _response = self._raw_client.get_prompts_summary_with_filters(filters=filters, request_options=request_options)
         return _response.data
 
 
@@ -964,12 +847,10 @@ class AsyncPromptsClient:
     async def list_prompts(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[ListPromptsRequestSortBy] = None,
         filters: typing.Optional[ListPromptsRequestFilters] = OMIT,
-        operator: typing.Optional[ListPromptsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListPromptsResponse:
         """
@@ -977,9 +858,6 @@ class AsyncPromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -991,9 +869,6 @@ class AsyncPromptsClient:
 
         filters : typing.Optional[ListPromptsRequestFilters]
             Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
-
-        operator : typing.Optional[ListPromptsRequestOperator]
-            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1010,12 +885,13 @@ class AsyncPromptsClient:
         from respan import AsyncRespanClient, FilterValue
         from respan.prompts import ListPromptsRequestFilters
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.list_prompts(
-                authorization="Bearer sk_live_xxxxx",
                 filters=ListPromptsRequestFilters(
                     name=FilterValue(
                         operator="icontains",
@@ -1026,27 +902,19 @@ class AsyncPromptsClient:
                         value=[True],
                     ),
                 ),
-                operator="AND",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_prompts(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            operator=operator,
-            request_options=request_options,
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
         )
         return _response.data
 
     async def create_prompt(
         self,
         *,
-        authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1056,9 +924,6 @@ class AsyncPromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : str
             Prompt name.
 
@@ -1079,12 +944,13 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.create_prompt(
-                authorization="Bearer sk_live_xxxxx",
                 name="customer_support",
             )
 
@@ -1092,12 +958,12 @@ class AsyncPromptsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_prompt(
-            authorization=authorization, name=name, description=description, request_options=request_options
+            name=name, description=description, request_options=request_options
         )
         return _response.data
 
     async def retrieve_prompt(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrievePromptResponse:
         """
         Retrieve a prompt template by ID, including its current and live versions.
@@ -1106,9 +972,6 @@ class AsyncPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1124,26 +987,23 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.retrieve_prompt(
                 prompt_id="prompt_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_prompt(
-            prompt_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_prompt(prompt_id, request_options=request_options)
         return _response.data
 
-    async def delete_prompt(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    async def delete_prompt(self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a prompt and its versions from the active prompt library.
 
@@ -1151,9 +1011,6 @@ class AsyncPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1168,28 +1025,26 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.delete_prompt(
                 prompt_id="prompt_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_prompt(
-            prompt_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_prompt(prompt_id, request_options=request_options)
         return _response.data
 
     async def update_prompt(
         self,
         prompt_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1201,9 +1056,6 @@ class AsyncPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Updated prompt name.
@@ -1225,20 +1077,21 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.update_prompt(
                 prompt_id="prompt_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.update_prompt(
-            prompt_id, authorization=authorization, name=name, description=description, request_options=request_options
+            prompt_id, name=name, description=description, request_options=request_options
         )
         return _response.data
 
@@ -1246,7 +1099,6 @@ class AsyncPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1258,9 +1110,6 @@ class AsyncPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -1282,20 +1131,21 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.list_prompt_versions(
                 prompt_id="prompt_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_prompt_versions(
-            prompt_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            prompt_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -1303,7 +1153,6 @@ class AsyncPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         description: typing.Optional[str] = OMIT,
@@ -1335,9 +1184,6 @@ class AsyncPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         messages : typing.Sequence[typing.Dict[str, typing.Any]]
             Messages for this version. Use `{{variable_name}}` placeholders for template variables.
@@ -1415,13 +1261,14 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.create_prompt_version(
                 prompt_id="prompt_id",
-                authorization="Bearer sk_live_xxxxx",
                 description="Production version with context awareness",
                 messages=[
                     {
@@ -1450,7 +1297,6 @@ class AsyncPromptsClient:
         """
         _response = await self._raw_client.create_prompt_version(
             prompt_id,
-            authorization=authorization,
             messages=messages,
             model=model,
             description=description,
@@ -1478,12 +1324,7 @@ class AsyncPromptsClient:
         return _response.data
 
     async def retrieve_prompt_version(
-        self,
-        prompt_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrievePromptVersionResponse:
         """
         Retrieve a specific version of a prompt.
@@ -1495,9 +1336,6 @@ class AsyncPromptsClient:
 
         version : int
             The prompt version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1513,31 +1351,25 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.retrieve_prompt_version(
                 prompt_id="prompt_id",
                 version=1,
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_prompt_version(
-            prompt_id, version, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_prompt_version(prompt_id, version, request_options=request_options)
         return _response.data
 
     async def delete_prompt_version(
-        self,
-        prompt_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a specific prompt version. The currently deployed live version cannot be deleted.
@@ -1549,9 +1381,6 @@ class AsyncPromptsClient:
 
         version : int
             The prompt version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1566,22 +1395,21 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.delete_prompt_version(
                 prompt_id="prompt_id",
                 version=1,
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_prompt_version(
-            prompt_id, version, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_prompt_version(prompt_id, version, request_options=request_options)
         return _response.data
 
     async def update_prompt_version(
@@ -1589,7 +1417,6 @@ class AsyncPromptsClient:
         prompt_id: str,
         version: int,
         *,
-        authorization: str,
         description: typing.Optional[str] = OMIT,
         messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         thinking: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -1624,9 +1451,6 @@ class AsyncPromptsClient:
 
         version : int
             The prompt version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
             Version description.
@@ -1704,14 +1528,15 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.update_prompt_version(
                 prompt_id="prompt_id",
                 version=1,
-                authorization="Bearer sk_live_xxxxx",
                 description="Production version with context awareness",
                 messages=[
                     {
@@ -1741,7 +1566,6 @@ class AsyncPromptsClient:
         _response = await self._raw_client.update_prompt_version(
             prompt_id,
             version,
-            authorization=authorization,
             description=description,
             messages=messages,
             thinking=thinking,
@@ -1772,7 +1596,6 @@ class AsyncPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CommitPromptVersionResponse:
@@ -1783,9 +1606,6 @@ class AsyncPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
             Optional commit message describing the changes.
@@ -1804,30 +1624,26 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.commit_prompt_version(
                 prompt_id="prompt_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.commit_prompt_version(
-            prompt_id, authorization=authorization, description=description, request_options=request_options
+            prompt_id, description=description, request_options=request_options
         )
         return _response.data
 
     async def deploy_prompt_version(
-        self,
-        prompt_id: str,
-        *,
-        authorization: str,
-        version: int,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, *, version: int, request_options: typing.Optional[RequestOptions] = None
     ) -> DeployPromptVersionResponse:
         """
         Deploy a committed version as the live version for this prompt.
@@ -1836,9 +1652,6 @@ class AsyncPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         version : int
             Version number to deploy as live.
@@ -1857,13 +1670,14 @@ class AsyncPromptsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.deploy_prompt_version(
                 prompt_id="prompt_id",
-                authorization="Bearer sk_live_xxxxx",
                 version=3,
             )
 
@@ -1871,57 +1685,14 @@ class AsyncPromptsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.deploy_prompt_version(
-            prompt_id, authorization=authorization, version=version, request_options=request_options
-        )
-        return _response.data
-
-    async def get_prompts_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetPromptsSummaryResponse:
-        """
-        Get summary statistics for prompts in your current auth scope. The response currently includes only `total_count`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetPromptsSummaryResponse
-            Summary statistics for prompts.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.prompts.get_prompts_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_prompts_summary(
-            authorization=authorization, request_options=request_options
+            prompt_id, version=version, request_options=request_options
         )
         return _response.data
 
     async def get_prompts_summary_with_filters(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[GetPromptsSummaryWithFiltersRequestFilters] = OMIT,
-        operator: typing.Optional[GetPromptsSummaryWithFiltersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetPromptsSummaryWithFiltersResponse:
         """
@@ -1929,14 +1700,8 @@ class AsyncPromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
             Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
-
-        operator : typing.Optional[GetPromptsSummaryWithFiltersRequestOperator]
-            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1953,25 +1718,25 @@ class AsyncPromptsClient:
         from respan import AsyncRespanClient, FilterValue
         from respan.prompts import GetPromptsSummaryWithFiltersRequestFilters
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.prompts.get_prompts_summary_with_filters(
-                authorization="Bearer sk_live_xxxxx",
                 filters=GetPromptsSummaryWithFiltersRequestFilters(
                     name=FilterValue(
                         operator="icontains",
                         value=["support"],
                     ),
                 ),
-                operator="AND",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_prompts_summary_with_filters(
-            authorization=authorization, filters=filters, operator=operator, request_options=request_options
+            filters=filters, request_options=request_options
         )
         return _response.data

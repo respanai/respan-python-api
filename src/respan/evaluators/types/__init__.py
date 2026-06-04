@@ -78,7 +78,6 @@ if typing.TYPE_CHECKING:
     from .create_evaluator_version_response_score_value_type import CreateEvaluatorVersionResponseScoreValueType
     from .create_evaluator_version_response_type import CreateEvaluatorVersionResponseType
     from .create_evaluator_version_response_updated_by import CreateEvaluatorVersionResponseUpdatedBy
-    from .get_evaluators_summary_response import GetEvaluatorsSummaryResponse
     from .get_filtered_evaluators_summary_response import GetFilteredEvaluatorsSummaryResponse
     from .list_evaluator_versions_response import ListEvaluatorVersionsResponse
     from .list_evaluator_versions_response_results_item import ListEvaluatorVersionsResponseResultsItem
@@ -113,34 +112,6 @@ if typing.TYPE_CHECKING:
     from .list_evaluators_response_results_item_tags_item import ListEvaluatorsResponseResultsItemTagsItem
     from .list_evaluators_response_results_item_type import ListEvaluatorsResponseResultsItemType
     from .list_evaluators_response_results_item_updated_by import ListEvaluatorsResponseResultsItemUpdatedBy
-    from .list_evaluators_root_response import ListEvaluatorsRootResponse
-    from .list_evaluators_root_response_results_item import ListEvaluatorsRootResponseResultsItem
-    from .list_evaluators_root_response_results_item_categorical_choices_item import (
-        ListEvaluatorsRootResponseResultsItemCategoricalChoicesItem,
-    )
-    from .list_evaluators_root_response_results_item_categorical_choices_item_value import (
-        ListEvaluatorsRootResponseResultsItemCategoricalChoicesItemValue,
-    )
-    from .list_evaluators_root_response_results_item_code_config import ListEvaluatorsRootResponseResultsItemCodeConfig
-    from .list_evaluators_root_response_results_item_created_by import ListEvaluatorsRootResponseResultsItemCreatedBy
-    from .list_evaluators_root_response_results_item_editor import ListEvaluatorsRootResponseResultsItemEditor
-    from .list_evaluators_root_response_results_item_eval_class import ListEvaluatorsRootResponseResultsItemEvalClass
-    from .list_evaluators_root_response_results_item_llm_config import ListEvaluatorsRootResponseResultsItemLlmConfig
-    from .list_evaluators_root_response_results_item_score_config import (
-        ListEvaluatorsRootResponseResultsItemScoreConfig,
-    )
-    from .list_evaluators_root_response_results_item_score_config_choices_item import (
-        ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItem,
-    )
-    from .list_evaluators_root_response_results_item_score_config_choices_item_value import (
-        ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItemValue,
-    )
-    from .list_evaluators_root_response_results_item_score_value_type import (
-        ListEvaluatorsRootResponseResultsItemScoreValueType,
-    )
-    from .list_evaluators_root_response_results_item_tags_item import ListEvaluatorsRootResponseResultsItemTagsItem
-    from .list_evaluators_root_response_results_item_type import ListEvaluatorsRootResponseResultsItemType
-    from .list_evaluators_root_response_results_item_updated_by import ListEvaluatorsRootResponseResultsItemUpdatedBy
     from .replace_evaluator_request_categorical_choices_item import ReplaceEvaluatorRequestCategoricalChoicesItem
     from .replace_evaluator_request_categorical_choices_item_value import (
         ReplaceEvaluatorRequestCategoricalChoicesItemValue,
@@ -401,7 +372,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateEvaluatorVersionResponseScoreValueType": ".create_evaluator_version_response_score_value_type",
     "CreateEvaluatorVersionResponseType": ".create_evaluator_version_response_type",
     "CreateEvaluatorVersionResponseUpdatedBy": ".create_evaluator_version_response_updated_by",
-    "GetEvaluatorsSummaryResponse": ".get_evaluators_summary_response",
     "GetFilteredEvaluatorsSummaryResponse": ".get_filtered_evaluators_summary_response",
     "ListEvaluatorVersionsResponse": ".list_evaluator_versions_response",
     "ListEvaluatorVersionsResponseResultsItem": ".list_evaluator_versions_response_results_item",
@@ -424,22 +394,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ListEvaluatorsResponseResultsItemTagsItem": ".list_evaluators_response_results_item_tags_item",
     "ListEvaluatorsResponseResultsItemType": ".list_evaluators_response_results_item_type",
     "ListEvaluatorsResponseResultsItemUpdatedBy": ".list_evaluators_response_results_item_updated_by",
-    "ListEvaluatorsRootResponse": ".list_evaluators_root_response",
-    "ListEvaluatorsRootResponseResultsItem": ".list_evaluators_root_response_results_item",
-    "ListEvaluatorsRootResponseResultsItemCategoricalChoicesItem": ".list_evaluators_root_response_results_item_categorical_choices_item",
-    "ListEvaluatorsRootResponseResultsItemCategoricalChoicesItemValue": ".list_evaluators_root_response_results_item_categorical_choices_item_value",
-    "ListEvaluatorsRootResponseResultsItemCodeConfig": ".list_evaluators_root_response_results_item_code_config",
-    "ListEvaluatorsRootResponseResultsItemCreatedBy": ".list_evaluators_root_response_results_item_created_by",
-    "ListEvaluatorsRootResponseResultsItemEditor": ".list_evaluators_root_response_results_item_editor",
-    "ListEvaluatorsRootResponseResultsItemEvalClass": ".list_evaluators_root_response_results_item_eval_class",
-    "ListEvaluatorsRootResponseResultsItemLlmConfig": ".list_evaluators_root_response_results_item_llm_config",
-    "ListEvaluatorsRootResponseResultsItemScoreConfig": ".list_evaluators_root_response_results_item_score_config",
-    "ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItem": ".list_evaluators_root_response_results_item_score_config_choices_item",
-    "ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItemValue": ".list_evaluators_root_response_results_item_score_config_choices_item_value",
-    "ListEvaluatorsRootResponseResultsItemScoreValueType": ".list_evaluators_root_response_results_item_score_value_type",
-    "ListEvaluatorsRootResponseResultsItemTagsItem": ".list_evaluators_root_response_results_item_tags_item",
-    "ListEvaluatorsRootResponseResultsItemType": ".list_evaluators_root_response_results_item_type",
-    "ListEvaluatorsRootResponseResultsItemUpdatedBy": ".list_evaluators_root_response_results_item_updated_by",
     "ReplaceEvaluatorRequestCategoricalChoicesItem": ".replace_evaluator_request_categorical_choices_item",
     "ReplaceEvaluatorRequestCategoricalChoicesItemValue": ".replace_evaluator_request_categorical_choices_item_value",
     "ReplaceEvaluatorRequestCodeConfig": ".replace_evaluator_request_code_config",
@@ -656,7 +610,6 @@ __all__ = [
     "CreateEvaluatorVersionResponseScoreValueType",
     "CreateEvaluatorVersionResponseType",
     "CreateEvaluatorVersionResponseUpdatedBy",
-    "GetEvaluatorsSummaryResponse",
     "GetFilteredEvaluatorsSummaryResponse",
     "ListEvaluatorVersionsResponse",
     "ListEvaluatorVersionsResponseResultsItem",
@@ -679,22 +632,6 @@ __all__ = [
     "ListEvaluatorsResponseResultsItemTagsItem",
     "ListEvaluatorsResponseResultsItemType",
     "ListEvaluatorsResponseResultsItemUpdatedBy",
-    "ListEvaluatorsRootResponse",
-    "ListEvaluatorsRootResponseResultsItem",
-    "ListEvaluatorsRootResponseResultsItemCategoricalChoicesItem",
-    "ListEvaluatorsRootResponseResultsItemCategoricalChoicesItemValue",
-    "ListEvaluatorsRootResponseResultsItemCodeConfig",
-    "ListEvaluatorsRootResponseResultsItemCreatedBy",
-    "ListEvaluatorsRootResponseResultsItemEditor",
-    "ListEvaluatorsRootResponseResultsItemEvalClass",
-    "ListEvaluatorsRootResponseResultsItemLlmConfig",
-    "ListEvaluatorsRootResponseResultsItemScoreConfig",
-    "ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItem",
-    "ListEvaluatorsRootResponseResultsItemScoreConfigChoicesItemValue",
-    "ListEvaluatorsRootResponseResultsItemScoreValueType",
-    "ListEvaluatorsRootResponseResultsItemTagsItem",
-    "ListEvaluatorsRootResponseResultsItemType",
-    "ListEvaluatorsRootResponseResultsItemUpdatedBy",
     "ReplaceEvaluatorRequestCategoricalChoicesItem",
     "ReplaceEvaluatorRequestCategoricalChoicesItemValue",
     "ReplaceEvaluatorRequestCodeConfig",

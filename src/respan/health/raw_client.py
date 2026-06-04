@@ -8,59 +8,52 @@ from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.http_response import AsyncHttpResponse, HttpResponse
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
-from ..errors.service_unavailable_error import ServiceUnavailableError
-from ..types.service_unavailable_error_body import ServiceUnavailableErrorBody
-from .types.check_response import CheckResponse
+from ..errors.bad_request_error import BadRequestError
+from .types.api_health_check_response import ApiHealthCheckResponse
 
 
 class RawHealthClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def check(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[CheckResponse]:
+    def api_health_check(
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[ApiHealthCheckResponse]:
         """
-        Check API availability.
+        Check API availability. This endpoint does not require authentication.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[CheckResponse]
-            API is healthy
+        HttpResponse[ApiHealthCheckResponse]
+            API health check passed.
         """
         _response = self._client_wrapper.httpx_client.request(
-            "api/health/",
+            "api/health-check/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CheckResponse,
+                    ApiHealthCheckResponse,
                     parse_obj_as(
-                        type_=CheckResponse,  # type: ignore
+                        type_=ApiHealthCheckResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 503:
-                raise ServiceUnavailableError(
+            if _response.status_code == 400:
+                raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        ServiceUnavailableErrorBody,
+                        typing.Any,
                         parse_obj_as(
-                            type_=ServiceUnavailableErrorBody,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -75,50 +68,44 @@ class AsyncRawHealthClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def check(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[CheckResponse]:
+    async def api_health_check(
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[ApiHealthCheckResponse]:
         """
-        Check API availability.
+        Check API availability. This endpoint does not require authentication.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[CheckResponse]
-            API is healthy
+        AsyncHttpResponse[ApiHealthCheckResponse]
+            API health check passed.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "api/health/",
+            "api/health-check/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CheckResponse,
+                    ApiHealthCheckResponse,
                     parse_obj_as(
-                        type_=CheckResponse,  # type: ignore
+                        type_=ApiHealthCheckResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 503:
-                raise ServiceUnavailableError(
+            if _response.status_code == 400:
+                raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        ServiceUnavailableErrorBody,
+                        typing.Any,
                         parse_obj_as(
-                            type_=ServiceUnavailableErrorBody,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

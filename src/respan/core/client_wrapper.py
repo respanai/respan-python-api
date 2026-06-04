@@ -11,11 +11,13 @@ class BaseClientWrapper:
     def __init__(
         self,
         *,
+        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
         base_url: str,
         timeout: typing.Optional[float] = None,
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
     ):
+        self._respan_api_key = respan_api_key
         self._headers = headers
         self._base_url = base_url
         self._timeout = timeout
@@ -25,15 +27,24 @@ class BaseClientWrapper:
         import platform
 
         headers: typing.Dict[str, str] = {
-            "User-Agent": "respan-api/0.1.27",
+            "User-Agent": "respan-api/0.1.28",
             "X-Fern-Language": "Python",
             "X-Fern-Runtime": f"python/{platform.python_version()}",
             "X-Fern-Platform": f"{platform.system().lower()}/{platform.release()}",
             "X-Fern-SDK-Name": "respan-api",
-            "X-Fern-SDK-Version": "0.1.27",
+            "X-Fern-SDK-Version": "0.1.28",
             **(self.get_custom_headers() or {}),
         }
+        respan_api_key = self._get_respan_api_key()
+        if respan_api_key is not None:
+            headers["Authorization"] = f"Bearer {respan_api_key}"
         return headers
+
+    def _get_respan_api_key(self) -> typing.Optional[str]:
+        if isinstance(self._respan_api_key, str) or self._respan_api_key is None:
+            return self._respan_api_key
+        else:
+            return self._respan_api_key()
 
     def get_custom_headers(self) -> typing.Optional[typing.Dict[str, str]]:
         return self._headers
@@ -49,13 +60,16 @@ class SyncClientWrapper(BaseClientWrapper):
     def __init__(
         self,
         *,
+        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
         base_url: str,
         timeout: typing.Optional[float] = None,
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
         httpx_client: httpx.Client,
     ):
-        super().__init__(headers=headers, base_url=base_url, timeout=timeout, logging=logging)
+        super().__init__(
+            respan_api_key=respan_api_key, headers=headers, base_url=base_url, timeout=timeout, logging=logging
+        )
         self.httpx_client = HttpClient(
             httpx_client=httpx_client,
             base_headers=self.get_headers,
@@ -69,6 +83,7 @@ class AsyncClientWrapper(BaseClientWrapper):
     def __init__(
         self,
         *,
+        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
         base_url: str,
         timeout: typing.Optional[float] = None,
@@ -76,7 +91,9 @@ class AsyncClientWrapper(BaseClientWrapper):
         async_token: typing.Optional[typing.Callable[[], typing.Awaitable[str]]] = None,
         httpx_client: httpx.AsyncClient,
     ):
-        super().__init__(headers=headers, base_url=base_url, timeout=timeout, logging=logging)
+        super().__init__(
+            respan_api_key=respan_api_key, headers=headers, base_url=base_url, timeout=timeout, logging=logging
+        )
         self._async_token = async_token
         self.httpx_client = AsyncHttpClient(
             httpx_client=httpx_client,

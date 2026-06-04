@@ -20,7 +20,6 @@ from ..errors.unauthorized_error import UnauthorizedError
 from ..types.filters import Filters
 from .types.delete_user_request_environment import DeleteUserRequestEnvironment
 from .types.list_customers_request_environment import ListCustomersRequestEnvironment
-from .types.list_customers_request_operator import ListCustomersRequestOperator
 from .types.list_customers_response import ListCustomersResponse
 from .types.list_customers_response_results_item import ListCustomersResponseResultsItem
 from .types.retrieve_user_request_environment import RetrieveUserRequestEnvironment
@@ -40,13 +39,11 @@ class RawUsersClient:
     def list_customers(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
         environment: typing.Optional[ListCustomersRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListCustomersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
@@ -54,9 +51,6 @@ class RawUsersClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -70,9 +64,6 @@ class RawUsersClient:
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
 
         filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListCustomersRequestOperator]
-            Logical operator for combining filters when supported by the client payload.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -97,11 +88,9 @@ class RawUsersClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -118,13 +107,11 @@ class RawUsersClient:
                 _items = _parsed_response.results
                 _has_next = True
                 _get_next = lambda: self.list_customers(
-                    authorization=authorization,
                     page=page + 1,
                     page_size=page_size,
                     sort_by=sort_by,
                     environment=environment,
                     filters=filters,
-                    operator=operator,
                     request_options=request_options,
                 )
                 return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
@@ -181,7 +168,6 @@ class RawUsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[RetrieveUserRequestEnvironment] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[RetrieveUserResponse]:
@@ -192,9 +178,6 @@ class RawUsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[RetrieveUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -212,9 +195,6 @@ class RawUsersClient:
             method="GET",
             params={
                 "environment": environment,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -281,7 +261,6 @@ class RawUsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[DeleteUserRequestEnvironment] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[None]:
@@ -292,9 +271,6 @@ class RawUsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[DeleteUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -311,9 +287,6 @@ class RawUsersClient:
             method="DELETE",
             params={
                 "environment": environment,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -373,7 +346,6 @@ class RawUsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[UpdateUserRequestEnvironment] = None,
         email: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
@@ -393,9 +365,6 @@ class RawUsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[UpdateUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -454,7 +423,6 @@ class RawUsersClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -537,13 +505,11 @@ class AsyncRawUsersClient:
     async def list_customers(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
         environment: typing.Optional[ListCustomersRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListCustomersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
@@ -551,9 +517,6 @@ class AsyncRawUsersClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -567,9 +530,6 @@ class AsyncRawUsersClient:
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
 
         filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListCustomersRequestOperator]
-            Logical operator for combining filters when supported by the client payload.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -594,11 +554,9 @@ class AsyncRawUsersClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -617,13 +575,11 @@ class AsyncRawUsersClient:
 
                 async def _get_next():
                     return await self.list_customers(
-                        authorization=authorization,
                         page=page + 1,
                         page_size=page_size,
                         sort_by=sort_by,
                         environment=environment,
                         filters=filters,
-                        operator=operator,
                         request_options=request_options,
                     )
 
@@ -681,7 +637,6 @@ class AsyncRawUsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[RetrieveUserRequestEnvironment] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[RetrieveUserResponse]:
@@ -692,9 +647,6 @@ class AsyncRawUsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[RetrieveUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -712,9 +664,6 @@ class AsyncRawUsersClient:
             method="GET",
             params={
                 "environment": environment,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -781,7 +730,6 @@ class AsyncRawUsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[DeleteUserRequestEnvironment] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[None]:
@@ -792,9 +740,6 @@ class AsyncRawUsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[DeleteUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -811,9 +756,6 @@ class AsyncRawUsersClient:
             method="DELETE",
             params={
                 "environment": environment,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -873,7 +815,6 @@ class AsyncRawUsersClient:
         self,
         customer_identifier: str,
         *,
-        authorization: str,
         environment: typing.Optional[UpdateUserRequestEnvironment] = None,
         email: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
@@ -893,9 +834,6 @@ class AsyncRawUsersClient:
         ----------
         customer_identifier : str
             Your unique identifier for this customer.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         environment : typing.Optional[UpdateUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -954,7 +892,6 @@ class AsyncRawUsersClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,

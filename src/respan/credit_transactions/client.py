@@ -29,7 +29,6 @@ class CreditTransactionsClient:
     def list_credit_transactions(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -39,9 +38,6 @@ class CreditTransactionsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number for pagination.
 
@@ -60,10 +56,10 @@ class CreditTransactionsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        response = client.credit_transactions.list_credit_transactions(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        response = client.credit_transactions.list_credit_transactions()
         for item in response:
             yield item
         # alternatively, you can paginate page-by-page
@@ -71,11 +67,11 @@ class CreditTransactionsClient:
             yield page
         """
         return self._raw_client.list_credit_transactions(
-            authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            page=page, page_size=page_size, request_options=request_options
         )
 
     def retrieve_credit_transaction(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCreditTransactionResponse:
         """
         Retrieve details of a specific credit transaction.
@@ -84,9 +80,6 @@ class CreditTransactionsClient:
         ----------
         id : str
             The unique identifier of the transaction to retrieve (e.g., ct_1a2b3c4d5e6f7g8h)
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -100,15 +93,14 @@ class CreditTransactionsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.credit_transactions.retrieve_credit_transaction(
             id="id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_credit_transaction(
-            id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_credit_transaction(id, request_options=request_options)
         return _response.data
 
 
@@ -130,7 +122,6 @@ class AsyncCreditTransactionsClient:
     async def list_credit_transactions(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -140,9 +131,6 @@ class AsyncCreditTransactionsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number for pagination.
 
@@ -163,13 +151,13 @@ class AsyncCreditTransactionsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            response = await client.credit_transactions.list_credit_transactions(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            response = await client.credit_transactions.list_credit_transactions()
             async for item in response:
                 yield item
 
@@ -181,11 +169,11 @@ class AsyncCreditTransactionsClient:
         asyncio.run(main())
         """
         return await self._raw_client.list_credit_transactions(
-            authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            page=page, page_size=page_size, request_options=request_options
         )
 
     async def retrieve_credit_transaction(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCreditTransactionResponse:
         """
         Retrieve details of a specific credit transaction.
@@ -194,9 +182,6 @@ class AsyncCreditTransactionsClient:
         ----------
         id : str
             The unique identifier of the transaction to retrieve (e.g., ct_1a2b3c4d5e6f7g8h)
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -212,19 +197,18 @@ class AsyncCreditTransactionsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.credit_transactions.retrieve_credit_transaction(
                 id="id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_credit_transaction(
-            id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_credit_transaction(id, request_options=request_options)
         return _response.data

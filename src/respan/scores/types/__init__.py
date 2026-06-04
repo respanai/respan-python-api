@@ -13,9 +13,6 @@ if typing.TYPE_CHECKING:
     from .filter_scores_response import FilterScoresResponse
     from .filter_scores_response_results_item import FilterScoresResponseResultsItem
     from .filter_scores_response_results_item_type import FilterScoresResponseResultsItemType
-    from .list_scores_response import ListScoresResponse
-    from .list_scores_response_results_item import ListScoresResponseResultsItem
-    from .list_scores_response_results_item_type import ListScoresResponseResultsItemType
     from .list_span_scores_response import ListSpanScoresResponse
     from .list_span_scores_response_results_item import ListSpanScoresResponseResultsItem
     from .list_span_scores_response_results_item_type import ListSpanScoresResponseResultsItemType
@@ -42,9 +39,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "FilterScoresResponse": ".filter_scores_response",
     "FilterScoresResponseResultsItem": ".filter_scores_response_results_item",
     "FilterScoresResponseResultsItemType": ".filter_scores_response_results_item_type",
-    "ListScoresResponse": ".list_scores_response",
-    "ListScoresResponseResultsItem": ".list_scores_response_results_item",
-    "ListScoresResponseResultsItemType": ".list_scores_response_results_item_type",
     "ListSpanScoresResponse": ".list_span_scores_response",
     "ListSpanScoresResponseResultsItem": ".list_span_scores_response_results_item",
     "ListSpanScoresResponseResultsItemType": ".list_span_scores_response_results_item_type",
@@ -95,9 +89,6 @@ __all__ = [
     "FilterScoresResponse",
     "FilterScoresResponseResultsItem",
     "FilterScoresResponseResultsItemType",
-    "ListScoresResponse",
-    "ListScoresResponseResultsItem",
-    "ListScoresResponseResultsItemType",
     "ListSpanScoresResponse",
     "ListSpanScoresResponseResultsItem",
     "ListSpanScoresResponseResultsItemType",

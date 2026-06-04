@@ -10,8 +10,10 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
+from ..errors.internal_server_error import InternalServerError
 from ..errors.unauthorized_error import UnauthorizedError
 from .types.create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
+from .types.create_chat_completion_request_messages_item import CreateChatCompletionRequestMessagesItem
 from .types.create_chat_completion_response import CreateChatCompletionResponse
 from .types.create_response_request_cache_options import CreateResponseRequestCacheOptions
 from .types.create_response_request_input import CreateResponseRequestInput
@@ -27,8 +29,7 @@ class RawGatewayClient:
     def create_chat_completion(
         self,
         *,
-        authorization: str,
-        messages: typing.Sequence[typing.Dict[str, typing.Any]],
+        messages: typing.Sequence[CreateChatCompletionRequestMessagesItem],
         model: str,
         data_respan_params: typing.Optional[str] = None,
         respan_route_provider: typing.Optional[str] = None,
@@ -94,10 +95,7 @@ class RawGatewayClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        messages : typing.Sequence[typing.Dict[str, typing.Any]]
+        messages : typing.Sequence[CreateChatCompletionRequestMessagesItem]
             Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
 
         model : str
@@ -247,7 +245,11 @@ class RawGatewayClient:
             "api/chat/completions",
             method="POST",
             json={
-                "messages": messages,
+                "messages": convert_and_respect_annotation_metadata(
+                    object_=messages,
+                    annotation=typing.Sequence[CreateChatCompletionRequestMessagesItem],
+                    direction="write",
+                ),
                 "model": model,
                 "stream": stream,
                 "tools": tools,
@@ -295,7 +297,6 @@ class RawGatewayClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
                 "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
                 "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
@@ -332,7 +333,6 @@ class RawGatewayClient:
     def create_response(
         self,
         *,
-        authorization: str,
         model: str,
         input: CreateResponseRequestInput,
         data_respan_params: typing.Optional[str] = None,
@@ -370,7 +370,9 @@ class RawGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.Dict[str, typing.Any]]:
         """
-        Send a response request through the Respan gateway using the OpenAI Responses API format. Supports streaming, tool use, and prompt management.
+        Send an OpenAI Responses API request through Respan provider passthrough. This endpoint currently routes to OpenAI direct by default, or Azure OpenAI when `X-Respan-Route-Provider: azure` is set. It requires OpenAI or Azure OpenAI provider credentials configured in Settings -> Providers, or supplied with `credential_override`. In the API reference auth field, enter your Respan API key. Paste the OpenAI or Azure OpenAI provider token in `credential_override.<model>.api_key`; a Respan API key with managed credits alone is not enough for this Responses API passthrough path today.
+
+        For credit-backed gateway model calls with only a Respan API key, use `POST /api/chat/completions`.
 
         Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
@@ -385,11 +387,8 @@ class RawGatewayClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : str
-            Model to use.
+            OpenAI Responses API model to use. This passthrough path supports OpenAI direct by default and Azure OpenAI with `X-Respan-Route-Provider: azure`; use `/api/chat/completions` for credit-backed gateway calls with only a Respan API key.
 
         input : CreateResponseRequestInput
             Input text or array of conversation messages.
@@ -431,7 +430,7 @@ class RawGatewayClient:
             Per-customer LLM provider credentials.
 
         credential_override : typing.Optional[typing.Dict[str, typing.Any]]
-            One-off credential overrides per provider.
+            One-off OpenAI or Azure OpenAI provider credentials for this request. This is where you paste the provider token for /api/responses. Do not put your Respan API key here. For OpenAI direct, use `{ "gpt-4o-mini": { "api_key": "OPENAI_API_KEY" } }`. For Azure OpenAI, provide `api_key`, `api_base`, and `api_version` for the Azure-routed model.
 
         cache_enabled : typing.Optional[bool]
             Enable response caching.
@@ -540,7 +539,6 @@ class RawGatewayClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
                 "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
                 "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
@@ -580,6 +578,17 @@ class RawGatewayClient:
                         ),
                     ),
                 )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -593,8 +602,7 @@ class AsyncRawGatewayClient:
     async def create_chat_completion(
         self,
         *,
-        authorization: str,
-        messages: typing.Sequence[typing.Dict[str, typing.Any]],
+        messages: typing.Sequence[CreateChatCompletionRequestMessagesItem],
         model: str,
         data_respan_params: typing.Optional[str] = None,
         respan_route_provider: typing.Optional[str] = None,
@@ -660,10 +668,7 @@ class AsyncRawGatewayClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        messages : typing.Sequence[typing.Dict[str, typing.Any]]
+        messages : typing.Sequence[CreateChatCompletionRequestMessagesItem]
             Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
 
         model : str
@@ -813,7 +818,11 @@ class AsyncRawGatewayClient:
             "api/chat/completions",
             method="POST",
             json={
-                "messages": messages,
+                "messages": convert_and_respect_annotation_metadata(
+                    object_=messages,
+                    annotation=typing.Sequence[CreateChatCompletionRequestMessagesItem],
+                    direction="write",
+                ),
                 "model": model,
                 "stream": stream,
                 "tools": tools,
@@ -861,7 +870,6 @@ class AsyncRawGatewayClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
                 "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
                 "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
@@ -898,7 +906,6 @@ class AsyncRawGatewayClient:
     async def create_response(
         self,
         *,
-        authorization: str,
         model: str,
         input: CreateResponseRequestInput,
         data_respan_params: typing.Optional[str] = None,
@@ -936,7 +943,9 @@ class AsyncRawGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.Dict[str, typing.Any]]:
         """
-        Send a response request through the Respan gateway using the OpenAI Responses API format. Supports streaming, tool use, and prompt management.
+        Send an OpenAI Responses API request through Respan provider passthrough. This endpoint currently routes to OpenAI direct by default, or Azure OpenAI when `X-Respan-Route-Provider: azure` is set. It requires OpenAI or Azure OpenAI provider credentials configured in Settings -> Providers, or supplied with `credential_override`. In the API reference auth field, enter your Respan API key. Paste the OpenAI or Azure OpenAI provider token in `credential_override.<model>.api_key`; a Respan API key with managed credits alone is not enough for this Responses API passthrough path today.
+
+        For credit-backed gateway model calls with only a Respan API key, use `POST /api/chat/completions`.
 
         Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
@@ -951,11 +960,8 @@ class AsyncRawGatewayClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : str
-            Model to use.
+            OpenAI Responses API model to use. This passthrough path supports OpenAI direct by default and Azure OpenAI with `X-Respan-Route-Provider: azure`; use `/api/chat/completions` for credit-backed gateway calls with only a Respan API key.
 
         input : CreateResponseRequestInput
             Input text or array of conversation messages.
@@ -997,7 +1003,7 @@ class AsyncRawGatewayClient:
             Per-customer LLM provider credentials.
 
         credential_override : typing.Optional[typing.Dict[str, typing.Any]]
-            One-off credential overrides per provider.
+            One-off OpenAI or Azure OpenAI provider credentials for this request. This is where you paste the provider token for /api/responses. Do not put your Respan API key here. For OpenAI direct, use `{ "gpt-4o-mini": { "api_key": "OPENAI_API_KEY" } }`. For Azure OpenAI, provide `api_key`, `api_base`, and `api_version` for the Azure-routed model.
 
         cache_enabled : typing.Optional[bool]
             Enable response caching.
@@ -1106,7 +1112,6 @@ class AsyncRawGatewayClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
                 "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
                 "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
@@ -1137,6 +1142,17 @@ class AsyncRawGatewayClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

@@ -16,26 +16,49 @@ from ..types.dashboard_cache_hit_row import DashboardCacheHitRow
 from ..types.dashboard_cache_hit_summary import DashboardCacheHitSummary
 from ..types.dashboard_eval_results_row import DashboardEvalResultsRow
 from ..types.dashboard_eval_results_summary import DashboardEvalResultsSummary
-from ..types.dashboard_llm_metrics_request_metrics_to_aggregate_item import (
-    DashboardLlmMetricsRequestMetricsToAggregateItem,
-)
 from ..types.dashboard_llm_metrics_row import DashboardLlmMetricsRow
 from ..types.dashboard_llm_metrics_summary import DashboardLlmMetricsSummary
+from ..types.dashboard_quantiles_request_metrics_to_aggregate_item import (
+    DashboardQuantilesRequestMetricsToAggregateItem,
+)
 from ..types.dashboard_quantiles_row import DashboardQuantilesRow
 from ..types.dashboard_quantiles_summary import DashboardQuantilesSummary
 from ..types.dashboard_storage_row import DashboardStorageRow
 from ..types.dashboard_storage_summary import DashboardStorageSummary
-from ..types.dashboard_time_range_request_time_tick import DashboardTimeRangeRequestTimeTick
 from ..types.dashboard_top_n_response import DashboardTopNResponse
 from ..types.dashboard_total_users_summary import DashboardTotalUsersSummary
 from ..types.dashboard_users_row import DashboardUsersRow
 from ..types.filters import Filters
 from ..types.platform_stats_response import PlatformStatsResponse
-from .types.dashboard_breakdown_request_breakdown_by import DashboardBreakdownRequestBreakdownBy
-from .types.dashboard_breakdown_request_metrics_to_aggregate_item import DashboardBreakdownRequestMetricsToAggregateItem
+from .types.get_cache_hit_metrics_summary_request_summary_type import GetCacheHitMetricsSummaryRequestSummaryType
+from .types.get_cache_hit_metrics_summary_request_time_tick import GetCacheHitMetricsSummaryRequestTimeTick
+from .types.get_eval_results_summary_request_summary_type import GetEvalResultsSummaryRequestSummaryType
+from .types.get_eval_results_summary_request_time_tick import GetEvalResultsSummaryRequestTimeTick
+from .types.get_lifetime_cache_hit_totals_request_summary_type import GetLifetimeCacheHitTotalsRequestSummaryType
+from .types.get_lifetime_cache_hit_totals_request_time_tick import GetLifetimeCacheHitTotalsRequestTimeTick
+from .types.get_llm_metrics_summary_request_fetch_filters import GetLlmMetricsSummaryRequestFetchFilters
+from .types.get_llm_metrics_summary_request_summary_type import GetLlmMetricsSummaryRequestSummaryType
+from .types.get_llm_metrics_summary_request_time_tick import GetLlmMetricsSummaryRequestTimeTick
 from .types.get_platform_stats_request_breakdown_by import GetPlatformStatsRequestBreakdownBy
-from .types.get_storage_volume_summary_request_time_tick import GetStorageVolumeSummaryRequestTimeTick
-from .types.list_storage_volume_request_time_tick import ListStorageVolumeRequestTimeTick
+from .types.get_quantiles_summary_request_summary_type import GetQuantilesSummaryRequestSummaryType
+from .types.get_quantiles_summary_request_time_tick import GetQuantilesSummaryRequestTimeTick
+from .types.get_storage_volume_summary_request_summary_type import GetStorageVolumeSummaryRequestSummaryType
+from .types.list_active_users_request_environment import ListActiveUsersRequestEnvironment
+from .types.list_active_users_request_summary_type import ListActiveUsersRequestSummaryType
+from .types.list_active_users_request_time_tick import ListActiveUsersRequestTimeTick
+from .types.list_cache_hit_metrics_request_summary_type import ListCacheHitMetricsRequestSummaryType
+from .types.list_cache_hit_metrics_request_time_tick import ListCacheHitMetricsRequestTimeTick
+from .types.list_eval_results_request_summary_type import ListEvalResultsRequestSummaryType
+from .types.list_eval_results_request_time_tick import ListEvalResultsRequestTimeTick
+from .types.list_llm_metrics_request_fetch_filters import ListLlmMetricsRequestFetchFilters
+from .types.list_llm_metrics_request_summary_type import ListLlmMetricsRequestSummaryType
+from .types.list_llm_metrics_request_time_tick import ListLlmMetricsRequestTimeTick
+from .types.list_metrics_breakdown_request_breakdown_by import ListMetricsBreakdownRequestBreakdownBy
+from .types.list_metrics_breakdown_request_summary_type import ListMetricsBreakdownRequestSummaryType
+from .types.list_metrics_breakdown_request_time_tick import ListMetricsBreakdownRequestTimeTick
+from .types.list_quantiles_request_summary_type import ListQuantilesRequestSummaryType
+from .types.list_quantiles_request_time_tick import ListQuantilesRequestTimeTick
+from .types.list_storage_volume_request_summary_type import ListStorageVolumeRequestSummaryType
 from .types.list_top_api_keys_request_sort_by import ListTopApiKeysRequestSortBy
 from .types.list_top_api_keys_request_summary_type import ListTopApiKeysRequestSummaryType
 from .types.list_top_deployments_request_sort_by import ListTopDeploymentsRequestSortBy
@@ -60,33 +83,41 @@ class RawDashboardClient:
     def list_llm_metrics(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListLlmMetricsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListLlmMetricsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        fetch_filters: typing.Optional[ListLlmMetricsRequestFetchFilters] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.List[DashboardLlmMetricsRow]]:
         """
-        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day). Use `metrics_to_aggregate` to request a subset of metrics.
+        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day).
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListLlmMetricsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]]
-            Optional. If provided, the response includes only these metric fields. If omitted, all LLM metrics are returned.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        time_tick : typing.Optional[ListLlmMetricsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        fetch_filters : typing.Optional[ListLlmMetricsRequestFetchFilters]
+            Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
 
@@ -101,18 +132,22 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/llm-metrics/",
             method="POST",
-            json={
-                "metrics_to_aggregate": metrics_to_aggregate,
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+                "fetch_filters": fetch_filters,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -135,11 +170,13 @@ class RawDashboardClient:
     def get_llm_metrics_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[GetLlmMetricsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetLlmMetricsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        fetch_filters: typing.Optional[GetLlmMetricsSummaryRequestFetchFilters] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardLlmMetricsSummary]:
@@ -148,20 +185,26 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetLlmMetricsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]]
-            Optional. If provided, the response includes only these metric fields. If omitted, all LLM metrics are returned.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        time_tick : typing.Optional[GetLlmMetricsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        fetch_filters : typing.Optional[GetLlmMetricsSummaryRequestFetchFilters]
+            Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
 
@@ -176,18 +219,22 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/llm-metrics/summary/",
             method="POST",
-            json={
-                "metrics_to_aggregate": metrics_to_aggregate,
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+                "fetch_filters": fetch_filters,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -210,11 +257,14 @@ class RawDashboardClient:
     def list_quantiles(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListQuantilesRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListQuantilesRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         filters: typing.Optional[Filters] = OMIT,
+        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.List[DashboardQuantilesRow]]:
         """
@@ -222,19 +272,28 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListQuantilesRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListQuantilesRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+
+        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
+            Metric subset for quantile aggregation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -247,17 +306,22 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/quantiles/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
+                "metrics_to_aggregate": metrics_to_aggregate,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -280,11 +344,14 @@ class RawDashboardClient:
     def get_quantiles_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[GetQuantilesSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetQuantilesSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         filters: typing.Optional[Filters] = OMIT,
+        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardQuantilesSummary]:
         """
@@ -292,19 +359,28 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetQuantilesSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[GetQuantilesSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+
+        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
+            Metric subset for quantile aggregation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -317,17 +393,22 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/quantiles/summary/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
+                "metrics_to_aggregate": metrics_to_aggregate,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -350,12 +431,10 @@ class RawDashboardClient:
     def list_top_models(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopModelsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopModelsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardTopNResponse]:
@@ -364,9 +443,6 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopModelsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -378,9 +454,6 @@ class RawDashboardClient:
 
         sort_by : typing.Optional[ListTopModelsRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -400,7 +473,6 @@ class RawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -409,7 +481,6 @@ class RawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -432,12 +503,10 @@ class RawDashboardClient:
     def list_top_api_keys(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopApiKeysRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopApiKeysRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardTopNResponse]:
@@ -446,9 +515,6 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopApiKeysRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -460,9 +526,6 @@ class RawDashboardClient:
 
         sort_by : typing.Optional[ListTopApiKeysRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -482,7 +545,6 @@ class RawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -491,7 +553,6 @@ class RawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -514,12 +575,10 @@ class RawDashboardClient:
     def list_top_prompts(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopPromptsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopPromptsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardTopNResponse]:
@@ -528,9 +587,6 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopPromptsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -542,9 +598,6 @@ class RawDashboardClient:
 
         sort_by : typing.Optional[ListTopPromptsRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -564,7 +617,6 @@ class RawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -573,7 +625,6 @@ class RawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -596,12 +647,10 @@ class RawDashboardClient:
     def list_top_deployments(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopDeploymentsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopDeploymentsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardTopNResponse]:
@@ -610,9 +659,6 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopDeploymentsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -624,9 +670,6 @@ class RawDashboardClient:
 
         sort_by : typing.Optional[ListTopDeploymentsRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -646,7 +689,6 @@ class RawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -655,7 +697,6 @@ class RawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -678,12 +719,10 @@ class RawDashboardClient:
     def list_top_users(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopUsersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopUsersRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardTopNResponse]:
@@ -692,9 +731,6 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopUsersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -706,9 +742,6 @@ class RawDashboardClient:
 
         sort_by : typing.Optional[ListTopUsersRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -728,7 +761,6 @@ class RawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -737,7 +769,6 @@ class RawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -760,12 +791,10 @@ class RawDashboardClient:
     def list_top_providers(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopProvidersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopProvidersRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardTopNResponse]:
@@ -774,9 +803,6 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopProvidersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -788,9 +814,6 @@ class RawDashboardClient:
 
         sort_by : typing.Optional[ListTopProvidersRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -810,7 +833,6 @@ class RawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -819,7 +841,6 @@ class RawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -842,12 +863,13 @@ class RawDashboardClient:
     def list_metrics_breakdown(
         self,
         *,
-        authorization: str,
-        breakdown_by: DashboardBreakdownRequestBreakdownBy,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardBreakdownRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListMetricsBreakdownRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListMetricsBreakdownRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        breakdown_by: typing.Optional[ListMetricsBreakdownRequestBreakdownBy] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.List[DashboardBreakdownRow]]:
@@ -856,23 +878,26 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListMetricsBreakdownRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        breakdown_by : DashboardBreakdownRequestBreakdownBy
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
+
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
+
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListMetricsBreakdownRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        breakdown_by : typing.Optional[ListMetricsBreakdownRequestBreakdownBy]
             Dimension to break the time series down by.
-
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
-
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
-
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardBreakdownRequestMetricsToAggregateItem]]
-            Optional metric subset (default: all metrics).
-
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
 
         filters : typing.Optional[Filters]
 
@@ -887,19 +912,22 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/time-series/breakdown/",
             method="POST",
-            json={
-                "breakdown_by": breakdown_by,
-                "metrics_to_aggregate": metrics_to_aggregate,
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+                "breakdown_by": breakdown_by,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -922,10 +950,13 @@ class RawDashboardClient:
     def list_active_users(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListActiveUsersRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListActiveUsersRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        environment: typing.Optional[ListActiveUsersRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.List[DashboardUsersRow]]:
@@ -934,17 +965,26 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListActiveUsersRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListActiveUsersRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        environment : typing.Optional[ListActiveUsersRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
 
@@ -959,17 +999,22 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/users/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+                "environment": environment,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -990,34 +1035,13 @@ class RawDashboardClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def get_total_users(
-        self,
-        *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[DashboardTotalUsersSummary]:
         """
-        Returns the total unique user count for the time range.
+        Return the total customer-user count time series. Time controls are query parameters; the backend does not read a request body for this endpoint.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
-
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
-
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
-
-        filters : typing.Optional[Filters]
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1029,20 +1053,7 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/total-users/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
-                "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1062,11 +1073,12 @@ class RawDashboardClient:
     def list_cache_hit_metrics(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[ListCacheHitMetricsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListCacheHitMetricsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.List[DashboardCacheHitRow]]:
         """
@@ -1074,19 +1086,23 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListCacheHitMetricsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[ListCacheHitMetricsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1099,20 +1115,15 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/cache-hit-metrics/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1132,11 +1143,12 @@ class RawDashboardClient:
     def get_cache_hit_metrics_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetCacheHitMetricsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetCacheHitMetricsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardCacheHitSummary]:
         """
@@ -1144,19 +1156,23 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetCacheHitMetricsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetCacheHitMetricsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1169,20 +1185,15 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/cache-hit-metrics/summary/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1202,11 +1213,12 @@ class RawDashboardClient:
     def get_lifetime_cache_hit_totals(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetLifetimeCacheHitTotalsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetLifetimeCacheHitTotalsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardCacheHitSummary]:
         """
@@ -1214,19 +1226,23 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetLifetimeCacheHitTotalsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetLifetimeCacheHitTotalsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1239,20 +1255,15 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/cache-hit-metrics/total-summary/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1272,11 +1283,12 @@ class RawDashboardClient:
     def list_eval_results(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[ListEvalResultsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListEvalResultsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.List[DashboardEvalResultsRow]]:
         """
@@ -1284,19 +1296,23 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListEvalResultsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[ListEvalResultsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1309,20 +1325,15 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/eval-results/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1342,11 +1353,12 @@ class RawDashboardClient:
     def get_eval_results_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetEvalResultsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetEvalResultsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardEvalResultsSummary]:
         """
@@ -1354,19 +1366,23 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetEvalResultsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetEvalResultsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1379,20 +1395,15 @@ class RawDashboardClient:
         _response = self._client_wrapper.httpx_client.request(
             "api/dashboard/eval-results/summary/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1412,10 +1423,9 @@ class RawDashboardClient:
     def list_storage_volume(
         self,
         *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[ListStorageVolumeRequestTimeTick] = None,
+        summary_type: typing.Optional[ListStorageVolumeRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.List[DashboardStorageRow]]:
         """
@@ -1423,17 +1433,14 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListStorageVolumeRequestSummaryType]
+            Preset time range for the storage volume query.
 
-        start_time : typing.Optional[dt.datetime]
-            ISO start time.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : typing.Optional[dt.datetime]
-            ISO end time.
-
-        time_tick : typing.Optional[ListStorageVolumeRequestTimeTick]
-            Bucket granularity.
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1447,12 +1454,9 @@ class RawDashboardClient:
             "api/dashboard/storage-volume/",
             method="GET",
             params={
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "time_tick": time_tick,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
         )
@@ -1474,10 +1478,9 @@ class RawDashboardClient:
     def get_storage_volume_summary(
         self,
         *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[GetStorageVolumeSummaryRequestTimeTick] = None,
+        summary_type: typing.Optional[GetStorageVolumeSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DashboardStorageSummary]:
         """
@@ -1485,17 +1488,14 @@ class RawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetStorageVolumeSummaryRequestSummaryType]
+            Preset time range for the storage volume query.
 
-        start_time : typing.Optional[dt.datetime]
-            ISO start time.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : typing.Optional[dt.datetime]
-            ISO end time.
-
-        time_tick : typing.Optional[GetStorageVolumeSummaryRequestTimeTick]
-            Bucket granularity.
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1509,12 +1509,9 @@ class RawDashboardClient:
             "api/dashboard/storage-volume/summary/",
             method="GET",
             params={
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "time_tick": time_tick,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
         )
@@ -1586,33 +1583,41 @@ class AsyncRawDashboardClient:
     async def list_llm_metrics(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListLlmMetricsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListLlmMetricsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        fetch_filters: typing.Optional[ListLlmMetricsRequestFetchFilters] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.List[DashboardLlmMetricsRow]]:
         """
-        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day). Use `metrics_to_aggregate` to request a subset of metrics.
+        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day).
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListLlmMetricsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]]
-            Optional. If provided, the response includes only these metric fields. If omitted, all LLM metrics are returned.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        time_tick : typing.Optional[ListLlmMetricsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        fetch_filters : typing.Optional[ListLlmMetricsRequestFetchFilters]
+            Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
 
@@ -1627,18 +1632,22 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/llm-metrics/",
             method="POST",
-            json={
-                "metrics_to_aggregate": metrics_to_aggregate,
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+                "fetch_filters": fetch_filters,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1661,11 +1670,13 @@ class AsyncRawDashboardClient:
     async def get_llm_metrics_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[GetLlmMetricsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetLlmMetricsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        fetch_filters: typing.Optional[GetLlmMetricsSummaryRequestFetchFilters] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardLlmMetricsSummary]:
@@ -1674,20 +1685,26 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetLlmMetricsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardLlmMetricsRequestMetricsToAggregateItem]]
-            Optional. If provided, the response includes only these metric fields. If omitted, all LLM metrics are returned.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        time_tick : typing.Optional[GetLlmMetricsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        fetch_filters : typing.Optional[GetLlmMetricsSummaryRequestFetchFilters]
+            Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
 
@@ -1702,18 +1719,22 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/llm-metrics/summary/",
             method="POST",
-            json={
-                "metrics_to_aggregate": metrics_to_aggregate,
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+                "fetch_filters": fetch_filters,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1736,11 +1757,14 @@ class AsyncRawDashboardClient:
     async def list_quantiles(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListQuantilesRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListQuantilesRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         filters: typing.Optional[Filters] = OMIT,
+        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.List[DashboardQuantilesRow]]:
         """
@@ -1748,19 +1772,28 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListQuantilesRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListQuantilesRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+
+        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
+            Metric subset for quantile aggregation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1773,17 +1806,22 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/quantiles/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
+                "metrics_to_aggregate": metrics_to_aggregate,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1806,11 +1844,14 @@ class AsyncRawDashboardClient:
     async def get_quantiles_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[GetQuantilesSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetQuantilesSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         filters: typing.Optional[Filters] = OMIT,
+        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardQuantilesSummary]:
         """
@@ -1818,19 +1859,28 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetQuantilesSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[GetQuantilesSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+
+        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
+            Metric subset for quantile aggregation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1843,17 +1893,22 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/quantiles/summary/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
+                "metrics_to_aggregate": metrics_to_aggregate,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1876,12 +1931,10 @@ class AsyncRawDashboardClient:
     async def list_top_models(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopModelsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopModelsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardTopNResponse]:
@@ -1890,9 +1943,6 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopModelsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -1904,9 +1954,6 @@ class AsyncRawDashboardClient:
 
         sort_by : typing.Optional[ListTopModelsRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -1926,7 +1973,6 @@ class AsyncRawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -1935,7 +1981,6 @@ class AsyncRawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1958,12 +2003,10 @@ class AsyncRawDashboardClient:
     async def list_top_api_keys(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopApiKeysRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopApiKeysRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardTopNResponse]:
@@ -1972,9 +2015,6 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopApiKeysRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -1986,9 +2026,6 @@ class AsyncRawDashboardClient:
 
         sort_by : typing.Optional[ListTopApiKeysRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -2008,7 +2045,6 @@ class AsyncRawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -2017,7 +2053,6 @@ class AsyncRawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2040,12 +2075,10 @@ class AsyncRawDashboardClient:
     async def list_top_prompts(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopPromptsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopPromptsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardTopNResponse]:
@@ -2054,9 +2087,6 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopPromptsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -2068,9 +2098,6 @@ class AsyncRawDashboardClient:
 
         sort_by : typing.Optional[ListTopPromptsRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -2090,7 +2117,6 @@ class AsyncRawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -2099,7 +2125,6 @@ class AsyncRawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2122,12 +2147,10 @@ class AsyncRawDashboardClient:
     async def list_top_deployments(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopDeploymentsRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopDeploymentsRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardTopNResponse]:
@@ -2136,9 +2159,6 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopDeploymentsRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -2150,9 +2170,6 @@ class AsyncRawDashboardClient:
 
         sort_by : typing.Optional[ListTopDeploymentsRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -2172,7 +2189,6 @@ class AsyncRawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -2181,7 +2197,6 @@ class AsyncRawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2204,12 +2219,10 @@ class AsyncRawDashboardClient:
     async def list_top_users(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopUsersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopUsersRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardTopNResponse]:
@@ -2218,9 +2231,6 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopUsersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -2232,9 +2242,6 @@ class AsyncRawDashboardClient:
 
         sort_by : typing.Optional[ListTopUsersRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -2254,7 +2261,6 @@ class AsyncRawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -2263,7 +2269,6 @@ class AsyncRawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2286,12 +2291,10 @@ class AsyncRawDashboardClient:
     async def list_top_providers(
         self,
         *,
-        authorization: str,
         summary_type: typing.Optional[ListTopProvidersRequestSummaryType] = None,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         sort_by: typing.Optional[ListTopProvidersRequestSortBy] = None,
-        limit: typing.Optional[int] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardTopNResponse]:
@@ -2300,9 +2303,6 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         summary_type : typing.Optional[ListTopProvidersRequestSummaryType]
             Preset time range. Use this OR `start_time`/`end_time`.
 
@@ -2314,9 +2314,6 @@ class AsyncRawDashboardClient:
 
         sort_by : typing.Optional[ListTopProvidersRequestSortBy]
             Metric to sort the ranking by.
-
-        limit : typing.Optional[int]
-            Maximum number of rows to return.
 
         filters : typing.Optional[Filters]
 
@@ -2336,7 +2333,6 @@ class AsyncRawDashboardClient:
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "sort_by": sort_by,
-                "limit": limit,
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
@@ -2345,7 +2341,6 @@ class AsyncRawDashboardClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2368,12 +2363,13 @@ class AsyncRawDashboardClient:
     async def list_metrics_breakdown(
         self,
         *,
-        authorization: str,
-        breakdown_by: DashboardBreakdownRequestBreakdownBy,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        metrics_to_aggregate: typing.Optional[typing.Sequence[DashboardBreakdownRequestMetricsToAggregateItem]] = OMIT,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListMetricsBreakdownRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListMetricsBreakdownRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        breakdown_by: typing.Optional[ListMetricsBreakdownRequestBreakdownBy] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.List[DashboardBreakdownRow]]:
@@ -2382,23 +2378,26 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListMetricsBreakdownRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        breakdown_by : DashboardBreakdownRequestBreakdownBy
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
+
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
+
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListMetricsBreakdownRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        breakdown_by : typing.Optional[ListMetricsBreakdownRequestBreakdownBy]
             Dimension to break the time series down by.
-
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
-
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
-
-        metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardBreakdownRequestMetricsToAggregateItem]]
-            Optional metric subset (default: all metrics).
-
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
 
         filters : typing.Optional[Filters]
 
@@ -2413,19 +2412,22 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/time-series/breakdown/",
             method="POST",
-            json={
-                "breakdown_by": breakdown_by,
-                "metrics_to_aggregate": metrics_to_aggregate,
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+                "breakdown_by": breakdown_by,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2448,10 +2450,13 @@ class AsyncRawDashboardClient:
     async def list_active_users(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
+        summary_type: typing.Optional[ListActiveUsersRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListActiveUsersRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
+        environment: typing.Optional[ListActiveUsersRequestEnvironment] = None,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.List[DashboardUsersRow]]:
@@ -2460,17 +2465,26 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListActiveUsersRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
+
+        time_tick : typing.Optional[ListActiveUsersRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
+
+        environment : typing.Optional[ListActiveUsersRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
 
@@ -2485,17 +2499,22 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/users/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
+                "timezone_offset": timezone_offset,
+                "environment": environment,
+            },
+            json={
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2516,34 +2535,13 @@ class AsyncRawDashboardClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def get_total_users(
-        self,
-        *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[DashboardTotalUsersSummary]:
         """
-        Returns the total unique user count for the time range.
+        Return the total customer-user count time series. Time controls are query parameters; the backend does not read a request body for this endpoint.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
-
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
-
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
-
-        filters : typing.Optional[Filters]
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -2555,20 +2553,7 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/total-users/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
-                "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -2588,11 +2573,12 @@ class AsyncRawDashboardClient:
     async def list_cache_hit_metrics(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[ListCacheHitMetricsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListCacheHitMetricsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.List[DashboardCacheHitRow]]:
         """
@@ -2600,19 +2586,23 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListCacheHitMetricsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[ListCacheHitMetricsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2625,20 +2615,15 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/cache-hit-metrics/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -2658,11 +2643,12 @@ class AsyncRawDashboardClient:
     async def get_cache_hit_metrics_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetCacheHitMetricsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetCacheHitMetricsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardCacheHitSummary]:
         """
@@ -2670,19 +2656,23 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetCacheHitMetricsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetCacheHitMetricsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2695,20 +2685,15 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/cache-hit-metrics/summary/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -2728,11 +2713,12 @@ class AsyncRawDashboardClient:
     async def get_lifetime_cache_hit_totals(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetLifetimeCacheHitTotalsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetLifetimeCacheHitTotalsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardCacheHitSummary]:
         """
@@ -2740,19 +2726,23 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetLifetimeCacheHitTotalsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetLifetimeCacheHitTotalsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2765,20 +2755,15 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/cache-hit-metrics/total-summary/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -2798,11 +2783,12 @@ class AsyncRawDashboardClient:
     async def list_eval_results(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[ListEvalResultsRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[ListEvalResultsRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.List[DashboardEvalResultsRow]]:
         """
@@ -2810,19 +2796,23 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListEvalResultsRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[ListEvalResultsRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2835,20 +2825,15 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/eval-results/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -2868,11 +2853,12 @@ class AsyncRawDashboardClient:
     async def get_eval_results_summary(
         self,
         *,
-        authorization: str,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        time_tick: typing.Optional[DashboardTimeRangeRequestTimeTick] = OMIT,
-        filters: typing.Optional[Filters] = OMIT,
+        summary_type: typing.Optional[GetEvalResultsSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        time_tick: typing.Optional[GetEvalResultsSummaryRequestTimeTick] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardEvalResultsSummary]:
         """
@@ -2880,19 +2866,23 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetEvalResultsSummaryRequestSummaryType]
+            Preset time range. Use this or explicit `start_time` / `end_time`.
 
-        start_time : dt.datetime
-            Inclusive start of the range, ISO 8601.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : dt.datetime
-            Inclusive end of the range, ISO 8601.
+        start_time : typing.Optional[dt.datetime]
+            Optional explicit ISO start time.
 
-        time_tick : typing.Optional[DashboardTimeRangeRequestTimeTick]
-            Bucket granularity for time-series endpoints. If omitted, inferred from the range. Has no effect on `/summary/` endpoints.
+        end_time : typing.Optional[dt.datetime]
+            Optional explicit ISO end time.
 
-        filters : typing.Optional[Filters]
+        time_tick : typing.Optional[GetEvalResultsSummaryRequestTimeTick]
+            Bucket granularity for time-series responses.
+
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2905,20 +2895,15 @@ class AsyncRawDashboardClient:
         _response = await self._client_wrapper.httpx_client.request(
             "api/dashboard/eval-results/summary/",
             method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
+            params={
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "time_tick": time_tick,
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -2938,10 +2923,9 @@ class AsyncRawDashboardClient:
     async def list_storage_volume(
         self,
         *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[ListStorageVolumeRequestTimeTick] = None,
+        summary_type: typing.Optional[ListStorageVolumeRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.List[DashboardStorageRow]]:
         """
@@ -2949,17 +2933,14 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[ListStorageVolumeRequestSummaryType]
+            Preset time range for the storage volume query.
 
-        start_time : typing.Optional[dt.datetime]
-            ISO start time.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : typing.Optional[dt.datetime]
-            ISO end time.
-
-        time_tick : typing.Optional[ListStorageVolumeRequestTimeTick]
-            Bucket granularity.
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2973,12 +2954,9 @@ class AsyncRawDashboardClient:
             "api/dashboard/storage-volume/",
             method="GET",
             params={
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "time_tick": time_tick,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
         )
@@ -3000,10 +2978,9 @@ class AsyncRawDashboardClient:
     async def get_storage_volume_summary(
         self,
         *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        time_tick: typing.Optional[GetStorageVolumeSummaryRequestTimeTick] = None,
+        summary_type: typing.Optional[GetStorageVolumeSummaryRequestSummaryType] = None,
+        date: typing.Optional[dt.date] = None,
+        timezone_offset: typing.Optional[float] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DashboardStorageSummary]:
         """
@@ -3011,17 +2988,14 @@ class AsyncRawDashboardClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        summary_type : typing.Optional[GetStorageVolumeSummaryRequestSummaryType]
+            Preset time range for the storage volume query.
 
-        start_time : typing.Optional[dt.datetime]
-            ISO start time.
+        date : typing.Optional[dt.date]
+            Base date used with `summary_type` presets.
 
-        end_time : typing.Optional[dt.datetime]
-            ISO end time.
-
-        time_tick : typing.Optional[GetStorageVolumeSummaryRequestTimeTick]
-            Bucket granularity.
+        timezone_offset : typing.Optional[float]
+            Timezone offset, in hours, used when resolving preset ranges.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -3035,12 +3009,9 @@ class AsyncRawDashboardClient:
             "api/dashboard/storage-volume/summary/",
             method="GET",
             params={
-                "start_time": serialize_datetime(start_time) if start_time is not None else None,
-                "end_time": serialize_datetime(end_time) if end_time is not None else None,
-                "time_tick": time_tick,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+                "summary_type": summary_type,
+                "date": str(date) if date is not None else None,
+                "timezone_offset": timezone_offset,
             },
             request_options=request_options,
         )

@@ -8,7 +8,6 @@ from importlib import import_module
 if typing.TYPE_CHECKING:
     from .delete_user_request_environment import DeleteUserRequestEnvironment
     from .list_customers_request_environment import ListCustomersRequestEnvironment
-    from .list_customers_request_operator import ListCustomersRequestOperator
     from .list_customers_response import ListCustomersResponse
     from .list_customers_response_results_item import ListCustomersResponseResultsItem
     from .list_customers_response_results_item_budget_duration import ListCustomersResponseResultsItemBudgetDuration
@@ -25,7 +24,6 @@ if typing.TYPE_CHECKING:
 _dynamic_imports: typing.Dict[str, str] = {
     "DeleteUserRequestEnvironment": ".delete_user_request_environment",
     "ListCustomersRequestEnvironment": ".list_customers_request_environment",
-    "ListCustomersRequestOperator": ".list_customers_request_operator",
     "ListCustomersResponse": ".list_customers_response",
     "ListCustomersResponseResultsItem": ".list_customers_response_results_item",
     "ListCustomersResponseResultsItemBudgetDuration": ".list_customers_response_results_item_budget_duration",
@@ -66,7 +64,6 @@ def __dir__():
 __all__ = [
     "DeleteUserRequestEnvironment",
     "ListCustomersRequestEnvironment",
-    "ListCustomersRequestOperator",
     "ListCustomersResponse",
     "ListCustomersResponseResultsItem",
     "ListCustomersResponseResultsItemBudgetDuration",

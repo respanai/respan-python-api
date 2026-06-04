@@ -5,12 +5,10 @@ import typing
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawCachesClient, RawCachesClient
-from .types.delete_all_cached_responses_response import DeleteAllCachedResponsesResponse
+from .types.bulk_delete_cached_responses_response import BulkDeleteCachedResponsesResponse
 from .types.delete_cached_responses_response import DeleteCachedResponsesResponse
 from .types.filter_cached_responses_response import FilterCachedResponsesResponse
-from .types.get_cached_responses_summary_response import GetCachedResponsesSummaryResponse
 from .types.get_filtered_cached_responses_summary_response import GetFilteredCachedResponsesSummaryResponse
-from .types.list_cached_responses_response import ListCachedResponsesResponse
 from .types.retrieve_cached_response_response import RetrieveCachedResponseResponse
 
 # this is used as the default value for optional parameters
@@ -32,67 +30,19 @@ class CachesClient:
         """
         return self._raw_client
 
-    def list_cached_responses(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListCachedResponsesResponse:
-        """
-        List cached responses with pagination and live hit count enrichment. Returns organization-level cache savings in `summary` and paginated cache entries in `data`. This cache management endpoint currently requires dashboard JWT authentication.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 1000.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListCachedResponsesResponse
-            Cached responses plus aggregate cache savings.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.caches.list_cached_responses(
-            authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-        )
-        """
-        _response = self._raw_client.list_cached_responses(
-            authorization=authorization, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
     def filter_cached_responses(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterCachedResponsesResponse:
         """
-        List cached responses using POST-for-filtering. This endpoint returns the same response shape as `GET /api/caches/` and currently requires dashboard JWT authentication.
+        List cached responses using POST-for-filtering. This endpoint accepts filters in the request body and currently requires dashboard JWT authentication.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
         page : typing.Optional[int]
             Page number.
 
@@ -114,33 +64,26 @@ class CachesClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.caches.filter_cached_responses(
-            authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.caches.filter_cached_responses()
         """
         _response = self._raw_client.filter_cached_responses(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            filters=filters,
-            request_options=request_options,
+            page=page, page_size=page_size, filters=filters, request_options=request_options
         )
         return _response.data
 
     def delete_cached_responses(
-        self, *, authorization: str, ids: typing.Sequence[int], request_options: typing.Optional[RequestOptions] = None
+        self, *, ids: typing.Sequence[int], request_options: typing.Optional[RequestOptions] = None
     ) -> DeleteCachedResponsesResponse:
         """
-        Delete cached responses in bulk by numeric cache entry ID. This cache management endpoint currently requires dashboard JWT authentication. To remove every cached response for the current organization, use `DELETE /api/caches/delete-all/`.
+        Deprecated bulk delete endpoint for numeric internal cache entry IDs. Use `DELETE /api/caches/bulk/` for supported bulk deletion by `cache_keys` or `all`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
         ids : typing.Sequence[int]
-            Numeric cache entry IDs to delete.
+            Numeric internal cache entry IDs to delete. JWT only.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -154,19 +97,18 @@ class CachesClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.caches.delete_cached_responses(
-            authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
             ids=[123, 124, 125],
         )
         """
-        _response = self._raw_client.delete_cached_responses(
-            authorization=authorization, ids=ids, request_options=request_options
-        )
+        _response = self._raw_client.delete_cached_responses(ids=ids, request_options=request_options)
         return _response.data
 
     def retrieve_cached_response(
-        self, id: int, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCachedResponseResponse:
         """
         Retrieve a single cached response by numeric cache entry ID. The current backend route is `/api/cache/{id}/`; there is no public lookup route by `cache_key`. This cache management endpoint currently requires dashboard JWT authentication.
@@ -175,9 +117,6 @@ class CachesClient:
         ----------
         id : int
             Numeric cache entry ID returned by the list endpoint.
-
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -191,54 +130,19 @@ class CachesClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.caches.retrieve_cached_response(
             id=1,
-            authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
         )
         """
-        _response = self._raw_client.retrieve_cached_response(
-            id, authorization=authorization, request_options=request_options
-        )
-        return _response.data
-
-    def get_cached_responses_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetCachedResponsesSummaryResponse:
-        """
-        Return the total number of cached responses. This endpoint supports both JWT and API key authentication.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetCachedResponsesSummaryResponse
-            Summary statistics for cached responses.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.caches.get_cached_responses_summary(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.get_cached_responses_summary(
-            authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_cached_response(id, request_options=request_options)
         return _response.data
 
     def get_filtered_cached_responses_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredCachedResponsesSummaryResponse:
@@ -247,9 +151,6 @@ class CachesClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -265,47 +166,46 @@ class CachesClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.caches.get_filtered_cached_responses_summary(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.caches.get_filtered_cached_responses_summary()
         """
         _response = self._raw_client.get_filtered_cached_responses_summary(
-            authorization=authorization, filters=filters, request_options=request_options
+            filters=filters, request_options=request_options
         )
         return _response.data
 
-    def delete_all_cached_responses(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> DeleteAllCachedResponsesResponse:
+    def bulk_delete_cached_responses(
+        self, *, request: typing.Any, request_options: typing.Optional[RequestOptions] = None
+    ) -> BulkDeleteCachedResponsesResponse:
         """
-        Delete all cached responses for the current organization. This cache management endpoint currently requires dashboard JWT authentication.
+        Bulk delete cached responses. Provide exactly one of `cache_keys`, `ids`, or `all`. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
+        request : typing.Any
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        DeleteAllCachedResponsesResponse
-            Delete-all result.
+        BulkDeleteCachedResponsesResponse
+            Bulk delete result.
 
         Examples
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.caches.delete_all_cached_responses(
-            authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.caches.bulk_delete_cached_responses(
+            request={"cache_keys": ["cached_response_550e8400"]},
         )
         """
-        _response = self._raw_client.delete_all_cached_responses(
-            authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.bulk_delete_cached_responses(request=request, request_options=request_options)
         return _response.data
 
 
@@ -324,75 +224,19 @@ class AsyncCachesClient:
         """
         return self._raw_client
 
-    async def list_cached_responses(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListCachedResponsesResponse:
-        """
-        List cached responses with pagination and live hit count enrichment. Returns organization-level cache savings in `summary` and paginated cache entries in `data`. This cache management endpoint currently requires dashboard JWT authentication.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 1000.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListCachedResponsesResponse
-            Cached responses plus aggregate cache savings.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.caches.list_cached_responses(
-                authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_cached_responses(
-            authorization=authorization, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
     async def filter_cached_responses(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterCachedResponsesResponse:
         """
-        List cached responses using POST-for-filtering. This endpoint returns the same response shape as `GET /api/caches/` and currently requires dashboard JWT authentication.
+        List cached responses using POST-for-filtering. This endpoint accepts filters in the request body and currently requires dashboard JWT authentication.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
         page : typing.Optional[int]
             Page number.
 
@@ -416,39 +260,32 @@ class AsyncCachesClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.caches.filter_cached_responses(
-                authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-            )
+            await client.caches.filter_cached_responses()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.filter_cached_responses(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            filters=filters,
-            request_options=request_options,
+            page=page, page_size=page_size, filters=filters, request_options=request_options
         )
         return _response.data
 
     async def delete_cached_responses(
-        self, *, authorization: str, ids: typing.Sequence[int], request_options: typing.Optional[RequestOptions] = None
+        self, *, ids: typing.Sequence[int], request_options: typing.Optional[RequestOptions] = None
     ) -> DeleteCachedResponsesResponse:
         """
-        Delete cached responses in bulk by numeric cache entry ID. This cache management endpoint currently requires dashboard JWT authentication. To remove every cached response for the current organization, use `DELETE /api/caches/delete-all/`.
+        Deprecated bulk delete endpoint for numeric internal cache entry IDs. Use `DELETE /api/caches/bulk/` for supported bulk deletion by `cache_keys` or `all`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
-
         ids : typing.Sequence[int]
-            Numeric cache entry IDs to delete.
+            Numeric internal cache entry IDs to delete. JWT only.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -464,25 +301,24 @@ class AsyncCachesClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.caches.delete_cached_responses(
-                authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 ids=[123, 124, 125],
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_cached_responses(
-            authorization=authorization, ids=ids, request_options=request_options
-        )
+        _response = await self._raw_client.delete_cached_responses(ids=ids, request_options=request_options)
         return _response.data
 
     async def retrieve_cached_response(
-        self, id: int, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCachedResponseResponse:
         """
         Retrieve a single cached response by numeric cache entry ID. The current backend route is `/api/cache/{id}/`; there is no public lookup route by `cache_key`. This cache management endpoint currently requires dashboard JWT authentication.
@@ -491,9 +327,6 @@ class AsyncCachesClient:
         ----------
         id : int
             Numeric cache entry ID returned by the list endpoint.
-
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -509,68 +342,25 @@ class AsyncCachesClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.caches.retrieve_cached_response(
                 id=1,
-                authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_cached_response(
-            id, authorization=authorization, request_options=request_options
-        )
-        return _response.data
-
-    async def get_cached_responses_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetCachedResponsesSummaryResponse:
-        """
-        Return the total number of cached responses. This endpoint supports both JWT and API key authentication.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetCachedResponsesSummaryResponse
-            Summary statistics for cached responses.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.caches.get_cached_responses_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_cached_responses_summary(
-            authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_cached_response(id, request_options=request_options)
         return _response.data
 
     async def get_filtered_cached_responses_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredCachedResponsesSummaryResponse:
@@ -579,9 +369,6 @@ class AsyncCachesClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -599,40 +386,39 @@ class AsyncCachesClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.caches.get_filtered_cached_responses_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.caches.get_filtered_cached_responses_summary()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_filtered_cached_responses_summary(
-            authorization=authorization, filters=filters, request_options=request_options
+            filters=filters, request_options=request_options
         )
         return _response.data
 
-    async def delete_all_cached_responses(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> DeleteAllCachedResponsesResponse:
+    async def bulk_delete_cached_responses(
+        self, *, request: typing.Any, request_options: typing.Optional[RequestOptions] = None
+    ) -> BulkDeleteCachedResponsesResponse:
         """
-        Delete all cached responses for the current organization. This cache management endpoint currently requires dashboard JWT authentication.
+        Bulk delete cached responses. Provide exactly one of `cache_keys`, `ids`, or `all`. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer JWT token for dashboard-authenticated cache management endpoints.
+        request : typing.Any
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        DeleteAllCachedResponsesResponse
-            Delete-all result.
+        BulkDeleteCachedResponsesResponse
+            Bulk delete result.
 
         Examples
         --------
@@ -640,18 +426,20 @@ class AsyncCachesClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.caches.delete_all_cached_responses(
-                authorization="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            await client.caches.bulk_delete_cached_responses(
+                request={"cache_keys": ["cached_response_550e8400"]},
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_all_cached_responses(
-            authorization=authorization, request_options=request_options
+        _response = await self._raw_client.bulk_delete_cached_responses(
+            request=request, request_options=request_options
         )
         return _response.data

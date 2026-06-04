@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import typing
 
 import httpx
@@ -50,6 +51,7 @@ class RespanClient:
 
 
 
+    respan_api_key : typing.Optional[typing.Union[str, typing.Callable[[], str]]]
     headers : typing.Optional[typing.Dict[str, str]]
         Additional headers to send with every request.
 
@@ -69,7 +71,9 @@ class RespanClient:
     --------
     from respan import RespanClient
 
-    client = RespanClient()
+    client = RespanClient(
+        respan_api_key="YOUR_RESPAN_API_KEY",
+    )
     """
 
     def __init__(
@@ -77,6 +81,7 @@ class RespanClient:
         *,
         base_url: typing.Optional[str] = None,
         environment: RespanClientEnvironment = RespanClientEnvironment.DEFAULT,
+        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("RESPAN_API_KEY"),
         headers: typing.Optional[typing.Dict[str, str]] = None,
         timeout: typing.Optional[float] = None,
         follow_redirects: typing.Optional[bool] = True,
@@ -88,6 +93,7 @@ class RespanClient:
         )
         self._client_wrapper = SyncClientWrapper(
             base_url=_get_base_url(base_url=base_url, environment=environment),
+            respan_api_key=respan_api_key,
             headers=headers,
             httpx_client=httpx_client
             if httpx_client is not None
@@ -100,7 +106,6 @@ class RespanClient:
         self._traces: typing.Optional[TracesClient] = None
         self._spans: typing.Optional[SpansClient] = None
         self._caches: typing.Optional[CachesClient] = None
-        self._health: typing.Optional[HealthClient] = None
         self._threads: typing.Optional[ThreadsClient] = None
         self._users: typing.Optional[UsersClient] = None
         self._gateway: typing.Optional[GatewayClient] = None
@@ -117,6 +122,7 @@ class RespanClient:
         self._credit_transactions: typing.Optional[CreditTransactionsClient] = None
         self._workflows: typing.Optional[WorkflowsClient] = None
         self._dashboard: typing.Optional[DashboardClient] = None
+        self._health: typing.Optional[HealthClient] = None
 
     @property
     def traces(self):
@@ -141,14 +147,6 @@ class RespanClient:
 
             self._caches = CachesClient(client_wrapper=self._client_wrapper)
         return self._caches
-
-    @property
-    def health(self):
-        if self._health is None:
-            from .health.client import HealthClient  # noqa: E402
-
-            self._health = HealthClient(client_wrapper=self._client_wrapper)
-        return self._health
 
     @property
     def threads(self):
@@ -278,6 +276,14 @@ class RespanClient:
             self._dashboard = DashboardClient(client_wrapper=self._client_wrapper)
         return self._dashboard
 
+    @property
+    def health(self):
+        if self._health is None:
+            from .health.client import HealthClient  # noqa: E402
+
+            self._health = HealthClient(client_wrapper=self._client_wrapper)
+        return self._health
+
 
 class AsyncRespanClient:
     """
@@ -297,6 +303,7 @@ class AsyncRespanClient:
 
 
 
+    respan_api_key : typing.Optional[typing.Union[str, typing.Callable[[], str]]]
     headers : typing.Optional[typing.Dict[str, str]]
         Additional headers to send with every request.
 
@@ -316,7 +323,9 @@ class AsyncRespanClient:
     --------
     from respan import AsyncRespanClient
 
-    client = AsyncRespanClient()
+    client = AsyncRespanClient(
+        respan_api_key="YOUR_RESPAN_API_KEY",
+    )
     """
 
     def __init__(
@@ -324,6 +333,7 @@ class AsyncRespanClient:
         *,
         base_url: typing.Optional[str] = None,
         environment: RespanClientEnvironment = RespanClientEnvironment.DEFAULT,
+        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("RESPAN_API_KEY"),
         headers: typing.Optional[typing.Dict[str, str]] = None,
         timeout: typing.Optional[float] = None,
         follow_redirects: typing.Optional[bool] = True,
@@ -335,6 +345,7 @@ class AsyncRespanClient:
         )
         self._client_wrapper = AsyncClientWrapper(
             base_url=_get_base_url(base_url=base_url, environment=environment),
+            respan_api_key=respan_api_key,
             headers=headers,
             httpx_client=httpx_client
             if httpx_client is not None
@@ -347,7 +358,6 @@ class AsyncRespanClient:
         self._traces: typing.Optional[AsyncTracesClient] = None
         self._spans: typing.Optional[AsyncSpansClient] = None
         self._caches: typing.Optional[AsyncCachesClient] = None
-        self._health: typing.Optional[AsyncHealthClient] = None
         self._threads: typing.Optional[AsyncThreadsClient] = None
         self._users: typing.Optional[AsyncUsersClient] = None
         self._gateway: typing.Optional[AsyncGatewayClient] = None
@@ -364,6 +374,7 @@ class AsyncRespanClient:
         self._credit_transactions: typing.Optional[AsyncCreditTransactionsClient] = None
         self._workflows: typing.Optional[AsyncWorkflowsClient] = None
         self._dashboard: typing.Optional[AsyncDashboardClient] = None
+        self._health: typing.Optional[AsyncHealthClient] = None
 
     @property
     def traces(self):
@@ -388,14 +399,6 @@ class AsyncRespanClient:
 
             self._caches = AsyncCachesClient(client_wrapper=self._client_wrapper)
         return self._caches
-
-    @property
-    def health(self):
-        if self._health is None:
-            from .health.client import AsyncHealthClient  # noqa: E402
-
-            self._health = AsyncHealthClient(client_wrapper=self._client_wrapper)
-        return self._health
 
     @property
     def threads(self):
@@ -524,6 +527,14 @@ class AsyncRespanClient:
 
             self._dashboard = AsyncDashboardClient(client_wrapper=self._client_wrapper)
         return self._dashboard
+
+    @property
+    def health(self):
+        if self._health is None:
+            from .health.client import AsyncHealthClient  # noqa: E402
+
+            self._health = AsyncHealthClient(client_wrapper=self._client_wrapper)
+        return self._health
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: RespanClientEnvironment) -> str:

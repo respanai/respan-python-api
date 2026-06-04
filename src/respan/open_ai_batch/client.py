@@ -15,8 +15,6 @@ from .types.delete_file_response import DeleteFileResponse
 from .types.filter_batch_jobs_response import FilterBatchJobsResponse
 from .types.filter_batch_jobs_response_results_item import FilterBatchJobsResponseResultsItem
 from .types.filter_batch_jobs_summary_response import FilterBatchJobsSummaryResponse
-from .types.get_batch_jobs_summary_response import GetBatchJobsSummaryResponse
-from .types.list_batches_response import ListBatchesResponse
 from .types.list_files_response import ListFilesResponse
 from .types.retrieve_batch_response import RetrieveBatchResponse
 from .types.retrieve_file_response import RetrieveFileResponse
@@ -41,17 +39,12 @@ class OpenAiBatchClient:
         """
         return self._raw_client
 
-    def list_files(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> ListFilesResponse:
+    def list_files(self, *, request_options: typing.Optional[RequestOptions] = None) -> ListFilesResponse:
         """
         List files from the upstream OpenAI Files API using the authenticated organization key's OpenAI credentials.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -64,30 +57,22 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.open_ai_batch.list_files(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.open_ai_batch.list_files()
         """
-        _response = self._raw_client.list_files(authorization=authorization, request_options=request_options)
+        _response = self._raw_client.list_files(request_options=request_options)
         return _response.data
 
     def upload_file(
-        self,
-        *,
-        authorization: str,
-        file: core.File,
-        purpose: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, *, file: core.File, purpose: str, request_options: typing.Optional[RequestOptions] = None
     ) -> UploadFileResponse:
         """
         Upload a file to the upstream OpenAI Files API. Batch jobs use JSONL files with `purpose=batch`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         file : core.File
             See core.File for more documentation
 
@@ -106,19 +91,18 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.open_ai_batch.upload_file(
-            authorization="Bearer sk_live_xxxxx",
             purpose="purpose",
         )
         """
-        _response = self._raw_client.upload_file(
-            authorization=authorization, file=file, purpose=purpose, request_options=request_options
-        )
+        _response = self._raw_client.upload_file(file=file, purpose=purpose, request_options=request_options)
         return _response.data
 
     def retrieve_file(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveFileResponse:
         """
         Retrieve metadata for a file from the upstream OpenAI Files API.
@@ -127,9 +111,6 @@ class OpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -143,19 +124,18 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.open_ai_batch.retrieve_file(
             file_id="file-abc123",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_file(
-            file_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_file(file_id, request_options=request_options)
         return _response.data
 
     def delete_file(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> DeleteFileResponse:
         """
         Delete a file from the upstream OpenAI Files API.
@@ -164,9 +144,6 @@ class OpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -180,17 +157,18 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.open_ai_batch.delete_file(
             file_id="file-abc123",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_file(file_id, authorization=authorization, request_options=request_options)
+        _response = self._raw_client.delete_file(file_id, request_options=request_options)
         return _response.data
 
     def retrieve_file_content(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.Iterator[bytes]:
         """
         Download file content. Batch output files are returned as JSONL.
@@ -199,9 +177,6 @@ class OpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -215,73 +190,19 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.open_ai_batch.retrieve_file_content(
             file_id="file_id",
-            authorization="authorization",
         )
         """
-        with self._raw_client.retrieve_file_content(
-            file_id, authorization=authorization, request_options=request_options
-        ) as r:
+        with self._raw_client.retrieve_file_content(file_id, request_options=request_options) as r:
             yield from r.data
-
-    def list_batches(
-        self,
-        *,
-        authorization: str,
-        limit: typing.Optional[int] = None,
-        after: typing.Optional[str] = None,
-        data_respan_params: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListBatchesResponse:
-        """
-        List OpenAI-compatible batch jobs.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
-        limit : typing.Optional[int]
-            Maximum number of batches to return for the OpenAI-compatible list route.
-
-        after : typing.Optional[str]
-            Cursor for the next page of the OpenAI-compatible list route.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListBatchesResponse
-            List of batches.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.open_ai_batch.list_batches(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.list_batches(
-            authorization=authorization,
-            limit=limit,
-            after=after,
-            data_respan_params=data_respan_params,
-            request_options=request_options,
-        )
-        return _response.data
 
     def create_batch(
         self,
         *,
-        authorization: str,
         input_file_id: str,
         endpoint: CreateBatchRequestEndpoint,
         completion_window: CreateBatchRequestCompletionWindow,
@@ -298,9 +219,6 @@ class OpenAiBatchClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         input_file_id : str
             Uploaded JSONL file ID.
 
@@ -339,16 +257,16 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.open_ai_batch.create_batch(
-            authorization="Bearer sk_live_xxxxx",
             input_file_id="file-abc123",
             endpoint="/v1/chat/completions",
             completion_window="24h",
         )
         """
         _response = self._raw_client.create_batch(
-            authorization=authorization,
             input_file_id=input_file_id,
             endpoint=endpoint,
             completion_window=completion_window,
@@ -366,7 +284,6 @@ class OpenAiBatchClient:
         self,
         batch_id: str,
         *,
-        authorization: str,
         data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveBatchResponse:
@@ -377,9 +294,6 @@ class OpenAiBatchClient:
         ----------
         batch_id : str
             Batch ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
@@ -396,17 +310,15 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.open_ai_batch.retrieve_batch(
             batch_id="batch_abc123",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.retrieve_batch(
-            batch_id,
-            authorization=authorization,
-            data_respan_params=data_respan_params,
-            request_options=request_options,
+            batch_id, data_respan_params=data_respan_params, request_options=request_options
         )
         return _response.data
 
@@ -414,7 +326,6 @@ class OpenAiBatchClient:
         self,
         batch_id: str,
         *,
-        authorization: str,
         request: typing.Dict[str, typing.Any],
         data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -426,9 +337,6 @@ class OpenAiBatchClient:
         ----------
         batch_id : str
             Batch ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request : typing.Dict[str, typing.Any]
 
@@ -447,41 +355,33 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.open_ai_batch.cancel_batch(
             batch_id="batch_abc123",
-            authorization="Bearer sk_live_xxxxx",
             request={"key": "value"},
         )
         """
         _response = self._raw_client.cancel_batch(
-            batch_id,
-            authorization=authorization,
-            request=request,
-            data_respan_params=data_respan_params,
-            request_options=request_options,
+            batch_id, request=request, data_respan_params=data_respan_params, request_options=request_options
         )
         return _response.data
 
     def filter_batch_jobs(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
-        status: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        status: typing.Optional[str] = None,
+        provider_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[FilterBatchJobsResponseResultsItem, FilterBatchJobsResponse]:
         """
-        Dashboard-authenticated POST-for-filtering route for batch jobs. Returns the same paginated response shape as `GET /api/v1/batches/list/`.
+        Dashboard-authenticated POST-for-filtering route for batch jobs. The backend delegates POST to GET, so filters are query parameters (`status`, `provider_id`) and request bodies are ignored.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
         page : typing.Optional[int]
             Page number.
 
@@ -489,13 +389,10 @@ class OpenAiBatchClient:
             Number of results per page. Maximum 100.
 
         status : typing.Optional[str]
-            Batch status filter.
+            Filter dashboard batch jobs by normalized batch status.
 
         provider_id : typing.Optional[str]
-            Provider filter.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Reserved for dashboard filter payloads.
+            Filter dashboard batch jobs by provider ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -509,9 +406,12 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         response = client.open_ai_batch.filter_batch_jobs(
-            authorization="Bearer eyJhbGciOi...",
+            status="completed",
+            provider_id="openai",
         )
         for item in response:
             yield item
@@ -520,86 +420,26 @@ class OpenAiBatchClient:
             yield page
         """
         return self._raw_client.filter_batch_jobs(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            status=status,
-            provider_id=provider_id,
-            filters=filters,
-            request_options=request_options,
+            page=page, page_size=page_size, status=status, provider_id=provider_id, request_options=request_options
         )
 
-    def get_batch_jobs_summary(
+    def filter_batch_jobs_summary(
         self,
         *,
-        authorization: str,
         status: typing.Optional[str] = None,
         provider_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetBatchJobsSummaryResponse:
+    ) -> FilterBatchJobsSummaryResponse:
         """
-        Dashboard-authenticated extension for aggregated batch job statistics.
+        Dashboard-authenticated extension for aggregated batch job statistics. The backend delegates POST to GET, so filters are query parameters (`status`, `provider_id`) and request bodies are ignored.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
         status : typing.Optional[str]
             Filter dashboard batch jobs by normalized batch status.
 
         provider_id : typing.Optional[str]
             Filter dashboard batch jobs by provider ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetBatchJobsSummaryResponse
-            Batch job summary.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.open_ai_batch.get_batch_jobs_summary(
-            authorization="Bearer eyJhbGciOi...",
-            status="completed",
-            provider_id="openai",
-        )
-        """
-        _response = self._raw_client.get_batch_jobs_summary(
-            authorization=authorization, status=status, provider_id=provider_id, request_options=request_options
-        )
-        return _response.data
-
-    def filter_batch_jobs_summary(
-        self,
-        *,
-        authorization: str,
-        status: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> FilterBatchJobsSummaryResponse:
-        """
-        Dashboard-authenticated extension for aggregated batch job statistics after applying filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
-        status : typing.Optional[str]
-            Batch status filter.
-
-        provider_id : typing.Optional[str]
-            Provider filter.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Reserved for dashboard filter payloads.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -613,17 +453,16 @@ class OpenAiBatchClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.open_ai_batch.filter_batch_jobs_summary(
-            authorization="Bearer eyJhbGciOi...",
+            status="completed",
+            provider_id="openai",
         )
         """
         _response = self._raw_client.filter_batch_jobs_summary(
-            authorization=authorization,
-            status=status,
-            provider_id=provider_id,
-            filters=filters,
-            request_options=request_options,
+            status=status, provider_id=provider_id, request_options=request_options
         )
         return _response.data
 
@@ -643,17 +482,12 @@ class AsyncOpenAiBatchClient:
         """
         return self._raw_client
 
-    async def list_files(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> ListFilesResponse:
+    async def list_files(self, *, request_options: typing.Optional[RequestOptions] = None) -> ListFilesResponse:
         """
         List files from the upstream OpenAI Files API using the authenticated organization key's OpenAI credentials.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -668,36 +502,28 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.open_ai_batch.list_files(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.open_ai_batch.list_files()
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_files(authorization=authorization, request_options=request_options)
+        _response = await self._raw_client.list_files(request_options=request_options)
         return _response.data
 
     async def upload_file(
-        self,
-        *,
-        authorization: str,
-        file: core.File,
-        purpose: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, *, file: core.File, purpose: str, request_options: typing.Optional[RequestOptions] = None
     ) -> UploadFileResponse:
         """
         Upload a file to the upstream OpenAI Files API. Batch jobs use JSONL files with `purpose=batch`.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         file : core.File
             See core.File for more documentation
 
@@ -718,25 +544,24 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.open_ai_batch.upload_file(
-                authorization="Bearer sk_live_xxxxx",
                 purpose="purpose",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.upload_file(
-            authorization=authorization, file=file, purpose=purpose, request_options=request_options
-        )
+        _response = await self._raw_client.upload_file(file=file, purpose=purpose, request_options=request_options)
         return _response.data
 
     async def retrieve_file(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveFileResponse:
         """
         Retrieve metadata for a file from the upstream OpenAI Files API.
@@ -745,9 +570,6 @@ class AsyncOpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -763,25 +585,24 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.open_ai_batch.retrieve_file(
                 file_id="file-abc123",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_file(
-            file_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_file(file_id, request_options=request_options)
         return _response.data
 
     async def delete_file(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> DeleteFileResponse:
         """
         Delete a file from the upstream OpenAI Files API.
@@ -790,9 +611,6 @@ class AsyncOpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -808,25 +626,24 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.open_ai_batch.delete_file(
                 file_id="file-abc123",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_file(
-            file_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_file(file_id, request_options=request_options)
         return _response.data
 
     async def retrieve_file_content(
-        self, file_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, file_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.AsyncIterator[bytes]:
         """
         Download file content. Batch output files are returned as JSONL.
@@ -835,9 +652,6 @@ class AsyncOpenAiBatchClient:
         ----------
         file_id : str
             OpenAI file ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
@@ -853,88 +667,26 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.open_ai_batch.retrieve_file_content(
                 file_id="file_id",
-                authorization="authorization",
             )
 
 
         asyncio.run(main())
         """
-        async with self._raw_client.retrieve_file_content(
-            file_id, authorization=authorization, request_options=request_options
-        ) as r:
+        async with self._raw_client.retrieve_file_content(file_id, request_options=request_options) as r:
             async for _chunk in r.data:
                 yield _chunk
-
-    async def list_batches(
-        self,
-        *,
-        authorization: str,
-        limit: typing.Optional[int] = None,
-        after: typing.Optional[str] = None,
-        data_respan_params: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListBatchesResponse:
-        """
-        List OpenAI-compatible batch jobs.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
-        limit : typing.Optional[int]
-            Maximum number of batches to return for the OpenAI-compatible list route.
-
-        after : typing.Optional[str]
-            Cursor for the next page of the OpenAI-compatible list route.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListBatchesResponse
-            List of batches.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.open_ai_batch.list_batches(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_batches(
-            authorization=authorization,
-            limit=limit,
-            after=after,
-            data_respan_params=data_respan_params,
-            request_options=request_options,
-        )
-        return _response.data
 
     async def create_batch(
         self,
         *,
-        authorization: str,
         input_file_id: str,
         endpoint: CreateBatchRequestEndpoint,
         completion_window: CreateBatchRequestCompletionWindow,
@@ -951,9 +703,6 @@ class AsyncOpenAiBatchClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
-
         input_file_id : str
             Uploaded JSONL file ID.
 
@@ -994,12 +743,13 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.open_ai_batch.create_batch(
-                authorization="Bearer sk_live_xxxxx",
                 input_file_id="file-abc123",
                 endpoint="/v1/chat/completions",
                 completion_window="24h",
@@ -1009,7 +759,6 @@ class AsyncOpenAiBatchClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_batch(
-            authorization=authorization,
             input_file_id=input_file_id,
             endpoint=endpoint,
             completion_window=completion_window,
@@ -1027,7 +776,6 @@ class AsyncOpenAiBatchClient:
         self,
         batch_id: str,
         *,
-        authorization: str,
         data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveBatchResponse:
@@ -1038,9 +786,6 @@ class AsyncOpenAiBatchClient:
         ----------
         batch_id : str
             Batch ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         data_respan_params : typing.Optional[str]
             Base64-encoded JSON object of Respan request parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
@@ -1059,23 +804,21 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.open_ai_batch.retrieve_batch(
                 batch_id="batch_abc123",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.retrieve_batch(
-            batch_id,
-            authorization=authorization,
-            data_respan_params=data_respan_params,
-            request_options=request_options,
+            batch_id, data_respan_params=data_respan_params, request_options=request_options
         )
         return _response.data
 
@@ -1083,7 +826,6 @@ class AsyncOpenAiBatchClient:
         self,
         batch_id: str,
         *,
-        authorization: str,
         request: typing.Dict[str, typing.Any],
         data_respan_params: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1095,9 +837,6 @@ class AsyncOpenAiBatchClient:
         ----------
         batch_id : str
             Batch ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth.
 
         request : typing.Dict[str, typing.Any]
 
@@ -1118,13 +857,14 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.open_ai_batch.cancel_batch(
                 batch_id="batch_abc123",
-                authorization="Bearer sk_live_xxxxx",
                 request={"key": "value"},
             )
 
@@ -1132,33 +872,24 @@ class AsyncOpenAiBatchClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.cancel_batch(
-            batch_id,
-            authorization=authorization,
-            request=request,
-            data_respan_params=data_respan_params,
-            request_options=request_options,
+            batch_id, request=request, data_respan_params=data_respan_params, request_options=request_options
         )
         return _response.data
 
     async def filter_batch_jobs(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
-        status: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        status: typing.Optional[str] = None,
+        provider_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[FilterBatchJobsResponseResultsItem, FilterBatchJobsResponse]:
         """
-        Dashboard-authenticated POST-for-filtering route for batch jobs. Returns the same paginated response shape as `GET /api/v1/batches/list/`.
+        Dashboard-authenticated POST-for-filtering route for batch jobs. The backend delegates POST to GET, so filters are query parameters (`status`, `provider_id`) and request bodies are ignored.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1166,13 +897,10 @@ class AsyncOpenAiBatchClient:
             Number of results per page. Maximum 100.
 
         status : typing.Optional[str]
-            Batch status filter.
+            Filter dashboard batch jobs by normalized batch status.
 
         provider_id : typing.Optional[str]
-            Provider filter.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Reserved for dashboard filter payloads.
+            Filter dashboard batch jobs by provider ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1188,12 +916,15 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             response = await client.open_ai_batch.filter_batch_jobs(
-                authorization="Bearer eyJhbGciOi...",
+                status="completed",
+                provider_id="openai",
             )
             async for item in response:
                 yield item
@@ -1206,94 +937,26 @@ class AsyncOpenAiBatchClient:
         asyncio.run(main())
         """
         return await self._raw_client.filter_batch_jobs(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            status=status,
-            provider_id=provider_id,
-            filters=filters,
-            request_options=request_options,
+            page=page, page_size=page_size, status=status, provider_id=provider_id, request_options=request_options
         )
 
-    async def get_batch_jobs_summary(
+    async def filter_batch_jobs_summary(
         self,
         *,
-        authorization: str,
         status: typing.Optional[str] = None,
         provider_id: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetBatchJobsSummaryResponse:
+    ) -> FilterBatchJobsSummaryResponse:
         """
-        Dashboard-authenticated extension for aggregated batch job statistics.
+        Dashboard-authenticated extension for aggregated batch job statistics. The backend delegates POST to GET, so filters are query parameters (`status`, `provider_id`) and request bodies are ignored.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
         status : typing.Optional[str]
             Filter dashboard batch jobs by normalized batch status.
 
         provider_id : typing.Optional[str]
             Filter dashboard batch jobs by provider ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetBatchJobsSummaryResponse
-            Batch job summary.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.open_ai_batch.get_batch_jobs_summary(
-                authorization="Bearer eyJhbGciOi...",
-                status="completed",
-                provider_id="openai",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_batch_jobs_summary(
-            authorization=authorization, status=status, provider_id=provider_id, request_options=request_options
-        )
-        return _response.data
-
-    async def filter_batch_jobs_summary(
-        self,
-        *,
-        authorization: str,
-        status: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> FilterBatchJobsSummaryResponse:
-        """
-        Dashboard-authenticated extension for aggregated batch job statistics after applying filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer <JWT>` dashboard authentication.
-
-        status : typing.Optional[str]
-            Batch status filter.
-
-        provider_id : typing.Optional[str]
-            Provider filter.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Reserved for dashboard filter payloads.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1309,22 +972,21 @@ class AsyncOpenAiBatchClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.open_ai_batch.filter_batch_jobs_summary(
-                authorization="Bearer eyJhbGciOi...",
+                status="completed",
+                provider_id="openai",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.filter_batch_jobs_summary(
-            authorization=authorization,
-            status=status,
-            provider_id=provider_id,
-            filters=filters,
-            request_options=request_options,
+            status=status, provider_id=provider_id, request_options=request_options
         )
         return _response.data

@@ -23,11 +23,9 @@ from .types.create_evaluator_version_request_score_config import CreateEvaluator
 from .types.create_evaluator_version_request_score_value_type import CreateEvaluatorVersionRequestScoreValueType
 from .types.create_evaluator_version_request_type import CreateEvaluatorVersionRequestType
 from .types.create_evaluator_version_response import CreateEvaluatorVersionResponse
-from .types.get_evaluators_summary_response import GetEvaluatorsSummaryResponse
 from .types.get_filtered_evaluators_summary_response import GetFilteredEvaluatorsSummaryResponse
 from .types.list_evaluator_versions_response import ListEvaluatorVersionsResponse
 from .types.list_evaluators_response import ListEvaluatorsResponse
-from .types.list_evaluators_root_response import ListEvaluatorsRootResponse
 from .types.replace_evaluator_request_categorical_choices_item import ReplaceEvaluatorRequestCategoricalChoicesItem
 from .types.replace_evaluator_request_code_config import ReplaceEvaluatorRequestCodeConfig
 from .types.replace_evaluator_request_eval_class import ReplaceEvaluatorRequestEvalClass
@@ -89,58 +87,9 @@ class EvaluatorsClient:
         """
         return self._raw_client
 
-    def list_evaluators_root(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        search: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListEvaluatorsRootResponse:
-        """
-        List the current draft/latest evaluator for each evaluator ID. This route supports simple pagination and name search. Use `POST /api/evaluators/list/` when you need the full filter format.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        search : typing.Optional[str]
-            Search evaluator names.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListEvaluatorsRootResponse
-            Paginated evaluator list.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.evaluators.list_evaluators_root(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.list_evaluators_root(
-            authorization=authorization, page=page, page_size=page_size, search=search, request_options=request_options
-        )
-        return _response.data
-
     def create_evaluator(
         self,
         *,
-        authorization: str,
         name: str,
         type: CreateEvaluatorRequestType,
         score_value_type: CreateEvaluatorRequestScoreValueType,
@@ -161,9 +110,6 @@ class EvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         name : str
 
         type : CreateEvaluatorRequestType
@@ -213,9 +159,10 @@ class EvaluatorsClient:
             CreateEvaluatorRequestScoreConfig,
         )
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.create_evaluator(
-            authorization="Bearer sk_live_xxxxx",
             name="Response Quality",
             evaluator_slug="response_quality",
             type="llm",
@@ -234,7 +181,6 @@ class EvaluatorsClient:
         )
         """
         _response = self._raw_client.create_evaluator(
-            authorization=authorization,
             name=name,
             type=type,
             score_value_type=score_value_type,
@@ -255,7 +201,6 @@ class EvaluatorsClient:
     def list_evaluators(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -268,9 +213,6 @@ class EvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -298,14 +240,14 @@ class EvaluatorsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.list_evaluators(
-            authorization="Bearer sk_live_xxxxx",
             sort_by="name",
         )
         """
         _response = self._raw_client.list_evaluators(
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -315,45 +257,10 @@ class EvaluatorsClient:
         )
         return _response.data
 
-    def get_evaluators_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetEvaluatorsSummaryResponse:
-        """
-        Return the total number of current draft/latest evaluators visible to the authenticated organization.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetEvaluatorsSummaryResponse
-            Evaluator summary.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.evaluators.get_evaluators_summary(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.get_evaluators_summary(
-            authorization=authorization, request_options=request_options
-        )
-        return _response.data
-
     def get_filtered_evaluators_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredEvaluatorsSummaryResponse:
         """
@@ -361,14 +268,8 @@ class EvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -382,18 +283,16 @@ class EvaluatorsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.evaluators.get_filtered_evaluators_summary(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.evaluators.get_filtered_evaluators_summary()
         """
-        _response = self._raw_client.get_filtered_evaluators_summary(
-            authorization=authorization, filters=filters, is_exporting=is_exporting, request_options=request_options
-        )
+        _response = self._raw_client.get_filtered_evaluators_summary(filters=filters, request_options=request_options)
         return _response.data
 
     def retrieve_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveEvaluatorResponse:
         """
         Retrieve the current draft/latest version of an evaluator by ID.
@@ -402,9 +301,6 @@ class EvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -418,22 +314,20 @@ class EvaluatorsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.retrieve_evaluator(
             evaluator_id="evaluator_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_evaluator(
-            evaluator_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_evaluator(evaluator_id, request_options=request_options)
         return _response.data
 
     def replace_evaluator(
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: str,
         type: ReplaceEvaluatorRequestType,
         score_value_type: ReplaceEvaluatorRequestScoreValueType,
@@ -456,9 +350,6 @@ class EvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
 
@@ -509,10 +400,11 @@ class EvaluatorsClient:
             ReplaceEvaluatorRequestScoreConfig,
         )
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.replace_evaluator(
             evaluator_id="evaluator_id",
-            authorization="Bearer sk_live_xxxxx",
             name="Response Quality",
             evaluator_slug="response_quality",
             type="llm",
@@ -532,7 +424,6 @@ class EvaluatorsClient:
         """
         _response = self._raw_client.replace_evaluator(
             evaluator_id,
-            authorization=authorization,
             name=name,
             type=type,
             score_value_type=score_value_type,
@@ -550,9 +441,7 @@ class EvaluatorsClient:
         )
         return _response.data
 
-    def delete_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def delete_evaluator(self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
 
@@ -560,9 +449,6 @@ class EvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -575,22 +461,20 @@ class EvaluatorsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.delete_evaluator(
             evaluator_id="evaluator_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_evaluator(
-            evaluator_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_evaluator(evaluator_id, request_options=request_options)
         return _response.data
 
     def update_evaluator(
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
@@ -613,9 +497,6 @@ class EvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -666,10 +547,11 @@ class EvaluatorsClient:
             UpdateEvaluatorRequestScoreConfig,
         )
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.update_evaluator(
             evaluator_id="evaluator_id",
-            authorization="Bearer sk_live_xxxxx",
             name="Response Quality",
             evaluator_slug="response_quality",
             type="llm",
@@ -689,7 +571,6 @@ class EvaluatorsClient:
         """
         _response = self._raw_client.update_evaluator(
             evaluator_id,
-            authorization=authorization,
             name=name,
             evaluator_slug=evaluator_slug,
             type=type,
@@ -711,7 +592,6 @@ class EvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         inputs: RunEvaluatorRequestInputs,
         generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
         evaluation_id: typing.Optional[str] = OMIT,
@@ -725,9 +605,6 @@ class EvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         inputs : RunEvaluatorRequestInputs
             Unified evaluator inputs.
@@ -754,10 +631,11 @@ class EvaluatorsClient:
         from respan import RespanClient
         from respan.evaluators import RunEvaluatorRequestInputs
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.run_evaluator(
             evaluator_id="evaluator_id",
-            authorization="Bearer sk_live_xxxxx",
             inputs=RunEvaluatorRequestInputs(
                 input="What is the capital of France?",
                 output="The capital of France is Paris.",
@@ -769,7 +647,6 @@ class EvaluatorsClient:
         """
         _response = self._raw_client.run_evaluator(
             evaluator_id,
-            authorization=authorization,
             inputs=inputs,
             generation_method=generation_method,
             evaluation_id=evaluation_id,
@@ -782,7 +659,6 @@ class EvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -794,9 +670,6 @@ class EvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -816,14 +689,15 @@ class EvaluatorsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.list_evaluator_versions(
             evaluator_id="evaluator_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.list_evaluator_versions(
-            evaluator_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            evaluator_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -831,7 +705,6 @@ class EvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
@@ -857,9 +730,6 @@ class EvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -909,16 +779,16 @@ class EvaluatorsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.create_evaluator_version(
             evaluator_id="evaluator_id",
-            authorization="Bearer sk_live_xxxxx",
             version_description="Ready for production",
         )
         """
         _response = self._raw_client.create_evaluator_version(
             evaluator_id,
-            authorization=authorization,
             name=name,
             evaluator_slug=evaluator_slug,
             type=type,
@@ -938,12 +808,7 @@ class EvaluatorsClient:
         return _response.data
 
     def retrieve_evaluator_version(
-        self,
-        evaluator_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveEvaluatorVersionResponse:
         """
         Retrieve a specific evaluator version by version number.
@@ -955,9 +820,6 @@ class EvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -971,16 +833,15 @@ class EvaluatorsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.retrieve_evaluator_version(
             evaluator_id="evaluator_id",
             version=1,
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_evaluator_version(
-            evaluator_id, version, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_evaluator_version(evaluator_id, version, request_options=request_options)
         return _response.data
 
     def replace_evaluator_version(
@@ -988,7 +849,6 @@ class EvaluatorsClient:
         evaluator_id: str,
         version: int,
         *,
-        authorization: str,
         name: str,
         type: ReplaceEvaluatorVersionRequestType,
         score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
@@ -1016,9 +876,6 @@ class EvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
 
@@ -1069,11 +926,12 @@ class EvaluatorsClient:
             ReplaceEvaluatorVersionRequestScoreConfig,
         )
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.replace_evaluator_version(
             evaluator_id="evaluator_id",
             version=1,
-            authorization="Bearer sk_live_xxxxx",
             name="Response Quality",
             evaluator_slug="response_quality",
             type="llm",
@@ -1094,7 +952,6 @@ class EvaluatorsClient:
         _response = self._raw_client.replace_evaluator_version(
             evaluator_id,
             version,
-            authorization=authorization,
             name=name,
             type=type,
             score_value_type=score_value_type,
@@ -1117,7 +974,6 @@ class EvaluatorsClient:
         evaluator_id: str,
         version: int,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
@@ -1145,9 +1001,6 @@ class EvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -1198,11 +1051,12 @@ class EvaluatorsClient:
             UpdateEvaluatorVersionRequestScoreConfig,
         )
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.evaluators.update_evaluator_version(
             evaluator_id="evaluator_id",
             version=1,
-            authorization="Bearer sk_live_xxxxx",
             name="Response Quality",
             evaluator_slug="response_quality",
             type="llm",
@@ -1223,7 +1077,6 @@ class EvaluatorsClient:
         _response = self._raw_client.update_evaluator_version(
             evaluator_id,
             version,
-            authorization=authorization,
             name=name,
             evaluator_slug=evaluator_slug,
             type=type,
@@ -1257,66 +1110,9 @@ class AsyncEvaluatorsClient:
         """
         return self._raw_client
 
-    async def list_evaluators_root(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        search: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListEvaluatorsRootResponse:
-        """
-        List the current draft/latest evaluator for each evaluator ID. This route supports simple pagination and name search. Use `POST /api/evaluators/list/` when you need the full filter format.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        search : typing.Optional[str]
-            Search evaluator names.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListEvaluatorsRootResponse
-            Paginated evaluator list.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.evaluators.list_evaluators_root(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_evaluators_root(
-            authorization=authorization, page=page, page_size=page_size, search=search, request_options=request_options
-        )
-        return _response.data
-
     async def create_evaluator(
         self,
         *,
-        authorization: str,
         name: str,
         type: CreateEvaluatorRequestType,
         score_value_type: CreateEvaluatorRequestScoreValueType,
@@ -1337,9 +1133,6 @@ class AsyncEvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         name : str
 
         type : CreateEvaluatorRequestType
@@ -1391,12 +1184,13 @@ class AsyncEvaluatorsClient:
             CreateEvaluatorRequestScoreConfig,
         )
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.create_evaluator(
-                authorization="Bearer sk_live_xxxxx",
                 name="Response Quality",
                 evaluator_slug="response_quality",
                 type="llm",
@@ -1418,7 +1212,6 @@ class AsyncEvaluatorsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_evaluator(
-            authorization=authorization,
             name=name,
             type=type,
             score_value_type=score_value_type,
@@ -1439,7 +1232,6 @@ class AsyncEvaluatorsClient:
     async def list_evaluators(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -1452,9 +1244,6 @@ class AsyncEvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1484,12 +1273,13 @@ class AsyncEvaluatorsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.list_evaluators(
-                authorization="Bearer sk_live_xxxxx",
                 sort_by="name",
             )
 
@@ -1497,7 +1287,6 @@ class AsyncEvaluatorsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.list_evaluators(
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -1507,53 +1296,10 @@ class AsyncEvaluatorsClient:
         )
         return _response.data
 
-    async def get_evaluators_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetEvaluatorsSummaryResponse:
-        """
-        Return the total number of current draft/latest evaluators visible to the authenticated organization.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetEvaluatorsSummaryResponse
-            Evaluator summary.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.evaluators.get_evaluators_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_evaluators_summary(
-            authorization=authorization, request_options=request_options
-        )
-        return _response.data
-
     async def get_filtered_evaluators_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredEvaluatorsSummaryResponse:
         """
@@ -1561,14 +1307,8 @@ class AsyncEvaluatorsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1584,24 +1324,24 @@ class AsyncEvaluatorsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.evaluators.get_filtered_evaluators_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.evaluators.get_filtered_evaluators_summary()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.get_filtered_evaluators_summary(
-            authorization=authorization, filters=filters, is_exporting=is_exporting, request_options=request_options
+            filters=filters, request_options=request_options
         )
         return _response.data
 
     async def retrieve_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveEvaluatorResponse:
         """
         Retrieve the current draft/latest version of an evaluator by ID.
@@ -1610,9 +1350,6 @@ class AsyncEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1628,28 +1365,26 @@ class AsyncEvaluatorsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.retrieve_evaluator(
                 evaluator_id="evaluator_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_evaluator(
-            evaluator_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_evaluator(evaluator_id, request_options=request_options)
         return _response.data
 
     async def replace_evaluator(
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: str,
         type: ReplaceEvaluatorRequestType,
         score_value_type: ReplaceEvaluatorRequestScoreValueType,
@@ -1672,9 +1407,6 @@ class AsyncEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
 
@@ -1727,13 +1459,14 @@ class AsyncEvaluatorsClient:
             ReplaceEvaluatorRequestScoreConfig,
         )
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.replace_evaluator(
                 evaluator_id="evaluator_id",
-                authorization="Bearer sk_live_xxxxx",
                 name="Response Quality",
                 evaluator_slug="response_quality",
                 type="llm",
@@ -1756,7 +1489,6 @@ class AsyncEvaluatorsClient:
         """
         _response = await self._raw_client.replace_evaluator(
             evaluator_id,
-            authorization=authorization,
             name=name,
             type=type,
             score_value_type=score_value_type,
@@ -1775,7 +1507,7 @@ class AsyncEvaluatorsClient:
         return _response.data
 
     async def delete_evaluator(
-        self, evaluator_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
@@ -1784,9 +1516,6 @@ class AsyncEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1801,28 +1530,26 @@ class AsyncEvaluatorsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.delete_evaluator(
                 evaluator_id="evaluator_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_evaluator(
-            evaluator_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_evaluator(evaluator_id, request_options=request_options)
         return _response.data
 
     async def update_evaluator(
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
@@ -1845,9 +1572,6 @@ class AsyncEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -1900,13 +1624,14 @@ class AsyncEvaluatorsClient:
             UpdateEvaluatorRequestScoreConfig,
         )
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.update_evaluator(
                 evaluator_id="evaluator_id",
-                authorization="Bearer sk_live_xxxxx",
                 name="Response Quality",
                 evaluator_slug="response_quality",
                 type="llm",
@@ -1929,7 +1654,6 @@ class AsyncEvaluatorsClient:
         """
         _response = await self._raw_client.update_evaluator(
             evaluator_id,
-            authorization=authorization,
             name=name,
             evaluator_slug=evaluator_slug,
             type=type,
@@ -1951,7 +1675,6 @@ class AsyncEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         inputs: RunEvaluatorRequestInputs,
         generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
         evaluation_id: typing.Optional[str] = OMIT,
@@ -1965,9 +1688,6 @@ class AsyncEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         inputs : RunEvaluatorRequestInputs
             Unified evaluator inputs.
@@ -1996,13 +1716,14 @@ class AsyncEvaluatorsClient:
         from respan import AsyncRespanClient
         from respan.evaluators import RunEvaluatorRequestInputs
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.run_evaluator(
                 evaluator_id="evaluator_id",
-                authorization="Bearer sk_live_xxxxx",
                 inputs=RunEvaluatorRequestInputs(
                     input="What is the capital of France?",
                     output="The capital of France is Paris.",
@@ -2017,7 +1738,6 @@ class AsyncEvaluatorsClient:
         """
         _response = await self._raw_client.run_evaluator(
             evaluator_id,
-            authorization=authorization,
             inputs=inputs,
             generation_method=generation_method,
             evaluation_id=evaluation_id,
@@ -2030,7 +1750,6 @@ class AsyncEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -2042,9 +1761,6 @@ class AsyncEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -2066,20 +1782,21 @@ class AsyncEvaluatorsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.list_evaluator_versions(
                 evaluator_id="evaluator_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_evaluator_versions(
-            evaluator_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            evaluator_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -2087,7 +1804,6 @@ class AsyncEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
@@ -2113,9 +1829,6 @@ class AsyncEvaluatorsClient:
         ----------
         evaluator_id : str
             Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -2167,13 +1880,14 @@ class AsyncEvaluatorsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.create_evaluator_version(
                 evaluator_id="evaluator_id",
-                authorization="Bearer sk_live_xxxxx",
                 version_description="Ready for production",
             )
 
@@ -2182,7 +1896,6 @@ class AsyncEvaluatorsClient:
         """
         _response = await self._raw_client.create_evaluator_version(
             evaluator_id,
-            authorization=authorization,
             name=name,
             evaluator_slug=evaluator_slug,
             type=type,
@@ -2202,12 +1915,7 @@ class AsyncEvaluatorsClient:
         return _response.data
 
     async def retrieve_evaluator_version(
-        self,
-        evaluator_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveEvaluatorVersionResponse:
         """
         Retrieve a specific evaluator version by version number.
@@ -2219,9 +1927,6 @@ class AsyncEvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2237,21 +1942,22 @@ class AsyncEvaluatorsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.retrieve_evaluator_version(
                 evaluator_id="evaluator_id",
                 version=1,
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.retrieve_evaluator_version(
-            evaluator_id, version, authorization=authorization, request_options=request_options
+            evaluator_id, version, request_options=request_options
         )
         return _response.data
 
@@ -2260,7 +1966,6 @@ class AsyncEvaluatorsClient:
         evaluator_id: str,
         version: int,
         *,
-        authorization: str,
         name: str,
         type: ReplaceEvaluatorVersionRequestType,
         score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
@@ -2288,9 +1993,6 @@ class AsyncEvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : str
 
@@ -2343,14 +2045,15 @@ class AsyncEvaluatorsClient:
             ReplaceEvaluatorVersionRequestScoreConfig,
         )
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.replace_evaluator_version(
                 evaluator_id="evaluator_id",
                 version=1,
-                authorization="Bearer sk_live_xxxxx",
                 name="Response Quality",
                 evaluator_slug="response_quality",
                 type="llm",
@@ -2374,7 +2077,6 @@ class AsyncEvaluatorsClient:
         _response = await self._raw_client.replace_evaluator_version(
             evaluator_id,
             version,
-            authorization=authorization,
             name=name,
             type=type,
             score_value_type=score_value_type,
@@ -2397,7 +2099,6 @@ class AsyncEvaluatorsClient:
         evaluator_id: str,
         version: int,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
@@ -2425,9 +2126,6 @@ class AsyncEvaluatorsClient:
 
         version : int
             Evaluator version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         name : typing.Optional[str]
 
@@ -2480,14 +2178,15 @@ class AsyncEvaluatorsClient:
             UpdateEvaluatorVersionRequestScoreConfig,
         )
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.evaluators.update_evaluator_version(
                 evaluator_id="evaluator_id",
                 version=1,
-                authorization="Bearer sk_live_xxxxx",
                 name="Response Quality",
                 evaluator_slug="response_quality",
                 type="llm",
@@ -2511,7 +2210,6 @@ class AsyncEvaluatorsClient:
         _response = await self._raw_client.update_evaluator_version(
             evaluator_id,
             version,
-            authorization=authorization,
             name=name,
             evaluator_slug=evaluator_slug,
             type=type,

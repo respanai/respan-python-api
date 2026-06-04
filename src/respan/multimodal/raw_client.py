@@ -36,7 +36,6 @@ class RawMultimodalClient:
     def create_embeddings(
         self,
         *,
-        authorization: str,
         model: CreateEmbeddingsRequestModel,
         input: typing.Any,
         data_respan_params: typing.Optional[str] = None,
@@ -54,9 +53,6 @@ class RawMultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : CreateEmbeddingsRequestModel
             Embedding model ID.
 
@@ -110,7 +106,6 @@ class RawMultimodalClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -145,7 +140,6 @@ class RawMultimodalClient:
     def speech_to_text(
         self,
         *,
-        authorization: str,
         file: core.File,
         model: SpeechToTextRequestModel,
         data_respan_params: typing.Optional[str] = None,
@@ -166,9 +160,6 @@ class RawMultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         file : core.File
             See core.File for more documentation
 
@@ -236,7 +227,6 @@ class RawMultimodalClient:
                 "file": file,
             },
             headers={
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -273,7 +263,6 @@ class RawMultimodalClient:
     def text_to_speech(
         self,
         *,
-        authorization: str,
         model: TextToSpeechRequestModel,
         input: str,
         voice: TextToSpeechRequestVoice,
@@ -292,9 +281,6 @@ class RawMultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : TextToSpeechRequestModel
             TTS model.
 
@@ -353,7 +339,6 @@ class RawMultimodalClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -389,12 +374,7 @@ class RawMultimodalClient:
             yield _stream()
 
     def retrieve_assemblyai_transcript(
-        self,
-        transcript_id: str,
-        *,
-        authorization: str,
-        assemblyai_api_key: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, transcript_id: str, *, assemblyai_api_key: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveAssemblyaiTranscriptResponse]:
         """
         Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
@@ -403,9 +383,6 @@ class RawMultimodalClient:
         ----------
         transcript_id : str
             The AssemblyAI transcript ID to retrieve.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         assemblyai_api_key : str
             Your AssemblyAI API key for authentication with AssemblyAI services.
@@ -422,7 +399,6 @@ class RawMultimodalClient:
             f"api/assemblyai/v2/transcript/{jsonable_encoder(transcript_id)}",
             method="GET",
             headers={
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Assemblyai-Api-Key": str(assemblyai_api_key) if assemblyai_api_key is not None else None,
             },
             request_options=request_options,
@@ -472,7 +448,6 @@ class AsyncRawMultimodalClient:
     async def create_embeddings(
         self,
         *,
-        authorization: str,
         model: CreateEmbeddingsRequestModel,
         input: typing.Any,
         data_respan_params: typing.Optional[str] = None,
@@ -490,9 +465,6 @@ class AsyncRawMultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : CreateEmbeddingsRequestModel
             Embedding model ID.
 
@@ -546,7 +518,6 @@ class AsyncRawMultimodalClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -581,7 +552,6 @@ class AsyncRawMultimodalClient:
     async def speech_to_text(
         self,
         *,
-        authorization: str,
         file: core.File,
         model: SpeechToTextRequestModel,
         data_respan_params: typing.Optional[str] = None,
@@ -602,9 +572,6 @@ class AsyncRawMultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         file : core.File
             See core.File for more documentation
 
@@ -672,7 +639,6 @@ class AsyncRawMultimodalClient:
                 "file": file,
             },
             headers={
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -709,7 +675,6 @@ class AsyncRawMultimodalClient:
     async def text_to_speech(
         self,
         *,
-        authorization: str,
         model: TextToSpeechRequestModel,
         input: str,
         voice: TextToSpeechRequestVoice,
@@ -728,9 +693,6 @@ class AsyncRawMultimodalClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         model : TextToSpeechRequestModel
             TTS model.
 
@@ -789,7 +751,6 @@ class AsyncRawMultimodalClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
             },
             request_options=request_options,
@@ -826,12 +787,7 @@ class AsyncRawMultimodalClient:
             yield await _stream()
 
     async def retrieve_assemblyai_transcript(
-        self,
-        transcript_id: str,
-        *,
-        authorization: str,
-        assemblyai_api_key: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, transcript_id: str, *, assemblyai_api_key: str, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveAssemblyaiTranscriptResponse]:
         """
         Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
@@ -840,9 +796,6 @@ class AsyncRawMultimodalClient:
         ----------
         transcript_id : str
             The AssemblyAI transcript ID to retrieve.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         assemblyai_api_key : str
             Your AssemblyAI API key for authentication with AssemblyAI services.
@@ -859,7 +812,6 @@ class AsyncRawMultimodalClient:
             f"api/assemblyai/v2/transcript/{jsonable_encoder(transcript_id)}",
             method="GET",
             headers={
-                "Authorization": str(authorization) if authorization is not None else None,
                 "X-Assemblyai-Api-Key": str(assemblyai_api_key) if assemblyai_api_key is not None else None,
             },
             request_options=request_options,

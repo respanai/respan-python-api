@@ -24,7 +24,6 @@ class RawCreditTransactionsClient:
     def list_credit_transactions(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -34,9 +33,6 @@ class RawCreditTransactionsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number for pagination.
 
@@ -60,9 +56,6 @@ class RawCreditTransactionsClient:
                 "page": page,
                 "page_size": page_size,
             },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -77,7 +70,6 @@ class RawCreditTransactionsClient:
                 _items = _parsed_response.results
                 _has_next = True
                 _get_next = lambda: self.list_credit_transactions(
-                    authorization=authorization,
                     page=page + 1,
                     page_size=page_size,
                     request_options=request_options,
@@ -100,7 +92,7 @@ class RawCreditTransactionsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_credit_transaction(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveCreditTransactionResponse]:
         """
         Retrieve details of a specific credit transaction.
@@ -109,9 +101,6 @@ class RawCreditTransactionsClient:
         ----------
         id : str
             The unique identifier of the transaction to retrieve (e.g., ct_1a2b3c4d5e6f7g8h)
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -124,9 +113,6 @@ class RawCreditTransactionsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/credit-transactions/{jsonable_encoder(id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -174,7 +160,6 @@ class AsyncRawCreditTransactionsClient:
     async def list_credit_transactions(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -184,9 +169,6 @@ class AsyncRawCreditTransactionsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number for pagination.
 
@@ -210,9 +192,6 @@ class AsyncRawCreditTransactionsClient:
                 "page": page,
                 "page_size": page_size,
             },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -229,7 +208,6 @@ class AsyncRawCreditTransactionsClient:
 
                 async def _get_next():
                     return await self.list_credit_transactions(
-                        authorization=authorization,
                         page=page + 1,
                         page_size=page_size,
                         request_options=request_options,
@@ -253,7 +231,7 @@ class AsyncRawCreditTransactionsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_credit_transaction(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveCreditTransactionResponse]:
         """
         Retrieve details of a specific credit transaction.
@@ -262,9 +240,6 @@ class AsyncRawCreditTransactionsClient:
         ----------
         id : str
             The unique identifier of the transaction to retrieve (e.g., ct_1a2b3c4d5e6f7g8h)
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -277,9 +252,6 @@ class AsyncRawCreditTransactionsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/credit-transactions/{jsonable_encoder(id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:

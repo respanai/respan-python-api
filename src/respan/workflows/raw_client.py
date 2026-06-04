@@ -21,7 +21,6 @@ from .types.deploy_workflow_response import DeployWorkflowResponse
 from .types.filter_workflows_response import FilterWorkflowsResponse
 from .types.get_workflow_response import GetWorkflowResponse
 from .types.list_workflow_versions_response import ListWorkflowVersionsResponse
-from .types.list_workflows_response import ListWorkflowsResponse
 from .types.update_workflow_request_trigger_event_type import UpdateWorkflowRequestTriggerEventType
 from .types.update_workflow_request_type import UpdateWorkflowRequestType
 from .types.validate_workflow_response import ValidateWorkflowResponse
@@ -34,78 +33,9 @@ class RawWorkflowsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def list_workflows(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListWorkflowsResponse]:
-        """
-        List workflows. Use `POST /api/workflows/list/` with a `type` filter to list only automations, monitors, or evaluators.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ListWorkflowsResponse]
-            Successful response for List workflows
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/workflows/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListWorkflowsResponse,
-                    parse_obj_as(
-                        type_=ListWorkflowsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def create_workflow(
         self,
         *,
-        authorization: str,
         type: CreateWorkflowRequestType,
         workflow_id: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
@@ -120,9 +50,6 @@ class RawWorkflowsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         type : CreateWorkflowRequestType
             Workflow type.
 
@@ -164,7 +91,6 @@ class RawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -198,7 +124,6 @@ class RawWorkflowsClient:
     def filter_workflows(
         self,
         *,
-        authorization: str,
         filters: typing.Dict[str, typing.Any],
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
@@ -210,9 +135,6 @@ class RawWorkflowsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Dict[str, typing.Any]
             Filter object keyed by field name. Include a `type` filter with `value: ["automations"]`, `["monitors"]`, or `["evaluators"]` and `operator: "eq"` to scope results.
 
@@ -246,7 +168,6 @@ class RawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -278,7 +199,7 @@ class RawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def get_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[GetWorkflowResponse]:
         """
         Get the latest editable (draft) version of a workflow.
@@ -287,9 +208,6 @@ class RawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -302,9 +220,6 @@ class RawWorkflowsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -345,7 +260,7 @@ class RawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def delete_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
         Delete a workflow and all its versions.
@@ -354,9 +269,6 @@ class RawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -368,9 +280,6 @@ class RawWorkflowsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -407,7 +316,6 @@ class RawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateWorkflowRequestType] = OMIT,
@@ -423,9 +331,6 @@ class RawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -460,7 +365,6 @@ class RawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -506,7 +410,6 @@ class RawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -518,9 +421,6 @@ class RawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -542,9 +442,6 @@ class RawWorkflowsClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -589,7 +486,6 @@ class RawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         type: typing.Optional[CreateWorkflowVersionRequestType] = OMIT,
@@ -605,9 +501,6 @@ class RawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -643,7 +536,6 @@ class RawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -686,12 +578,7 @@ class RawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def get_workflow_version(
-        self,
-        workflow_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[typing.Dict[str, typing.Any]]:
         """
         Get a specific workflow version by workflow ID and version number.
@@ -704,9 +591,6 @@ class RawWorkflowsClient:
         version : int
             Version number.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -718,9 +602,6 @@ class RawWorkflowsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/versions/{jsonable_encoder(version)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -765,7 +646,6 @@ class RawWorkflowsClient:
         workflow_id: str,
         version: int,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         trigger_event_type: typing.Optional[str] = OMIT,
@@ -783,9 +663,6 @@ class RawWorkflowsClient:
 
         version : int
             Version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -817,7 +694,6 @@ class RawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -863,7 +739,6 @@ class RawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         version: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[DeployWorkflowResponse]:
@@ -874,9 +749,6 @@ class RawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         version : typing.Optional[int]
             Version number to deploy. If omitted, the latest committed version is deployed.
@@ -897,7 +769,6 @@ class RawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -940,7 +811,7 @@ class RawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def undeploy_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
         Undeploy a workflow by disabling all versions.
@@ -949,9 +820,6 @@ class RawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -963,9 +831,6 @@ class RawWorkflowsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/deployments/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -999,26 +864,15 @@ class RawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def validate_workflow(
-        self,
-        workflow_id: str,
-        *,
-        authorization: str,
-        log_id: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[ValidateWorkflowResponse]:
         """
-        Validate a workflow against a sample log without triggering real side effects. No notifications, webhooks, or dataset writes are performed.
+        Validate a workflow configuration and fire preview delivery sends. The backend validates the workflow identified by the path parameter and does not consume a request body.
 
         Parameters
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        log_id : typing.Optional[str]
-            Specific log ID to use as the validation sample. If omitted, the backend uses the most recent organization log.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1031,15 +885,7 @@ class RawWorkflowsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/validations/",
             method="POST",
-            json={
-                "log_id": log_id,
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
@@ -1083,78 +929,9 @@ class AsyncRawWorkflowsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def list_workflows(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListWorkflowsResponse]:
-        """
-        List workflows. Use `POST /api/workflows/list/` with a `type` filter to list only automations, monitors, or evaluators.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ListWorkflowsResponse]
-            Successful response for List workflows
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/workflows/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListWorkflowsResponse,
-                    parse_obj_as(
-                        type_=ListWorkflowsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def create_workflow(
         self,
         *,
-        authorization: str,
         type: CreateWorkflowRequestType,
         workflow_id: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
@@ -1169,9 +946,6 @@ class AsyncRawWorkflowsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         type : CreateWorkflowRequestType
             Workflow type.
 
@@ -1213,7 +987,6 @@ class AsyncRawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1247,7 +1020,6 @@ class AsyncRawWorkflowsClient:
     async def filter_workflows(
         self,
         *,
-        authorization: str,
         filters: typing.Dict[str, typing.Any],
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
@@ -1259,9 +1031,6 @@ class AsyncRawWorkflowsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Dict[str, typing.Any]
             Filter object keyed by field name. Include a `type` filter with `value: ["automations"]`, `["monitors"]`, or `["evaluators"]` and `operator: "eq"` to scope results.
 
@@ -1295,7 +1064,6 @@ class AsyncRawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1327,7 +1095,7 @@ class AsyncRawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def get_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[GetWorkflowResponse]:
         """
         Get the latest editable (draft) version of a workflow.
@@ -1336,9 +1104,6 @@ class AsyncRawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1351,9 +1116,6 @@ class AsyncRawWorkflowsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1394,7 +1156,7 @@ class AsyncRawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
         Delete a workflow and all its versions.
@@ -1403,9 +1165,6 @@ class AsyncRawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1417,9 +1176,6 @@ class AsyncRawWorkflowsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1456,7 +1212,6 @@ class AsyncRawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateWorkflowRequestType] = OMIT,
@@ -1472,9 +1227,6 @@ class AsyncRawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -1509,7 +1261,6 @@ class AsyncRawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1555,7 +1306,6 @@ class AsyncRawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1567,9 +1317,6 @@ class AsyncRawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -1591,9 +1338,6 @@ class AsyncRawWorkflowsClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -1638,7 +1382,6 @@ class AsyncRawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         type: typing.Optional[CreateWorkflowVersionRequestType] = OMIT,
@@ -1654,9 +1397,6 @@ class AsyncRawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -1692,7 +1432,6 @@ class AsyncRawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1735,12 +1474,7 @@ class AsyncRawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def get_workflow_version(
-        self,
-        workflow_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[typing.Dict[str, typing.Any]]:
         """
         Get a specific workflow version by workflow ID and version number.
@@ -1753,9 +1487,6 @@ class AsyncRawWorkflowsClient:
         version : int
             Version number.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1767,9 +1498,6 @@ class AsyncRawWorkflowsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/versions/{jsonable_encoder(version)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1814,7 +1542,6 @@ class AsyncRawWorkflowsClient:
         workflow_id: str,
         version: int,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         trigger_event_type: typing.Optional[str] = OMIT,
@@ -1832,9 +1559,6 @@ class AsyncRawWorkflowsClient:
 
         version : int
             Version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -1866,7 +1590,6 @@ class AsyncRawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1912,7 +1635,6 @@ class AsyncRawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         version: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[DeployWorkflowResponse]:
@@ -1923,9 +1645,6 @@ class AsyncRawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         version : typing.Optional[int]
             Version number to deploy. If omitted, the latest committed version is deployed.
@@ -1946,7 +1665,6 @@ class AsyncRawWorkflowsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1989,7 +1707,7 @@ class AsyncRawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def undeploy_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
         Undeploy a workflow by disabling all versions.
@@ -1998,9 +1716,6 @@ class AsyncRawWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2012,9 +1727,6 @@ class AsyncRawWorkflowsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/deployments/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -2048,26 +1760,15 @@ class AsyncRawWorkflowsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def validate_workflow(
-        self,
-        workflow_id: str,
-        *,
-        authorization: str,
-        log_id: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[ValidateWorkflowResponse]:
         """
-        Validate a workflow against a sample log without triggering real side effects. No notifications, webhooks, or dataset writes are performed.
+        Validate a workflow configuration and fire preview delivery sends. The backend validates the workflow identified by the path parameter and does not consume a request body.
 
         Parameters
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        log_id : typing.Optional[str]
-            Specific log ID to use as the validation sample. If omitted, the backend uses the most recent organization log.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2080,15 +1781,7 @@ class AsyncRawWorkflowsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/validations/",
             method="POST",
-            json={
-                "log_id": log_id,
-            },
-            headers={
-                "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:

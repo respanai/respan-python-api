@@ -7,16 +7,14 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .bulk_delete_traces_response import BulkDeleteTracesResponse
-    from .create_trace_legacy_request_body import CreateTraceLegacyRequestBody
-    from .create_trace_legacy_request_body_data import CreateTraceLegacyRequestBodyData
-    from .create_trace_legacy_request_body_data_data_item import CreateTraceLegacyRequestBodyDataDataItem
-    from .create_trace_legacy_request_body_data_data_item_log_type import (
-        CreateTraceLegacyRequestBodyDataDataItemLogType,
-    )
-    from .create_trace_legacy_request_body_data_data_item_status import CreateTraceLegacyRequestBodyDataDataItemStatus
-    from .create_trace_legacy_request_body_zero_item import CreateTraceLegacyRequestBodyZeroItem
-    from .create_trace_legacy_request_body_zero_item_log_type import CreateTraceLegacyRequestBodyZeroItemLogType
-    from .create_trace_legacy_request_body_zero_item_status import CreateTraceLegacyRequestBodyZeroItemStatus
+    from .create_trace_legacy_request import CreateTraceLegacyRequest
+    from .create_trace_legacy_request_data import CreateTraceLegacyRequestData
+    from .create_trace_legacy_request_data_data_item import CreateTraceLegacyRequestDataDataItem
+    from .create_trace_legacy_request_data_data_item_log_type import CreateTraceLegacyRequestDataDataItemLogType
+    from .create_trace_legacy_request_data_data_item_status import CreateTraceLegacyRequestDataDataItemStatus
+    from .create_trace_legacy_request_zero_item import CreateTraceLegacyRequestZeroItem
+    from .create_trace_legacy_request_zero_item_log_type import CreateTraceLegacyRequestZeroItemLogType
+    from .create_trace_legacy_request_zero_item_status import CreateTraceLegacyRequestZeroItemStatus
     from .create_trace_legacy_response import CreateTraceLegacyResponse
     from .create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
     from .create_trace_request_resource_spans_item_resource import CreateTraceRequestResourceSpansItemResource
@@ -41,7 +39,6 @@ if typing.TYPE_CHECKING:
     from .create_trace_response import CreateTraceResponse
     from .create_trace_response_partial_success import CreateTraceResponsePartialSuccess
     from .delete_trace_response import DeleteTraceResponse
-    from .list_traces_request_operator import ListTracesRequestOperator
     from .list_traces_response import ListTracesResponse
     from .list_traces_response_results_item import ListTracesResponseResultsItem
     from .retrieve_public_trace_response import RetrievePublicTraceResponse
@@ -51,14 +48,14 @@ if typing.TYPE_CHECKING:
     from .share_trace_response import ShareTraceResponse
 _dynamic_imports: typing.Dict[str, str] = {
     "BulkDeleteTracesResponse": ".bulk_delete_traces_response",
-    "CreateTraceLegacyRequestBody": ".create_trace_legacy_request_body",
-    "CreateTraceLegacyRequestBodyData": ".create_trace_legacy_request_body_data",
-    "CreateTraceLegacyRequestBodyDataDataItem": ".create_trace_legacy_request_body_data_data_item",
-    "CreateTraceLegacyRequestBodyDataDataItemLogType": ".create_trace_legacy_request_body_data_data_item_log_type",
-    "CreateTraceLegacyRequestBodyDataDataItemStatus": ".create_trace_legacy_request_body_data_data_item_status",
-    "CreateTraceLegacyRequestBodyZeroItem": ".create_trace_legacy_request_body_zero_item",
-    "CreateTraceLegacyRequestBodyZeroItemLogType": ".create_trace_legacy_request_body_zero_item_log_type",
-    "CreateTraceLegacyRequestBodyZeroItemStatus": ".create_trace_legacy_request_body_zero_item_status",
+    "CreateTraceLegacyRequest": ".create_trace_legacy_request",
+    "CreateTraceLegacyRequestData": ".create_trace_legacy_request_data",
+    "CreateTraceLegacyRequestDataDataItem": ".create_trace_legacy_request_data_data_item",
+    "CreateTraceLegacyRequestDataDataItemLogType": ".create_trace_legacy_request_data_data_item_log_type",
+    "CreateTraceLegacyRequestDataDataItemStatus": ".create_trace_legacy_request_data_data_item_status",
+    "CreateTraceLegacyRequestZeroItem": ".create_trace_legacy_request_zero_item",
+    "CreateTraceLegacyRequestZeroItemLogType": ".create_trace_legacy_request_zero_item_log_type",
+    "CreateTraceLegacyRequestZeroItemStatus": ".create_trace_legacy_request_zero_item_status",
     "CreateTraceLegacyResponse": ".create_trace_legacy_response",
     "CreateTraceRequestResourceSpansItem": ".create_trace_request_resource_spans_item",
     "CreateTraceRequestResourceSpansItemResource": ".create_trace_request_resource_spans_item_resource",
@@ -71,7 +68,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateTraceResponse": ".create_trace_response",
     "CreateTraceResponsePartialSuccess": ".create_trace_response_partial_success",
     "DeleteTraceResponse": ".delete_trace_response",
-    "ListTracesRequestOperator": ".list_traces_request_operator",
     "ListTracesResponse": ".list_traces_response",
     "ListTracesResponseResultsItem": ".list_traces_response_results_item",
     "RetrievePublicTraceResponse": ".retrieve_public_trace_response",
@@ -105,14 +101,14 @@ def __dir__():
 
 __all__ = [
     "BulkDeleteTracesResponse",
-    "CreateTraceLegacyRequestBody",
-    "CreateTraceLegacyRequestBodyData",
-    "CreateTraceLegacyRequestBodyDataDataItem",
-    "CreateTraceLegacyRequestBodyDataDataItemLogType",
-    "CreateTraceLegacyRequestBodyDataDataItemStatus",
-    "CreateTraceLegacyRequestBodyZeroItem",
-    "CreateTraceLegacyRequestBodyZeroItemLogType",
-    "CreateTraceLegacyRequestBodyZeroItemStatus",
+    "CreateTraceLegacyRequest",
+    "CreateTraceLegacyRequestData",
+    "CreateTraceLegacyRequestDataDataItem",
+    "CreateTraceLegacyRequestDataDataItemLogType",
+    "CreateTraceLegacyRequestDataDataItemStatus",
+    "CreateTraceLegacyRequestZeroItem",
+    "CreateTraceLegacyRequestZeroItemLogType",
+    "CreateTraceLegacyRequestZeroItemStatus",
     "CreateTraceLegacyResponse",
     "CreateTraceRequestResourceSpansItem",
     "CreateTraceRequestResourceSpansItemResource",
@@ -125,7 +121,6 @@ __all__ = [
     "CreateTraceResponse",
     "CreateTraceResponsePartialSuccess",
     "DeleteTraceResponse",
-    "ListTracesRequestOperator",
     "ListTracesResponse",
     "ListTracesResponseResultsItem",
     "RetrievePublicTraceResponse",

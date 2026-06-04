@@ -9,23 +9,14 @@ from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawExperimentsClient, RawExperimentsClient
 from .types.create_experiment_request_workflow_item import CreateExperimentRequestWorkflowItem
 from .types.create_experiment_response import CreateExperimentResponse
-from .types.export_experiment_spans_request_detail import ExportExperimentSpansRequestDetail
-from .types.export_experiment_spans_request_export import ExportExperimentSpansRequestExport
-from .types.export_experiment_spans_response import ExportExperimentSpansResponse
 from .types.filter_experiment_score_histogram_response import FilterExperimentScoreHistogramResponse
 from .types.filter_experiment_spans_summary_response import FilterExperimentSpansSummaryResponse
 from .types.filter_experiments_summary_response import FilterExperimentsSummaryResponse
-from .types.get_experiment_score_histogram_response import GetExperimentScoreHistogramResponse
-from .types.get_experiment_spans_summary_response import GetExperimentSpansSummaryResponse
-from .types.get_experiments_summary_response import GetExperimentsSummaryResponse
 from .types.list_experiment_spans_request_detail import ListExperimentSpansRequestDetail
 from .types.list_experiment_spans_response import ListExperimentSpansResponse
 from .types.list_experiment_spans_response_results_item import ListExperimentSpansResponseResultsItem
 from .types.list_experiments_response import ListExperimentsResponse
 from .types.list_experiments_response_results_item import ListExperimentsResponseResultsItem
-from .types.list_experiments_root_response_item import ListExperimentsRootResponseItem
-from .types.list_experiments_with_query_response import ListExperimentsWithQueryResponse
-from .types.list_experiments_with_query_response_results_item import ListExperimentsWithQueryResponseResultsItem
 from .types.replace_experiment_request_workflow_item import ReplaceExperimentRequestWorkflowItem
 from .types.replace_experiment_response import ReplaceExperimentResponse
 from .types.retrieve_experiment_response import RetrieveExperimentResponse
@@ -53,54 +44,9 @@ class ExperimentsClient:
         """
         return self._raw_client
 
-    def list_experiments_root(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.List[ListExperimentsRootResponseItem]:
-        """
-        List experiments for the authenticated organization. For complex filters, use `POST /api/v2/experiments/list/`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[ListExperimentsRootResponseItem]
-            List of experiments.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.experiments.list_experiments_root(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.list_experiments_root(
-            authorization=authorization, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
     def create_experiment(
         self,
         *,
-        authorization: str,
         dataset_id: str,
         workflow: typing.Sequence[CreateExperimentRequestWorkflowItem],
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -121,9 +67,6 @@ class ExperimentsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         dataset_id : str
             Dataset ID to process.
 
@@ -176,9 +119,10 @@ class ExperimentsClient:
         from respan import RespanClient
         from respan.experiments import CreateExperimentRequestWorkflowItem
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.experiments.create_experiment(
-            authorization="Bearer sk_live_xxxxx",
             dataset_id="ds_abc123",
             workflow=[
                 CreateExperimentRequestWorkflowItem(
@@ -196,7 +140,6 @@ class ExperimentsClient:
         )
         """
         _response = self._raw_client.create_experiment(
-            authorization=authorization,
             dataset_id=dataset_id,
             workflow=workflow,
             evaluator_ids=evaluator_ids,
@@ -214,67 +157,9 @@ class ExperimentsClient:
         )
         return _response.data
 
-    def list_experiments_with_query(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[ListExperimentsWithQueryResponseResultsItem, ListExperimentsWithQueryResponse]:
-        """
-        List experiments with pagination, sorting, and query-parameter filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Defaults to `-created_at`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        SyncPager[ListExperimentsWithQueryResponseResultsItem, ListExperimentsWithQueryResponse]
-            Paginated list of experiments.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        response = client.experiments.list_experiments_with_query(
-            authorization="Bearer sk_live_xxxxx",
-            sort_by="-created_at",
-        )
-        for item in response:
-            yield item
-        # alternatively, you can paginate page-by-page
-        for page in response.iter_pages():
-            yield page
-        """
-        return self._raw_client.list_experiments_with_query(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            request_options=request_options,
-        )
-
     def list_experiments(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -283,13 +168,10 @@ class ExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]:
         """
-        List experiments using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/v2/experiments/list/`.
+        List experiments using POST-for-filtering.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -317,9 +199,10 @@ class ExperimentsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         response = client.experiments.list_experiments(
-            authorization="Bearer sk_live_xxxxx",
             sort_by="-created_at",
         )
         for item in response:
@@ -329,7 +212,6 @@ class ExperimentsClient:
             yield page
         """
         return self._raw_client.list_experiments(
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -338,43 +220,9 @@ class ExperimentsClient:
             request_options=request_options,
         )
 
-    def get_experiments_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetExperimentsSummaryResponse:
-        """
-        Return the number of experiments matching the current filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetExperimentsSummaryResponse
-            Experiment summary.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.experiments.get_experiments_summary(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.get_experiments_summary(
-            authorization=authorization, request_options=request_options
-        )
-        return _response.data
-
     def filter_experiments_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -384,9 +232,6 @@ class ExperimentsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -405,18 +250,18 @@ class ExperimentsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.experiments.filter_experiments_summary(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.experiments.filter_experiments_summary()
         """
         _response = self._raw_client.filter_experiments_summary(
-            authorization=authorization, filters=filters, is_exporting=is_exporting, request_options=request_options
+            filters=filters, is_exporting=is_exporting, request_options=request_options
         )
         return _response.data
 
     def retrieve_experiment(
-        self, experiment_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveExperimentResponse:
         """
         Retrieve an experiment by ID, including workflow and scoring configuration.
@@ -425,9 +270,6 @@ class ExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -441,22 +283,20 @@ class ExperimentsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.experiments.retrieve_experiment(
             experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_experiment(
-            experiment_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_experiment(experiment_id, request_options=request_options)
         return _response.data
 
     def replace_experiment(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         dataset_id: typing.Optional[str] = OMIT,
         workflow: typing.Optional[typing.Sequence[ReplaceExperimentRequestWorkflowItem]] = OMIT,
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -479,9 +319,6 @@ class ExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         dataset_id : typing.Optional[str]
             Dataset ID to process.
@@ -535,10 +372,11 @@ class ExperimentsClient:
         from respan import RespanClient
         from respan.experiments import ReplaceExperimentRequestWorkflowItem
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.experiments.replace_experiment(
             experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
             dataset_id="ds_abc123",
             workflow=[
                 ReplaceExperimentRequestWorkflowItem(
@@ -557,7 +395,6 @@ class ExperimentsClient:
         """
         _response = self._raw_client.replace_experiment(
             experiment_id,
-            authorization=authorization,
             dataset_id=dataset_id,
             workflow=workflow,
             evaluator_ids=evaluator_ids,
@@ -575,9 +412,7 @@ class ExperimentsClient:
         )
         return _response.data
 
-    def delete_experiment(
-        self, experiment_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def delete_experiment(self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete an experiment by ID.
 
@@ -585,9 +420,6 @@ class ExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -600,22 +432,20 @@ class ExperimentsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.experiments.delete_experiment(
             experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_experiment(
-            experiment_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_experiment(experiment_id, request_options=request_options)
         return _response.data
 
     def update_experiment(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         dataset_id: typing.Optional[str] = OMIT,
         workflow: typing.Optional[typing.Sequence[UpdateExperimentRequestWorkflowItem]] = OMIT,
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -638,9 +468,6 @@ class ExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         dataset_id : typing.Optional[str]
             Dataset ID to process.
@@ -694,10 +521,11 @@ class ExperimentsClient:
         from respan import RespanClient
         from respan.experiments import UpdateExperimentRequestWorkflowItem
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.experiments.update_experiment(
             experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
             dataset_id="ds_abc123",
             workflow=[
                 UpdateExperimentRequestWorkflowItem(
@@ -716,7 +544,6 @@ class ExperimentsClient:
         """
         _response = self._raw_client.update_experiment(
             experiment_id,
-            authorization=authorization,
             dataset_id=dataset_id,
             workflow=workflow,
             evaluator_ids=evaluator_ids,
@@ -734,90 +561,10 @@ class ExperimentsClient:
         )
         return _response.data
 
-    def export_experiment_spans(
-        self,
-        experiment_id: str,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        detail: typing.Optional[ExportExperimentSpansRequestDetail] = None,
-        export: typing.Optional[ExportExperimentSpansRequestExport] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExportExperimentSpansResponse:
-        """
-        List experiment traces. Set `export=1` or `export=true` to export matching traces instead of returning a page of results.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter results at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter results before this timestamp.
-
-        detail : typing.Optional[ExportExperimentSpansRequestDetail]
-            Set to `1` or `true` to include span tree details in list responses.
-
-        export : typing.Optional[ExportExperimentSpansRequestExport]
-            Set to `1` or `true` to export matching traces. The response contains an export status message instead of paginated results.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExportExperimentSpansResponse
-            Paginated list of experiment traces, or an export status message when `export` is set.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.experiments.export_experiment_spans(
-            experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
-            sort_by="-start_time",
-        )
-        """
-        _response = self._raw_client.export_experiment_spans(
-            experiment_id,
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            detail=detail,
-            export=export,
-            request_options=request_options,
-        )
-        return _response.data
-
     def list_experiment_spans(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -835,9 +582,6 @@ class ExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -875,10 +619,11 @@ class ExperimentsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         response = client.experiments.list_experiment_spans(
             experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
             sort_by="-start_time",
         )
         for item in response:
@@ -889,7 +634,6 @@ class ExperimentsClient:
         """
         return self._raw_client.list_experiment_spans(
             experiment_id,
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -902,12 +646,7 @@ class ExperimentsClient:
         )
 
     def retrieve_experiment_span(
-        self,
-        experiment_id: str,
-        log_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, experiment_id: str, log_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveExperimentSpanResponse:
         """
         Retrieve one experiment trace with its full span tree and enriched evaluator scores.
@@ -919,9 +658,6 @@ class ExperimentsClient:
 
         log_id : str
             Trace ID returned as `id` in experiment trace list responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -935,16 +671,15 @@ class ExperimentsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.experiments.retrieve_experiment_span(
             experiment_id="experiment_id",
             log_id="log_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_experiment_span(
-            experiment_id, log_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_experiment_span(experiment_id, log_id, request_options=request_options)
         return _response.data
 
     def update_experiment_span(
@@ -952,7 +687,6 @@ class ExperimentsClient:
         experiment_id: str,
         log_id: str,
         *,
-        authorization: str,
         input: typing.Any,
         output: typing.Any,
         metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -969,9 +703,6 @@ class ExperimentsClient:
 
         log_id : str
             Trace ID returned as `id` in experiment trace list responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         input : typing.Any
 
@@ -995,11 +726,12 @@ class ExperimentsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.experiments.update_experiment_span(
             experiment_id="experiment_id",
             log_id="log_id",
-            authorization="Bearer sk_live_xxxxx",
             input="What is AI?",
             output="AI stands for Artificial Intelligence.",
             metadata={"source": "external_runner"},
@@ -1008,7 +740,6 @@ class ExperimentsClient:
         _response = self._raw_client.update_experiment_span(
             experiment_id,
             log_id,
-            authorization=authorization,
             input=input,
             output=output,
             metrics=metrics,
@@ -1017,64 +748,10 @@ class ExperimentsClient:
         )
         return _response.data
 
-    def get_experiment_spans_summary(
-        self,
-        experiment_id: str,
-        *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetExperimentSpansSummaryResponse:
-        """
-        Get aggregate workflow metrics and evaluator score summaries for experiment traces.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter results at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter results before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetExperimentSpansSummaryResponse
-            Experiment trace summary.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.experiments.get_experiment_spans_summary(
-            experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.get_experiment_spans_summary(
-            experiment_id,
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            request_options=request_options,
-        )
-        return _response.data
-
     def filter_experiment_spans_summary(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -1088,9 +765,6 @@ class ExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         start_time : typing.Optional[dt.datetime]
             Filter results at or after this timestamp.
@@ -1116,73 +790,19 @@ class ExperimentsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.experiments.filter_experiment_spans_summary(
             experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.filter_experiment_spans_summary(
             experiment_id,
-            authorization=authorization,
             start_time=start_time,
             end_time=end_time,
             filters=filters,
             is_exporting=is_exporting,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def get_experiment_score_histogram(
-        self,
-        experiment_id: str,
-        *,
-        evaluator_id: str,
-        authorization: str,
-        bins: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetExperimentScoreHistogramResponse:
-        """
-        Return histogram bins and summary statistics for a numerical or boolean evaluator score in an experiment.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        evaluator_id : str
-            Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        bins : typing.Optional[int]
-            Number of histogram bins for numerical scores. Maximum 50.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetExperimentScoreHistogramResponse
-            Experiment score histogram.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.experiments.get_experiment_score_histogram(
-            experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
-            evaluator_id="eval_456",
-        )
-        """
-        _response = self._raw_client.get_experiment_score_histogram(
-            experiment_id,
-            evaluator_id=evaluator_id,
-            authorization=authorization,
-            bins=bins,
             request_options=request_options,
         )
         return _response.data
@@ -1192,14 +812,11 @@ class ExperimentsClient:
         experiment_id: str,
         *,
         evaluator_id: str,
-        authorization: str,
         bins: typing.Optional[int] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterExperimentScoreHistogramResponse:
         """
-        Return the same histogram response as GET. POST is accepted for consistency with dashboard views.
+        Compute histogram aggregation for experiment evaluation scores. The backend reads `evaluator_id` and `bins` from query parameters; it does not consume a request body.
 
         Parameters
         ----------
@@ -1209,17 +826,8 @@ class ExperimentsClient:
         evaluator_id : str
             Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         bins : typing.Optional[int]
             Number of histogram bins for numerical scores. Maximum 50.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1233,21 +841,16 @@ class ExperimentsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.experiments.filter_experiment_score_histogram(
             experiment_id="experiment_id",
-            authorization="Bearer sk_live_xxxxx",
             evaluator_id="eval_456",
         )
         """
         _response = self._raw_client.filter_experiment_score_histogram(
-            experiment_id,
-            evaluator_id=evaluator_id,
-            authorization=authorization,
-            bins=bins,
-            filters=filters,
-            is_exporting=is_exporting,
-            request_options=request_options,
+            experiment_id, evaluator_id=evaluator_id, bins=bins, request_options=request_options
         )
         return _response.data
 
@@ -1267,62 +870,9 @@ class AsyncExperimentsClient:
         """
         return self._raw_client
 
-    async def list_experiments_root(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.List[ListExperimentsRootResponseItem]:
-        """
-        List experiments for the authenticated organization. For complex filters, use `POST /api/v2/experiments/list/`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[ListExperimentsRootResponseItem]
-            List of experiments.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.experiments.list_experiments_root(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_experiments_root(
-            authorization=authorization, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
     async def create_experiment(
         self,
         *,
-        authorization: str,
         dataset_id: str,
         workflow: typing.Sequence[CreateExperimentRequestWorkflowItem],
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -1343,9 +893,6 @@ class AsyncExperimentsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         dataset_id : str
             Dataset ID to process.
 
@@ -1400,12 +947,13 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
         from respan.experiments import CreateExperimentRequestWorkflowItem
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.experiments.create_experiment(
-                authorization="Bearer sk_live_xxxxx",
                 dataset_id="ds_abc123",
                 workflow=[
                     CreateExperimentRequestWorkflowItem(
@@ -1426,7 +974,6 @@ class AsyncExperimentsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_experiment(
-            authorization=authorization,
             dataset_id=dataset_id,
             workflow=workflow,
             evaluator_ids=evaluator_ids,
@@ -1444,76 +991,9 @@ class AsyncExperimentsClient:
         )
         return _response.data
 
-    async def list_experiments_with_query(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[ListExperimentsWithQueryResponseResultsItem, ListExperimentsWithQueryResponse]:
-        """
-        List experiments with pagination, sorting, and query-parameter filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Defaults to `-created_at`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncPager[ListExperimentsWithQueryResponseResultsItem, ListExperimentsWithQueryResponse]
-            Paginated list of experiments.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            response = await client.experiments.list_experiments_with_query(
-                authorization="Bearer sk_live_xxxxx",
-                sort_by="-created_at",
-            )
-            async for item in response:
-                yield item
-
-            # alternatively, you can paginate page-by-page
-            async for page in response.iter_pages():
-                yield page
-
-
-        asyncio.run(main())
-        """
-        return await self._raw_client.list_experiments_with_query(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            request_options=request_options,
-        )
-
     async def list_experiments(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -1522,13 +1002,10 @@ class AsyncExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]:
         """
-        List experiments using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/v2/experiments/list/`.
+        List experiments using POST-for-filtering.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1558,12 +1035,13 @@ class AsyncExperimentsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             response = await client.experiments.list_experiments(
-                authorization="Bearer sk_live_xxxxx",
                 sort_by="-created_at",
             )
             async for item in response:
@@ -1577,7 +1055,6 @@ class AsyncExperimentsClient:
         asyncio.run(main())
         """
         return await self._raw_client.list_experiments(
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -1586,51 +1063,9 @@ class AsyncExperimentsClient:
             request_options=request_options,
         )
 
-    async def get_experiments_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> GetExperimentsSummaryResponse:
-        """
-        Return the number of experiments matching the current filters.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetExperimentsSummaryResponse
-            Experiment summary.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.experiments.get_experiments_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_experiments_summary(
-            authorization=authorization, request_options=request_options
-        )
-        return _response.data
-
     async def filter_experiments_summary(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1640,9 +1075,6 @@ class AsyncExperimentsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
 
@@ -1663,24 +1095,24 @@ class AsyncExperimentsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.experiments.filter_experiments_summary(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.experiments.filter_experiments_summary()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.filter_experiments_summary(
-            authorization=authorization, filters=filters, is_exporting=is_exporting, request_options=request_options
+            filters=filters, is_exporting=is_exporting, request_options=request_options
         )
         return _response.data
 
     async def retrieve_experiment(
-        self, experiment_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveExperimentResponse:
         """
         Retrieve an experiment by ID, including workflow and scoring configuration.
@@ -1689,9 +1121,6 @@ class AsyncExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1707,28 +1136,26 @@ class AsyncExperimentsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.experiments.retrieve_experiment(
                 experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_experiment(
-            experiment_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_experiment(experiment_id, request_options=request_options)
         return _response.data
 
     async def replace_experiment(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         dataset_id: typing.Optional[str] = OMIT,
         workflow: typing.Optional[typing.Sequence[ReplaceExperimentRequestWorkflowItem]] = OMIT,
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -1751,9 +1178,6 @@ class AsyncExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         dataset_id : typing.Optional[str]
             Dataset ID to process.
@@ -1809,13 +1233,14 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
         from respan.experiments import ReplaceExperimentRequestWorkflowItem
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.experiments.replace_experiment(
                 experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
                 dataset_id="ds_abc123",
                 workflow=[
                     ReplaceExperimentRequestWorkflowItem(
@@ -1837,7 +1262,6 @@ class AsyncExperimentsClient:
         """
         _response = await self._raw_client.replace_experiment(
             experiment_id,
-            authorization=authorization,
             dataset_id=dataset_id,
             workflow=workflow,
             evaluator_ids=evaluator_ids,
@@ -1856,7 +1280,7 @@ class AsyncExperimentsClient:
         return _response.data
 
     async def delete_experiment(
-        self, experiment_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete an experiment by ID.
@@ -1865,9 +1289,6 @@ class AsyncExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1882,28 +1303,26 @@ class AsyncExperimentsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.experiments.delete_experiment(
                 experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_experiment(
-            experiment_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_experiment(experiment_id, request_options=request_options)
         return _response.data
 
     async def update_experiment(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         dataset_id: typing.Optional[str] = OMIT,
         workflow: typing.Optional[typing.Sequence[UpdateExperimentRequestWorkflowItem]] = OMIT,
         evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
@@ -1926,9 +1345,6 @@ class AsyncExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         dataset_id : typing.Optional[str]
             Dataset ID to process.
@@ -1984,13 +1400,14 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
         from respan.experiments import UpdateExperimentRequestWorkflowItem
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.experiments.update_experiment(
                 experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
                 dataset_id="ds_abc123",
                 workflow=[
                     UpdateExperimentRequestWorkflowItem(
@@ -2012,7 +1429,6 @@ class AsyncExperimentsClient:
         """
         _response = await self._raw_client.update_experiment(
             experiment_id,
-            authorization=authorization,
             dataset_id=dataset_id,
             workflow=workflow,
             evaluator_ids=evaluator_ids,
@@ -2030,98 +1446,10 @@ class AsyncExperimentsClient:
         )
         return _response.data
 
-    async def export_experiment_spans(
-        self,
-        experiment_id: str,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        detail: typing.Optional[ExportExperimentSpansRequestDetail] = None,
-        export: typing.Optional[ExportExperimentSpansRequestExport] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExportExperimentSpansResponse:
-        """
-        List experiment traces. Set `export=1` or `export=true` to export matching traces instead of returning a page of results.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter results at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter results before this timestamp.
-
-        detail : typing.Optional[ExportExperimentSpansRequestDetail]
-            Set to `1` or `true` to include span tree details in list responses.
-
-        export : typing.Optional[ExportExperimentSpansRequestExport]
-            Set to `1` or `true` to export matching traces. The response contains an export status message instead of paginated results.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExportExperimentSpansResponse
-            Paginated list of experiment traces, or an export status message when `export` is set.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.experiments.export_experiment_spans(
-                experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
-                sort_by="-start_time",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.export_experiment_spans(
-            experiment_id,
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            detail=detail,
-            export=export,
-            request_options=request_options,
-        )
-        return _response.data
-
     async def list_experiment_spans(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -2139,9 +1467,6 @@ class AsyncExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -2181,13 +1506,14 @@ class AsyncExperimentsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             response = await client.experiments.list_experiment_spans(
                 experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
                 sort_by="-start_time",
             )
             async for item in response:
@@ -2202,7 +1528,6 @@ class AsyncExperimentsClient:
         """
         return await self._raw_client.list_experiment_spans(
             experiment_id,
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -2215,12 +1540,7 @@ class AsyncExperimentsClient:
         )
 
     async def retrieve_experiment_span(
-        self,
-        experiment_id: str,
-        log_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, experiment_id: str, log_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveExperimentSpanResponse:
         """
         Retrieve one experiment trace with its full span tree and enriched evaluator scores.
@@ -2232,9 +1552,6 @@ class AsyncExperimentsClient:
 
         log_id : str
             Trace ID returned as `id` in experiment trace list responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2250,21 +1567,22 @@ class AsyncExperimentsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.experiments.retrieve_experiment_span(
                 experiment_id="experiment_id",
                 log_id="log_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.retrieve_experiment_span(
-            experiment_id, log_id, authorization=authorization, request_options=request_options
+            experiment_id, log_id, request_options=request_options
         )
         return _response.data
 
@@ -2273,7 +1591,6 @@ class AsyncExperimentsClient:
         experiment_id: str,
         log_id: str,
         *,
-        authorization: str,
         input: typing.Any,
         output: typing.Any,
         metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -2290,9 +1607,6 @@ class AsyncExperimentsClient:
 
         log_id : str
             Trace ID returned as `id` in experiment trace list responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         input : typing.Any
 
@@ -2318,14 +1632,15 @@ class AsyncExperimentsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.experiments.update_experiment_span(
                 experiment_id="experiment_id",
                 log_id="log_id",
-                authorization="Bearer sk_live_xxxxx",
                 input="What is AI?",
                 output="AI stands for Artificial Intelligence.",
                 metadata={"source": "external_runner"},
@@ -2337,7 +1652,6 @@ class AsyncExperimentsClient:
         _response = await self._raw_client.update_experiment_span(
             experiment_id,
             log_id,
-            authorization=authorization,
             input=input,
             output=output,
             metrics=metrics,
@@ -2346,72 +1660,10 @@ class AsyncExperimentsClient:
         )
         return _response.data
 
-    async def get_experiment_spans_summary(
-        self,
-        experiment_id: str,
-        *,
-        authorization: str,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetExperimentSpansSummaryResponse:
-        """
-        Get aggregate workflow metrics and evaluator score summaries for experiment traces.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter results at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter results before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetExperimentSpansSummaryResponse
-            Experiment trace summary.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.experiments.get_experiment_spans_summary(
-                experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_experiment_spans_summary(
-            experiment_id,
-            authorization=authorization,
-            start_time=start_time,
-            end_time=end_time,
-            request_options=request_options,
-        )
-        return _response.data
-
     async def filter_experiment_spans_summary(
         self,
         experiment_id: str,
         *,
-        authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -2425,9 +1677,6 @@ class AsyncExperimentsClient:
         ----------
         experiment_id : str
             Experiment ID returned as `id` in experiment responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         start_time : typing.Optional[dt.datetime]
             Filter results at or after this timestamp.
@@ -2455,13 +1704,14 @@ class AsyncExperimentsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.experiments.filter_experiment_spans_summary(
                 experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
@@ -2469,73 +1719,10 @@ class AsyncExperimentsClient:
         """
         _response = await self._raw_client.filter_experiment_spans_summary(
             experiment_id,
-            authorization=authorization,
             start_time=start_time,
             end_time=end_time,
             filters=filters,
             is_exporting=is_exporting,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def get_experiment_score_histogram(
-        self,
-        experiment_id: str,
-        *,
-        evaluator_id: str,
-        authorization: str,
-        bins: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetExperimentScoreHistogramResponse:
-        """
-        Return histogram bins and summary statistics for a numerical or boolean evaluator score in an experiment.
-
-        Parameters
-        ----------
-        experiment_id : str
-            Experiment ID returned as `id` in experiment responses.
-
-        evaluator_id : str
-            Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        bins : typing.Optional[int]
-            Number of histogram bins for numerical scores. Maximum 50.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetExperimentScoreHistogramResponse
-            Experiment score histogram.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.experiments.get_experiment_score_histogram(
-                experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
-                evaluator_id="eval_456",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_experiment_score_histogram(
-            experiment_id,
-            evaluator_id=evaluator_id,
-            authorization=authorization,
-            bins=bins,
             request_options=request_options,
         )
         return _response.data
@@ -2545,14 +1732,11 @@ class AsyncExperimentsClient:
         experiment_id: str,
         *,
         evaluator_id: str,
-        authorization: str,
         bins: typing.Optional[int] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterExperimentScoreHistogramResponse:
         """
-        Return the same histogram response as GET. POST is accepted for consistency with dashboard views.
+        Compute histogram aggregation for experiment evaluation scores. The backend reads `evaluator_id` and `bins` from query parameters; it does not consume a request body.
 
         Parameters
         ----------
@@ -2562,17 +1746,8 @@ class AsyncExperimentsClient:
         evaluator_id : str
             Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         bins : typing.Optional[int]
             Number of histogram bins for numerical scores. Maximum 50.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2588,13 +1763,14 @@ class AsyncExperimentsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.experiments.filter_experiment_score_histogram(
                 experiment_id="experiment_id",
-                authorization="Bearer sk_live_xxxxx",
                 evaluator_id="eval_456",
             )
 
@@ -2602,12 +1778,6 @@ class AsyncExperimentsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.filter_experiment_score_histogram(
-            experiment_id,
-            evaluator_id=evaluator_id,
-            authorization=authorization,
-            bins=bins,
-            filters=filters,
-            is_exporting=is_exporting,
-            request_options=request_options,
+            experiment_id, evaluator_id=evaluator_id, bins=bins, request_options=request_options
         )
         return _response.data

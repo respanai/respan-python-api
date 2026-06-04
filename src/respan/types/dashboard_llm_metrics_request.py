@@ -3,18 +3,16 @@
 import typing
 
 import pydantic
-from ..core.pydantic_utilities import IS_PYDANTIC_V2
-from .dashboard_llm_metrics_request_metrics_to_aggregate_item import DashboardLlmMetricsRequestMetricsToAggregateItem
-from .dashboard_time_range_request import DashboardTimeRangeRequest
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .filters import Filters
 
 
-class DashboardLlmMetricsRequest(DashboardTimeRangeRequest):
-    metrics_to_aggregate: typing.Optional[typing.List[DashboardLlmMetricsRequestMetricsToAggregateItem]] = (
-        pydantic.Field(default=None)
-    )
+class DashboardLlmMetricsRequest(UniversalBaseModel):
     """
-    Optional. If provided, the response includes only these metric fields. If omitted, all LLM metrics are returned.
+    Optional POST body. Only `filters` is read from the body; time range controls are URL query parameters.
     """
+
+    filters: typing.Optional[Filters] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

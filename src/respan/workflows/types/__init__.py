@@ -22,12 +22,6 @@ if typing.TYPE_CHECKING:
     from .list_workflow_versions_response import ListWorkflowVersionsResponse
     from .list_workflow_versions_response_results_item import ListWorkflowVersionsResponseResultsItem
     from .list_workflow_versions_response_results_item_type import ListWorkflowVersionsResponseResultsItemType
-    from .list_workflows_response import ListWorkflowsResponse
-    from .list_workflows_response_results_item import ListWorkflowsResponseResultsItem
-    from .list_workflows_response_results_item_trigger_event_type import (
-        ListWorkflowsResponseResultsItemTriggerEventType,
-    )
-    from .list_workflows_response_results_item_type import ListWorkflowsResponseResultsItemType
     from .update_workflow_request_trigger_event_type import UpdateWorkflowRequestTriggerEventType
     from .update_workflow_request_type import UpdateWorkflowRequestType
     from .validate_workflow_response import ValidateWorkflowResponse
@@ -51,10 +45,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ListWorkflowVersionsResponse": ".list_workflow_versions_response",
     "ListWorkflowVersionsResponseResultsItem": ".list_workflow_versions_response_results_item",
     "ListWorkflowVersionsResponseResultsItemType": ".list_workflow_versions_response_results_item_type",
-    "ListWorkflowsResponse": ".list_workflows_response",
-    "ListWorkflowsResponseResultsItem": ".list_workflows_response_results_item",
-    "ListWorkflowsResponseResultsItemTriggerEventType": ".list_workflows_response_results_item_trigger_event_type",
-    "ListWorkflowsResponseResultsItemType": ".list_workflows_response_results_item_type",
     "UpdateWorkflowRequestTriggerEventType": ".update_workflow_request_trigger_event_type",
     "UpdateWorkflowRequestType": ".update_workflow_request_type",
     "ValidateWorkflowResponse": ".validate_workflow_response",
@@ -102,10 +92,6 @@ __all__ = [
     "ListWorkflowVersionsResponse",
     "ListWorkflowVersionsResponseResultsItem",
     "ListWorkflowVersionsResponseResultsItemType",
-    "ListWorkflowsResponse",
-    "ListWorkflowsResponseResultsItem",
-    "ListWorkflowsResponseResultsItemTriggerEventType",
-    "ListWorkflowsResponseResultsItemType",
     "UpdateWorkflowRequestTriggerEventType",
     "UpdateWorkflowRequestType",
     "ValidateWorkflowResponse",

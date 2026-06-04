@@ -9,7 +9,6 @@ if typing.TYPE_CHECKING:
     from .types import (
         DeleteUserRequestEnvironment,
         ListCustomersRequestEnvironment,
-        ListCustomersRequestOperator,
         ListCustomersResponse,
         ListCustomersResponseResultsItem,
         ListCustomersResponseResultsItemBudgetDuration,
@@ -27,7 +26,6 @@ if typing.TYPE_CHECKING:
 _dynamic_imports: typing.Dict[str, str] = {
     "DeleteUserRequestEnvironment": ".types",
     "ListCustomersRequestEnvironment": ".types",
-    "ListCustomersRequestOperator": ".types",
     "ListCustomersResponse": ".types",
     "ListCustomersResponseResultsItem": ".types",
     "ListCustomersResponseResultsItemBudgetDuration": ".types",
@@ -68,7 +66,6 @@ def __dir__():
 __all__ = [
     "DeleteUserRequestEnvironment",
     "ListCustomersRequestEnvironment",
-    "ListCustomersRequestOperator",
     "ListCustomersResponse",
     "ListCustomersResponseResultsItem",
     "ListCustomersResponseResultsItemBudgetDuration",

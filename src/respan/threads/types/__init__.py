@@ -7,12 +7,10 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .list_threads_request_filters import ListThreadsRequestFilters
-    from .list_threads_request_operator import ListThreadsRequestOperator
     from .list_threads_response import ListThreadsResponse
     from .list_threads_response_results_item import ListThreadsResponseResultsItem
 _dynamic_imports: typing.Dict[str, str] = {
     "ListThreadsRequestFilters": ".list_threads_request_filters",
-    "ListThreadsRequestOperator": ".list_threads_request_operator",
     "ListThreadsResponse": ".list_threads_response",
     "ListThreadsResponseResultsItem": ".list_threads_response_results_item",
 }
@@ -39,9 +37,4 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = [
-    "ListThreadsRequestFilters",
-    "ListThreadsRequestOperator",
-    "ListThreadsResponse",
-    "ListThreadsResponseResultsItem",
-]
+__all__ = ["ListThreadsRequestFilters", "ListThreadsResponse", "ListThreadsResponseResultsItem"]

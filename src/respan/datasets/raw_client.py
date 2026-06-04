@@ -24,7 +24,6 @@ from .types.import_dataset_logs_response import ImportDatasetLogsResponse
 from .types.list_dataset_eval_runs_response import ListDatasetEvalRunsResponse
 from .types.list_dataset_logs_request_export_format import ListDatasetLogsRequestExportFormat
 from .types.list_dataset_logs_request_filters_value import ListDatasetLogsRequestFiltersValue
-from .types.list_dataset_logs_request_retrieval_mode import ListDatasetLogsRequestRetrievalMode
 from .types.list_dataset_logs_response import ListDatasetLogsResponse
 from .types.list_datasets_request_filters_value import ListDatasetsRequestFiltersValue
 from .types.list_datasets_response import ListDatasetsResponse
@@ -36,7 +35,6 @@ from .types.retrieve_dataset_response import RetrieveDatasetResponse
 from .types.run_eval_on_dataset_response import RunEvalOnDatasetResponse
 from .types.summarize_dataset_logs_filtered_request_filters_value import SummarizeDatasetLogsFilteredRequestFiltersValue
 from .types.summarize_dataset_logs_filtered_response import SummarizeDatasetLogsFilteredResponse
-from .types.summarize_dataset_logs_response import SummarizeDatasetLogsResponse
 from .types.update_dataset_log_response import UpdateDatasetLogResponse
 from .types.update_dataset_response import UpdateDatasetResponse
 
@@ -49,7 +47,7 @@ class RawDatasetsClient:
         self._client_wrapper = client_wrapper
 
     def retrieve_dataset(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveDatasetResponse]:
         """
         Retrieve a dataset by ID.
@@ -58,9 +56,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -73,9 +68,6 @@ class RawDatasetsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -105,7 +97,7 @@ class RawDatasetsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def delete_dataset(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
         Delete a dataset and the logs it contains.
@@ -114,9 +106,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -128,9 +117,6 @@ class RawDatasetsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -156,7 +142,6 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -170,9 +155,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Updated dataset name.
@@ -205,7 +187,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -239,7 +220,6 @@ class RawDatasetsClient:
     def create_dataset(
         self,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         sampling: typing.Optional[int] = OMIT,
@@ -255,9 +235,6 @@ class RawDatasetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : typing.Optional[str]
             Dataset name. Required unless `source_dataset_id` is provided.
 
@@ -309,7 +286,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -354,7 +330,6 @@ class RawDatasetsClient:
     def list_datasets(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -366,9 +341,6 @@ class RawDatasetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -404,7 +376,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -439,11 +410,9 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
-        retrieval_mode: typing.Optional[ListDatasetLogsRequestRetrievalMode] = None,
         include_fields: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, ListDatasetLogsRequestFiltersValue]] = OMIT,
         is_exporting: typing.Optional[bool] = OMIT,
@@ -459,9 +428,6 @@ class RawDatasetsClient:
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -470,9 +436,6 @@ class RawDatasetsClient:
 
         sort_by : typing.Optional[str]
             Sort field for dataset logs. Prefix with `-` for descending order.
-
-        retrieval_mode : typing.Optional[ListDatasetLogsRequestRetrievalMode]
-            Set to `async` to preload full log objects in the background.
 
         include_fields : typing.Optional[str]
             Comma-separated list of response fields to include.
@@ -504,7 +467,6 @@ class RawDatasetsClient:
                 "page": page,
                 "page_size": page_size,
                 "sort_by": sort_by,
-                "retrieval_mode": retrieval_mode,
                 "include_fields": include_fields,
             },
             json={
@@ -517,7 +479,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -552,7 +513,6 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         input: typing.Any,
         output: typing.Optional[typing.Any] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -566,9 +526,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Any
 
@@ -597,7 +554,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -629,12 +585,7 @@ class RawDatasetsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_dataset_log(
-        self,
-        dataset_id: str,
-        unique_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveDatasetLogResponse]:
         """
         Retrieve the full dataset log object, including input/output data, metadata, and associated scores.
@@ -647,9 +598,6 @@ class RawDatasetsClient:
         unique_id : str
             Unique log ID within the dataset.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -661,9 +609,6 @@ class RawDatasetsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -697,7 +642,6 @@ class RawDatasetsClient:
         dataset_id: str,
         unique_id: str,
         *,
-        authorization: str,
         input: typing.Optional[typing.Any] = OMIT,
         output: typing.Optional[typing.Any] = OMIT,
         expected_output: typing.Optional[typing.Any] = OMIT,
@@ -716,9 +660,6 @@ class RawDatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Optional[typing.Any]
 
@@ -753,7 +694,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -785,12 +725,7 @@ class RawDatasetsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def delete_dataset_log(
-        self,
-        dataset_id: str,
-        unique_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
         Remove a single log from a dataset.
@@ -803,9 +738,6 @@ class RawDatasetsClient:
         unique_id : str
             Unique log ID within the dataset.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -816,9 +748,6 @@ class RawDatasetsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -845,7 +774,6 @@ class RawDatasetsClient:
         dataset_id: str,
         unique_id: str,
         *,
-        authorization: str,
         input: typing.Optional[typing.Any] = OMIT,
         output: typing.Optional[typing.Any] = OMIT,
         expected_output: typing.Optional[typing.Any] = OMIT,
@@ -864,9 +792,6 @@ class RawDatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Optional[typing.Any]
 
@@ -901,7 +826,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -936,7 +860,6 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         start_time: dt.datetime,
         end_time: dt.datetime,
         filters: typing.Optional[typing.Dict[str, ImportDatasetLogsRequestFiltersValue]] = OMIT,
@@ -950,9 +873,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         start_time : dt.datetime
 
@@ -987,7 +907,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1044,7 +963,6 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         is_deleting_all_logs: typing.Optional[bool] = OMIT,
         filters: typing.Optional[typing.Dict[str, RemoveDatasetLogsRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1056,9 +974,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         is_deleting_all_logs : typing.Optional[bool]
             Set to `true` to remove every log in the dataset.
@@ -1087,7 +1002,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1140,78 +1054,10 @@ class RawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def summarize_dataset_logs(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[SummarizeDatasetLogsResponse]:
-        """
-        Get aggregate usage metrics and evaluator score summaries for all logs in a dataset.
-
-        Parameters
-        ----------
-        dataset_id : str
-            Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[SummarizeDatasetLogsResponse]
-            Dataset log summary.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    SummarizeDatasetLogsResponse,
-                    parse_obj_as(
-                        type_=SummarizeDatasetLogsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def summarize_dataset_logs_filtered(
         self,
         dataset_id: str,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[SummarizeDatasetLogsFilteredResponse]:
@@ -1222,9 +1068,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         filters : typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]]
             Platform-standard filters keyed by field name.
@@ -1249,7 +1092,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1295,7 +1137,6 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         logs: typing.Sequence[BulkCreateDatasetLogsRequestLogsItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[BulkCreateDatasetLogsResponse]:
@@ -1306,9 +1147,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         logs : typing.Sequence[BulkCreateDatasetLogsRequestLogsItem]
 
@@ -1330,7 +1168,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1365,7 +1202,6 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         evaluator_ids: typing.Sequence[str],
         experiment_id: typing.Optional[str] = OMIT,
         generation_method: typing.Optional[str] = OMIT,
@@ -1378,9 +1214,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         evaluator_ids : typing.Sequence[str]
             Evaluator IDs to run against the dataset.
@@ -1409,7 +1242,6 @@ class RawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1466,7 +1298,6 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1478,9 +1309,6 @@ class RawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -1502,9 +1330,6 @@ class RawDatasetsClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -1540,7 +1365,7 @@ class AsyncRawDatasetsClient:
         self._client_wrapper = client_wrapper
 
     async def retrieve_dataset(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveDatasetResponse]:
         """
         Retrieve a dataset by ID.
@@ -1549,9 +1374,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1564,9 +1386,6 @@ class AsyncRawDatasetsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1596,7 +1415,7 @@ class AsyncRawDatasetsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_dataset(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
         Delete a dataset and the logs it contains.
@@ -1605,9 +1424,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1619,9 +1435,6 @@ class AsyncRawDatasetsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1647,7 +1460,6 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -1661,9 +1473,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Updated dataset name.
@@ -1696,7 +1505,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1730,7 +1538,6 @@ class AsyncRawDatasetsClient:
     async def create_dataset(
         self,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         sampling: typing.Optional[int] = OMIT,
@@ -1746,9 +1553,6 @@ class AsyncRawDatasetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : typing.Optional[str]
             Dataset name. Required unless `source_dataset_id` is provided.
 
@@ -1800,7 +1604,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1845,7 +1648,6 @@ class AsyncRawDatasetsClient:
     async def list_datasets(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -1857,9 +1659,6 @@ class AsyncRawDatasetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1895,7 +1694,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1930,11 +1728,9 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
-        retrieval_mode: typing.Optional[ListDatasetLogsRequestRetrievalMode] = None,
         include_fields: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, ListDatasetLogsRequestFiltersValue]] = OMIT,
         is_exporting: typing.Optional[bool] = OMIT,
@@ -1950,9 +1746,6 @@ class AsyncRawDatasetsClient:
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1961,9 +1754,6 @@ class AsyncRawDatasetsClient:
 
         sort_by : typing.Optional[str]
             Sort field for dataset logs. Prefix with `-` for descending order.
-
-        retrieval_mode : typing.Optional[ListDatasetLogsRequestRetrievalMode]
-            Set to `async` to preload full log objects in the background.
 
         include_fields : typing.Optional[str]
             Comma-separated list of response fields to include.
@@ -1995,7 +1785,6 @@ class AsyncRawDatasetsClient:
                 "page": page,
                 "page_size": page_size,
                 "sort_by": sort_by,
-                "retrieval_mode": retrieval_mode,
                 "include_fields": include_fields,
             },
             json={
@@ -2008,7 +1797,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2043,7 +1831,6 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         input: typing.Any,
         output: typing.Optional[typing.Any] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -2057,9 +1844,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Any
 
@@ -2088,7 +1872,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2120,12 +1903,7 @@ class AsyncRawDatasetsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_dataset_log(
-        self,
-        dataset_id: str,
-        unique_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveDatasetLogResponse]:
         """
         Retrieve the full dataset log object, including input/output data, metadata, and associated scores.
@@ -2138,9 +1916,6 @@ class AsyncRawDatasetsClient:
         unique_id : str
             Unique log ID within the dataset.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -2152,9 +1927,6 @@ class AsyncRawDatasetsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -2188,7 +1960,6 @@ class AsyncRawDatasetsClient:
         dataset_id: str,
         unique_id: str,
         *,
-        authorization: str,
         input: typing.Optional[typing.Any] = OMIT,
         output: typing.Optional[typing.Any] = OMIT,
         expected_output: typing.Optional[typing.Any] = OMIT,
@@ -2207,9 +1978,6 @@ class AsyncRawDatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Optional[typing.Any]
 
@@ -2244,7 +2012,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2276,12 +2043,7 @@ class AsyncRawDatasetsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_dataset_log(
-        self,
-        dataset_id: str,
-        unique_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
         Remove a single log from a dataset.
@@ -2294,9 +2056,6 @@ class AsyncRawDatasetsClient:
         unique_id : str
             Unique log ID within the dataset.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -2307,9 +2066,6 @@ class AsyncRawDatasetsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -2336,7 +2092,6 @@ class AsyncRawDatasetsClient:
         dataset_id: str,
         unique_id: str,
         *,
-        authorization: str,
         input: typing.Optional[typing.Any] = OMIT,
         output: typing.Optional[typing.Any] = OMIT,
         expected_output: typing.Optional[typing.Any] = OMIT,
@@ -2355,9 +2110,6 @@ class AsyncRawDatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Optional[typing.Any]
 
@@ -2392,7 +2144,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2427,7 +2178,6 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         start_time: dt.datetime,
         end_time: dt.datetime,
         filters: typing.Optional[typing.Dict[str, ImportDatasetLogsRequestFiltersValue]] = OMIT,
@@ -2441,9 +2191,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         start_time : dt.datetime
 
@@ -2478,7 +2225,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2535,7 +2281,6 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         is_deleting_all_logs: typing.Optional[bool] = OMIT,
         filters: typing.Optional[typing.Dict[str, RemoveDatasetLogsRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -2547,9 +2292,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         is_deleting_all_logs : typing.Optional[bool]
             Set to `true` to remove every log in the dataset.
@@ -2578,7 +2320,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2631,78 +2372,10 @@ class AsyncRawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def summarize_dataset_logs(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[SummarizeDatasetLogsResponse]:
-        """
-        Get aggregate usage metrics and evaluator score summaries for all logs in a dataset.
-
-        Parameters
-        ----------
-        dataset_id : str
-            Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[SummarizeDatasetLogsResponse]
-            Dataset log summary.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    SummarizeDatasetLogsResponse,
-                    parse_obj_as(
-                        type_=SummarizeDatasetLogsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def summarize_dataset_logs_filtered(
         self,
         dataset_id: str,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[SummarizeDatasetLogsFilteredResponse]:
@@ -2713,9 +2386,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         filters : typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]]
             Platform-standard filters keyed by field name.
@@ -2740,7 +2410,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2786,7 +2455,6 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         logs: typing.Sequence[BulkCreateDatasetLogsRequestLogsItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[BulkCreateDatasetLogsResponse]:
@@ -2797,9 +2465,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         logs : typing.Sequence[BulkCreateDatasetLogsRequestLogsItem]
 
@@ -2821,7 +2486,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2856,7 +2520,6 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         evaluator_ids: typing.Sequence[str],
         experiment_id: typing.Optional[str] = OMIT,
         generation_method: typing.Optional[str] = OMIT,
@@ -2869,9 +2532,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         evaluator_ids : typing.Sequence[str]
             Evaluator IDs to run against the dataset.
@@ -2900,7 +2560,6 @@ class AsyncRawDatasetsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2957,7 +2616,6 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -2969,9 +2627,6 @@ class AsyncRawDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -2993,9 +2648,6 @@ class AsyncRawDatasetsClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )

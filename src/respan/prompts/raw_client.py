@@ -18,13 +18,10 @@ from .types.create_prompt_response import CreatePromptResponse
 from .types.create_prompt_version_request_tool_choice import CreatePromptVersionRequestToolChoice
 from .types.create_prompt_version_response import CreatePromptVersionResponse
 from .types.deploy_prompt_version_response import DeployPromptVersionResponse
-from .types.get_prompts_summary_response import GetPromptsSummaryResponse
 from .types.get_prompts_summary_with_filters_request_filters import GetPromptsSummaryWithFiltersRequestFilters
-from .types.get_prompts_summary_with_filters_request_operator import GetPromptsSummaryWithFiltersRequestOperator
 from .types.get_prompts_summary_with_filters_response import GetPromptsSummaryWithFiltersResponse
 from .types.list_prompt_versions_response import ListPromptVersionsResponse
 from .types.list_prompts_request_filters import ListPromptsRequestFilters
-from .types.list_prompts_request_operator import ListPromptsRequestOperator
 from .types.list_prompts_request_sort_by import ListPromptsRequestSortBy
 from .types.list_prompts_response import ListPromptsResponse
 from .types.retrieve_prompt_response import RetrievePromptResponse
@@ -44,12 +41,10 @@ class RawPromptsClient:
     def list_prompts(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[ListPromptsRequestSortBy] = None,
         filters: typing.Optional[ListPromptsRequestFilters] = OMIT,
-        operator: typing.Optional[ListPromptsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListPromptsResponse]:
         """
@@ -57,9 +52,6 @@ class RawPromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -71,9 +63,6 @@ class RawPromptsClient:
 
         filters : typing.Optional[ListPromptsRequestFilters]
             Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
-
-        operator : typing.Optional[ListPromptsRequestOperator]
-            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -95,11 +84,9 @@ class RawPromptsClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=ListPromptsRequestFilters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -133,7 +120,6 @@ class RawPromptsClient:
     def create_prompt(
         self,
         *,
-        authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -143,9 +129,6 @@ class RawPromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : str
             Prompt name.
 
@@ -169,7 +152,6 @@ class RawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -212,7 +194,7 @@ class RawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_prompt(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrievePromptResponse]:
         """
         Retrieve a prompt template by ID, including its current and live versions.
@@ -221,9 +203,6 @@ class RawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -236,9 +215,6 @@ class RawPromptsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/prompts/{jsonable_encoder(prompt_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -279,7 +255,7 @@ class RawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def delete_prompt(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
         Delete a prompt and its versions from the active prompt library.
@@ -288,9 +264,6 @@ class RawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -302,9 +275,6 @@ class RawPromptsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/prompts/{jsonable_encoder(prompt_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -341,7 +311,6 @@ class RawPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -353,9 +322,6 @@ class RawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Updated prompt name.
@@ -380,7 +346,6 @@ class RawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -437,7 +402,6 @@ class RawPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -449,9 +413,6 @@ class RawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -473,9 +434,6 @@ class RawPromptsClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -520,7 +478,6 @@ class RawPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         description: typing.Optional[str] = OMIT,
@@ -552,9 +509,6 @@ class RawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         messages : typing.Sequence[typing.Dict[str, typing.Any]]
             Messages for this version. Use `{{variable_name}}` placeholders for template variables.
@@ -659,7 +613,6 @@ class RawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -713,12 +666,7 @@ class RawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_prompt_version(
-        self,
-        prompt_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrievePromptVersionResponse]:
         """
         Retrieve a specific version of a prompt.
@@ -731,9 +679,6 @@ class RawPromptsClient:
         version : int
             The prompt version number.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -745,9 +690,6 @@ class RawPromptsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/prompts/{jsonable_encoder(prompt_id)}/versions/{jsonable_encoder(version)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -788,12 +730,7 @@ class RawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def delete_prompt_version(
-        self,
-        prompt_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
         Delete a specific prompt version. The currently deployed live version cannot be deleted.
@@ -806,9 +743,6 @@ class RawPromptsClient:
         version : int
             The prompt version number.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -819,9 +753,6 @@ class RawPromptsClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/prompts/{jsonable_encoder(prompt_id)}/versions/{jsonable_encoder(version)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -870,7 +801,6 @@ class RawPromptsClient:
         prompt_id: str,
         version: int,
         *,
-        authorization: str,
         description: typing.Optional[str] = OMIT,
         messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         thinking: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -905,9 +835,6 @@ class RawPromptsClient:
 
         version : int
             The prompt version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
             Version description.
@@ -1012,7 +939,6 @@ class RawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1069,7 +995,6 @@ class RawPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CommitPromptVersionResponse]:
@@ -1080,9 +1005,6 @@ class RawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
             Optional commit message describing the changes.
@@ -1103,7 +1025,6 @@ class RawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1157,12 +1078,7 @@ class RawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def deploy_prompt_version(
-        self,
-        prompt_id: str,
-        *,
-        authorization: str,
-        version: int,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, *, version: int, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[DeployPromptVersionResponse]:
         """
         Deploy a committed version as the live version for this prompt.
@@ -1171,9 +1087,6 @@ class RawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         version : int
             Version number to deploy as live.
@@ -1194,7 +1107,6 @@ class RawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1247,65 +1159,10 @@ class RawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def get_prompts_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[GetPromptsSummaryResponse]:
-        """
-        Get summary statistics for prompts in your current auth scope. The response currently includes only `total_count`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[GetPromptsSummaryResponse]
-            Summary statistics for prompts.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/prompts/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetPromptsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetPromptsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def get_prompts_summary_with_filters(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[GetPromptsSummaryWithFiltersRequestFilters] = OMIT,
-        operator: typing.Optional[GetPromptsSummaryWithFiltersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetPromptsSummaryWithFiltersResponse]:
         """
@@ -1313,14 +1170,8 @@ class RawPromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
             Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
-
-        operator : typing.Optional[GetPromptsSummaryWithFiltersRequestOperator]
-            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1337,11 +1188,9 @@ class RawPromptsClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=GetPromptsSummaryWithFiltersRequestFilters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1380,12 +1229,10 @@ class AsyncRawPromptsClient:
     async def list_prompts(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[ListPromptsRequestSortBy] = None,
         filters: typing.Optional[ListPromptsRequestFilters] = OMIT,
-        operator: typing.Optional[ListPromptsRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListPromptsResponse]:
         """
@@ -1393,9 +1240,6 @@ class AsyncRawPromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1407,9 +1251,6 @@ class AsyncRawPromptsClient:
 
         filters : typing.Optional[ListPromptsRequestFilters]
             Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
-
-        operator : typing.Optional[ListPromptsRequestOperator]
-            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1431,11 +1272,9 @@ class AsyncRawPromptsClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=ListPromptsRequestFilters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1469,7 +1308,6 @@ class AsyncRawPromptsClient:
     async def create_prompt(
         self,
         *,
-        authorization: str,
         name: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1479,9 +1317,6 @@ class AsyncRawPromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : str
             Prompt name.
 
@@ -1505,7 +1340,6 @@ class AsyncRawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1548,7 +1382,7 @@ class AsyncRawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_prompt(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrievePromptResponse]:
         """
         Retrieve a prompt template by ID, including its current and live versions.
@@ -1557,9 +1391,6 @@ class AsyncRawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1572,9 +1403,6 @@ class AsyncRawPromptsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/prompts/{jsonable_encoder(prompt_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1615,7 +1443,7 @@ class AsyncRawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_prompt(
-        self, prompt_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
         Delete a prompt and its versions from the active prompt library.
@@ -1624,9 +1452,6 @@ class AsyncRawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1638,9 +1463,6 @@ class AsyncRawPromptsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/prompts/{jsonable_encoder(prompt_id)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -1677,7 +1499,6 @@ class AsyncRawPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1689,9 +1510,6 @@ class AsyncRawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Updated prompt name.
@@ -1716,7 +1534,6 @@ class AsyncRawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1773,7 +1590,6 @@ class AsyncRawPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1785,9 +1601,6 @@ class AsyncRawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -1809,9 +1622,6 @@ class AsyncRawPromptsClient:
             params={
                 "page": page,
                 "page_size": page_size,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -1856,7 +1666,6 @@ class AsyncRawPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         messages: typing.Sequence[typing.Dict[str, typing.Any]],
         model: str,
         description: typing.Optional[str] = OMIT,
@@ -1888,9 +1697,6 @@ class AsyncRawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         messages : typing.Sequence[typing.Dict[str, typing.Any]]
             Messages for this version. Use `{{variable_name}}` placeholders for template variables.
@@ -1995,7 +1801,6 @@ class AsyncRawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2049,12 +1854,7 @@ class AsyncRawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_prompt_version(
-        self,
-        prompt_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrievePromptVersionResponse]:
         """
         Retrieve a specific version of a prompt.
@@ -2067,9 +1867,6 @@ class AsyncRawPromptsClient:
         version : int
             The prompt version number.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -2081,9 +1878,6 @@ class AsyncRawPromptsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/prompts/{jsonable_encoder(prompt_id)}/versions/{jsonable_encoder(version)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -2124,12 +1918,7 @@ class AsyncRawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def delete_prompt_version(
-        self,
-        prompt_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
         Delete a specific prompt version. The currently deployed live version cannot be deleted.
@@ -2142,9 +1931,6 @@ class AsyncRawPromptsClient:
         version : int
             The prompt version number.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -2155,9 +1941,6 @@ class AsyncRawPromptsClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/prompts/{jsonable_encoder(prompt_id)}/versions/{jsonable_encoder(version)}/",
             method="DELETE",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
             request_options=request_options,
         )
         try:
@@ -2206,7 +1989,6 @@ class AsyncRawPromptsClient:
         prompt_id: str,
         version: int,
         *,
-        authorization: str,
         description: typing.Optional[str] = OMIT,
         messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         thinking: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -2241,9 +2023,6 @@ class AsyncRawPromptsClient:
 
         version : int
             The prompt version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
             Version description.
@@ -2348,7 +2127,6 @@ class AsyncRawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2405,7 +2183,6 @@ class AsyncRawPromptsClient:
         self,
         prompt_id: str,
         *,
-        authorization: str,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CommitPromptVersionResponse]:
@@ -2416,9 +2193,6 @@ class AsyncRawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         description : typing.Optional[str]
             Optional commit message describing the changes.
@@ -2439,7 +2213,6 @@ class AsyncRawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2493,12 +2266,7 @@ class AsyncRawPromptsClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def deploy_prompt_version(
-        self,
-        prompt_id: str,
-        *,
-        authorization: str,
-        version: int,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, prompt_id: str, *, version: int, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[DeployPromptVersionResponse]:
         """
         Deploy a committed version as the live version for this prompt.
@@ -2507,9 +2275,6 @@ class AsyncRawPromptsClient:
         ----------
         prompt_id : str
             The unique prompt identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         version : int
             Version number to deploy as live.
@@ -2530,7 +2295,6 @@ class AsyncRawPromptsClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -2583,65 +2347,10 @@ class AsyncRawPromptsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def get_prompts_summary(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[GetPromptsSummaryResponse]:
-        """
-        Get summary statistics for prompts in your current auth scope. The response currently includes only `total_count`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[GetPromptsSummaryResponse]
-            Summary statistics for prompts.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/prompts/summary/",
-            method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetPromptsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetPromptsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def get_prompts_summary_with_filters(
         self,
         *,
-        authorization: str,
         filters: typing.Optional[GetPromptsSummaryWithFiltersRequestFilters] = OMIT,
-        operator: typing.Optional[GetPromptsSummaryWithFiltersRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetPromptsSummaryWithFiltersResponse]:
         """
@@ -2649,14 +2358,8 @@ class AsyncRawPromptsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
             Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
-
-        operator : typing.Optional[GetPromptsSummaryWithFiltersRequestOperator]
-            Logical operator for combining filters.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2673,11 +2376,9 @@ class AsyncRawPromptsClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=GetPromptsSummaryWithFiltersRequestFilters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,

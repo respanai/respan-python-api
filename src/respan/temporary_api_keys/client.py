@@ -31,16 +31,13 @@ class TemporaryApiKeysClient:
         return self._raw_client
 
     def list_api_keys(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.List[ListApiKeysResponseItem]:
         """
         List all API keys for your organization.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -53,18 +50,17 @@ class TemporaryApiKeysClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.temporary_api_keys.list_api_keys(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.temporary_api_keys.list_api_keys()
         """
-        _response = self._raw_client.list_api_keys(authorization=authorization, request_options=request_options)
+        _response = self._raw_client.list_api_keys(request_options=request_options)
         return _response.data
 
     def create_api_key(
         self,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
@@ -78,9 +74,6 @@ class TemporaryApiKeysClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : typing.Optional[str]
             Key name.
 
@@ -111,13 +104,12 @@ class TemporaryApiKeysClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.temporary_api_keys.create_api_key(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.temporary_api_keys.create_api_key()
         """
         _response = self._raw_client.create_api_key(
-            authorization=authorization,
             name=name,
             expiry_date=expiry_date,
             max_usage=max_usage,
@@ -129,7 +121,7 @@ class TemporaryApiKeysClient:
         return _response.data
 
     def retrieve_api_key(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveApiKeyResponse:
         """
         Retrieve an API key by ID.
@@ -138,9 +130,6 @@ class TemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to retrieve.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -154,18 +143,17 @@ class TemporaryApiKeysClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.temporary_api_keys.retrieve_api_key(
             id="id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_api_key(id, authorization=authorization, request_options=request_options)
+        _response = self._raw_client.retrieve_api_key(id, request_options=request_options)
         return _response.data
 
-    def delete_api_key(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def delete_api_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete an API key. This action is irreversible.
 
@@ -173,9 +161,6 @@ class TemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to delete.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -188,20 +173,20 @@ class TemporaryApiKeysClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.temporary_api_keys.delete_api_key(
             id="id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_api_key(id, authorization=authorization, request_options=request_options)
+        _response = self._raw_client.delete_api_key(id, request_options=request_options)
         return _response.data
 
     def update_api_key(
         self,
         id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
@@ -215,9 +200,6 @@ class TemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to update.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Key name.
@@ -243,20 +225,15 @@ class TemporaryApiKeysClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.temporary_api_keys.update_api_key(
             id="id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.update_api_key(
-            id,
-            authorization=authorization,
-            name=name,
-            expiry_date=expiry_date,
-            is_test=is_test,
-            prefix=prefix,
-            request_options=request_options,
+            id, name=name, expiry_date=expiry_date, is_test=is_test, prefix=prefix, request_options=request_options
         )
         return _response.data
 
@@ -277,16 +254,13 @@ class AsyncTemporaryApiKeysClient:
         return self._raw_client
 
     async def list_api_keys(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.List[ListApiKeysResponseItem]:
         """
         List all API keys for your organization.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -301,24 +275,23 @@ class AsyncTemporaryApiKeysClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.temporary_api_keys.list_api_keys(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.temporary_api_keys.list_api_keys()
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_api_keys(authorization=authorization, request_options=request_options)
+        _response = await self._raw_client.list_api_keys(request_options=request_options)
         return _response.data
 
     async def create_api_key(
         self,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
@@ -332,9 +305,6 @@ class AsyncTemporaryApiKeysClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : typing.Optional[str]
             Key name.
 
@@ -367,19 +337,18 @@ class AsyncTemporaryApiKeysClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.temporary_api_keys.create_api_key(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.temporary_api_keys.create_api_key()
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.create_api_key(
-            authorization=authorization,
             name=name,
             expiry_date=expiry_date,
             max_usage=max_usage,
@@ -391,7 +360,7 @@ class AsyncTemporaryApiKeysClient:
         return _response.data
 
     async def retrieve_api_key(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveApiKeyResponse:
         """
         Retrieve an API key by ID.
@@ -400,9 +369,6 @@ class AsyncTemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to retrieve.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -418,26 +384,23 @@ class AsyncTemporaryApiKeysClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.temporary_api_keys.retrieve_api_key(
                 id="id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_api_key(
-            id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_api_key(id, request_options=request_options)
         return _response.data
 
-    async def delete_api_key(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    async def delete_api_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete an API key. This action is irreversible.
 
@@ -445,9 +408,6 @@ class AsyncTemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to delete.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -462,28 +422,26 @@ class AsyncTemporaryApiKeysClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.temporary_api_keys.delete_api_key(
                 id="id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_api_key(
-            id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_api_key(id, request_options=request_options)
         return _response.data
 
     async def update_api_key(
         self,
         id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
@@ -497,9 +455,6 @@ class AsyncTemporaryApiKeysClient:
         ----------
         id : str
             The ID of the temporary API key to update.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Key name.
@@ -527,25 +482,20 @@ class AsyncTemporaryApiKeysClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.temporary_api_keys.update_api_key(
                 id="id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.update_api_key(
-            id,
-            authorization=authorization,
-            name=name,
-            expiry_date=expiry_date,
-            is_test=is_test,
-            prefix=prefix,
-            request_options=request_options,
+            id, name=name, expiry_date=expiry_date, is_test=is_test, prefix=prefix, request_options=request_options
         )
         return _response.data

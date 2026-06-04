@@ -19,12 +19,11 @@ from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..types.filters import Filters
 from .types.bulk_delete_traces_response import BulkDeleteTracesResponse
-from .types.create_trace_legacy_request_body import CreateTraceLegacyRequestBody
+from .types.create_trace_legacy_request import CreateTraceLegacyRequest
 from .types.create_trace_legacy_response import CreateTraceLegacyResponse
 from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
 from .types.create_trace_response import CreateTraceResponse
 from .types.delete_trace_response import DeleteTraceResponse
-from .types.list_traces_request_operator import ListTracesRequestOperator
 from .types.list_traces_response import ListTracesResponse
 from .types.retrieve_public_trace_response import RetrievePublicTraceResponse
 from .types.retrieve_trace_response import RetrieveTraceResponse
@@ -41,7 +40,6 @@ class RawTracesClient:
     def list_traces(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -49,7 +47,6 @@ class RawTracesClient:
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListTracesResponse]:
         """
@@ -57,9 +54,6 @@ class RawTracesClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -79,9 +73,6 @@ class RawTracesClient:
             Filter by environment.
 
         filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListTracesRequestOperator]
-            Logical operator for combining filters when supported by the client payload.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -106,11 +97,9 @@ class RawTracesClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -177,7 +166,6 @@ class RawTracesClient:
     def bulk_delete_traces(
         self,
         *,
-        authorization: str,
         filters: Filters,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
@@ -189,9 +177,6 @@ class RawTracesClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : Filters
 
         start_time : typing.Optional[dt.datetime]
@@ -226,7 +211,6 @@ class RawTracesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -291,18 +275,26 @@ class RawTracesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def retrieve_trace(
-        self, trace_unique_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self,
+        trace_unique_id: str,
+        *,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[RetrieveTraceResponse]:
         """
-        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree.
+        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree. `start_time` and `end_time` are accepted query parameters for clients that keep trace lookups scoped to a known time window.
 
         Parameters
         ----------
         trace_unique_id : str
             Unique trace identifier.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        start_time : typing.Optional[dt.datetime]
+            Optional start of the trace time window (ISO 8601). Use with `end_time` when you know the trace window.
+
+        end_time : typing.Optional[dt.datetime]
+            Optional end of the trace time window (ISO 8601). Use with `start_time` when you know the trace window.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -315,8 +307,9 @@ class RawTracesClient:
         _response = self._client_wrapper.httpx_client.request(
             f"api/traces/{jsonable_encoder(trace_unique_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
             },
             request_options=request_options,
         )
@@ -383,7 +376,6 @@ class RawTracesClient:
         self,
         trace_unique_id: str,
         *,
-        authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -395,9 +387,6 @@ class RawTracesClient:
         ----------
         trace_unique_id : str
             Unique trace identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         start_time : typing.Optional[dt.datetime]
             Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
@@ -419,9 +408,6 @@ class RawTracesClient:
             params={
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -463,12 +449,7 @@ class RawTracesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def share_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        is_public: bool,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, trace_unique_id: str, *, is_public: bool, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[ShareTraceResponse]:
         """
         Toggle public sharing for a trace. When `is_public` is `true`, the trace becomes accessible through the public trace URL.
@@ -477,9 +458,6 @@ class RawTracesClient:
         ----------
         trace_unique_id : str
             Unique trace identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         is_public : bool
             Set `true` to make the trace public, or `false` to revoke public access.
@@ -500,7 +478,6 @@ class RawTracesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -622,21 +599,14 @@ class RawTracesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def create_trace_legacy(
-        self,
-        *,
-        authorization: str,
-        request: CreateTraceLegacyRequestBody,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[CreateTraceLegacyResponse]:
         """
         Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request : CreateTraceLegacyRequestBody
+        request : CreateTraceLegacyRequest
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -650,11 +620,10 @@ class RawTracesClient:
             "api/v1/traces/ingest",
             method="POST",
             json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=CreateTraceLegacyRequestBody, direction="write"
+                object_=request, annotation=CreateTraceLegacyRequest, direction="write"
             ),
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -710,20 +679,16 @@ class RawTracesClient:
     def create_trace(
         self,
         *,
-        authorization: str,
         resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateTraceResponse]:
         """
-        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. Any OpenTelemetry-compatible SDK can export directly to this endpoint. Accepts both `application/json` and `application/x-protobuf` content types.
+        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
 
-        For the easiest setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry) which auto-configures the exporter.
+        For SDK setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
             Array of resource spans. Each element represents spans from a single resource (service).
 
@@ -747,7 +712,6 @@ class RawTracesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -797,7 +761,6 @@ class AsyncRawTracesClient:
     async def list_traces(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -805,7 +768,6 @@ class AsyncRawTracesClient:
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         filters: typing.Optional[Filters] = OMIT,
-        operator: typing.Optional[ListTracesRequestOperator] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListTracesResponse]:
         """
@@ -813,9 +775,6 @@ class AsyncRawTracesClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -835,9 +794,6 @@ class AsyncRawTracesClient:
             Filter by environment.
 
         filters : typing.Optional[Filters]
-
-        operator : typing.Optional[ListTracesRequestOperator]
-            Logical operator for combining filters when supported by the client payload.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -862,11 +818,9 @@ class AsyncRawTracesClient:
                 "filters": convert_and_respect_annotation_metadata(
                     object_=filters, annotation=Filters, direction="write"
                 ),
-                "operator": operator,
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -933,7 +887,6 @@ class AsyncRawTracesClient:
     async def bulk_delete_traces(
         self,
         *,
-        authorization: str,
         filters: Filters,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
@@ -945,9 +898,6 @@ class AsyncRawTracesClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : Filters
 
         start_time : typing.Optional[dt.datetime]
@@ -982,7 +932,6 @@ class AsyncRawTracesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1047,18 +996,26 @@ class AsyncRawTracesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def retrieve_trace(
-        self, trace_unique_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self,
+        trace_unique_id: str,
+        *,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[RetrieveTraceResponse]:
         """
-        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree.
+        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree. `start_time` and `end_time` are accepted query parameters for clients that keep trace lookups scoped to a known time window.
 
         Parameters
         ----------
         trace_unique_id : str
             Unique trace identifier.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
+        start_time : typing.Optional[dt.datetime]
+            Optional start of the trace time window (ISO 8601). Use with `end_time` when you know the trace window.
+
+        end_time : typing.Optional[dt.datetime]
+            Optional end of the trace time window (ISO 8601). Use with `start_time` when you know the trace window.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1071,8 +1028,9 @@ class AsyncRawTracesClient:
         _response = await self._client_wrapper.httpx_client.request(
             f"api/traces/{jsonable_encoder(trace_unique_id)}/",
             method="GET",
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
             },
             request_options=request_options,
         )
@@ -1139,7 +1097,6 @@ class AsyncRawTracesClient:
         self,
         trace_unique_id: str,
         *,
-        authorization: str,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1151,9 +1108,6 @@ class AsyncRawTracesClient:
         ----------
         trace_unique_id : str
             Unique trace identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         start_time : typing.Optional[dt.datetime]
             Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
@@ -1175,9 +1129,6 @@ class AsyncRawTracesClient:
             params={
                 "start_time": serialize_datetime(start_time) if start_time is not None else None,
                 "end_time": serialize_datetime(end_time) if end_time is not None else None,
-            },
-            headers={
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
         )
@@ -1219,12 +1170,7 @@ class AsyncRawTracesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def share_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        authorization: str,
-        is_public: bool,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, trace_unique_id: str, *, is_public: bool, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[ShareTraceResponse]:
         """
         Toggle public sharing for a trace. When `is_public` is `true`, the trace becomes accessible through the public trace URL.
@@ -1233,9 +1179,6 @@ class AsyncRawTracesClient:
         ----------
         trace_unique_id : str
             Unique trace identifier.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         is_public : bool
             Set `true` to make the trace public, or `false` to revoke public access.
@@ -1256,7 +1199,6 @@ class AsyncRawTracesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1378,21 +1320,14 @@ class AsyncRawTracesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def create_trace_legacy(
-        self,
-        *,
-        authorization: str,
-        request: CreateTraceLegacyRequestBody,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[CreateTraceLegacyResponse]:
         """
         Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request : CreateTraceLegacyRequestBody
+        request : CreateTraceLegacyRequest
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1406,11 +1341,10 @@ class AsyncRawTracesClient:
             "api/v1/traces/ingest",
             method="POST",
             json=convert_and_respect_annotation_metadata(
-                object_=request, annotation=CreateTraceLegacyRequestBody, direction="write"
+                object_=request, annotation=CreateTraceLegacyRequest, direction="write"
             ),
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,
@@ -1466,20 +1400,16 @@ class AsyncRawTracesClient:
     async def create_trace(
         self,
         *,
-        authorization: str,
         resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateTraceResponse]:
         """
-        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. Any OpenTelemetry-compatible SDK can export directly to this endpoint. Accepts both `application/json` and `application/x-protobuf` content types.
+        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
 
-        For the easiest setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry) which auto-configures the exporter.
+        For SDK setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
             Array of resource spans. Each element represents spans from a single resource (service).
 
@@ -1503,7 +1433,6 @@ class AsyncRawTracesClient:
             },
             headers={
                 "content-type": "application/json",
-                "Authorization": str(authorization) if authorization is not None else None,
             },
             request_options=request_options,
             omit=OMIT,

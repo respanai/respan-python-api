@@ -9,7 +9,6 @@ from .raw_client import AsyncRawScoresClient, RawScoresClient
 from .types.create_score_response import CreateScoreResponse
 from .types.create_span_score_response import CreateSpanScoreResponse
 from .types.filter_scores_response import FilterScoresResponse
-from .types.list_scores_response import ListScoresResponse
 from .types.list_span_scores_response import ListSpanScoresResponse
 from .types.replace_score_response import ReplaceScoreResponse
 from .types.replace_span_score_response import ReplaceSpanScoreResponse
@@ -37,67 +36,9 @@ class ScoresClient:
         """
         return self._raw_client
 
-    def list_scores(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListScoresResponse:
-        """
-        List evaluation scores with pagination. For complex filters, use `POST /api/scores/list/`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter scores created at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter scores created before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListScoresResponse
-            Paginated list of scores.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.scores.list_scores(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.list_scores(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            start_time=start_time,
-            end_time=end_time,
-            request_options=request_options,
-        )
-        return _response.data
-
     def create_score(
         self,
         *,
-        authorization: str,
         evaluator_id: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         log_id: typing.Optional[str] = OMIT,
@@ -120,9 +61,6 @@ class ScoresClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         evaluator_id : typing.Optional[str]
             Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
@@ -178,9 +116,10 @@ class ScoresClient:
 
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.create_score(
-            authorization="Bearer sk_live_xxxxx",
             evaluator_slug="response_quality",
             log_id="log_abc123",
             timestamp=datetime.datetime.fromisoformat(
@@ -190,7 +129,6 @@ class ScoresClient:
         )
         """
         _response = self._raw_client.create_score(
-            authorization=authorization,
             evaluator_id=evaluator_id,
             evaluator_slug=evaluator_slug,
             log_id=log_id,
@@ -213,22 +151,17 @@ class ScoresClient:
     def filter_scores(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterScoresResponse:
         """
-        List scores using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/scores/list/`.
+        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -240,9 +173,6 @@ class ScoresClient:
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -256,25 +186,20 @@ class ScoresClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.filter_scores(
-            authorization="Bearer sk_live_xxxxx",
             sort_by="-created_at",
         )
         """
         _response = self._raw_client.filter_scores(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            is_exporting=is_exporting,
-            request_options=request_options,
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
         )
         return _response.data
 
     def retrieve_score(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveScoreResponse:
         """
         Retrieve a score by score ID.
@@ -283,9 +208,6 @@ class ScoresClient:
         ----------
         id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -299,20 +221,20 @@ class ScoresClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.retrieve_score(
             id="id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_score(id, authorization=authorization, request_options=request_options)
+        _response = self._raw_client.retrieve_score(id, request_options=request_options)
         return _response.data
 
     def replace_score(
         self,
         id: str,
         *,
-        authorization: str,
         evaluator_id: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         log_id: typing.Optional[str] = OMIT,
@@ -337,9 +259,6 @@ class ScoresClient:
         ----------
         id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         evaluator_id : typing.Optional[str]
             Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
@@ -396,10 +315,11 @@ class ScoresClient:
 
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.replace_score(
             id="id",
-            authorization="Bearer sk_live_xxxxx",
             evaluator_slug="response_quality",
             log_id="log_abc123",
             timestamp=datetime.datetime.fromisoformat(
@@ -410,7 +330,6 @@ class ScoresClient:
         """
         _response = self._raw_client.replace_score(
             id,
-            authorization=authorization,
             evaluator_id=evaluator_id,
             evaluator_slug=evaluator_slug,
             log_id=log_id,
@@ -430,9 +349,7 @@ class ScoresClient:
         )
         return _response.data
 
-    def delete_score(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a score by score ID.
 
@@ -440,9 +357,6 @@ class ScoresClient:
         ----------
         id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -455,20 +369,20 @@ class ScoresClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.delete_score(
             id="id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_score(id, authorization=authorization, request_options=request_options)
+        _response = self._raw_client.delete_score(id, request_options=request_options)
         return _response.data
 
     def update_score(
         self,
         id: str,
         *,
-        authorization: str,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
@@ -483,9 +397,6 @@ class ScoresClient:
         ----------
         id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         numerical_value : typing.Optional[float]
             Numeric score value. Use for `numerical` and `percentage` evaluators.
@@ -514,17 +425,17 @@ class ScoresClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.update_score(
             id="id",
-            authorization="Bearer sk_live_xxxxx",
             numerical_value=4.8,
             string_value="Updated assessment",
         )
         """
         _response = self._raw_client.update_score(
             id,
-            authorization=authorization,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,
@@ -538,7 +449,6 @@ class ScoresClient:
         self,
         log_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -550,9 +460,6 @@ class ScoresClient:
         ----------
         log_id : str
             Log/span unique ID to manage scores for.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -572,14 +479,15 @@ class ScoresClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.list_span_scores(
             log_id="log_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.list_span_scores(
-            log_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            log_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -587,7 +495,6 @@ class ScoresClient:
         self,
         log_id: str,
         *,
-        authorization: str,
         evaluator_id: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         timestamp: typing.Optional[dt.datetime] = OMIT,
@@ -611,9 +518,6 @@ class ScoresClient:
         ----------
         log_id : str
             Log/span unique ID to manage scores for.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         evaluator_id : typing.Optional[str]
             Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
@@ -667,10 +571,11 @@ class ScoresClient:
 
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.create_span_score(
             log_id="log_id",
-            authorization="Bearer sk_live_xxxxx",
             evaluator_slug="response_quality",
             timestamp=datetime.datetime.fromisoformat(
                 "2026-04-10 12:00:00+00:00",
@@ -680,7 +585,6 @@ class ScoresClient:
         """
         _response = self._raw_client.create_span_score(
             log_id,
-            authorization=authorization,
             evaluator_id=evaluator_id,
             evaluator_slug=evaluator_slug,
             timestamp=timestamp,
@@ -700,7 +604,7 @@ class ScoresClient:
         return _response.data
 
     def retrieve_span_score(
-        self, log_id: str, score_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveSpanScoreResponse:
         """
         Retrieve a specific score for a log/span.
@@ -712,9 +616,6 @@ class ScoresClient:
 
         score_id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -728,16 +629,15 @@ class ScoresClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.retrieve_span_score(
             log_id="log_id",
             score_id="score_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_span_score(
-            log_id, score_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_span_score(log_id, score_id, request_options=request_options)
         return _response.data
 
     def replace_span_score(
@@ -745,7 +645,6 @@ class ScoresClient:
         log_id: str,
         score_id: str,
         *,
-        authorization: str,
         evaluator_id: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         timestamp: typing.Optional[dt.datetime] = OMIT,
@@ -772,9 +671,6 @@ class ScoresClient:
 
         score_id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         evaluator_id : typing.Optional[str]
             Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
@@ -828,11 +724,12 @@ class ScoresClient:
 
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.replace_span_score(
             log_id="log_id",
             score_id="score_id",
-            authorization="Bearer sk_live_xxxxx",
             evaluator_slug="response_quality",
             timestamp=datetime.datetime.fromisoformat(
                 "2026-04-10 12:00:00+00:00",
@@ -843,7 +740,6 @@ class ScoresClient:
         _response = self._raw_client.replace_span_score(
             log_id,
             score_id,
-            authorization=authorization,
             evaluator_id=evaluator_id,
             evaluator_slug=evaluator_slug,
             timestamp=timestamp,
@@ -863,7 +759,7 @@ class ScoresClient:
         return _response.data
 
     def delete_span_score(
-        self, log_id: str, score_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a score from a log/span.
@@ -876,9 +772,6 @@ class ScoresClient:
         score_id : str
             Score ID returned as `id` in score responses.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -890,16 +783,15 @@ class ScoresClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.delete_span_score(
             log_id="log_id",
             score_id="score_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_span_score(
-            log_id, score_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_span_score(log_id, score_id, request_options=request_options)
         return _response.data
 
     def update_span_score(
@@ -907,7 +799,6 @@ class ScoresClient:
         log_id: str,
         score_id: str,
         *,
-        authorization: str,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
@@ -925,9 +816,6 @@ class ScoresClient:
 
         score_id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         numerical_value : typing.Optional[float]
             Numeric score value. Use for `numerical` and `percentage` evaluators.
@@ -956,11 +844,12 @@ class ScoresClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.scores.update_span_score(
             log_id="log_id",
             score_id="score_id",
-            authorization="Bearer sk_live_xxxxx",
             numerical_value=4.8,
             string_value="Updated assessment",
         )
@@ -968,7 +857,6 @@ class ScoresClient:
         _response = self._raw_client.update_span_score(
             log_id,
             score_id,
-            authorization=authorization,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,
@@ -994,75 +882,9 @@ class AsyncScoresClient:
         """
         return self._raw_client
 
-    async def list_scores(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListScoresResponse:
-        """
-        List evaluation scores with pagination. For complex filters, use `POST /api/scores/list/`.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        start_time : typing.Optional[dt.datetime]
-            Filter scores created at or after this timestamp.
-
-        end_time : typing.Optional[dt.datetime]
-            Filter scores created before this timestamp.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListScoresResponse
-            Paginated list of scores.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.scores.list_scores(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_scores(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            start_time=start_time,
-            end_time=end_time,
-            request_options=request_options,
-        )
-        return _response.data
-
     async def create_score(
         self,
         *,
-        authorization: str,
         evaluator_id: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         log_id: typing.Optional[str] = OMIT,
@@ -1085,9 +907,6 @@ class AsyncScoresClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         evaluator_id : typing.Optional[str]
             Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
@@ -1144,12 +963,13 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.create_score(
-                authorization="Bearer sk_live_xxxxx",
                 evaluator_slug="response_quality",
                 log_id="log_abc123",
                 timestamp=datetime.datetime.fromisoformat(
@@ -1162,7 +982,6 @@ class AsyncScoresClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_score(
-            authorization=authorization,
             evaluator_id=evaluator_id,
             evaluator_slug=evaluator_slug,
             log_id=log_id,
@@ -1185,22 +1004,17 @@ class AsyncScoresClient:
     async def filter_scores(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterScoresResponse:
         """
-        List scores using POST-for-filtering. This endpoint returns the same paginated response shape as `GET /api/scores/list/`.
+        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1212,9 +1026,6 @@ class AsyncScoresClient:
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
             Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1230,12 +1041,13 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.filter_scores(
-                authorization="Bearer sk_live_xxxxx",
                 sort_by="-created_at",
             )
 
@@ -1243,18 +1055,12 @@ class AsyncScoresClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.filter_scores(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            is_exporting=is_exporting,
-            request_options=request_options,
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
         )
         return _response.data
 
     async def retrieve_score(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveScoreResponse:
         """
         Retrieve a score by score ID.
@@ -1263,9 +1069,6 @@ class AsyncScoresClient:
         ----------
         id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1281,28 +1084,26 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.retrieve_score(
                 id="id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_score(
-            id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_score(id, request_options=request_options)
         return _response.data
 
     async def replace_score(
         self,
         id: str,
         *,
-        authorization: str,
         evaluator_id: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         log_id: typing.Optional[str] = OMIT,
@@ -1327,9 +1128,6 @@ class AsyncScoresClient:
         ----------
         id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         evaluator_id : typing.Optional[str]
             Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
@@ -1387,13 +1185,14 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.replace_score(
                 id="id",
-                authorization="Bearer sk_live_xxxxx",
                 evaluator_slug="response_quality",
                 log_id="log_abc123",
                 timestamp=datetime.datetime.fromisoformat(
@@ -1407,7 +1206,6 @@ class AsyncScoresClient:
         """
         _response = await self._raw_client.replace_score(
             id,
-            authorization=authorization,
             evaluator_id=evaluator_id,
             evaluator_slug=evaluator_slug,
             log_id=log_id,
@@ -1427,9 +1225,7 @@ class AsyncScoresClient:
         )
         return _response.data
 
-    async def delete_score(
-        self, id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    async def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a score by score ID.
 
@@ -1437,9 +1233,6 @@ class AsyncScoresClient:
         ----------
         id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1454,28 +1247,26 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.delete_score(
                 id="id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_score(
-            id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_score(id, request_options=request_options)
         return _response.data
 
     async def update_score(
         self,
         id: str,
         *,
-        authorization: str,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
@@ -1490,9 +1281,6 @@ class AsyncScoresClient:
         ----------
         id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         numerical_value : typing.Optional[float]
             Numeric score value. Use for `numerical` and `percentage` evaluators.
@@ -1523,13 +1311,14 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.update_score(
                 id="id",
-                authorization="Bearer sk_live_xxxxx",
                 numerical_value=4.8,
                 string_value="Updated assessment",
             )
@@ -1539,7 +1328,6 @@ class AsyncScoresClient:
         """
         _response = await self._raw_client.update_score(
             id,
-            authorization=authorization,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,
@@ -1553,7 +1341,6 @@ class AsyncScoresClient:
         self,
         log_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1565,9 +1352,6 @@ class AsyncScoresClient:
         ----------
         log_id : str
             Log/span unique ID to manage scores for.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         page : typing.Optional[int]
             Page number.
@@ -1589,20 +1373,21 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.list_span_scores(
                 log_id="log_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_span_scores(
-            log_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            log_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -1610,7 +1395,6 @@ class AsyncScoresClient:
         self,
         log_id: str,
         *,
-        authorization: str,
         evaluator_id: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         timestamp: typing.Optional[dt.datetime] = OMIT,
@@ -1634,9 +1418,6 @@ class AsyncScoresClient:
         ----------
         log_id : str
             Log/span unique ID to manage scores for.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         evaluator_id : typing.Optional[str]
             Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
@@ -1691,13 +1472,14 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.create_span_score(
                 log_id="log_id",
-                authorization="Bearer sk_live_xxxxx",
                 evaluator_slug="response_quality",
                 timestamp=datetime.datetime.fromisoformat(
                     "2026-04-10 12:00:00+00:00",
@@ -1710,7 +1492,6 @@ class AsyncScoresClient:
         """
         _response = await self._raw_client.create_span_score(
             log_id,
-            authorization=authorization,
             evaluator_id=evaluator_id,
             evaluator_slug=evaluator_slug,
             timestamp=timestamp,
@@ -1730,7 +1511,7 @@ class AsyncScoresClient:
         return _response.data
 
     async def retrieve_span_score(
-        self, log_id: str, score_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveSpanScoreResponse:
         """
         Retrieve a specific score for a log/span.
@@ -1742,9 +1523,6 @@ class AsyncScoresClient:
 
         score_id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1760,22 +1538,21 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.retrieve_span_score(
                 log_id="log_id",
                 score_id="score_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_span_score(
-            log_id, score_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_span_score(log_id, score_id, request_options=request_options)
         return _response.data
 
     async def replace_span_score(
@@ -1783,7 +1560,6 @@ class AsyncScoresClient:
         log_id: str,
         score_id: str,
         *,
-        authorization: str,
         evaluator_id: typing.Optional[str] = OMIT,
         evaluator_slug: typing.Optional[str] = OMIT,
         timestamp: typing.Optional[dt.datetime] = OMIT,
@@ -1810,9 +1586,6 @@ class AsyncScoresClient:
 
         score_id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         evaluator_id : typing.Optional[str]
             Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
@@ -1867,14 +1640,15 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.replace_span_score(
                 log_id="log_id",
                 score_id="score_id",
-                authorization="Bearer sk_live_xxxxx",
                 evaluator_slug="response_quality",
                 timestamp=datetime.datetime.fromisoformat(
                     "2026-04-10 12:00:00+00:00",
@@ -1888,7 +1662,6 @@ class AsyncScoresClient:
         _response = await self._raw_client.replace_span_score(
             log_id,
             score_id,
-            authorization=authorization,
             evaluator_id=evaluator_id,
             evaluator_slug=evaluator_slug,
             timestamp=timestamp,
@@ -1908,7 +1681,7 @@ class AsyncScoresClient:
         return _response.data
 
     async def delete_span_score(
-        self, log_id: str, score_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a score from a log/span.
@@ -1920,9 +1693,6 @@ class AsyncScoresClient:
 
         score_id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1937,22 +1707,21 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.delete_span_score(
                 log_id="log_id",
                 score_id="score_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_span_score(
-            log_id, score_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_span_score(log_id, score_id, request_options=request_options)
         return _response.data
 
     async def update_span_score(
@@ -1960,7 +1729,6 @@ class AsyncScoresClient:
         log_id: str,
         score_id: str,
         *,
-        authorization: str,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
@@ -1978,9 +1746,6 @@ class AsyncScoresClient:
 
         score_id : str
             Score ID returned as `id` in score responses.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY` for API key auth or `Bearer <JWT>` for dashboard auth.
 
         numerical_value : typing.Optional[float]
             Numeric score value. Use for `numerical` and `percentage` evaluators.
@@ -2011,14 +1776,15 @@ class AsyncScoresClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.scores.update_span_score(
                 log_id="log_id",
                 score_id="score_id",
-                authorization="Bearer sk_live_xxxxx",
                 numerical_value=4.8,
                 string_value="Updated assessment",
             )
@@ -2029,7 +1795,6 @@ class AsyncScoresClient:
         _response = await self._raw_client.update_span_score(
             log_id,
             score_id,
-            authorization=authorization,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,

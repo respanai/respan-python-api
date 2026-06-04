@@ -16,7 +16,6 @@ from .types.import_dataset_logs_response import ImportDatasetLogsResponse
 from .types.list_dataset_eval_runs_response import ListDatasetEvalRunsResponse
 from .types.list_dataset_logs_request_export_format import ListDatasetLogsRequestExportFormat
 from .types.list_dataset_logs_request_filters_value import ListDatasetLogsRequestFiltersValue
-from .types.list_dataset_logs_request_retrieval_mode import ListDatasetLogsRequestRetrievalMode
 from .types.list_dataset_logs_response import ListDatasetLogsResponse
 from .types.list_datasets_request_filters_value import ListDatasetsRequestFiltersValue
 from .types.list_datasets_response import ListDatasetsResponse
@@ -28,7 +27,6 @@ from .types.retrieve_dataset_response import RetrieveDatasetResponse
 from .types.run_eval_on_dataset_response import RunEvalOnDatasetResponse
 from .types.summarize_dataset_logs_filtered_request_filters_value import SummarizeDatasetLogsFilteredRequestFiltersValue
 from .types.summarize_dataset_logs_filtered_response import SummarizeDatasetLogsFilteredResponse
-from .types.summarize_dataset_logs_response import SummarizeDatasetLogsResponse
 from .types.update_dataset_log_response import UpdateDatasetLogResponse
 from .types.update_dataset_response import UpdateDatasetResponse
 
@@ -52,7 +50,7 @@ class DatasetsClient:
         return self._raw_client
 
     def retrieve_dataset(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveDatasetResponse:
         """
         Retrieve a dataset by ID.
@@ -61,9 +59,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -77,20 +72,17 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.retrieve_dataset(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_dataset(
-            dataset_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_dataset(dataset_id, request_options=request_options)
         return _response.data
 
-    def delete_dataset(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def delete_dataset(self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a dataset and the logs it contains.
 
@@ -98,9 +90,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -113,22 +102,20 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.delete_dataset(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_dataset(
-            dataset_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_dataset(dataset_id, request_options=request_options)
         return _response.data
 
     def update_dataset(
         self,
         dataset_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -142,9 +129,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Updated dataset name.
@@ -170,29 +154,23 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.update_dataset(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
             name="Support Conversations - July (v2)",
             description="Renamed for the July refresh",
         )
         """
         _response = self._raw_client.update_dataset(
-            dataset_id,
-            authorization=authorization,
-            name=name,
-            description=description,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
+            dataset_id, name=name, description=description, starred=starred, tags=tags, request_options=request_options
         )
         return _response.data
 
     def create_dataset(
         self,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         sampling: typing.Optional[int] = OMIT,
@@ -208,9 +186,6 @@ class DatasetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : typing.Optional[str]
             Dataset name. Required unless `source_dataset_id` is provided.
 
@@ -250,9 +225,10 @@ class DatasetsClient:
         from respan import RespanClient
         from respan.datasets import CreateDatasetRequestInitialLogFiltersValue
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.create_dataset(
-            authorization="Bearer sk_live_xxxxx",
             name="Support Conversations - July",
             description="Sampled support chats for July",
             sampling=40,
@@ -271,7 +247,6 @@ class DatasetsClient:
         )
         """
         _response = self._raw_client.create_dataset(
-            authorization=authorization,
             name=name,
             description=description,
             sampling=sampling,
@@ -287,7 +262,6 @@ class DatasetsClient:
     def list_datasets(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -299,9 +273,6 @@ class DatasetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -327,9 +298,10 @@ class DatasetsClient:
         from respan import RespanClient
         from respan.datasets import ListDatasetsRequestFiltersValue
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.list_datasets(
-            authorization="Bearer sk_live_xxxxx",
             filters={
                 "name": ListDatasetsRequestFiltersValue(
                     operator="icontains",
@@ -339,12 +311,7 @@ class DatasetsClient:
         )
         """
         _response = self._raw_client.list_datasets(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            request_options=request_options,
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
         )
         return _response.data
 
@@ -352,11 +319,9 @@ class DatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
-        retrieval_mode: typing.Optional[ListDatasetLogsRequestRetrievalMode] = None,
         include_fields: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, ListDatasetLogsRequestFiltersValue]] = OMIT,
         is_exporting: typing.Optional[bool] = OMIT,
@@ -372,9 +337,6 @@ class DatasetsClient:
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -383,9 +345,6 @@ class DatasetsClient:
 
         sort_by : typing.Optional[str]
             Sort field for dataset logs. Prefix with `-` for descending order.
-
-        retrieval_mode : typing.Optional[ListDatasetLogsRequestRetrievalMode]
-            Set to `async` to preload full log objects in the background.
 
         include_fields : typing.Optional[str]
             Comma-separated list of response fields to include.
@@ -415,10 +374,11 @@ class DatasetsClient:
         from respan import RespanClient
         from respan.datasets import ListDatasetLogsRequestFiltersValue
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.list_dataset_logs(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
             filters={
                 "status_code": ListDatasetLogsRequestFiltersValue(
                     operator="eq",
@@ -430,11 +390,9 @@ class DatasetsClient:
         """
         _response = self._raw_client.list_dataset_logs(
             dataset_id,
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
-            retrieval_mode=retrieval_mode,
             include_fields=include_fields,
             filters=filters,
             is_exporting=is_exporting,
@@ -448,7 +406,6 @@ class DatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         input: typing.Any,
         output: typing.Optional[typing.Any] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -462,9 +419,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Any
 
@@ -486,10 +440,11 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.create_dataset_log(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
             input={
                 "customer_id": "cust_12345",
                 "message": "I need help with my subscription",
@@ -505,23 +460,12 @@ class DatasetsClient:
         )
         """
         _response = self._raw_client.create_dataset_log(
-            dataset_id,
-            authorization=authorization,
-            input=input,
-            output=output,
-            metadata=metadata,
-            metrics=metrics,
-            request_options=request_options,
+            dataset_id, input=input, output=output, metadata=metadata, metrics=metrics, request_options=request_options
         )
         return _response.data
 
     def retrieve_dataset_log(
-        self,
-        dataset_id: str,
-        unique_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveDatasetLogResponse:
         """
         Retrieve the full dataset log object, including input/output data, metadata, and associated scores.
@@ -533,9 +477,6 @@ class DatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -549,16 +490,15 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.retrieve_dataset_log(
             dataset_id="dataset_id",
             unique_id="unique_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.retrieve_dataset_log(
-            dataset_id, unique_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.retrieve_dataset_log(dataset_id, unique_id, request_options=request_options)
         return _response.data
 
     def replace_dataset_log(
@@ -566,7 +506,6 @@ class DatasetsClient:
         dataset_id: str,
         unique_id: str,
         *,
-        authorization: str,
         input: typing.Optional[typing.Any] = OMIT,
         output: typing.Optional[typing.Any] = OMIT,
         expected_output: typing.Optional[typing.Any] = OMIT,
@@ -585,9 +524,6 @@ class DatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Optional[typing.Any]
 
@@ -613,11 +549,12 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.replace_dataset_log(
             dataset_id="dataset_id",
             unique_id="unique_id",
-            authorization="Bearer sk_live_xxxxx",
             output={
                 "response": "UPDATED: Go to Settings > Security > Change Password.",
                 "confidence": 0.99,
@@ -628,7 +565,6 @@ class DatasetsClient:
         _response = self._raw_client.replace_dataset_log(
             dataset_id,
             unique_id,
-            authorization=authorization,
             input=input,
             output=output,
             expected_output=expected_output,
@@ -640,12 +576,7 @@ class DatasetsClient:
         return _response.data
 
     def delete_dataset_log(
-        self,
-        dataset_id: str,
-        unique_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Remove a single log from a dataset.
@@ -658,9 +589,6 @@ class DatasetsClient:
         unique_id : str
             Unique log ID within the dataset.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -672,16 +600,15 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.delete_dataset_log(
             dataset_id="dataset_id",
             unique_id="unique_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_dataset_log(
-            dataset_id, unique_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_dataset_log(dataset_id, unique_id, request_options=request_options)
         return _response.data
 
     def update_dataset_log(
@@ -689,7 +616,6 @@ class DatasetsClient:
         dataset_id: str,
         unique_id: str,
         *,
-        authorization: str,
         input: typing.Optional[typing.Any] = OMIT,
         output: typing.Optional[typing.Any] = OMIT,
         expected_output: typing.Optional[typing.Any] = OMIT,
@@ -708,9 +634,6 @@ class DatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Optional[typing.Any]
 
@@ -736,11 +659,12 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.update_dataset_log(
             dataset_id="dataset_id",
             unique_id="unique_id",
-            authorization="Bearer sk_live_xxxxx",
             output={
                 "response": "UPDATED: Go to Settings > Security > Change Password.",
                 "confidence": 0.99,
@@ -751,7 +675,6 @@ class DatasetsClient:
         _response = self._raw_client.update_dataset_log(
             dataset_id,
             unique_id,
-            authorization=authorization,
             input=input,
             output=output,
             expected_output=expected_output,
@@ -766,7 +689,6 @@ class DatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         start_time: dt.datetime,
         end_time: dt.datetime,
         filters: typing.Optional[typing.Dict[str, ImportDatasetLogsRequestFiltersValue]] = OMIT,
@@ -780,9 +702,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         start_time : dt.datetime
 
@@ -809,10 +728,11 @@ class DatasetsClient:
         from respan import RespanClient
         from respan.datasets import ImportDatasetLogsRequestFiltersValue
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.import_dataset_logs(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
             start_time=datetime.datetime.fromisoformat(
                 "2025-07-01 00:00:00+00:00",
             ),
@@ -830,7 +750,6 @@ class DatasetsClient:
         """
         _response = self._raw_client.import_dataset_logs(
             dataset_id,
-            authorization=authorization,
             start_time=start_time,
             end_time=end_time,
             filters=filters,
@@ -843,7 +762,6 @@ class DatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         is_deleting_all_logs: typing.Optional[bool] = OMIT,
         filters: typing.Optional[typing.Dict[str, RemoveDatasetLogsRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -855,9 +773,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         is_deleting_all_logs : typing.Optional[bool]
             Set to `true` to remove every log in the dataset.
@@ -878,10 +793,11 @@ class DatasetsClient:
         from respan import RespanClient
         from respan.datasets import RemoveDatasetLogsRequestFiltersValue
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.remove_dataset_logs(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
             filters={
                 "status_code": RemoveDatasetLogsRequestFiltersValue(
                     operator="eq",
@@ -891,48 +807,7 @@ class DatasetsClient:
         )
         """
         _response = self._raw_client.remove_dataset_logs(
-            dataset_id,
-            authorization=authorization,
-            is_deleting_all_logs=is_deleting_all_logs,
-            filters=filters,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def summarize_dataset_logs(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> SummarizeDatasetLogsResponse:
-        """
-        Get aggregate usage metrics and evaluator score summaries for all logs in a dataset.
-
-        Parameters
-        ----------
-        dataset_id : str
-            Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        SummarizeDatasetLogsResponse
-            Dataset log summary.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.datasets.summarize_dataset_logs(
-            dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.summarize_dataset_logs(
-            dataset_id, authorization=authorization, request_options=request_options
+            dataset_id, is_deleting_all_logs=is_deleting_all_logs, filters=filters, request_options=request_options
         )
         return _response.data
 
@@ -940,7 +815,6 @@ class DatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SummarizeDatasetLogsFilteredResponse:
@@ -951,9 +825,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         filters : typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]]
             Platform-standard filters keyed by field name.
@@ -971,10 +842,11 @@ class DatasetsClient:
         from respan import RespanClient
         from respan.datasets import SummarizeDatasetLogsFilteredRequestFiltersValue
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.summarize_dataset_logs_filtered(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
             filters={
                 "status_code": SummarizeDatasetLogsFilteredRequestFiltersValue(
                     operator="eq",
@@ -984,7 +856,7 @@ class DatasetsClient:
         )
         """
         _response = self._raw_client.summarize_dataset_logs_filtered(
-            dataset_id, authorization=authorization, filters=filters, request_options=request_options
+            dataset_id, filters=filters, request_options=request_options
         )
         return _response.data
 
@@ -992,7 +864,6 @@ class DatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         logs: typing.Sequence[BulkCreateDatasetLogsRequestLogsItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BulkCreateDatasetLogsResponse:
@@ -1003,9 +874,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         logs : typing.Sequence[BulkCreateDatasetLogsRequestLogsItem]
 
@@ -1022,10 +890,11 @@ class DatasetsClient:
         from respan import RespanClient
         from respan.datasets import BulkCreateDatasetLogsRequestLogsItem
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.bulk_create_dataset_logs(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
             logs=[
                 BulkCreateDatasetLogsRequestLogsItem(
                     input="What is your return policy?",
@@ -1040,16 +909,13 @@ class DatasetsClient:
             ],
         )
         """
-        _response = self._raw_client.bulk_create_dataset_logs(
-            dataset_id, authorization=authorization, logs=logs, request_options=request_options
-        )
+        _response = self._raw_client.bulk_create_dataset_logs(dataset_id, logs=logs, request_options=request_options)
         return _response.data
 
     def run_eval_on_dataset(
         self,
         dataset_id: str,
         *,
-        authorization: str,
         evaluator_ids: typing.Sequence[str],
         experiment_id: typing.Optional[str] = OMIT,
         generation_method: typing.Optional[str] = OMIT,
@@ -1062,9 +928,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         evaluator_ids : typing.Sequence[str]
             Evaluator IDs to run against the dataset.
@@ -1087,16 +950,16 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.run_eval_on_dataset(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
             evaluator_ids=["eval_abc123"],
         )
         """
         _response = self._raw_client.run_eval_on_dataset(
             dataset_id,
-            authorization=authorization,
             evaluator_ids=evaluator_ids,
             experiment_id=experiment_id,
             generation_method=generation_method,
@@ -1108,7 +971,6 @@ class DatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1120,9 +982,6 @@ class DatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -1142,14 +1001,15 @@ class DatasetsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.datasets.list_dataset_eval_runs(
             dataset_id="dataset_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.list_dataset_eval_runs(
-            dataset_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            dataset_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -1170,7 +1030,7 @@ class AsyncDatasetsClient:
         return self._raw_client
 
     async def retrieve_dataset(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveDatasetResponse:
         """
         Retrieve a dataset by ID.
@@ -1179,9 +1039,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1197,26 +1054,23 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.retrieve_dataset(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_dataset(
-            dataset_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_dataset(dataset_id, request_options=request_options)
         return _response.data
 
-    async def delete_dataset(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    async def delete_dataset(self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a dataset and the logs it contains.
 
@@ -1224,9 +1078,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1241,28 +1092,26 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.delete_dataset(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_dataset(
-            dataset_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_dataset(dataset_id, request_options=request_options)
         return _response.data
 
     async def update_dataset(
         self,
         dataset_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
@@ -1276,9 +1125,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset Id
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
             Updated dataset name.
@@ -1306,13 +1152,14 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.update_dataset(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
                 name="Support Conversations - July (v2)",
                 description="Renamed for the July refresh",
             )
@@ -1321,20 +1168,13 @@ class AsyncDatasetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.update_dataset(
-            dataset_id,
-            authorization=authorization,
-            name=name,
-            description=description,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
+            dataset_id, name=name, description=description, starred=starred, tags=tags, request_options=request_options
         )
         return _response.data
 
     async def create_dataset(
         self,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         sampling: typing.Optional[int] = OMIT,
@@ -1350,9 +1190,6 @@ class AsyncDatasetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         name : typing.Optional[str]
             Dataset name. Required unless `source_dataset_id` is provided.
 
@@ -1393,12 +1230,13 @@ class AsyncDatasetsClient:
         from respan import AsyncRespanClient
         from respan.datasets import CreateDatasetRequestInitialLogFiltersValue
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.create_dataset(
-                authorization="Bearer sk_live_xxxxx",
                 name="Support Conversations - July",
                 description="Sampled support chats for July",
                 sampling=40,
@@ -1420,7 +1258,6 @@ class AsyncDatasetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_dataset(
-            authorization=authorization,
             name=name,
             description=description,
             sampling=sampling,
@@ -1436,7 +1273,6 @@ class AsyncDatasetsClient:
     async def list_datasets(
         self,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
@@ -1448,9 +1284,6 @@ class AsyncDatasetsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1478,12 +1311,13 @@ class AsyncDatasetsClient:
         from respan import AsyncRespanClient
         from respan.datasets import ListDatasetsRequestFiltersValue
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.list_datasets(
-                authorization="Bearer sk_live_xxxxx",
                 filters={
                     "name": ListDatasetsRequestFiltersValue(
                         operator="icontains",
@@ -1496,12 +1330,7 @@ class AsyncDatasetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.list_datasets(
-            authorization=authorization,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            request_options=request_options,
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
         )
         return _response.data
 
@@ -1509,11 +1338,9 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         sort_by: typing.Optional[str] = None,
-        retrieval_mode: typing.Optional[ListDatasetLogsRequestRetrievalMode] = None,
         include_fields: typing.Optional[str] = None,
         filters: typing.Optional[typing.Dict[str, ListDatasetLogsRequestFiltersValue]] = OMIT,
         is_exporting: typing.Optional[bool] = OMIT,
@@ -1529,9 +1356,6 @@ class AsyncDatasetsClient:
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         page : typing.Optional[int]
             Page number.
 
@@ -1540,9 +1364,6 @@ class AsyncDatasetsClient:
 
         sort_by : typing.Optional[str]
             Sort field for dataset logs. Prefix with `-` for descending order.
-
-        retrieval_mode : typing.Optional[ListDatasetLogsRequestRetrievalMode]
-            Set to `async` to preload full log objects in the background.
 
         include_fields : typing.Optional[str]
             Comma-separated list of response fields to include.
@@ -1574,13 +1395,14 @@ class AsyncDatasetsClient:
         from respan import AsyncRespanClient
         from respan.datasets import ListDatasetLogsRequestFiltersValue
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.list_dataset_logs(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
                 filters={
                     "status_code": ListDatasetLogsRequestFiltersValue(
                         operator="eq",
@@ -1595,11 +1417,9 @@ class AsyncDatasetsClient:
         """
         _response = await self._raw_client.list_dataset_logs(
             dataset_id,
-            authorization=authorization,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
-            retrieval_mode=retrieval_mode,
             include_fields=include_fields,
             filters=filters,
             is_exporting=is_exporting,
@@ -1613,7 +1433,6 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         input: typing.Any,
         output: typing.Optional[typing.Any] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -1627,9 +1446,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Any
 
@@ -1653,13 +1469,14 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.create_dataset_log(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
                 input={
                     "customer_id": "cust_12345",
                     "message": "I need help with my subscription",
@@ -1678,23 +1495,12 @@ class AsyncDatasetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_dataset_log(
-            dataset_id,
-            authorization=authorization,
-            input=input,
-            output=output,
-            metadata=metadata,
-            metrics=metrics,
-            request_options=request_options,
+            dataset_id, input=input, output=output, metadata=metadata, metrics=metrics, request_options=request_options
         )
         return _response.data
 
     async def retrieve_dataset_log(
-        self,
-        dataset_id: str,
-        unique_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveDatasetLogResponse:
         """
         Retrieve the full dataset log object, including input/output data, metadata, and associated scores.
@@ -1706,9 +1512,6 @@ class AsyncDatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1724,22 +1527,21 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.retrieve_dataset_log(
                 dataset_id="dataset_id",
                 unique_id="unique_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.retrieve_dataset_log(
-            dataset_id, unique_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.retrieve_dataset_log(dataset_id, unique_id, request_options=request_options)
         return _response.data
 
     async def replace_dataset_log(
@@ -1747,7 +1549,6 @@ class AsyncDatasetsClient:
         dataset_id: str,
         unique_id: str,
         *,
-        authorization: str,
         input: typing.Optional[typing.Any] = OMIT,
         output: typing.Optional[typing.Any] = OMIT,
         expected_output: typing.Optional[typing.Any] = OMIT,
@@ -1766,9 +1567,6 @@ class AsyncDatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Optional[typing.Any]
 
@@ -1796,14 +1594,15 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.replace_dataset_log(
                 dataset_id="dataset_id",
                 unique_id="unique_id",
-                authorization="Bearer sk_live_xxxxx",
                 output={
                     "response": "UPDATED: Go to Settings > Security > Change Password.",
                     "confidence": 0.99,
@@ -1817,7 +1616,6 @@ class AsyncDatasetsClient:
         _response = await self._raw_client.replace_dataset_log(
             dataset_id,
             unique_id,
-            authorization=authorization,
             input=input,
             output=output,
             expected_output=expected_output,
@@ -1829,12 +1627,7 @@ class AsyncDatasetsClient:
         return _response.data
 
     async def delete_dataset_log(
-        self,
-        dataset_id: str,
-        unique_id: str,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Remove a single log from a dataset.
@@ -1846,9 +1639,6 @@ class AsyncDatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1863,22 +1653,21 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.delete_dataset_log(
                 dataset_id="dataset_id",
                 unique_id="unique_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_dataset_log(
-            dataset_id, unique_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_dataset_log(dataset_id, unique_id, request_options=request_options)
         return _response.data
 
     async def update_dataset_log(
@@ -1886,7 +1675,6 @@ class AsyncDatasetsClient:
         dataset_id: str,
         unique_id: str,
         *,
-        authorization: str,
         input: typing.Optional[typing.Any] = OMIT,
         output: typing.Optional[typing.Any] = OMIT,
         expected_output: typing.Optional[typing.Any] = OMIT,
@@ -1905,9 +1693,6 @@ class AsyncDatasetsClient:
 
         unique_id : str
             Unique log ID within the dataset.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         input : typing.Optional[typing.Any]
 
@@ -1935,14 +1720,15 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.update_dataset_log(
                 dataset_id="dataset_id",
                 unique_id="unique_id",
-                authorization="Bearer sk_live_xxxxx",
                 output={
                     "response": "UPDATED: Go to Settings > Security > Change Password.",
                     "confidence": 0.99,
@@ -1956,7 +1742,6 @@ class AsyncDatasetsClient:
         _response = await self._raw_client.update_dataset_log(
             dataset_id,
             unique_id,
-            authorization=authorization,
             input=input,
             output=output,
             expected_output=expected_output,
@@ -1971,7 +1756,6 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         start_time: dt.datetime,
         end_time: dt.datetime,
         filters: typing.Optional[typing.Dict[str, ImportDatasetLogsRequestFiltersValue]] = OMIT,
@@ -1985,9 +1769,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         start_time : dt.datetime
 
@@ -2015,13 +1796,14 @@ class AsyncDatasetsClient:
         from respan import AsyncRespanClient
         from respan.datasets import ImportDatasetLogsRequestFiltersValue
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.import_dataset_logs(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
                 start_time=datetime.datetime.fromisoformat(
                     "2025-07-01 00:00:00+00:00",
                 ),
@@ -2042,7 +1824,6 @@ class AsyncDatasetsClient:
         """
         _response = await self._raw_client.import_dataset_logs(
             dataset_id,
-            authorization=authorization,
             start_time=start_time,
             end_time=end_time,
             filters=filters,
@@ -2055,7 +1836,6 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         is_deleting_all_logs: typing.Optional[bool] = OMIT,
         filters: typing.Optional[typing.Dict[str, RemoveDatasetLogsRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -2067,9 +1847,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         is_deleting_all_logs : typing.Optional[bool]
             Set to `true` to remove every log in the dataset.
@@ -2092,13 +1869,14 @@ class AsyncDatasetsClient:
         from respan import AsyncRespanClient
         from respan.datasets import RemoveDatasetLogsRequestFiltersValue
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.remove_dataset_logs(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
                 filters={
                     "status_code": RemoveDatasetLogsRequestFiltersValue(
                         operator="eq",
@@ -2111,56 +1889,7 @@ class AsyncDatasetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.remove_dataset_logs(
-            dataset_id,
-            authorization=authorization,
-            is_deleting_all_logs=is_deleting_all_logs,
-            filters=filters,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def summarize_dataset_logs(
-        self, dataset_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> SummarizeDatasetLogsResponse:
-        """
-        Get aggregate usage metrics and evaluator score summaries for all logs in a dataset.
-
-        Parameters
-        ----------
-        dataset_id : str
-            Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        SummarizeDatasetLogsResponse
-            Dataset log summary.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.datasets.summarize_dataset_logs(
-                dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.summarize_dataset_logs(
-            dataset_id, authorization=authorization, request_options=request_options
+            dataset_id, is_deleting_all_logs=is_deleting_all_logs, filters=filters, request_options=request_options
         )
         return _response.data
 
@@ -2168,7 +1897,6 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         filters: typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SummarizeDatasetLogsFilteredResponse:
@@ -2179,9 +1907,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         filters : typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]]
             Platform-standard filters keyed by field name.
@@ -2201,13 +1926,14 @@ class AsyncDatasetsClient:
         from respan import AsyncRespanClient
         from respan.datasets import SummarizeDatasetLogsFilteredRequestFiltersValue
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.summarize_dataset_logs_filtered(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
                 filters={
                     "status_code": SummarizeDatasetLogsFilteredRequestFiltersValue(
                         operator="eq",
@@ -2220,7 +1946,7 @@ class AsyncDatasetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.summarize_dataset_logs_filtered(
-            dataset_id, authorization=authorization, filters=filters, request_options=request_options
+            dataset_id, filters=filters, request_options=request_options
         )
         return _response.data
 
@@ -2228,7 +1954,6 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         logs: typing.Sequence[BulkCreateDatasetLogsRequestLogsItem],
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BulkCreateDatasetLogsResponse:
@@ -2239,9 +1964,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         logs : typing.Sequence[BulkCreateDatasetLogsRequestLogsItem]
 
@@ -2260,13 +1982,14 @@ class AsyncDatasetsClient:
         from respan import AsyncRespanClient
         from respan.datasets import BulkCreateDatasetLogsRequestLogsItem
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.bulk_create_dataset_logs(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
                 logs=[
                     BulkCreateDatasetLogsRequestLogsItem(
                         input="What is your return policy?",
@@ -2285,7 +2008,7 @@ class AsyncDatasetsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.bulk_create_dataset_logs(
-            dataset_id, authorization=authorization, logs=logs, request_options=request_options
+            dataset_id, logs=logs, request_options=request_options
         )
         return _response.data
 
@@ -2293,7 +2016,6 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         evaluator_ids: typing.Sequence[str],
         experiment_id: typing.Optional[str] = OMIT,
         generation_method: typing.Optional[str] = OMIT,
@@ -2306,9 +2028,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         evaluator_ids : typing.Sequence[str]
             Evaluator IDs to run against the dataset.
@@ -2333,13 +2052,14 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.run_eval_on_dataset(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
                 evaluator_ids=["eval_abc123"],
             )
 
@@ -2348,7 +2068,6 @@ class AsyncDatasetsClient:
         """
         _response = await self._raw_client.run_eval_on_dataset(
             dataset_id,
-            authorization=authorization,
             evaluator_ids=evaluator_ids,
             experiment_id=experiment_id,
             generation_method=generation_method,
@@ -2360,7 +2079,6 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -2372,9 +2090,6 @@ class AsyncDatasetsClient:
         ----------
         dataset_id : str
             Dataset ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -2396,19 +2111,20 @@ class AsyncDatasetsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.datasets.list_dataset_eval_runs(
                 dataset_id="dataset_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_dataset_eval_runs(
-            dataset_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            dataset_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data

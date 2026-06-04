@@ -5,7 +5,7 @@ import typing
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawHealthClient, RawHealthClient
-from .types.check_response import CheckResponse
+from .types.api_health_check_response import ApiHealthCheckResponse
 
 
 class HealthClient:
@@ -23,33 +23,30 @@ class HealthClient:
         """
         return self._raw_client
 
-    def check(self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None) -> CheckResponse:
+    def api_health_check(self, *, request_options: typing.Optional[RequestOptions] = None) -> ApiHealthCheckResponse:
         """
-        Check API availability.
+        Check API availability. This endpoint does not require authentication.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CheckResponse
-            API is healthy
+        ApiHealthCheckResponse
+            API health check passed.
 
         Examples
         --------
         from respan import RespanClient
 
-        client = RespanClient()
-        client.health.check(
-            authorization="Bearer sk_live_xxxxx",
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
+        client.health.api_health_check()
         """
-        _response = self._raw_client.check(authorization=authorization, request_options=request_options)
+        _response = self._raw_client.api_health_check(request_options=request_options)
         return _response.data
 
 
@@ -68,24 +65,21 @@ class AsyncHealthClient:
         """
         return self._raw_client
 
-    async def check(
-        self, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> CheckResponse:
+    async def api_health_check(
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> ApiHealthCheckResponse:
         """
-        Check API availability.
+        Check API availability. This endpoint does not require authentication.
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CheckResponse
-            API is healthy
+        ApiHealthCheckResponse
+            API health check passed.
 
         Examples
         --------
@@ -93,16 +87,16 @@ class AsyncHealthClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
-            await client.health.check(
-                authorization="Bearer sk_live_xxxxx",
-            )
+            await client.health.api_health_check()
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.check(authorization=authorization, request_options=request_options)
+        _response = await self._raw_client.api_health_check(request_options=request_options)
         return _response.data

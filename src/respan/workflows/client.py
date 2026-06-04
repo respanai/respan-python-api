@@ -14,7 +14,6 @@ from .types.deploy_workflow_response import DeployWorkflowResponse
 from .types.filter_workflows_response import FilterWorkflowsResponse
 from .types.get_workflow_response import GetWorkflowResponse
 from .types.list_workflow_versions_response import ListWorkflowVersionsResponse
-from .types.list_workflows_response import ListWorkflowsResponse
 from .types.update_workflow_request_trigger_event_type import UpdateWorkflowRequestTriggerEventType
 from .types.update_workflow_request_type import UpdateWorkflowRequestType
 from .types.validate_workflow_response import ValidateWorkflowResponse
@@ -38,54 +37,9 @@ class WorkflowsClient:
         """
         return self._raw_client
 
-    def list_workflows(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListWorkflowsResponse:
-        """
-        List workflows. Use `POST /api/workflows/list/` with a `type` filter to list only automations, monitors, or evaluators.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListWorkflowsResponse
-            Successful response for List workflows
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient()
-        client.workflows.list_workflows(
-            authorization="Bearer sk_live_xxxxx",
-        )
-        """
-        _response = self._raw_client.list_workflows(
-            authorization=authorization, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
     def create_workflow(
         self,
         *,
-        authorization: str,
         type: CreateWorkflowRequestType,
         workflow_id: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
@@ -100,9 +54,6 @@ class WorkflowsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         type : CreateWorkflowRequestType
             Workflow type.
 
@@ -133,9 +84,10 @@ class WorkflowsClient:
         from respan import RespanClient
         from respan.workflows import CreateWorkflowRequestTasksItem
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.create_workflow(
-            authorization="Bearer sk_live_xxxxx",
             name="High error rate alert",
             description="Alert when error rate rises above 5% over 10 minutes.",
             type="monitors",
@@ -162,7 +114,6 @@ class WorkflowsClient:
         )
         """
         _response = self._raw_client.create_workflow(
-            authorization=authorization,
             type=type,
             workflow_id=workflow_id,
             name=name,
@@ -177,7 +128,6 @@ class WorkflowsClient:
     def filter_workflows(
         self,
         *,
-        authorization: str,
         filters: typing.Dict[str, typing.Any],
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
@@ -189,9 +139,6 @@ class WorkflowsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Dict[str, typing.Any]
             Filter object keyed by field name. Include a `type` filter with `value: ["automations"]`, `["monitors"]`, or `["evaluators"]` and `operator: "eq"` to scope results.
 
@@ -216,24 +163,20 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.filter_workflows(
-            authorization="Bearer sk_live_xxxxx",
             filters={"type": {"value": ["monitors"], "operator": "eq"}},
         )
         """
         _response = self._raw_client.filter_workflows(
-            authorization=authorization,
-            filters=filters,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            request_options=request_options,
+            filters=filters, page=page, page_size=page_size, sort_by=sort_by, request_options=request_options
         )
         return _response.data
 
     def get_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> GetWorkflowResponse:
         """
         Get the latest editable (draft) version of a workflow.
@@ -242,9 +185,6 @@ class WorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -258,20 +198,17 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.get_workflow(
             workflow_id="workflow_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.get_workflow(
-            workflow_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.get_workflow(workflow_id, request_options=request_options)
         return _response.data
 
-    def delete_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def delete_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Delete a workflow and all its versions.
 
@@ -279,9 +216,6 @@ class WorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -294,22 +228,20 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.delete_workflow(
             workflow_id="workflow_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.delete_workflow(
-            workflow_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.delete_workflow(workflow_id, request_options=request_options)
         return _response.data
 
     def update_workflow(
         self,
         workflow_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateWorkflowRequestType] = OMIT,
@@ -325,9 +257,6 @@ class WorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -353,15 +282,15 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.update_workflow(
             workflow_id="workflow_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.update_workflow(
             workflow_id,
-            authorization=authorization,
             name=name,
             description=description,
             type=type,
@@ -376,7 +305,6 @@ class WorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -388,9 +316,6 @@ class WorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -410,14 +335,15 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.list_workflow_versions(
             workflow_id="workflow_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.list_workflow_versions(
-            workflow_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            workflow_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -425,7 +351,6 @@ class WorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         type: typing.Optional[CreateWorkflowVersionRequestType] = OMIT,
@@ -441,9 +366,6 @@ class WorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -470,16 +392,16 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.create_workflow_version(
             workflow_id="workflow_id",
-            authorization="Bearer sk_live_xxxxx",
             description="deploy v1",
         )
         """
         _response = self._raw_client.create_workflow_version(
             workflow_id,
-            authorization=authorization,
             name=name,
             description=description,
             type=type,
@@ -491,12 +413,7 @@ class WorkflowsClient:
         return _response.data
 
     def get_workflow_version(
-        self,
-        workflow_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.Dict[str, typing.Any]:
         """
         Get a specific workflow version by workflow ID and version number.
@@ -508,9 +425,6 @@ class WorkflowsClient:
 
         version : int
             Version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -524,16 +438,15 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.get_workflow_version(
             workflow_id="workflow_id",
             version=1,
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.get_workflow_version(
-            workflow_id, version, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.get_workflow_version(workflow_id, version, request_options=request_options)
         return _response.data
 
     def update_workflow_version(
@@ -541,7 +454,6 @@ class WorkflowsClient:
         workflow_id: str,
         version: int,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         trigger_event_type: typing.Optional[str] = OMIT,
@@ -559,9 +471,6 @@ class WorkflowsClient:
 
         version : int
             Version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -585,17 +494,17 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.update_workflow_version(
             workflow_id="workflow_id",
             version=1,
-            authorization="Bearer sk_live_xxxxx",
         )
         """
         _response = self._raw_client.update_workflow_version(
             workflow_id,
             version,
-            authorization=authorization,
             name=name,
             description=description,
             trigger_event_type=trigger_event_type,
@@ -609,7 +518,6 @@ class WorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         version: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DeployWorkflowResponse:
@@ -620,9 +528,6 @@ class WorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         version : typing.Optional[int]
             Version number to deploy. If omitted, the latest committed version is deployed.
@@ -639,21 +544,18 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.deploy_workflow(
             workflow_id="workflow_id",
-            authorization="Bearer sk_live_xxxxx",
             version=1,
         )
         """
-        _response = self._raw_client.deploy_workflow(
-            workflow_id, authorization=authorization, version=version, request_options=request_options
-        )
+        _response = self._raw_client.deploy_workflow(workflow_id, version=version, request_options=request_options)
         return _response.data
 
-    def undeploy_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def undeploy_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
         Undeploy a workflow by disabling all versions.
 
@@ -661,9 +563,6 @@ class WorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -676,38 +575,26 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.undeploy_workflow(
             workflow_id="workflow_id",
-            authorization="Bearer sk_live_xxxxx",
         )
         """
-        _response = self._raw_client.undeploy_workflow(
-            workflow_id, authorization=authorization, request_options=request_options
-        )
+        _response = self._raw_client.undeploy_workflow(workflow_id, request_options=request_options)
         return _response.data
 
     def validate_workflow(
-        self,
-        workflow_id: str,
-        *,
-        authorization: str,
-        log_id: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> ValidateWorkflowResponse:
         """
-        Validate a workflow against a sample log without triggering real side effects. No notifications, webhooks, or dataset writes are performed.
+        Validate a workflow configuration and fire preview delivery sends. The backend validates the workflow identified by the path parameter and does not consume a request body.
 
         Parameters
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        log_id : typing.Optional[str]
-            Specific log ID to use as the validation sample. If omitted, the backend uses the most recent organization log.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -721,16 +608,14 @@ class WorkflowsClient:
         --------
         from respan import RespanClient
 
-        client = RespanClient()
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
         client.workflows.validate_workflow(
             workflow_id="workflow_id",
-            authorization="Bearer sk_live_xxxxx",
-            log_id="log_123",
         )
         """
-        _response = self._raw_client.validate_workflow(
-            workflow_id, authorization=authorization, log_id=log_id, request_options=request_options
-        )
+        _response = self._raw_client.validate_workflow(workflow_id, request_options=request_options)
         return _response.data
 
 
@@ -749,62 +634,9 @@ class AsyncWorkflowsClient:
         """
         return self._raw_client
 
-    async def list_workflows(
-        self,
-        *,
-        authorization: str,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListWorkflowsResponse:
-        """
-        List workflows. Use `POST /api/workflows/list/` with a `type` filter to list only automations, monitors, or evaluators.
-
-        Parameters
-        ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListWorkflowsResponse
-            Successful response for List workflows
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient()
-
-
-        async def main() -> None:
-            await client.workflows.list_workflows(
-                authorization="Bearer sk_live_xxxxx",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_workflows(
-            authorization=authorization, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
     async def create_workflow(
         self,
         *,
-        authorization: str,
         type: CreateWorkflowRequestType,
         workflow_id: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
@@ -819,9 +651,6 @@ class AsyncWorkflowsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         type : CreateWorkflowRequestType
             Workflow type.
 
@@ -854,12 +683,13 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
         from respan.workflows import CreateWorkflowRequestTasksItem
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.create_workflow(
-                authorization="Bearer sk_live_xxxxx",
                 name="High error rate alert",
                 description="Alert when error rate rises above 5% over 10 minutes.",
                 type="monitors",
@@ -889,7 +719,6 @@ class AsyncWorkflowsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_workflow(
-            authorization=authorization,
             type=type,
             workflow_id=workflow_id,
             name=name,
@@ -904,7 +733,6 @@ class AsyncWorkflowsClient:
     async def filter_workflows(
         self,
         *,
-        authorization: str,
         filters: typing.Dict[str, typing.Any],
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
@@ -916,9 +744,6 @@ class AsyncWorkflowsClient:
 
         Parameters
         ----------
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
         filters : typing.Dict[str, typing.Any]
             Filter object keyed by field name. Include a `type` filter with `value: ["automations"]`, `["monitors"]`, or `["evaluators"]` and `operator: "eq"` to scope results.
 
@@ -945,12 +770,13 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.filter_workflows(
-                authorization="Bearer sk_live_xxxxx",
                 filters={"type": {"value": ["monitors"], "operator": "eq"}},
             )
 
@@ -958,17 +784,12 @@ class AsyncWorkflowsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.filter_workflows(
-            authorization=authorization,
-            filters=filters,
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            request_options=request_options,
+            filters=filters, page=page, page_size=page_size, sort_by=sort_by, request_options=request_options
         )
         return _response.data
 
     async def get_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> GetWorkflowResponse:
         """
         Get the latest editable (draft) version of a workflow.
@@ -977,9 +798,6 @@ class AsyncWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -995,25 +813,24 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.get_workflow(
                 workflow_id="workflow_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.get_workflow(
-            workflow_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.get_workflow(workflow_id, request_options=request_options)
         return _response.data
 
     async def delete_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Delete a workflow and all its versions.
@@ -1022,9 +839,6 @@ class AsyncWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1039,28 +853,26 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.delete_workflow(
                 workflow_id="workflow_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.delete_workflow(
-            workflow_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.delete_workflow(workflow_id, request_options=request_options)
         return _response.data
 
     async def update_workflow(
         self,
         workflow_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         type: typing.Optional[UpdateWorkflowRequestType] = OMIT,
@@ -1076,9 +888,6 @@ class AsyncWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -1106,13 +915,14 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.update_workflow(
                 workflow_id="workflow_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
@@ -1120,7 +930,6 @@ class AsyncWorkflowsClient:
         """
         _response = await self._raw_client.update_workflow(
             workflow_id,
-            authorization=authorization,
             name=name,
             description=description,
             type=type,
@@ -1135,7 +944,6 @@ class AsyncWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1147,9 +955,6 @@ class AsyncWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         page : typing.Optional[int]
             Page number.
@@ -1171,20 +976,21 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.list_workflow_versions(
                 workflow_id="workflow_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.list_workflow_versions(
-            workflow_id, authorization=authorization, page=page, page_size=page_size, request_options=request_options
+            workflow_id, page=page, page_size=page_size, request_options=request_options
         )
         return _response.data
 
@@ -1192,7 +998,6 @@ class AsyncWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         type: typing.Optional[CreateWorkflowVersionRequestType] = OMIT,
@@ -1208,9 +1013,6 @@ class AsyncWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -1239,13 +1041,14 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.create_workflow_version(
                 workflow_id="workflow_id",
-                authorization="Bearer sk_live_xxxxx",
                 description="deploy v1",
             )
 
@@ -1254,7 +1057,6 @@ class AsyncWorkflowsClient:
         """
         _response = await self._raw_client.create_workflow_version(
             workflow_id,
-            authorization=authorization,
             name=name,
             description=description,
             type=type,
@@ -1266,12 +1068,7 @@ class AsyncWorkflowsClient:
         return _response.data
 
     async def get_workflow_version(
-        self,
-        workflow_id: str,
-        version: int,
-        *,
-        authorization: str,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> typing.Dict[str, typing.Any]:
         """
         Get a specific workflow version by workflow ID and version number.
@@ -1283,9 +1080,6 @@ class AsyncWorkflowsClient:
 
         version : int
             Version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1301,22 +1095,21 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.get_workflow_version(
                 workflow_id="workflow_id",
                 version=1,
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.get_workflow_version(
-            workflow_id, version, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.get_workflow_version(workflow_id, version, request_options=request_options)
         return _response.data
 
     async def update_workflow_version(
@@ -1324,7 +1117,6 @@ class AsyncWorkflowsClient:
         workflow_id: str,
         version: int,
         *,
-        authorization: str,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         trigger_event_type: typing.Optional[str] = OMIT,
@@ -1342,9 +1134,6 @@ class AsyncWorkflowsClient:
 
         version : int
             Version number.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         name : typing.Optional[str]
 
@@ -1370,14 +1159,15 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.update_workflow_version(
                 workflow_id="workflow_id",
                 version=1,
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
@@ -1386,7 +1176,6 @@ class AsyncWorkflowsClient:
         _response = await self._raw_client.update_workflow_version(
             workflow_id,
             version,
-            authorization=authorization,
             name=name,
             description=description,
             trigger_event_type=trigger_event_type,
@@ -1400,7 +1189,6 @@ class AsyncWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        authorization: str,
         version: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DeployWorkflowResponse:
@@ -1411,9 +1199,6 @@ class AsyncWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         version : typing.Optional[int]
             Version number to deploy. If omitted, the latest committed version is deployed.
@@ -1432,13 +1217,14 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.deploy_workflow(
                 workflow_id="workflow_id",
-                authorization="Bearer sk_live_xxxxx",
                 version=1,
             )
 
@@ -1446,12 +1232,12 @@ class AsyncWorkflowsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.deploy_workflow(
-            workflow_id, authorization=authorization, version=version, request_options=request_options
+            workflow_id, version=version, request_options=request_options
         )
         return _response.data
 
     async def undeploy_workflow(
-        self, workflow_id: str, *, authorization: str, request_options: typing.Optional[RequestOptions] = None
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
         Undeploy a workflow by disabling all versions.
@@ -1460,9 +1246,6 @@ class AsyncWorkflowsClient:
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1477,44 +1260,32 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.undeploy_workflow(
                 workflow_id="workflow_id",
-                authorization="Bearer sk_live_xxxxx",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.undeploy_workflow(
-            workflow_id, authorization=authorization, request_options=request_options
-        )
+        _response = await self._raw_client.undeploy_workflow(workflow_id, request_options=request_options)
         return _response.data
 
     async def validate_workflow(
-        self,
-        workflow_id: str,
-        *,
-        authorization: str,
-        log_id: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> ValidateWorkflowResponse:
         """
-        Validate a workflow against a sample log without triggering real side effects. No notifications, webhooks, or dataset writes are performed.
+        Validate a workflow configuration and fire preview delivery sends. The backend validates the workflow identified by the path parameter and does not consume a request body.
 
         Parameters
         ----------
         workflow_id : str
             Workflow ID.
-
-        authorization : str
-            Bearer token. Use `Bearer YOUR_API_KEY`.
-
-        log_id : typing.Optional[str]
-            Specific log ID to use as the validation sample. If omitted, the backend uses the most recent organization log.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1530,20 +1301,18 @@ class AsyncWorkflowsClient:
 
         from respan import AsyncRespanClient
 
-        client = AsyncRespanClient()
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
 
 
         async def main() -> None:
             await client.workflows.validate_workflow(
                 workflow_id="workflow_id",
-                authorization="Bearer sk_live_xxxxx",
-                log_id="log_123",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.validate_workflow(
-            workflow_id, authorization=authorization, log_id=log_id, request_options=request_options
-        )
+        _response = await self._raw_client.validate_workflow(workflow_id, request_options=request_options)
         return _response.data
