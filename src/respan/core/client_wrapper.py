@@ -27,12 +27,12 @@ class BaseClientWrapper:
         import platform
 
         headers: typing.Dict[str, str] = {
-            "User-Agent": "respan-api/0.1.28",
+            "User-Agent": "respan-api/0.1.29",
             "X-Fern-Language": "Python",
             "X-Fern-Runtime": f"python/{platform.python_version()}",
             "X-Fern-Platform": f"{platform.system().lower()}/{platform.release()}",
             "X-Fern-SDK-Name": "respan-api",
-            "X-Fern-SDK-Version": "0.1.28",
+            "X-Fern-SDK-Version": "0.1.29",
             **(self.get_custom_headers() or {}),
         }
         respan_api_key = self._get_respan_api_key()
