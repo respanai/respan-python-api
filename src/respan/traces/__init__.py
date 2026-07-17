@@ -7,7 +7,6 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
-        BulkDeleteTracesResponse,
         CreateTraceLegacyRequest,
         CreateTraceLegacyRequestData,
         CreateTraceLegacyRequestDataDataItem,
@@ -37,7 +36,6 @@ if typing.TYPE_CHECKING:
         ShareTraceResponse,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "BulkDeleteTracesResponse": ".types",
     "CreateTraceLegacyRequest": ".types",
     "CreateTraceLegacyRequestData": ".types",
     "CreateTraceLegacyRequestDataDataItem": ".types",
@@ -90,7 +88,6 @@ def __dir__():
 
 
 __all__ = [
-    "BulkDeleteTracesResponse",
     "CreateTraceLegacyRequest",
     "CreateTraceLegacyRequestData",
     "CreateTraceLegacyRequestDataDataItem",

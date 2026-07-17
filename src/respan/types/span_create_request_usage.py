@@ -3,10 +3,10 @@
 import typing
 
 import pydantic
-from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class CreateSpanRequestUsage(UniversalBaseModel):
+class SpanCreateRequestUsage(UniversalBaseModel):
     """
     Provider usage object. Cache token fields such as `cache_creation_input_tokens` and `cache_read_input_tokens` are accepted and normalized into Respan cache-token counters.
     """

@@ -10,9 +10,12 @@ from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
+from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
-from .types.bulk_delete_cached_responses_response import BulkDeleteCachedResponsesResponse
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
+from ..types.bulk_delete_response import BulkDeleteResponse
 from .types.delete_cached_responses_response import DeleteCachedResponsesResponse
 from .types.filter_cached_responses_response import FilterCachedResponsesResponse
 from .types.get_filtered_cached_responses_summary_response import GetFilteredCachedResponsesSummaryResponse
@@ -311,9 +314,9 @@ class RawCachesClient:
 
     def bulk_delete_cached_responses(
         self, *, request: typing.Any, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[BulkDeleteCachedResponsesResponse]:
+    ) -> HttpResponse[BulkDeleteResponse]:
         """
-        Bulk delete cached responses. Provide exactly one of `cache_keys`, `ids`, or `all`. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`.
+        Delete cached responses using exactly one selector: `cache_keys`, `ids`, or `all: true`. Up to 1,000 keys or IDs can be deleted per request. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`. Rate limit: 60 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
@@ -324,8 +327,8 @@ class RawCachesClient:
 
         Returns
         -------
-        HttpResponse[BulkDeleteCachedResponsesResponse]
-            Bulk delete result.
+        HttpResponse[BulkDeleteResponse]
+            Cached responses were deleted synchronously.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/caches/bulk/",
@@ -340,9 +343,9 @@ class RawCachesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    BulkDeleteCachedResponsesResponse,
+                    BulkDeleteResponse,
                     parse_obj_as(
-                        type_=BulkDeleteCachedResponsesResponse,  # type: ignore
+                        type_=BulkDeleteResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -360,6 +363,39 @@ class RawCachesClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -664,9 +700,9 @@ class AsyncRawCachesClient:
 
     async def bulk_delete_cached_responses(
         self, *, request: typing.Any, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[BulkDeleteCachedResponsesResponse]:
+    ) -> AsyncHttpResponse[BulkDeleteResponse]:
         """
-        Bulk delete cached responses. Provide exactly one of `cache_keys`, `ids`, or `all`. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`.
+        Delete cached responses using exactly one selector: `cache_keys`, `ids`, or `all: true`. Up to 1,000 keys or IDs can be deleted per request. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`. Rate limit: 60 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
@@ -677,8 +713,8 @@ class AsyncRawCachesClient:
 
         Returns
         -------
-        AsyncHttpResponse[BulkDeleteCachedResponsesResponse]
-            Bulk delete result.
+        AsyncHttpResponse[BulkDeleteResponse]
+            Cached responses were deleted synchronously.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/caches/bulk/",
@@ -693,9 +729,9 @@ class AsyncRawCachesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    BulkDeleteCachedResponsesResponse,
+                    BulkDeleteResponse,
                     parse_obj_as(
-                        type_=BulkDeleteCachedResponsesResponse,  # type: ignore
+                        type_=BulkDeleteResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -713,6 +749,39 @@ class AsyncRawCachesClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

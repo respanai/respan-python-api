@@ -6,12 +6,14 @@ import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class TooManyRequestsErrorBody(UniversalBaseModel):
-    detail: str
-    retry_after: typing.Optional[int] = pydantic.Field(default=None)
+class SpanCreateRequestCustomerParams(UniversalBaseModel):
     """
-    Seconds to wait before retrying.
+    Extended customer information. `customer_identifier` inside this object is promoted to the log customer identifier.
     """
+
+    customer_identifier: typing.Optional[str] = None
+    email: typing.Optional[str] = None
+    name: typing.Optional[str] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

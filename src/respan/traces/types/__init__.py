@@ -6,7 +6,6 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .bulk_delete_traces_response import BulkDeleteTracesResponse
     from .create_trace_legacy_request import CreateTraceLegacyRequest
     from .create_trace_legacy_request_data import CreateTraceLegacyRequestData
     from .create_trace_legacy_request_data_data_item import CreateTraceLegacyRequestDataDataItem
@@ -47,7 +46,6 @@ if typing.TYPE_CHECKING:
     from .retrieve_trace_response_span_tree_item import RetrieveTraceResponseSpanTreeItem
     from .share_trace_response import ShareTraceResponse
 _dynamic_imports: typing.Dict[str, str] = {
-    "BulkDeleteTracesResponse": ".bulk_delete_traces_response",
     "CreateTraceLegacyRequest": ".create_trace_legacy_request",
     "CreateTraceLegacyRequestData": ".create_trace_legacy_request_data",
     "CreateTraceLegacyRequestDataDataItem": ".create_trace_legacy_request_data_data_item",
@@ -100,7 +98,6 @@ def __dir__():
 
 
 __all__ = [
-    "BulkDeleteTracesResponse",
     "CreateTraceLegacyRequest",
     "CreateTraceLegacyRequestData",
     "CreateTraceLegacyRequestDataDataItem",

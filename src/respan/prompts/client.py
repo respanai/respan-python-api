@@ -4,6 +4,8 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
+from ..types.bulk_operation_response import BulkOperationResponse
+from ..types.prompt_bulk_request_item import PromptBulkRequestItem
 from .raw_client import AsyncRawPromptsClient, RawPromptsClient
 from .types.commit_prompt_version_response import CommitPromptVersionResponse
 from .types.create_prompt_response import CreatePromptResponse
@@ -139,6 +141,63 @@ class PromptsClient:
         )
         """
         _response = self._raw_client.create_prompt(name=name, description=description, request_options=request_options)
+        return _response.data
+
+    def process_prompt_bulk_operations(
+        self,
+        *,
+        requests: typing.Sequence[PromptBulkRequestItem],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> BulkOperationResponse:
+        """
+        Process 1 to 100 prompt operations sequentially in request order using exact `prompt_id` matching. Each item runs in its own transaction, so a failed item is rolled back without undoing successful items. `update` changes model configuration on the latest draft and does not accept content fields such as `messages`, `variables`, or `description`; `commit` snapshots the latest draft; `deploy` promotes the latest committed version. A later duplicate successful `commit` or `deploy` for the same prompt in one request is returned as an indexed error. This endpoint inherits the caller's configured API-key or JWT rate limits; it has no fixed endpoint-specific RPM.
+
+        Parameters
+        ----------
+        requests : typing.Sequence[PromptBulkRequestItem]
+            Prompt operations. Error indices refer to this zero-based array.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        BulkOperationResponse
+            All prompt operations succeeded.
+
+        Examples
+        --------
+        from respan import (
+            PromptBulkRequestItem_Commit,
+            PromptBulkRequestItem_Deploy,
+            PromptBulkRequestItem_Update,
+            PromptBulkUpdateBody,
+            RespanClient,
+        )
+
+        client = RespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.prompts.process_prompt_bulk_operations(
+            requests=[
+                PromptBulkRequestItem_Update(
+                    prompt_id="prompt_id",
+                    body=PromptBulkUpdateBody(
+                        model="gpt-4o-mini",
+                        temperature=0.25,
+                        max_tokens=512,
+                    ),
+                ),
+                PromptBulkRequestItem_Commit(
+                    prompt_id="prompt_id",
+                ),
+                PromptBulkRequestItem_Deploy(
+                    prompt_id="prompt_id",
+                ),
+            ],
+        )
+        """
+        _response = self._raw_client.process_prompt_bulk_operations(requests=requests, request_options=request_options)
         return _response.data
 
     def retrieve_prompt(
@@ -959,6 +1018,73 @@ class AsyncPromptsClient:
         """
         _response = await self._raw_client.create_prompt(
             name=name, description=description, request_options=request_options
+        )
+        return _response.data
+
+    async def process_prompt_bulk_operations(
+        self,
+        *,
+        requests: typing.Sequence[PromptBulkRequestItem],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> BulkOperationResponse:
+        """
+        Process 1 to 100 prompt operations sequentially in request order using exact `prompt_id` matching. Each item runs in its own transaction, so a failed item is rolled back without undoing successful items. `update` changes model configuration on the latest draft and does not accept content fields such as `messages`, `variables`, or `description`; `commit` snapshots the latest draft; `deploy` promotes the latest committed version. A later duplicate successful `commit` or `deploy` for the same prompt in one request is returned as an indexed error. This endpoint inherits the caller's configured API-key or JWT rate limits; it has no fixed endpoint-specific RPM.
+
+        Parameters
+        ----------
+        requests : typing.Sequence[PromptBulkRequestItem]
+            Prompt operations. Error indices refer to this zero-based array.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        BulkOperationResponse
+            All prompt operations succeeded.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import (
+            AsyncRespanClient,
+            PromptBulkRequestItem_Commit,
+            PromptBulkRequestItem_Deploy,
+            PromptBulkRequestItem_Update,
+            PromptBulkUpdateBody,
+        )
+
+        client = AsyncRespanClient(
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.prompts.process_prompt_bulk_operations(
+                requests=[
+                    PromptBulkRequestItem_Update(
+                        prompt_id="prompt_id",
+                        body=PromptBulkUpdateBody(
+                            model="gpt-4o-mini",
+                            temperature=0.25,
+                            max_tokens=512,
+                        ),
+                    ),
+                    PromptBulkRequestItem_Commit(
+                        prompt_id="prompt_id",
+                    ),
+                    PromptBulkRequestItem_Deploy(
+                        prompt_id="prompt_id",
+                    ),
+                ],
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.process_prompt_bulk_operations(
+            requests=requests, request_options=request_options
         )
         return _response.data
 

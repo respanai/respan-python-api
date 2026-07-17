@@ -4,13 +4,27 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .bulk_item_error import BulkItemError
 
 
-class TooManyRequestsErrorBody(UniversalBaseModel):
-    detail: str
-    retry_after: typing.Optional[int] = pydantic.Field(default=None)
+class BulkOperationResponse(UniversalBaseModel):
     """
-    Seconds to wait before retrying.
+    Canonical result envelope for a bulk operation.
+    """
+
+    success_count: int = pydantic.Field()
+    """
+    Number of items successfully processed.
+    """
+
+    error_count: int = pydantic.Field()
+    """
+    Number of items that failed.
+    """
+
+    errors: typing.List[BulkItemError] = pydantic.Field()
+    """
+    Item-level failures, keyed by zero-based input index.
     """
 
     if IS_PYDANTIC_V2:

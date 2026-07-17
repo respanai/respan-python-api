@@ -7,7 +7,11 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .bad_request_error_body import BadRequestErrorBody
+    from .bad_request_error_body_requests import BadRequestErrorBodyRequests
     from .bad_request_error_body_value import BadRequestErrorBodyValue
+    from .bulk_delete_response import BulkDeleteResponse
+    from .bulk_item_error import BulkItemError
+    from .bulk_operation_response import BulkOperationResponse
     from .dashboard_breakdown_request import DashboardBreakdownRequest
     from .dashboard_breakdown_row import DashboardBreakdownRow
     from .dashboard_cache_hit_row import DashboardCacheHitRow
@@ -28,6 +32,10 @@ if typing.TYPE_CHECKING:
     from .dashboard_top_n_response import DashboardTopNResponse
     from .dashboard_total_users_summary import DashboardTotalUsersSummary
     from .dashboard_users_row import DashboardUsersRow
+    from .dataset_log_create_request import DatasetLogCreateRequest
+    from .dataset_log_create_request_expected_output import DatasetLogCreateRequestExpectedOutput
+    from .dataset_log_create_request_input import DatasetLogCreateRequestInput
+    from .dataset_log_create_request_output import DatasetLogCreateRequestOutput
     from .filter_value import FilterValue
     from .filter_value_operator import FilterValueOperator
     from .filters import Filters
@@ -36,12 +44,41 @@ if typing.TYPE_CHECKING:
     from .not_found_error_body import NotFoundErrorBody
     from .platform_stats_response import PlatformStatsResponse
     from .platform_stats_response_total_tokens_item import PlatformStatsResponseTotalTokensItem
+    from .prompt_bulk_commit_body import PromptBulkCommitBody
+    from .prompt_bulk_commit_item import PromptBulkCommitItem
+    from .prompt_bulk_deploy_item import PromptBulkDeployItem
+    from .prompt_bulk_request_item import (
+        PromptBulkRequestItem,
+        PromptBulkRequestItem_Commit,
+        PromptBulkRequestItem_Deploy,
+        PromptBulkRequestItem_Update,
+    )
+    from .prompt_bulk_update_body import PromptBulkUpdateBody
+    from .prompt_bulk_update_item import PromptBulkUpdateItem
+    from .span_create_request import SpanCreateRequest
+    from .span_create_request_customer_params import SpanCreateRequestCustomerParams
+    from .span_create_request_environment import SpanCreateRequestEnvironment
+    from .span_create_request_input import SpanCreateRequestInput
+    from .span_create_request_log_type import SpanCreateRequestLogType
+    from .span_create_request_output import SpanCreateRequestOutput
+    from .span_create_request_status import SpanCreateRequestStatus
+    from .span_create_request_stop import SpanCreateRequestStop
+    from .span_create_request_tool_choice import SpanCreateRequestToolChoice
+    from .span_create_request_usage import SpanCreateRequestUsage
+    from .span_create_request_warnings import SpanCreateRequestWarnings
     from .too_many_requests_error_body import TooManyRequestsErrorBody
+    from .trace_bulk_delete_filters import TraceBulkDeleteFilters
+    from .trace_filter_condition import TraceFilterCondition
+    from .trace_filter_condition_operator import TraceFilterConditionOperator
     from .unauthorized_error_body import UnauthorizedErrorBody
     from .unprocessable_entity_error_body import UnprocessableEntityErrorBody
 _dynamic_imports: typing.Dict[str, str] = {
     "BadRequestErrorBody": ".bad_request_error_body",
+    "BadRequestErrorBodyRequests": ".bad_request_error_body_requests",
     "BadRequestErrorBodyValue": ".bad_request_error_body_value",
+    "BulkDeleteResponse": ".bulk_delete_response",
+    "BulkItemError": ".bulk_item_error",
+    "BulkOperationResponse": ".bulk_operation_response",
     "DashboardBreakdownRequest": ".dashboard_breakdown_request",
     "DashboardBreakdownRow": ".dashboard_breakdown_row",
     "DashboardCacheHitRow": ".dashboard_cache_hit_row",
@@ -62,6 +99,10 @@ _dynamic_imports: typing.Dict[str, str] = {
     "DashboardTopNResponse": ".dashboard_top_n_response",
     "DashboardTotalUsersSummary": ".dashboard_total_users_summary",
     "DashboardUsersRow": ".dashboard_users_row",
+    "DatasetLogCreateRequest": ".dataset_log_create_request",
+    "DatasetLogCreateRequestExpectedOutput": ".dataset_log_create_request_expected_output",
+    "DatasetLogCreateRequestInput": ".dataset_log_create_request_input",
+    "DatasetLogCreateRequestOutput": ".dataset_log_create_request_output",
     "FilterValue": ".filter_value",
     "FilterValueOperator": ".filter_value_operator",
     "Filters": ".filters",
@@ -70,7 +111,30 @@ _dynamic_imports: typing.Dict[str, str] = {
     "NotFoundErrorBody": ".not_found_error_body",
     "PlatformStatsResponse": ".platform_stats_response",
     "PlatformStatsResponseTotalTokensItem": ".platform_stats_response_total_tokens_item",
+    "PromptBulkCommitBody": ".prompt_bulk_commit_body",
+    "PromptBulkCommitItem": ".prompt_bulk_commit_item",
+    "PromptBulkDeployItem": ".prompt_bulk_deploy_item",
+    "PromptBulkRequestItem": ".prompt_bulk_request_item",
+    "PromptBulkRequestItem_Commit": ".prompt_bulk_request_item",
+    "PromptBulkRequestItem_Deploy": ".prompt_bulk_request_item",
+    "PromptBulkRequestItem_Update": ".prompt_bulk_request_item",
+    "PromptBulkUpdateBody": ".prompt_bulk_update_body",
+    "PromptBulkUpdateItem": ".prompt_bulk_update_item",
+    "SpanCreateRequest": ".span_create_request",
+    "SpanCreateRequestCustomerParams": ".span_create_request_customer_params",
+    "SpanCreateRequestEnvironment": ".span_create_request_environment",
+    "SpanCreateRequestInput": ".span_create_request_input",
+    "SpanCreateRequestLogType": ".span_create_request_log_type",
+    "SpanCreateRequestOutput": ".span_create_request_output",
+    "SpanCreateRequestStatus": ".span_create_request_status",
+    "SpanCreateRequestStop": ".span_create_request_stop",
+    "SpanCreateRequestToolChoice": ".span_create_request_tool_choice",
+    "SpanCreateRequestUsage": ".span_create_request_usage",
+    "SpanCreateRequestWarnings": ".span_create_request_warnings",
     "TooManyRequestsErrorBody": ".too_many_requests_error_body",
+    "TraceBulkDeleteFilters": ".trace_bulk_delete_filters",
+    "TraceFilterCondition": ".trace_filter_condition",
+    "TraceFilterConditionOperator": ".trace_filter_condition_operator",
     "UnauthorizedErrorBody": ".unauthorized_error_body",
     "UnprocessableEntityErrorBody": ".unprocessable_entity_error_body",
 }
@@ -99,7 +163,11 @@ def __dir__():
 
 __all__ = [
     "BadRequestErrorBody",
+    "BadRequestErrorBodyRequests",
     "BadRequestErrorBodyValue",
+    "BulkDeleteResponse",
+    "BulkItemError",
+    "BulkOperationResponse",
     "DashboardBreakdownRequest",
     "DashboardBreakdownRow",
     "DashboardCacheHitRow",
@@ -120,6 +188,10 @@ __all__ = [
     "DashboardTopNResponse",
     "DashboardTotalUsersSummary",
     "DashboardUsersRow",
+    "DatasetLogCreateRequest",
+    "DatasetLogCreateRequestExpectedOutput",
+    "DatasetLogCreateRequestInput",
+    "DatasetLogCreateRequestOutput",
     "FilterValue",
     "FilterValueOperator",
     "Filters",
@@ -128,7 +200,30 @@ __all__ = [
     "NotFoundErrorBody",
     "PlatformStatsResponse",
     "PlatformStatsResponseTotalTokensItem",
+    "PromptBulkCommitBody",
+    "PromptBulkCommitItem",
+    "PromptBulkDeployItem",
+    "PromptBulkRequestItem",
+    "PromptBulkRequestItem_Commit",
+    "PromptBulkRequestItem_Deploy",
+    "PromptBulkRequestItem_Update",
+    "PromptBulkUpdateBody",
+    "PromptBulkUpdateItem",
+    "SpanCreateRequest",
+    "SpanCreateRequestCustomerParams",
+    "SpanCreateRequestEnvironment",
+    "SpanCreateRequestInput",
+    "SpanCreateRequestLogType",
+    "SpanCreateRequestOutput",
+    "SpanCreateRequestStatus",
+    "SpanCreateRequestStop",
+    "SpanCreateRequestToolChoice",
+    "SpanCreateRequestUsage",
+    "SpanCreateRequestWarnings",
     "TooManyRequestsErrorBody",
+    "TraceBulkDeleteFilters",
+    "TraceFilterCondition",
+    "TraceFilterConditionOperator",
     "UnauthorizedErrorBody",
     "UnprocessableEntityErrorBody",
 ]

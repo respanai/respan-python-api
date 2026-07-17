@@ -7,15 +7,6 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
-        CreateSpanRequestCustomerParams,
-        CreateSpanRequestInput,
-        CreateSpanRequestLogType,
-        CreateSpanRequestOutput,
-        CreateSpanRequestStatus,
-        CreateSpanRequestStop,
-        CreateSpanRequestToolChoice,
-        CreateSpanRequestUsage,
-        CreateSpanRequestWarnings,
         CreateSpanResponse,
         CreateSpanResponseStatus,
         GetSpansSummaryRequestEnvironment,
@@ -28,15 +19,6 @@ if typing.TYPE_CHECKING:
         RetrieveSpanResponseLimitInfoLimitsItem,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreateSpanRequestCustomerParams": ".types",
-    "CreateSpanRequestInput": ".types",
-    "CreateSpanRequestLogType": ".types",
-    "CreateSpanRequestOutput": ".types",
-    "CreateSpanRequestStatus": ".types",
-    "CreateSpanRequestStop": ".types",
-    "CreateSpanRequestToolChoice": ".types",
-    "CreateSpanRequestUsage": ".types",
-    "CreateSpanRequestWarnings": ".types",
     "CreateSpanResponse": ".types",
     "CreateSpanResponseStatus": ".types",
     "GetSpansSummaryRequestEnvironment": ".types",
@@ -72,15 +54,6 @@ def __dir__():
 
 
 __all__ = [
-    "CreateSpanRequestCustomerParams",
-    "CreateSpanRequestInput",
-    "CreateSpanRequestLogType",
-    "CreateSpanRequestOutput",
-    "CreateSpanRequestStatus",
-    "CreateSpanRequestStop",
-    "CreateSpanRequestToolChoice",
-    "CreateSpanRequestUsage",
-    "CreateSpanRequestWarnings",
     "CreateSpanResponse",
     "CreateSpanResponseStatus",
     "GetSpansSummaryRequestEnvironment",

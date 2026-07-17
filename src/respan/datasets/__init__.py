@@ -7,9 +7,6 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
-        BulkCreateDatasetLogsRequestLogsItem,
-        BulkCreateDatasetLogsResponse,
-        BulkCreateDatasetLogsResponseErrorsItem,
         CreateDatasetLogResponse,
         CreateDatasetRequestInitialLogFiltersValue,
         CreateDatasetResponse,
@@ -52,9 +49,6 @@ if typing.TYPE_CHECKING:
         UpdateDatasetResponseInitialLogFiltersStatusCode,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "BulkCreateDatasetLogsRequestLogsItem": ".types",
-    "BulkCreateDatasetLogsResponse": ".types",
-    "BulkCreateDatasetLogsResponseErrorsItem": ".types",
     "CreateDatasetLogResponse": ".types",
     "CreateDatasetRequestInitialLogFiltersValue": ".types",
     "CreateDatasetResponse": ".types",
@@ -120,9 +114,6 @@ def __dir__():
 
 
 __all__ = [
-    "BulkCreateDatasetLogsRequestLogsItem",
-    "BulkCreateDatasetLogsResponse",
-    "BulkCreateDatasetLogsResponseErrorsItem",
     "CreateDatasetLogResponse",
     "CreateDatasetRequestInitialLogFiltersValue",
     "CreateDatasetResponse",

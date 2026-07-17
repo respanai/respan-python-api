@@ -6,15 +6,6 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .create_span_request_customer_params import CreateSpanRequestCustomerParams
-    from .create_span_request_input import CreateSpanRequestInput
-    from .create_span_request_log_type import CreateSpanRequestLogType
-    from .create_span_request_output import CreateSpanRequestOutput
-    from .create_span_request_status import CreateSpanRequestStatus
-    from .create_span_request_stop import CreateSpanRequestStop
-    from .create_span_request_tool_choice import CreateSpanRequestToolChoice
-    from .create_span_request_usage import CreateSpanRequestUsage
-    from .create_span_request_warnings import CreateSpanRequestWarnings
     from .create_span_response import CreateSpanResponse
     from .create_span_response_status import CreateSpanResponseStatus
     from .get_spans_summary_request_environment import GetSpansSummaryRequestEnvironment
@@ -26,15 +17,6 @@ if typing.TYPE_CHECKING:
     from .retrieve_span_response_limit_info import RetrieveSpanResponseLimitInfo
     from .retrieve_span_response_limit_info_limits_item import RetrieveSpanResponseLimitInfoLimitsItem
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreateSpanRequestCustomerParams": ".create_span_request_customer_params",
-    "CreateSpanRequestInput": ".create_span_request_input",
-    "CreateSpanRequestLogType": ".create_span_request_log_type",
-    "CreateSpanRequestOutput": ".create_span_request_output",
-    "CreateSpanRequestStatus": ".create_span_request_status",
-    "CreateSpanRequestStop": ".create_span_request_stop",
-    "CreateSpanRequestToolChoice": ".create_span_request_tool_choice",
-    "CreateSpanRequestUsage": ".create_span_request_usage",
-    "CreateSpanRequestWarnings": ".create_span_request_warnings",
     "CreateSpanResponse": ".create_span_response",
     "CreateSpanResponseStatus": ".create_span_response_status",
     "GetSpansSummaryRequestEnvironment": ".get_spans_summary_request_environment",
@@ -70,15 +52,6 @@ def __dir__():
 
 
 __all__ = [
-    "CreateSpanRequestCustomerParams",
-    "CreateSpanRequestInput",
-    "CreateSpanRequestLogType",
-    "CreateSpanRequestOutput",
-    "CreateSpanRequestStatus",
-    "CreateSpanRequestStop",
-    "CreateSpanRequestToolChoice",
-    "CreateSpanRequestUsage",
-    "CreateSpanRequestWarnings",
     "CreateSpanResponse",
     "CreateSpanResponseStatus",
     "GetSpansSummaryRequestEnvironment",

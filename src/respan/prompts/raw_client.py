@@ -11,8 +11,13 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
+from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
+from ..types.bulk_operation_response import BulkOperationResponse
+from ..types.prompt_bulk_request_item import PromptBulkRequestItem
 from .types.commit_prompt_version_response import CommitPromptVersionResponse
 from .types.create_prompt_response import CreatePromptResponse
 from .types.create_prompt_version_request_tool_choice import CreatePromptVersionRequestToolChoice
@@ -179,6 +184,112 @@ class RawPromptsClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def process_prompt_bulk_operations(
+        self,
+        *,
+        requests: typing.Sequence[PromptBulkRequestItem],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[BulkOperationResponse]:
+        """
+        Process 1 to 100 prompt operations sequentially in request order using exact `prompt_id` matching. Each item runs in its own transaction, so a failed item is rolled back without undoing successful items. `update` changes model configuration on the latest draft and does not accept content fields such as `messages`, `variables`, or `description`; `commit` snapshots the latest draft; `deploy` promotes the latest committed version. A later duplicate successful `commit` or `deploy` for the same prompt in one request is returned as an indexed error. This endpoint inherits the caller's configured API-key or JWT rate limits; it has no fixed endpoint-specific RPM.
+
+        Parameters
+        ----------
+        requests : typing.Sequence[PromptBulkRequestItem]
+            Prompt operations. Error indices refer to this zero-based array.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[BulkOperationResponse]
+            All prompt operations succeeded.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/prompts/bulk/",
+            method="POST",
+            json={
+                "requests": convert_and_respect_annotation_metadata(
+                    object_=requests, annotation=typing.Sequence[PromptBulkRequestItem], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkOperationResponse,
+                    parse_obj_as(
+                        type_=BulkOperationResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1367,6 +1478,112 @@ class AsyncRawPromptsClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def process_prompt_bulk_operations(
+        self,
+        *,
+        requests: typing.Sequence[PromptBulkRequestItem],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[BulkOperationResponse]:
+        """
+        Process 1 to 100 prompt operations sequentially in request order using exact `prompt_id` matching. Each item runs in its own transaction, so a failed item is rolled back without undoing successful items. `update` changes model configuration on the latest draft and does not accept content fields such as `messages`, `variables`, or `description`; `commit` snapshots the latest draft; `deploy` promotes the latest committed version. A later duplicate successful `commit` or `deploy` for the same prompt in one request is returned as an indexed error. This endpoint inherits the caller's configured API-key or JWT rate limits; it has no fixed endpoint-specific RPM.
+
+        Parameters
+        ----------
+        requests : typing.Sequence[PromptBulkRequestItem]
+            Prompt operations. Error indices refer to this zero-based array.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[BulkOperationResponse]
+            All prompt operations succeeded.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/prompts/bulk/",
+            method="POST",
+            json={
+                "requests": convert_and_respect_annotation_metadata(
+                    object_=requests, annotation=typing.Sequence[PromptBulkRequestItem], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkOperationResponse,
+                    parse_obj_as(
+                        type_=BulkOperationResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

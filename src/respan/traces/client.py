@@ -5,9 +5,10 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
+from ..types.bulk_delete_response import BulkDeleteResponse
 from ..types.filters import Filters
+from ..types.trace_bulk_delete_filters import TraceBulkDeleteFilters
 from .raw_client import AsyncRawTracesClient, RawTracesClient
-from .types.bulk_delete_traces_response import BulkDeleteTracesResponse
 from .types.create_trace_legacy_request import CreateTraceLegacyRequest
 from .types.create_trace_legacy_response import CreateTraceLegacyResponse
 from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
@@ -117,18 +118,18 @@ class TracesClient:
     def bulk_delete_traces(
         self,
         *,
-        filters: Filters,
+        filters: TraceBulkDeleteFilters,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> BulkDeleteTracesResponse:
+    ) -> BulkDeleteResponse:
         """
-        Delete multiple traces matching the given filters. This endpoint requires a non-empty `filters` object and rejects requests that match more than 1000 traces.
+        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
 
         Parameters
         ----------
-        filters : Filters
+        filters : TraceBulkDeleteFilters
 
         start_time : typing.Optional[dt.datetime]
             Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
@@ -144,14 +145,14 @@ class TracesClient:
 
         Returns
         -------
-        BulkDeleteTracesResponse
-            Bulk delete result.
+        BulkDeleteResponse
+            Traces were matched and submitted for asynchronous deletion.
 
         Examples
         --------
         import datetime
 
-        from respan import Filters, FilterValue, RespanClient
+        from respan import RespanClient, TraceBulkDeleteFilters, TraceFilterCondition
 
         client = RespanClient(
             respan_api_key="YOUR_RESPAN_API_KEY",
@@ -164,18 +165,10 @@ class TracesClient:
                 "2025-01-31 23:59:59+00:00",
             ),
             environment="prod",
-            filters=Filters(
-                customer_identifier=FilterValue(
-                    operator="",
-                    value=["user_123"],
-                ),
-                model=FilterValue(
-                    operator="",
-                    value=["gpt-4o"],
-                ),
-                cost=FilterValue(
-                    operator="gte",
-                    value=[0.01],
+            filters=TraceBulkDeleteFilters(
+                customer_identifier=TraceFilterCondition(
+                    operator="is",
+                    value=["customer-123"],
                 ),
             ),
         )
@@ -706,18 +699,18 @@ class AsyncTracesClient:
     async def bulk_delete_traces(
         self,
         *,
-        filters: Filters,
+        filters: TraceBulkDeleteFilters,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> BulkDeleteTracesResponse:
+    ) -> BulkDeleteResponse:
         """
-        Delete multiple traces matching the given filters. This endpoint requires a non-empty `filters` object and rejects requests that match more than 1000 traces.
+        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
 
         Parameters
         ----------
-        filters : Filters
+        filters : TraceBulkDeleteFilters
 
         start_time : typing.Optional[dt.datetime]
             Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
@@ -733,15 +726,19 @@ class AsyncTracesClient:
 
         Returns
         -------
-        BulkDeleteTracesResponse
-            Bulk delete result.
+        BulkDeleteResponse
+            Traces were matched and submitted for asynchronous deletion.
 
         Examples
         --------
         import asyncio
         import datetime
 
-        from respan import AsyncRespanClient, Filters, FilterValue
+        from respan import (
+            AsyncRespanClient,
+            TraceBulkDeleteFilters,
+            TraceFilterCondition,
+        )
 
         client = AsyncRespanClient(
             respan_api_key="YOUR_RESPAN_API_KEY",
@@ -757,18 +754,10 @@ class AsyncTracesClient:
                     "2025-01-31 23:59:59+00:00",
                 ),
                 environment="prod",
-                filters=Filters(
-                    customer_identifier=FilterValue(
-                        operator="",
-                        value=["user_123"],
-                    ),
-                    model=FilterValue(
-                        operator="",
-                        value=["gpt-4o"],
-                    ),
-                    cost=FilterValue(
-                        operator="gte",
-                        value=[0.01],
+                filters=TraceBulkDeleteFilters(
+                    customer_identifier=TraceFilterCondition(
+                        operator="is",
+                        value=["customer-123"],
                     ),
                 ),
             )

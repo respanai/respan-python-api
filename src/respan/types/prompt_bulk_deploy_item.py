@@ -6,11 +6,19 @@ import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class TooManyRequestsErrorBody(UniversalBaseModel):
-    detail: str
-    retry_after: typing.Optional[int] = pydantic.Field(default=None)
+class PromptBulkDeployItem(UniversalBaseModel):
     """
-    Seconds to wait before retrying.
+    Deploy the prompt's latest committed version.
+    """
+
+    prompt_id: str = pydantic.Field()
+    """
+    Exact prompt ID to mutate.
+    """
+
+    body: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
+    """
+    If provided, this object must be empty.
     """
 
     if IS_PYDANTIC_V2:

@@ -3,23 +3,17 @@
 import typing
 
 import pydantic
-from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class BulkDeleteCachedResponsesResponse(UniversalBaseModel):
-    success_count: int = pydantic.Field()
+class PromptBulkCommitBody(UniversalBaseModel):
     """
-    Number of cache entries successfully deleted.
-    """
-
-    deleted_count: int = pydantic.Field()
-    """
-    Number of cache entries deleted.
+    Optional commit metadata.
     """
 
-    message: str = pydantic.Field()
+    description: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Human-readable result message.
+    Optional commit message. Blank strings are accepted.
     """
 
     if IS_PYDANTIC_V2:

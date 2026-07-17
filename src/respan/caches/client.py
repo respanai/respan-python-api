@@ -4,8 +4,8 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
+from ..types.bulk_delete_response import BulkDeleteResponse
 from .raw_client import AsyncRawCachesClient, RawCachesClient
-from .types.bulk_delete_cached_responses_response import BulkDeleteCachedResponsesResponse
 from .types.delete_cached_responses_response import DeleteCachedResponsesResponse
 from .types.filter_cached_responses_response import FilterCachedResponsesResponse
 from .types.get_filtered_cached_responses_summary_response import GetFilteredCachedResponsesSummaryResponse
@@ -178,9 +178,9 @@ class CachesClient:
 
     def bulk_delete_cached_responses(
         self, *, request: typing.Any, request_options: typing.Optional[RequestOptions] = None
-    ) -> BulkDeleteCachedResponsesResponse:
+    ) -> BulkDeleteResponse:
         """
-        Bulk delete cached responses. Provide exactly one of `cache_keys`, `ids`, or `all`. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`.
+        Delete cached responses using exactly one selector: `cache_keys`, `ids`, or `all: true`. Up to 1,000 keys or IDs can be deleted per request. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`. Rate limit: 60 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
@@ -191,8 +191,8 @@ class CachesClient:
 
         Returns
         -------
-        BulkDeleteCachedResponsesResponse
-            Bulk delete result.
+        BulkDeleteResponse
+            Cached responses were deleted synchronously.
 
         Examples
         --------
@@ -404,9 +404,9 @@ class AsyncCachesClient:
 
     async def bulk_delete_cached_responses(
         self, *, request: typing.Any, request_options: typing.Optional[RequestOptions] = None
-    ) -> BulkDeleteCachedResponsesResponse:
+    ) -> BulkDeleteResponse:
         """
-        Bulk delete cached responses. Provide exactly one of `cache_keys`, `ids`, or `all`. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`.
+        Delete cached responses using exactly one selector: `cache_keys`, `ids`, or `all: true`. Up to 1,000 keys or IDs can be deleted per request. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`. Rate limit: 60 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
@@ -417,8 +417,8 @@ class AsyncCachesClient:
 
         Returns
         -------
-        BulkDeleteCachedResponsesResponse
-            Bulk delete result.
+        BulkDeleteResponse
+            Cached responses were deleted synchronously.
 
         Examples
         --------

@@ -3,18 +3,23 @@
 import typing
 
 import pydantic
-from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from ..core.pydantic_utilities import IS_PYDANTIC_V2
+from .bulk_operation_response import BulkOperationResponse
 
 
-class BulkDeleteTracesResponse(UniversalBaseModel):
+class BulkDeleteResponse(BulkOperationResponse):
+    """
+    Canonical bulk result envelope plus delete-specific fields.
+    """
+
     deleted_count: int = pydantic.Field()
     """
-    Number of traces deleted.
+    Number of resources matched and processed for deletion.
     """
 
     message: str = pydantic.Field()
     """
-    Bulk delete result message.
+    Human-readable deletion result.
     """
 
     if IS_PYDANTIC_V2:

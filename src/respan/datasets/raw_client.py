@@ -12,10 +12,16 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
+from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
-from .types.bulk_create_dataset_logs_request_logs_item import BulkCreateDatasetLogsRequestLogsItem
-from .types.bulk_create_dataset_logs_response import BulkCreateDatasetLogsResponse
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
+from ..types.bulk_operation_response import BulkOperationResponse
+from ..types.dataset_log_create_request import DatasetLogCreateRequest
+from ..types.dataset_log_create_request_expected_output import DatasetLogCreateRequestExpectedOutput
+from ..types.dataset_log_create_request_input import DatasetLogCreateRequestInput
+from ..types.dataset_log_create_request_output import DatasetLogCreateRequestOutput
 from .types.create_dataset_log_response import CreateDatasetLogResponse
 from .types.create_dataset_request_initial_log_filters_value import CreateDatasetRequestInitialLogFiltersValue
 from .types.create_dataset_response import CreateDatasetResponse
@@ -513,8 +519,9 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        input: typing.Any,
-        output: typing.Optional[typing.Any] = OMIT,
+        input: DatasetLogCreateRequestInput,
+        output: typing.Optional[DatasetLogCreateRequestOutput] = OMIT,
+        expected_output: typing.Optional[DatasetLogCreateRequestExpectedOutput] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -527,13 +534,20 @@ class RawDatasetsClient:
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        input : typing.Any
+        input : DatasetLogCreateRequestInput
+            Model or application input. Provide a string, structured object, or message/value array.
 
-        output : typing.Optional[typing.Any]
+        output : typing.Optional[DatasetLogCreateRequestOutput]
+            Observed model or application output. Provide a string, structured object, or message/value array.
+
+        expected_output : typing.Optional[DatasetLogCreateRequestExpectedOutput]
+            Optional ground-truth or target output used for evaluation.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional context for this log, such as category, model, or log type.
 
         metrics : typing.Optional[typing.Dict[str, typing.Any]]
+            Numeric or structured measurements, such as token counts, cost, or latency.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -547,8 +561,15 @@ class RawDatasetsClient:
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/",
             method="POST",
             json={
-                "input": input,
-                "output": output,
+                "input": convert_and_respect_annotation_metadata(
+                    object_=input, annotation=DatasetLogCreateRequestInput, direction="write"
+                ),
+                "output": convert_and_respect_annotation_metadata(
+                    object_=output, annotation=DatasetLogCreateRequestOutput, direction="write"
+                ),
+                "expected_output": convert_and_respect_annotation_metadata(
+                    object_=expected_output, annotation=DatasetLogCreateRequestExpectedOutput, direction="write"
+                ),
                 "metadata": metadata,
                 "metrics": metrics,
             },
@@ -1137,33 +1158,34 @@ class RawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        logs: typing.Sequence[BulkCreateDatasetLogsRequestLogsItem],
+        logs: typing.Sequence[DatasetLogCreateRequest],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[BulkCreateDatasetLogsResponse]:
+    ) -> HttpResponse[BulkOperationResponse]:
         """
-        Create multiple dataset logs in one request from an array of unified-format log objects. Partial success is allowed.
+        Submit 1 to 500 dataset logs for ingestion in one request. Each log uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can therefore contain item-level errors; if every item fails, the endpoint returns `400`. Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        logs : typing.Sequence[BulkCreateDatasetLogsRequestLogsItem]
+        logs : typing.Sequence[DatasetLogCreateRequest]
+            Dataset log objects to create. Items are processed independently and errors use their zero-based array index.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[BulkCreateDatasetLogsResponse]
-            Bulk create completed. Some rows may still contain errors.
+        HttpResponse[BulkOperationResponse]
+            At least one dataset log was accepted for ingestion. Inspect `error_count` and `errors` for partial failures.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/bulk/",
             method="POST",
             json={
                 "logs": convert_and_respect_annotation_metadata(
-                    object_=logs, annotation=typing.Sequence[BulkCreateDatasetLogsRequestLogsItem], direction="write"
+                    object_=logs, annotation=typing.Sequence[DatasetLogCreateRequest], direction="write"
                 ),
             },
             headers={
@@ -1175,15 +1197,70 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    BulkCreateDatasetLogsResponse,
+                    BulkOperationResponse,
                     parse_obj_as(
-                        type_=BulkCreateDatasetLogsResponse,  # type: ignore
+                        type_=BulkOperationResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1831,8 +1908,9 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        input: typing.Any,
-        output: typing.Optional[typing.Any] = OMIT,
+        input: DatasetLogCreateRequestInput,
+        output: typing.Optional[DatasetLogCreateRequestOutput] = OMIT,
+        expected_output: typing.Optional[DatasetLogCreateRequestExpectedOutput] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1845,13 +1923,20 @@ class AsyncRawDatasetsClient:
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        input : typing.Any
+        input : DatasetLogCreateRequestInput
+            Model or application input. Provide a string, structured object, or message/value array.
 
-        output : typing.Optional[typing.Any]
+        output : typing.Optional[DatasetLogCreateRequestOutput]
+            Observed model or application output. Provide a string, structured object, or message/value array.
+
+        expected_output : typing.Optional[DatasetLogCreateRequestExpectedOutput]
+            Optional ground-truth or target output used for evaluation.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional context for this log, such as category, model, or log type.
 
         metrics : typing.Optional[typing.Dict[str, typing.Any]]
+            Numeric or structured measurements, such as token counts, cost, or latency.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1865,8 +1950,15 @@ class AsyncRawDatasetsClient:
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/",
             method="POST",
             json={
-                "input": input,
-                "output": output,
+                "input": convert_and_respect_annotation_metadata(
+                    object_=input, annotation=DatasetLogCreateRequestInput, direction="write"
+                ),
+                "output": convert_and_respect_annotation_metadata(
+                    object_=output, annotation=DatasetLogCreateRequestOutput, direction="write"
+                ),
+                "expected_output": convert_and_respect_annotation_metadata(
+                    object_=expected_output, annotation=DatasetLogCreateRequestExpectedOutput, direction="write"
+                ),
                 "metadata": metadata,
                 "metrics": metrics,
             },
@@ -2455,33 +2547,34 @@ class AsyncRawDatasetsClient:
         self,
         dataset_id: str,
         *,
-        logs: typing.Sequence[BulkCreateDatasetLogsRequestLogsItem],
+        logs: typing.Sequence[DatasetLogCreateRequest],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[BulkCreateDatasetLogsResponse]:
+    ) -> AsyncHttpResponse[BulkOperationResponse]:
         """
-        Create multiple dataset logs in one request from an array of unified-format log objects. Partial success is allowed.
+        Submit 1 to 500 dataset logs for ingestion in one request. Each log uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can therefore contain item-level errors; if every item fails, the endpoint returns `400`. Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        logs : typing.Sequence[BulkCreateDatasetLogsRequestLogsItem]
+        logs : typing.Sequence[DatasetLogCreateRequest]
+            Dataset log objects to create. Items are processed independently and errors use their zero-based array index.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[BulkCreateDatasetLogsResponse]
-            Bulk create completed. Some rows may still contain errors.
+        AsyncHttpResponse[BulkOperationResponse]
+            At least one dataset log was accepted for ingestion. Inspect `error_count` and `errors` for partial failures.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/bulk/",
             method="POST",
             json={
                 "logs": convert_and_respect_annotation_metadata(
-                    object_=logs, annotation=typing.Sequence[BulkCreateDatasetLogsRequestLogsItem], direction="write"
+                    object_=logs, annotation=typing.Sequence[DatasetLogCreateRequest], direction="write"
                 ),
             },
             headers={
@@ -2493,15 +2586,70 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    BulkCreateDatasetLogsResponse,
+                    BulkOperationResponse,
                     parse_obj_as(
-                        type_=BulkCreateDatasetLogsResponse,  # type: ignore
+                        type_=BulkOperationResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

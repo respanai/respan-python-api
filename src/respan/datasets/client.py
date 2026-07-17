@@ -5,9 +5,12 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
+from ..types.bulk_operation_response import BulkOperationResponse
+from ..types.dataset_log_create_request import DatasetLogCreateRequest
+from ..types.dataset_log_create_request_expected_output import DatasetLogCreateRequestExpectedOutput
+from ..types.dataset_log_create_request_input import DatasetLogCreateRequestInput
+from ..types.dataset_log_create_request_output import DatasetLogCreateRequestOutput
 from .raw_client import AsyncRawDatasetsClient, RawDatasetsClient
-from .types.bulk_create_dataset_logs_request_logs_item import BulkCreateDatasetLogsRequestLogsItem
-from .types.bulk_create_dataset_logs_response import BulkCreateDatasetLogsResponse
 from .types.create_dataset_log_response import CreateDatasetLogResponse
 from .types.create_dataset_request_initial_log_filters_value import CreateDatasetRequestInitialLogFiltersValue
 from .types.create_dataset_response import CreateDatasetResponse
@@ -406,8 +409,9 @@ class DatasetsClient:
         self,
         dataset_id: str,
         *,
-        input: typing.Any,
-        output: typing.Optional[typing.Any] = OMIT,
+        input: DatasetLogCreateRequestInput,
+        output: typing.Optional[DatasetLogCreateRequestOutput] = OMIT,
+        expected_output: typing.Optional[DatasetLogCreateRequestExpectedOutput] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -420,13 +424,20 @@ class DatasetsClient:
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        input : typing.Any
+        input : DatasetLogCreateRequestInput
+            Model or application input. Provide a string, structured object, or message/value array.
 
-        output : typing.Optional[typing.Any]
+        output : typing.Optional[DatasetLogCreateRequestOutput]
+            Observed model or application output. Provide a string, structured object, or message/value array.
+
+        expected_output : typing.Optional[DatasetLogCreateRequestExpectedOutput]
+            Optional ground-truth or target output used for evaluation.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional context for this log, such as category, model, or log type.
 
         metrics : typing.Optional[typing.Dict[str, typing.Any]]
+            Numeric or structured measurements, such as token counts, cost, or latency.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -445,22 +456,21 @@ class DatasetsClient:
         )
         client.datasets.create_dataset_log(
             dataset_id="dataset_id",
-            input={
-                "customer_id": "cust_12345",
-                "message": "I need help with my subscription",
-            },
-            output={"response": "I would be happy to help with your subscription."},
-            metadata={"model": "gpt-4o", "log_type": "chat"},
-            metrics={
-                "prompt_tokens": 25,
-                "completion_tokens": 18,
-                "cost": 0.002,
-                "latency": 1.8,
-            },
+            input="What is your return policy?",
+            output="Items can be returned within 30 days.",
+            expected_output="You can return items within 30 days.",
+            metadata={"category": "support"},
+            metrics={"total_tokens": 18, "cost": 0.0002},
         )
         """
         _response = self._raw_client.create_dataset_log(
-            dataset_id, input=input, output=output, metadata=metadata, metrics=metrics, request_options=request_options
+            dataset_id,
+            input=input,
+            output=output,
+            expected_output=expected_output,
+            metadata=metadata,
+            metrics=metrics,
+            request_options=request_options,
         )
         return _response.data
 
@@ -864,31 +874,31 @@ class DatasetsClient:
         self,
         dataset_id: str,
         *,
-        logs: typing.Sequence[BulkCreateDatasetLogsRequestLogsItem],
+        logs: typing.Sequence[DatasetLogCreateRequest],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> BulkCreateDatasetLogsResponse:
+    ) -> BulkOperationResponse:
         """
-        Create multiple dataset logs in one request from an array of unified-format log objects. Partial success is allowed.
+        Submit 1 to 500 dataset logs for ingestion in one request. Each log uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can therefore contain item-level errors; if every item fails, the endpoint returns `400`. Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        logs : typing.Sequence[BulkCreateDatasetLogsRequestLogsItem]
+        logs : typing.Sequence[DatasetLogCreateRequest]
+            Dataset log objects to create. Items are processed independently and errors use their zero-based array index.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        BulkCreateDatasetLogsResponse
-            Bulk create completed. Some rows may still contain errors.
+        BulkOperationResponse
+            At least one dataset log was accepted for ingestion. Inspect `error_count` and `errors` for partial failures.
 
         Examples
         --------
-        from respan import RespanClient
-        from respan.datasets import BulkCreateDatasetLogsRequestLogsItem
+        from respan import DatasetLogCreateRequest, RespanClient
 
         client = RespanClient(
             respan_api_key="YOUR_RESPAN_API_KEY",
@@ -896,15 +906,15 @@ class DatasetsClient:
         client.datasets.bulk_create_dataset_logs(
             dataset_id="dataset_id",
             logs=[
-                BulkCreateDatasetLogsRequestLogsItem(
+                DatasetLogCreateRequest(
                     input="What is your return policy?",
-                    expected_output="You can return within 30 days",
+                    expected_output="You can return items within 30 days.",
                     metadata={"category": "support"},
                 ),
-                BulkCreateDatasetLogsRequestLogsItem(
-                    input=[{"role": "user", "content": "Hello"}],
+                DatasetLogCreateRequest(
+                    input={"0": {"role": "user", "content": "Hello"}},
                     output={"role": "assistant", "content": "Hi there!"},
-                    metrics={"tokens": 10, "cost": 0.0001},
+                    metrics={"total_tokens": 10, "cost": 0.0001},
                 ),
             ],
         )
@@ -1433,8 +1443,9 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        input: typing.Any,
-        output: typing.Optional[typing.Any] = OMIT,
+        input: DatasetLogCreateRequestInput,
+        output: typing.Optional[DatasetLogCreateRequestOutput] = OMIT,
+        expected_output: typing.Optional[DatasetLogCreateRequestExpectedOutput] = OMIT,
         metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1447,13 +1458,20 @@ class AsyncDatasetsClient:
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        input : typing.Any
+        input : DatasetLogCreateRequestInput
+            Model or application input. Provide a string, structured object, or message/value array.
 
-        output : typing.Optional[typing.Any]
+        output : typing.Optional[DatasetLogCreateRequestOutput]
+            Observed model or application output. Provide a string, structured object, or message/value array.
+
+        expected_output : typing.Optional[DatasetLogCreateRequestExpectedOutput]
+            Optional ground-truth or target output used for evaluation.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional context for this log, such as category, model, or log type.
 
         metrics : typing.Optional[typing.Dict[str, typing.Any]]
+            Numeric or structured measurements, such as token counts, cost, or latency.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1477,25 +1495,24 @@ class AsyncDatasetsClient:
         async def main() -> None:
             await client.datasets.create_dataset_log(
                 dataset_id="dataset_id",
-                input={
-                    "customer_id": "cust_12345",
-                    "message": "I need help with my subscription",
-                },
-                output={"response": "I would be happy to help with your subscription."},
-                metadata={"model": "gpt-4o", "log_type": "chat"},
-                metrics={
-                    "prompt_tokens": 25,
-                    "completion_tokens": 18,
-                    "cost": 0.002,
-                    "latency": 1.8,
-                },
+                input="What is your return policy?",
+                output="Items can be returned within 30 days.",
+                expected_output="You can return items within 30 days.",
+                metadata={"category": "support"},
+                metrics={"total_tokens": 18, "cost": 0.0002},
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.create_dataset_log(
-            dataset_id, input=input, output=output, metadata=metadata, metrics=metrics, request_options=request_options
+            dataset_id,
+            input=input,
+            output=output,
+            expected_output=expected_output,
+            metadata=metadata,
+            metrics=metrics,
+            request_options=request_options,
         )
         return _response.data
 
@@ -1954,33 +1971,33 @@ class AsyncDatasetsClient:
         self,
         dataset_id: str,
         *,
-        logs: typing.Sequence[BulkCreateDatasetLogsRequestLogsItem],
+        logs: typing.Sequence[DatasetLogCreateRequest],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> BulkCreateDatasetLogsResponse:
+    ) -> BulkOperationResponse:
         """
-        Create multiple dataset logs in one request from an array of unified-format log objects. Partial success is allowed.
+        Submit 1 to 500 dataset logs for ingestion in one request. Each log uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can therefore contain item-level errors; if every item fails, the endpoint returns `400`. Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
         dataset_id : str
             Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        logs : typing.Sequence[BulkCreateDatasetLogsRequestLogsItem]
+        logs : typing.Sequence[DatasetLogCreateRequest]
+            Dataset log objects to create. Items are processed independently and errors use their zero-based array index.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        BulkCreateDatasetLogsResponse
-            Bulk create completed. Some rows may still contain errors.
+        BulkOperationResponse
+            At least one dataset log was accepted for ingestion. Inspect `error_count` and `errors` for partial failures.
 
         Examples
         --------
         import asyncio
 
-        from respan import AsyncRespanClient
-        from respan.datasets import BulkCreateDatasetLogsRequestLogsItem
+        from respan import AsyncRespanClient, DatasetLogCreateRequest
 
         client = AsyncRespanClient(
             respan_api_key="YOUR_RESPAN_API_KEY",
@@ -1991,15 +2008,15 @@ class AsyncDatasetsClient:
             await client.datasets.bulk_create_dataset_logs(
                 dataset_id="dataset_id",
                 logs=[
-                    BulkCreateDatasetLogsRequestLogsItem(
+                    DatasetLogCreateRequest(
                         input="What is your return policy?",
-                        expected_output="You can return within 30 days",
+                        expected_output="You can return items within 30 days.",
                         metadata={"category": "support"},
                     ),
-                    BulkCreateDatasetLogsRequestLogsItem(
-                        input=[{"role": "user", "content": "Hello"}],
+                    DatasetLogCreateRequest(
+                        input={"0": {"role": "user", "content": "Hello"}},
                         output={"role": "assistant", "content": "Hi there!"},
-                        metrics={"tokens": 10, "cost": 0.0001},
+                        metrics={"total_tokens": 10, "cost": 0.0001},
                     ),
                 ],
             )

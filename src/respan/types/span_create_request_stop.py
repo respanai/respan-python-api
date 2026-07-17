@@ -2,4 +2,4 @@
 
 import typing
 
-CreateSpanRequestStop = typing.Union[str, typing.List[str]]
+SpanCreateRequestStop = typing.Union[str, typing.List[str]]

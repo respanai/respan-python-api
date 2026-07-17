@@ -3,12 +3,21 @@
 import typing
 
 import pydantic
-from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .prompt_bulk_update_body import PromptBulkUpdateBody
 
 
-class BulkCreateDatasetLogsResponseErrorsItem(UniversalBaseModel):
-    index: typing.Optional[int] = None
-    error: typing.Optional[str] = None
+class PromptBulkUpdateItem(UniversalBaseModel):
+    """
+    Update model configuration on the prompt's latest draft.
+    """
+
+    prompt_id: str = pydantic.Field()
+    """
+    Exact prompt ID to mutate.
+    """
+
+    body: PromptBulkUpdateBody
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

@@ -13,12 +13,15 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.internal_server_error import InternalServerError
 from ..errors.not_found_error import NotFoundError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
+from ..types.bulk_delete_response import BulkDeleteResponse
 from ..types.filters import Filters
-from .types.bulk_delete_traces_response import BulkDeleteTracesResponse
+from ..types.trace_bulk_delete_filters import TraceBulkDeleteFilters
 from .types.create_trace_legacy_request import CreateTraceLegacyRequest
 from .types.create_trace_legacy_response import CreateTraceLegacyResponse
 from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
@@ -166,18 +169,18 @@ class RawTracesClient:
     def bulk_delete_traces(
         self,
         *,
-        filters: Filters,
+        filters: TraceBulkDeleteFilters,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[BulkDeleteTracesResponse]:
+    ) -> HttpResponse[BulkDeleteResponse]:
         """
-        Delete multiple traces matching the given filters. This endpoint requires a non-empty `filters` object and rejects requests that match more than 1000 traces.
+        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
 
         Parameters
         ----------
-        filters : Filters
+        filters : TraceBulkDeleteFilters
 
         start_time : typing.Optional[dt.datetime]
             Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
@@ -193,8 +196,8 @@ class RawTracesClient:
 
         Returns
         -------
-        HttpResponse[BulkDeleteTracesResponse]
-            Bulk delete result.
+        HttpResponse[BulkDeleteResponse]
+            Traces were matched and submitted for asynchronous deletion.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/traces/bulk/",
@@ -206,7 +209,7 @@ class RawTracesClient:
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
+                    object_=filters, annotation=TraceBulkDeleteFilters, direction="write"
                 ),
             },
             headers={
@@ -218,9 +221,9 @@ class RawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    BulkDeleteTracesResponse,
+                    BulkDeleteResponse,
                     parse_obj_as(
-                        type_=BulkDeleteTracesResponse,  # type: ignore
+                        type_=BulkDeleteResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -238,6 +241,28 @@ class RawTracesClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -887,18 +912,18 @@ class AsyncRawTracesClient:
     async def bulk_delete_traces(
         self,
         *,
-        filters: Filters,
+        filters: TraceBulkDeleteFilters,
         start_time: typing.Optional[dt.datetime] = None,
         end_time: typing.Optional[dt.datetime] = None,
         environment: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[BulkDeleteTracesResponse]:
+    ) -> AsyncHttpResponse[BulkDeleteResponse]:
         """
-        Delete multiple traces matching the given filters. This endpoint requires a non-empty `filters` object and rejects requests that match more than 1000 traces.
+        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
 
         Parameters
         ----------
-        filters : Filters
+        filters : TraceBulkDeleteFilters
 
         start_time : typing.Optional[dt.datetime]
             Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
@@ -914,8 +939,8 @@ class AsyncRawTracesClient:
 
         Returns
         -------
-        AsyncHttpResponse[BulkDeleteTracesResponse]
-            Bulk delete result.
+        AsyncHttpResponse[BulkDeleteResponse]
+            Traces were matched and submitted for asynchronous deletion.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/traces/bulk/",
@@ -927,7 +952,7 @@ class AsyncRawTracesClient:
             },
             json={
                 "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=Filters, direction="write"
+                    object_=filters, annotation=TraceBulkDeleteFilters, direction="write"
                 ),
             },
             headers={
@@ -939,9 +964,9 @@ class AsyncRawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    BulkDeleteTracesResponse,
+                    BulkDeleteResponse,
                     parse_obj_as(
-                        type_=BulkDeleteTracesResponse,  # type: ignore
+                        type_=BulkDeleteResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -959,6 +984,28 @@ class AsyncRawTracesClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

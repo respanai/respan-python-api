@@ -6,11 +6,19 @@ import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class TooManyRequestsErrorBody(UniversalBaseModel):
-    detail: str
-    retry_after: typing.Optional[int] = pydantic.Field(default=None)
+class BulkItemError(UniversalBaseModel):
     """
-    Seconds to wait before retrying.
+    An item that failed during a bulk operation. `index` is zero-based and identifies the corresponding item in the request array.
+    """
+
+    index: int = pydantic.Field()
+    """
+    Zero-based index of the failed item in the submitted array.
+    """
+
+    error: str = pydantic.Field()
+    """
+    Error message for the failed item.
     """
 
     if IS_PYDANTIC_V2:

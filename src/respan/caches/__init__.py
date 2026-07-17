@@ -7,7 +7,6 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
-        BulkDeleteCachedResponsesResponse,
         DeleteCachedResponsesResponse,
         FilterCachedResponsesResponse,
         FilterCachedResponsesResponseData,
@@ -17,7 +16,6 @@ if typing.TYPE_CHECKING:
         RetrieveCachedResponseResponse,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "BulkDeleteCachedResponsesResponse": ".types",
     "DeleteCachedResponsesResponse": ".types",
     "FilterCachedResponsesResponse": ".types",
     "FilterCachedResponsesResponseData": ".types",
@@ -50,7 +48,6 @@ def __dir__():
 
 
 __all__ = [
-    "BulkDeleteCachedResponsesResponse",
     "DeleteCachedResponsesResponse",
     "FilterCachedResponsesResponse",
     "FilterCachedResponsesResponseData",

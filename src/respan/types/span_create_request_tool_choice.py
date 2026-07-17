@@ -2,4 +2,4 @@
 
 import typing
 
-CreateSpanRequestToolChoice = typing.Union[str, typing.Dict[str, typing.Any]]
+SpanCreateRequestToolChoice = typing.Union[str, typing.Dict[str, typing.Any]]

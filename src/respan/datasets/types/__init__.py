@@ -6,9 +6,6 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .bulk_create_dataset_logs_request_logs_item import BulkCreateDatasetLogsRequestLogsItem
-    from .bulk_create_dataset_logs_response import BulkCreateDatasetLogsResponse
-    from .bulk_create_dataset_logs_response_errors_item import BulkCreateDatasetLogsResponseErrorsItem
     from .create_dataset_log_response import CreateDatasetLogResponse
     from .create_dataset_request_initial_log_filters_value import CreateDatasetRequestInitialLogFiltersValue
     from .create_dataset_response import CreateDatasetResponse
@@ -56,9 +53,6 @@ if typing.TYPE_CHECKING:
         UpdateDatasetResponseInitialLogFiltersStatusCode,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "BulkCreateDatasetLogsRequestLogsItem": ".bulk_create_dataset_logs_request_logs_item",
-    "BulkCreateDatasetLogsResponse": ".bulk_create_dataset_logs_response",
-    "BulkCreateDatasetLogsResponseErrorsItem": ".bulk_create_dataset_logs_response_errors_item",
     "CreateDatasetLogResponse": ".create_dataset_log_response",
     "CreateDatasetRequestInitialLogFiltersValue": ".create_dataset_request_initial_log_filters_value",
     "CreateDatasetResponse": ".create_dataset_response",
@@ -124,9 +118,6 @@ def __dir__():
 
 
 __all__ = [
-    "BulkCreateDatasetLogsRequestLogsItem",
-    "BulkCreateDatasetLogsResponse",
-    "BulkCreateDatasetLogsResponseErrorsItem",
     "CreateDatasetLogResponse",
     "CreateDatasetRequestInitialLogFiltersValue",
     "CreateDatasetResponse",

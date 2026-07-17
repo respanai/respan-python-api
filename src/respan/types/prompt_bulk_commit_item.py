@@ -3,17 +3,21 @@
 import typing
 
 import pydantic
-from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .prompt_bulk_commit_body import PromptBulkCommitBody
 
 
-class CreateSpanRequestCustomerParams(UniversalBaseModel):
+class PromptBulkCommitItem(UniversalBaseModel):
     """
-    Extended customer information. `customer_identifier` inside this object is promoted to the log customer identifier.
+    Commit the prompt's latest draft.
     """
 
-    customer_identifier: typing.Optional[str] = None
-    email: typing.Optional[str] = None
-    name: typing.Optional[str] = None
+    prompt_id: str = pydantic.Field()
+    """
+    Exact prompt ID to mutate.
+    """
+
+    body: typing.Optional[PromptBulkCommitBody] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

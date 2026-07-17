@@ -2,4 +2,4 @@
 
 import typing
 
-CreateSpanRequestWarnings = typing.Union[str, typing.Dict[str, typing.Any]]
+SpanCreateRequestWarnings = typing.Union[str, typing.Dict[str, typing.Any]]

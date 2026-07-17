@@ -2,7 +2,7 @@
 
 import typing
 
-CreateSpanRequestLogType = typing.Union[
+SpanCreateRequestLogType = typing.Union[
     typing.Literal[
         "chat",
         "completion",
