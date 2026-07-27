@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import typing
 
 import httpx
@@ -11,18 +10,34 @@ from .core.logging import LogConfig, Logger
 from .environment import RespanClientEnvironment
 
 if typing.TYPE_CHECKING:
+    from .activities.client import ActivitiesClient, AsyncActivitiesClient
+    from .agents.client import AgentsClient, AsyncAgentsClient
+    from .authentication.client import AsyncAuthenticationClient, AuthenticationClient
+    from .automations.client import AsyncAutomationsClient, AutomationsClient
+    from .billing.client import AsyncBillingClient, BillingClient
     from .caches.client import AsyncCachesClient, CachesClient
+    from .clickhouse.client import AsyncClickhouseClient, ClickhouseClient
     from .credit_transactions.client import AsyncCreditTransactionsClient, CreditTransactionsClient
     from .dashboard.client import AsyncDashboardClient, DashboardClient
     from .datasets.client import AsyncDatasetsClient, DatasetsClient
+    from .evaluations.client import AsyncEvaluationsClient, EvaluationsClient
     from .evaluators.client import AsyncEvaluatorsClient, EvaluatorsClient
     from .experiments.client import AsyncExperimentsClient, ExperimentsClient
+    from .exports.client import AsyncExportsClient, ExportsClient
+    from .filters.client import AsyncFiltersClient, FiltersClient
     from .gateway.client import AsyncGatewayClient, GatewayClient
     from .health.client import AsyncHealthClient, HealthClient
+    from .integrations.client import AsyncIntegrationsClient, IntegrationsClient
+    from .logs.client import AsyncLogsClient, LogsClient
     from .models.client import AsyncModelsClient, ModelsClient
     from .multimodal.client import AsyncMultimodalClient, MultimodalClient
     from .open_ai_batch.client import AsyncOpenAiBatchClient, OpenAiBatchClient
+    from .organization.client import AsyncOrganizationClient, OrganizationClient
+    from .platform_api.client import AsyncPlatformApiClient, PlatformApiClient
+    from .playgrounds.client import AsyncPlaygroundsClient, PlaygroundsClient
     from .prompts.client import AsyncPromptsClient, PromptsClient
+    from .proxy.client import AsyncProxyClient, ProxyClient
+    from .redteam.client import AsyncRedteamClient, RedteamClient
     from .scores.client import AsyncScoresClient, ScoresClient
     from .spans.client import AsyncSpansClient, SpansClient
     from .temporary_api_keys.client import AsyncTemporaryApiKeysClient, TemporaryApiKeysClient
@@ -30,6 +45,7 @@ if typing.TYPE_CHECKING:
     from .threads.client import AsyncThreadsClient, ThreadsClient
     from .traces.client import AsyncTracesClient, TracesClient
     from .users.client import AsyncUsersClient, UsersClient
+    from .webhooks.client import AsyncWebhooksClient, WebhooksClient
     from .workflows.client import AsyncWorkflowsClient, WorkflowsClient
 
 
@@ -51,7 +67,8 @@ class RespanClient:
 
 
 
-    respan_api_key : typing.Optional[typing.Union[str, typing.Callable[[], str]]]
+    respan_deployment_token : str
+    token : typing.Optional[typing.Union[str, typing.Callable[[], str]]]
     headers : typing.Optional[typing.Dict[str, str]]
         Additional headers to send with every request.
 
@@ -72,7 +89,8 @@ class RespanClient:
     from respan import RespanClient
 
     client = RespanClient(
-        respan_api_key="YOUR_RESPAN_API_KEY",
+        respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+        token="YOUR_TOKEN",
     )
     """
 
@@ -81,7 +99,8 @@ class RespanClient:
         *,
         base_url: typing.Optional[str] = None,
         environment: RespanClientEnvironment = RespanClientEnvironment.DEFAULT,
-        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("RESPAN_API_KEY"),
+        respan_deployment_token: str,
+        token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
         timeout: typing.Optional[float] = None,
         follow_redirects: typing.Optional[bool] = True,
@@ -93,7 +112,8 @@ class RespanClient:
         )
         self._client_wrapper = SyncClientWrapper(
             base_url=_get_base_url(base_url=base_url, environment=environment),
-            respan_api_key=respan_api_key,
+            respan_deployment_token=respan_deployment_token,
+            token=token,
             headers=headers,
             httpx_client=httpx_client
             if httpx_client is not None
@@ -103,26 +123,59 @@ class RespanClient:
             timeout=_defaulted_timeout,
             logging=logging,
         )
+        self._health: typing.Optional[HealthClient] = None
+        self._agents: typing.Optional[AgentsClient] = None
         self._traces: typing.Optional[TracesClient] = None
-        self._spans: typing.Optional[SpansClient] = None
-        self._caches: typing.Optional[CachesClient] = None
-        self._threads: typing.Optional[ThreadsClient] = None
+        self._platform_api: typing.Optional[PlatformApiClient] = None
         self._users: typing.Optional[UsersClient] = None
-        self._gateway: typing.Optional[GatewayClient] = None
-        self._open_ai_batch: typing.Optional[OpenAiBatchClient] = None
+        self._activities: typing.Optional[ActivitiesClient] = None
+        self._evaluations: typing.Optional[EvaluationsClient] = None
+        self._proxy: typing.Optional[ProxyClient] = None
         self._multimodal: typing.Optional[MultimodalClient] = None
-        self._prompts: typing.Optional[PromptsClient] = None
-        self._testsets: typing.Optional[TestsetsClient] = None
-        self._experiments: typing.Optional[ExperimentsClient] = None
-        self._evaluators: typing.Optional[EvaluatorsClient] = None
+        self._caches: typing.Optional[CachesClient] = None
+        self._logs: typing.Optional[LogsClient] = None
+        self._gateway: typing.Optional[GatewayClient] = None
+        self._workflows: typing.Optional[WorkflowsClient] = None
+        self._credit_transactions: typing.Optional[CreditTransactionsClient] = None
+        self._billing: typing.Optional[BillingClient] = None
+        self._dashboard: typing.Optional[DashboardClient] = None
         self._datasets: typing.Optional[DatasetsClient] = None
+        self._evaluators: typing.Optional[EvaluatorsClient] = None
+        self._experiments: typing.Optional[ExperimentsClient] = None
+        self._exports: typing.Optional[ExportsClient] = None
+        self._open_ai_batch: typing.Optional[OpenAiBatchClient] = None
+        self._filters: typing.Optional[FiltersClient] = None
+        self._integrations: typing.Optional[IntegrationsClient] = None
+        self._threads: typing.Optional[ThreadsClient] = None
         self._scores: typing.Optional[ScoresClient] = None
         self._models: typing.Optional[ModelsClient] = None
+        self._playgrounds: typing.Optional[PlaygroundsClient] = None
+        self._prompts: typing.Optional[PromptsClient] = None
+        self._spans: typing.Optional[SpansClient] = None
         self._temporary_api_keys: typing.Optional[TemporaryApiKeysClient] = None
-        self._credit_transactions: typing.Optional[CreditTransactionsClient] = None
-        self._workflows: typing.Optional[WorkflowsClient] = None
-        self._dashboard: typing.Optional[DashboardClient] = None
-        self._health: typing.Optional[HealthClient] = None
+        self._webhooks: typing.Optional[WebhooksClient] = None
+        self._testsets: typing.Optional[TestsetsClient] = None
+        self._authentication: typing.Optional[AuthenticationClient] = None
+        self._automations: typing.Optional[AutomationsClient] = None
+        self._clickhouse: typing.Optional[ClickhouseClient] = None
+        self._organization: typing.Optional[OrganizationClient] = None
+        self._redteam: typing.Optional[RedteamClient] = None
+
+    @property
+    def health(self):
+        if self._health is None:
+            from .health.client import HealthClient  # noqa: E402
+
+            self._health = HealthClient(client_wrapper=self._client_wrapper)
+        return self._health
+
+    @property
+    def agents(self):
+        if self._agents is None:
+            from .agents.client import AgentsClient  # noqa: E402
+
+            self._agents = AgentsClient(client_wrapper=self._client_wrapper)
+        return self._agents
 
     @property
     def traces(self):
@@ -133,28 +186,12 @@ class RespanClient:
         return self._traces
 
     @property
-    def spans(self):
-        if self._spans is None:
-            from .spans.client import SpansClient  # noqa: E402
+    def platform_api(self):
+        if self._platform_api is None:
+            from .platform_api.client import PlatformApiClient  # noqa: E402
 
-            self._spans = SpansClient(client_wrapper=self._client_wrapper)
-        return self._spans
-
-    @property
-    def caches(self):
-        if self._caches is None:
-            from .caches.client import CachesClient  # noqa: E402
-
-            self._caches = CachesClient(client_wrapper=self._client_wrapper)
-        return self._caches
-
-    @property
-    def threads(self):
-        if self._threads is None:
-            from .threads.client import ThreadsClient  # noqa: E402
-
-            self._threads = ThreadsClient(client_wrapper=self._client_wrapper)
-        return self._threads
+            self._platform_api = PlatformApiClient(client_wrapper=self._client_wrapper)
+        return self._platform_api
 
     @property
     def users(self):
@@ -165,20 +202,28 @@ class RespanClient:
         return self._users
 
     @property
-    def gateway(self):
-        if self._gateway is None:
-            from .gateway.client import GatewayClient  # noqa: E402
+    def activities(self):
+        if self._activities is None:
+            from .activities.client import ActivitiesClient  # noqa: E402
 
-            self._gateway = GatewayClient(client_wrapper=self._client_wrapper)
-        return self._gateway
+            self._activities = ActivitiesClient(client_wrapper=self._client_wrapper)
+        return self._activities
 
     @property
-    def open_ai_batch(self):
-        if self._open_ai_batch is None:
-            from .open_ai_batch.client import OpenAiBatchClient  # noqa: E402
+    def evaluations(self):
+        if self._evaluations is None:
+            from .evaluations.client import EvaluationsClient  # noqa: E402
 
-            self._open_ai_batch = OpenAiBatchClient(client_wrapper=self._client_wrapper)
-        return self._open_ai_batch
+            self._evaluations = EvaluationsClient(client_wrapper=self._client_wrapper)
+        return self._evaluations
+
+    @property
+    def proxy(self):
+        if self._proxy is None:
+            from .proxy.client import ProxyClient  # noqa: E402
+
+            self._proxy = ProxyClient(client_wrapper=self._client_wrapper)
+        return self._proxy
 
     @property
     def multimodal(self):
@@ -189,28 +234,68 @@ class RespanClient:
         return self._multimodal
 
     @property
-    def prompts(self):
-        if self._prompts is None:
-            from .prompts.client import PromptsClient  # noqa: E402
+    def caches(self):
+        if self._caches is None:
+            from .caches.client import CachesClient  # noqa: E402
 
-            self._prompts = PromptsClient(client_wrapper=self._client_wrapper)
-        return self._prompts
-
-    @property
-    def testsets(self):
-        if self._testsets is None:
-            from .testsets.client import TestsetsClient  # noqa: E402
-
-            self._testsets = TestsetsClient(client_wrapper=self._client_wrapper)
-        return self._testsets
+            self._caches = CachesClient(client_wrapper=self._client_wrapper)
+        return self._caches
 
     @property
-    def experiments(self):
-        if self._experiments is None:
-            from .experiments.client import ExperimentsClient  # noqa: E402
+    def logs(self):
+        if self._logs is None:
+            from .logs.client import LogsClient  # noqa: E402
 
-            self._experiments = ExperimentsClient(client_wrapper=self._client_wrapper)
-        return self._experiments
+            self._logs = LogsClient(client_wrapper=self._client_wrapper)
+        return self._logs
+
+    @property
+    def gateway(self):
+        if self._gateway is None:
+            from .gateway.client import GatewayClient  # noqa: E402
+
+            self._gateway = GatewayClient(client_wrapper=self._client_wrapper)
+        return self._gateway
+
+    @property
+    def workflows(self):
+        if self._workflows is None:
+            from .workflows.client import WorkflowsClient  # noqa: E402
+
+            self._workflows = WorkflowsClient(client_wrapper=self._client_wrapper)
+        return self._workflows
+
+    @property
+    def credit_transactions(self):
+        if self._credit_transactions is None:
+            from .credit_transactions.client import CreditTransactionsClient  # noqa: E402
+
+            self._credit_transactions = CreditTransactionsClient(client_wrapper=self._client_wrapper)
+        return self._credit_transactions
+
+    @property
+    def billing(self):
+        if self._billing is None:
+            from .billing.client import BillingClient  # noqa: E402
+
+            self._billing = BillingClient(client_wrapper=self._client_wrapper)
+        return self._billing
+
+    @property
+    def dashboard(self):
+        if self._dashboard is None:
+            from .dashboard.client import DashboardClient  # noqa: E402
+
+            self._dashboard = DashboardClient(client_wrapper=self._client_wrapper)
+        return self._dashboard
+
+    @property
+    def datasets(self):
+        if self._datasets is None:
+            from .datasets.client import DatasetsClient  # noqa: E402
+
+            self._datasets = DatasetsClient(client_wrapper=self._client_wrapper)
+        return self._datasets
 
     @property
     def evaluators(self):
@@ -221,12 +306,52 @@ class RespanClient:
         return self._evaluators
 
     @property
-    def datasets(self):
-        if self._datasets is None:
-            from .datasets.client import DatasetsClient  # noqa: E402
+    def experiments(self):
+        if self._experiments is None:
+            from .experiments.client import ExperimentsClient  # noqa: E402
 
-            self._datasets = DatasetsClient(client_wrapper=self._client_wrapper)
-        return self._datasets
+            self._experiments = ExperimentsClient(client_wrapper=self._client_wrapper)
+        return self._experiments
+
+    @property
+    def exports(self):
+        if self._exports is None:
+            from .exports.client import ExportsClient  # noqa: E402
+
+            self._exports = ExportsClient(client_wrapper=self._client_wrapper)
+        return self._exports
+
+    @property
+    def open_ai_batch(self):
+        if self._open_ai_batch is None:
+            from .open_ai_batch.client import OpenAiBatchClient  # noqa: E402
+
+            self._open_ai_batch = OpenAiBatchClient(client_wrapper=self._client_wrapper)
+        return self._open_ai_batch
+
+    @property
+    def filters(self):
+        if self._filters is None:
+            from .filters.client import FiltersClient  # noqa: E402
+
+            self._filters = FiltersClient(client_wrapper=self._client_wrapper)
+        return self._filters
+
+    @property
+    def integrations(self):
+        if self._integrations is None:
+            from .integrations.client import IntegrationsClient  # noqa: E402
+
+            self._integrations = IntegrationsClient(client_wrapper=self._client_wrapper)
+        return self._integrations
+
+    @property
+    def threads(self):
+        if self._threads is None:
+            from .threads.client import ThreadsClient  # noqa: E402
+
+            self._threads = ThreadsClient(client_wrapper=self._client_wrapper)
+        return self._threads
 
     @property
     def scores(self):
@@ -245,6 +370,30 @@ class RespanClient:
         return self._models
 
     @property
+    def playgrounds(self):
+        if self._playgrounds is None:
+            from .playgrounds.client import PlaygroundsClient  # noqa: E402
+
+            self._playgrounds = PlaygroundsClient(client_wrapper=self._client_wrapper)
+        return self._playgrounds
+
+    @property
+    def prompts(self):
+        if self._prompts is None:
+            from .prompts.client import PromptsClient  # noqa: E402
+
+            self._prompts = PromptsClient(client_wrapper=self._client_wrapper)
+        return self._prompts
+
+    @property
+    def spans(self):
+        if self._spans is None:
+            from .spans.client import SpansClient  # noqa: E402
+
+            self._spans = SpansClient(client_wrapper=self._client_wrapper)
+        return self._spans
+
+    @property
     def temporary_api_keys(self):
         if self._temporary_api_keys is None:
             from .temporary_api_keys.client import TemporaryApiKeysClient  # noqa: E402
@@ -253,36 +402,60 @@ class RespanClient:
         return self._temporary_api_keys
 
     @property
-    def credit_transactions(self):
-        if self._credit_transactions is None:
-            from .credit_transactions.client import CreditTransactionsClient  # noqa: E402
+    def webhooks(self):
+        if self._webhooks is None:
+            from .webhooks.client import WebhooksClient  # noqa: E402
 
-            self._credit_transactions = CreditTransactionsClient(client_wrapper=self._client_wrapper)
-        return self._credit_transactions
-
-    @property
-    def workflows(self):
-        if self._workflows is None:
-            from .workflows.client import WorkflowsClient  # noqa: E402
-
-            self._workflows = WorkflowsClient(client_wrapper=self._client_wrapper)
-        return self._workflows
+            self._webhooks = WebhooksClient(client_wrapper=self._client_wrapper)
+        return self._webhooks
 
     @property
-    def dashboard(self):
-        if self._dashboard is None:
-            from .dashboard.client import DashboardClient  # noqa: E402
+    def testsets(self):
+        if self._testsets is None:
+            from .testsets.client import TestsetsClient  # noqa: E402
 
-            self._dashboard = DashboardClient(client_wrapper=self._client_wrapper)
-        return self._dashboard
+            self._testsets = TestsetsClient(client_wrapper=self._client_wrapper)
+        return self._testsets
 
     @property
-    def health(self):
-        if self._health is None:
-            from .health.client import HealthClient  # noqa: E402
+    def authentication(self):
+        if self._authentication is None:
+            from .authentication.client import AuthenticationClient  # noqa: E402
 
-            self._health = HealthClient(client_wrapper=self._client_wrapper)
-        return self._health
+            self._authentication = AuthenticationClient(client_wrapper=self._client_wrapper)
+        return self._authentication
+
+    @property
+    def automations(self):
+        if self._automations is None:
+            from .automations.client import AutomationsClient  # noqa: E402
+
+            self._automations = AutomationsClient(client_wrapper=self._client_wrapper)
+        return self._automations
+
+    @property
+    def clickhouse(self):
+        if self._clickhouse is None:
+            from .clickhouse.client import ClickhouseClient  # noqa: E402
+
+            self._clickhouse = ClickhouseClient(client_wrapper=self._client_wrapper)
+        return self._clickhouse
+
+    @property
+    def organization(self):
+        if self._organization is None:
+            from .organization.client import OrganizationClient  # noqa: E402
+
+            self._organization = OrganizationClient(client_wrapper=self._client_wrapper)
+        return self._organization
+
+    @property
+    def redteam(self):
+        if self._redteam is None:
+            from .redteam.client import RedteamClient  # noqa: E402
+
+            self._redteam = RedteamClient(client_wrapper=self._client_wrapper)
+        return self._redteam
 
 
 class AsyncRespanClient:
@@ -303,7 +476,8 @@ class AsyncRespanClient:
 
 
 
-    respan_api_key : typing.Optional[typing.Union[str, typing.Callable[[], str]]]
+    respan_deployment_token : str
+    token : typing.Optional[typing.Union[str, typing.Callable[[], str]]]
     headers : typing.Optional[typing.Dict[str, str]]
         Additional headers to send with every request.
 
@@ -324,7 +498,8 @@ class AsyncRespanClient:
     from respan import AsyncRespanClient
 
     client = AsyncRespanClient(
-        respan_api_key="YOUR_RESPAN_API_KEY",
+        respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+        token="YOUR_TOKEN",
     )
     """
 
@@ -333,7 +508,8 @@ class AsyncRespanClient:
         *,
         base_url: typing.Optional[str] = None,
         environment: RespanClientEnvironment = RespanClientEnvironment.DEFAULT,
-        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = os.getenv("RESPAN_API_KEY"),
+        respan_deployment_token: str,
+        token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
         timeout: typing.Optional[float] = None,
         follow_redirects: typing.Optional[bool] = True,
@@ -345,7 +521,8 @@ class AsyncRespanClient:
         )
         self._client_wrapper = AsyncClientWrapper(
             base_url=_get_base_url(base_url=base_url, environment=environment),
-            respan_api_key=respan_api_key,
+            respan_deployment_token=respan_deployment_token,
+            token=token,
             headers=headers,
             httpx_client=httpx_client
             if httpx_client is not None
@@ -355,26 +532,59 @@ class AsyncRespanClient:
             timeout=_defaulted_timeout,
             logging=logging,
         )
+        self._health: typing.Optional[AsyncHealthClient] = None
+        self._agents: typing.Optional[AsyncAgentsClient] = None
         self._traces: typing.Optional[AsyncTracesClient] = None
-        self._spans: typing.Optional[AsyncSpansClient] = None
-        self._caches: typing.Optional[AsyncCachesClient] = None
-        self._threads: typing.Optional[AsyncThreadsClient] = None
+        self._platform_api: typing.Optional[AsyncPlatformApiClient] = None
         self._users: typing.Optional[AsyncUsersClient] = None
-        self._gateway: typing.Optional[AsyncGatewayClient] = None
-        self._open_ai_batch: typing.Optional[AsyncOpenAiBatchClient] = None
+        self._activities: typing.Optional[AsyncActivitiesClient] = None
+        self._evaluations: typing.Optional[AsyncEvaluationsClient] = None
+        self._proxy: typing.Optional[AsyncProxyClient] = None
         self._multimodal: typing.Optional[AsyncMultimodalClient] = None
-        self._prompts: typing.Optional[AsyncPromptsClient] = None
-        self._testsets: typing.Optional[AsyncTestsetsClient] = None
-        self._experiments: typing.Optional[AsyncExperimentsClient] = None
-        self._evaluators: typing.Optional[AsyncEvaluatorsClient] = None
+        self._caches: typing.Optional[AsyncCachesClient] = None
+        self._logs: typing.Optional[AsyncLogsClient] = None
+        self._gateway: typing.Optional[AsyncGatewayClient] = None
+        self._workflows: typing.Optional[AsyncWorkflowsClient] = None
+        self._credit_transactions: typing.Optional[AsyncCreditTransactionsClient] = None
+        self._billing: typing.Optional[AsyncBillingClient] = None
+        self._dashboard: typing.Optional[AsyncDashboardClient] = None
         self._datasets: typing.Optional[AsyncDatasetsClient] = None
+        self._evaluators: typing.Optional[AsyncEvaluatorsClient] = None
+        self._experiments: typing.Optional[AsyncExperimentsClient] = None
+        self._exports: typing.Optional[AsyncExportsClient] = None
+        self._open_ai_batch: typing.Optional[AsyncOpenAiBatchClient] = None
+        self._filters: typing.Optional[AsyncFiltersClient] = None
+        self._integrations: typing.Optional[AsyncIntegrationsClient] = None
+        self._threads: typing.Optional[AsyncThreadsClient] = None
         self._scores: typing.Optional[AsyncScoresClient] = None
         self._models: typing.Optional[AsyncModelsClient] = None
+        self._playgrounds: typing.Optional[AsyncPlaygroundsClient] = None
+        self._prompts: typing.Optional[AsyncPromptsClient] = None
+        self._spans: typing.Optional[AsyncSpansClient] = None
         self._temporary_api_keys: typing.Optional[AsyncTemporaryApiKeysClient] = None
-        self._credit_transactions: typing.Optional[AsyncCreditTransactionsClient] = None
-        self._workflows: typing.Optional[AsyncWorkflowsClient] = None
-        self._dashboard: typing.Optional[AsyncDashboardClient] = None
-        self._health: typing.Optional[AsyncHealthClient] = None
+        self._webhooks: typing.Optional[AsyncWebhooksClient] = None
+        self._testsets: typing.Optional[AsyncTestsetsClient] = None
+        self._authentication: typing.Optional[AsyncAuthenticationClient] = None
+        self._automations: typing.Optional[AsyncAutomationsClient] = None
+        self._clickhouse: typing.Optional[AsyncClickhouseClient] = None
+        self._organization: typing.Optional[AsyncOrganizationClient] = None
+        self._redteam: typing.Optional[AsyncRedteamClient] = None
+
+    @property
+    def health(self):
+        if self._health is None:
+            from .health.client import AsyncHealthClient  # noqa: E402
+
+            self._health = AsyncHealthClient(client_wrapper=self._client_wrapper)
+        return self._health
+
+    @property
+    def agents(self):
+        if self._agents is None:
+            from .agents.client import AsyncAgentsClient  # noqa: E402
+
+            self._agents = AsyncAgentsClient(client_wrapper=self._client_wrapper)
+        return self._agents
 
     @property
     def traces(self):
@@ -385,28 +595,12 @@ class AsyncRespanClient:
         return self._traces
 
     @property
-    def spans(self):
-        if self._spans is None:
-            from .spans.client import AsyncSpansClient  # noqa: E402
+    def platform_api(self):
+        if self._platform_api is None:
+            from .platform_api.client import AsyncPlatformApiClient  # noqa: E402
 
-            self._spans = AsyncSpansClient(client_wrapper=self._client_wrapper)
-        return self._spans
-
-    @property
-    def caches(self):
-        if self._caches is None:
-            from .caches.client import AsyncCachesClient  # noqa: E402
-
-            self._caches = AsyncCachesClient(client_wrapper=self._client_wrapper)
-        return self._caches
-
-    @property
-    def threads(self):
-        if self._threads is None:
-            from .threads.client import AsyncThreadsClient  # noqa: E402
-
-            self._threads = AsyncThreadsClient(client_wrapper=self._client_wrapper)
-        return self._threads
+            self._platform_api = AsyncPlatformApiClient(client_wrapper=self._client_wrapper)
+        return self._platform_api
 
     @property
     def users(self):
@@ -417,20 +611,28 @@ class AsyncRespanClient:
         return self._users
 
     @property
-    def gateway(self):
-        if self._gateway is None:
-            from .gateway.client import AsyncGatewayClient  # noqa: E402
+    def activities(self):
+        if self._activities is None:
+            from .activities.client import AsyncActivitiesClient  # noqa: E402
 
-            self._gateway = AsyncGatewayClient(client_wrapper=self._client_wrapper)
-        return self._gateway
+            self._activities = AsyncActivitiesClient(client_wrapper=self._client_wrapper)
+        return self._activities
 
     @property
-    def open_ai_batch(self):
-        if self._open_ai_batch is None:
-            from .open_ai_batch.client import AsyncOpenAiBatchClient  # noqa: E402
+    def evaluations(self):
+        if self._evaluations is None:
+            from .evaluations.client import AsyncEvaluationsClient  # noqa: E402
 
-            self._open_ai_batch = AsyncOpenAiBatchClient(client_wrapper=self._client_wrapper)
-        return self._open_ai_batch
+            self._evaluations = AsyncEvaluationsClient(client_wrapper=self._client_wrapper)
+        return self._evaluations
+
+    @property
+    def proxy(self):
+        if self._proxy is None:
+            from .proxy.client import AsyncProxyClient  # noqa: E402
+
+            self._proxy = AsyncProxyClient(client_wrapper=self._client_wrapper)
+        return self._proxy
 
     @property
     def multimodal(self):
@@ -441,28 +643,68 @@ class AsyncRespanClient:
         return self._multimodal
 
     @property
-    def prompts(self):
-        if self._prompts is None:
-            from .prompts.client import AsyncPromptsClient  # noqa: E402
+    def caches(self):
+        if self._caches is None:
+            from .caches.client import AsyncCachesClient  # noqa: E402
 
-            self._prompts = AsyncPromptsClient(client_wrapper=self._client_wrapper)
-        return self._prompts
-
-    @property
-    def testsets(self):
-        if self._testsets is None:
-            from .testsets.client import AsyncTestsetsClient  # noqa: E402
-
-            self._testsets = AsyncTestsetsClient(client_wrapper=self._client_wrapper)
-        return self._testsets
+            self._caches = AsyncCachesClient(client_wrapper=self._client_wrapper)
+        return self._caches
 
     @property
-    def experiments(self):
-        if self._experiments is None:
-            from .experiments.client import AsyncExperimentsClient  # noqa: E402
+    def logs(self):
+        if self._logs is None:
+            from .logs.client import AsyncLogsClient  # noqa: E402
 
-            self._experiments = AsyncExperimentsClient(client_wrapper=self._client_wrapper)
-        return self._experiments
+            self._logs = AsyncLogsClient(client_wrapper=self._client_wrapper)
+        return self._logs
+
+    @property
+    def gateway(self):
+        if self._gateway is None:
+            from .gateway.client import AsyncGatewayClient  # noqa: E402
+
+            self._gateway = AsyncGatewayClient(client_wrapper=self._client_wrapper)
+        return self._gateway
+
+    @property
+    def workflows(self):
+        if self._workflows is None:
+            from .workflows.client import AsyncWorkflowsClient  # noqa: E402
+
+            self._workflows = AsyncWorkflowsClient(client_wrapper=self._client_wrapper)
+        return self._workflows
+
+    @property
+    def credit_transactions(self):
+        if self._credit_transactions is None:
+            from .credit_transactions.client import AsyncCreditTransactionsClient  # noqa: E402
+
+            self._credit_transactions = AsyncCreditTransactionsClient(client_wrapper=self._client_wrapper)
+        return self._credit_transactions
+
+    @property
+    def billing(self):
+        if self._billing is None:
+            from .billing.client import AsyncBillingClient  # noqa: E402
+
+            self._billing = AsyncBillingClient(client_wrapper=self._client_wrapper)
+        return self._billing
+
+    @property
+    def dashboard(self):
+        if self._dashboard is None:
+            from .dashboard.client import AsyncDashboardClient  # noqa: E402
+
+            self._dashboard = AsyncDashboardClient(client_wrapper=self._client_wrapper)
+        return self._dashboard
+
+    @property
+    def datasets(self):
+        if self._datasets is None:
+            from .datasets.client import AsyncDatasetsClient  # noqa: E402
+
+            self._datasets = AsyncDatasetsClient(client_wrapper=self._client_wrapper)
+        return self._datasets
 
     @property
     def evaluators(self):
@@ -473,12 +715,52 @@ class AsyncRespanClient:
         return self._evaluators
 
     @property
-    def datasets(self):
-        if self._datasets is None:
-            from .datasets.client import AsyncDatasetsClient  # noqa: E402
+    def experiments(self):
+        if self._experiments is None:
+            from .experiments.client import AsyncExperimentsClient  # noqa: E402
 
-            self._datasets = AsyncDatasetsClient(client_wrapper=self._client_wrapper)
-        return self._datasets
+            self._experiments = AsyncExperimentsClient(client_wrapper=self._client_wrapper)
+        return self._experiments
+
+    @property
+    def exports(self):
+        if self._exports is None:
+            from .exports.client import AsyncExportsClient  # noqa: E402
+
+            self._exports = AsyncExportsClient(client_wrapper=self._client_wrapper)
+        return self._exports
+
+    @property
+    def open_ai_batch(self):
+        if self._open_ai_batch is None:
+            from .open_ai_batch.client import AsyncOpenAiBatchClient  # noqa: E402
+
+            self._open_ai_batch = AsyncOpenAiBatchClient(client_wrapper=self._client_wrapper)
+        return self._open_ai_batch
+
+    @property
+    def filters(self):
+        if self._filters is None:
+            from .filters.client import AsyncFiltersClient  # noqa: E402
+
+            self._filters = AsyncFiltersClient(client_wrapper=self._client_wrapper)
+        return self._filters
+
+    @property
+    def integrations(self):
+        if self._integrations is None:
+            from .integrations.client import AsyncIntegrationsClient  # noqa: E402
+
+            self._integrations = AsyncIntegrationsClient(client_wrapper=self._client_wrapper)
+        return self._integrations
+
+    @property
+    def threads(self):
+        if self._threads is None:
+            from .threads.client import AsyncThreadsClient  # noqa: E402
+
+            self._threads = AsyncThreadsClient(client_wrapper=self._client_wrapper)
+        return self._threads
 
     @property
     def scores(self):
@@ -497,6 +779,30 @@ class AsyncRespanClient:
         return self._models
 
     @property
+    def playgrounds(self):
+        if self._playgrounds is None:
+            from .playgrounds.client import AsyncPlaygroundsClient  # noqa: E402
+
+            self._playgrounds = AsyncPlaygroundsClient(client_wrapper=self._client_wrapper)
+        return self._playgrounds
+
+    @property
+    def prompts(self):
+        if self._prompts is None:
+            from .prompts.client import AsyncPromptsClient  # noqa: E402
+
+            self._prompts = AsyncPromptsClient(client_wrapper=self._client_wrapper)
+        return self._prompts
+
+    @property
+    def spans(self):
+        if self._spans is None:
+            from .spans.client import AsyncSpansClient  # noqa: E402
+
+            self._spans = AsyncSpansClient(client_wrapper=self._client_wrapper)
+        return self._spans
+
+    @property
     def temporary_api_keys(self):
         if self._temporary_api_keys is None:
             from .temporary_api_keys.client import AsyncTemporaryApiKeysClient  # noqa: E402
@@ -505,36 +811,60 @@ class AsyncRespanClient:
         return self._temporary_api_keys
 
     @property
-    def credit_transactions(self):
-        if self._credit_transactions is None:
-            from .credit_transactions.client import AsyncCreditTransactionsClient  # noqa: E402
+    def webhooks(self):
+        if self._webhooks is None:
+            from .webhooks.client import AsyncWebhooksClient  # noqa: E402
 
-            self._credit_transactions = AsyncCreditTransactionsClient(client_wrapper=self._client_wrapper)
-        return self._credit_transactions
-
-    @property
-    def workflows(self):
-        if self._workflows is None:
-            from .workflows.client import AsyncWorkflowsClient  # noqa: E402
-
-            self._workflows = AsyncWorkflowsClient(client_wrapper=self._client_wrapper)
-        return self._workflows
+            self._webhooks = AsyncWebhooksClient(client_wrapper=self._client_wrapper)
+        return self._webhooks
 
     @property
-    def dashboard(self):
-        if self._dashboard is None:
-            from .dashboard.client import AsyncDashboardClient  # noqa: E402
+    def testsets(self):
+        if self._testsets is None:
+            from .testsets.client import AsyncTestsetsClient  # noqa: E402
 
-            self._dashboard = AsyncDashboardClient(client_wrapper=self._client_wrapper)
-        return self._dashboard
+            self._testsets = AsyncTestsetsClient(client_wrapper=self._client_wrapper)
+        return self._testsets
 
     @property
-    def health(self):
-        if self._health is None:
-            from .health.client import AsyncHealthClient  # noqa: E402
+    def authentication(self):
+        if self._authentication is None:
+            from .authentication.client import AsyncAuthenticationClient  # noqa: E402
 
-            self._health = AsyncHealthClient(client_wrapper=self._client_wrapper)
-        return self._health
+            self._authentication = AsyncAuthenticationClient(client_wrapper=self._client_wrapper)
+        return self._authentication
+
+    @property
+    def automations(self):
+        if self._automations is None:
+            from .automations.client import AsyncAutomationsClient  # noqa: E402
+
+            self._automations = AsyncAutomationsClient(client_wrapper=self._client_wrapper)
+        return self._automations
+
+    @property
+    def clickhouse(self):
+        if self._clickhouse is None:
+            from .clickhouse.client import AsyncClickhouseClient  # noqa: E402
+
+            self._clickhouse = AsyncClickhouseClient(client_wrapper=self._client_wrapper)
+        return self._clickhouse
+
+    @property
+    def organization(self):
+        if self._organization is None:
+            from .organization.client import AsyncOrganizationClient  # noqa: E402
+
+            self._organization = AsyncOrganizationClient(client_wrapper=self._client_wrapper)
+        return self._organization
+
+    @property
+    def redteam(self):
+        if self._redteam is None:
+            from .redteam.client import AsyncRedteamClient  # noqa: E402
+
+            self._redteam = AsyncRedteamClient(client_wrapper=self._client_wrapper)
+        return self._redteam
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: RespanClientEnvironment) -> str:

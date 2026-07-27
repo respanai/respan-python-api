@@ -2,23 +2,11 @@
 
 import typing
 
-from .. import core
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawMultimodalClient, RawMultimodalClient
-from .types.create_embeddings_request_encoding_format import CreateEmbeddingsRequestEncodingFormat
-from .types.create_embeddings_request_model import CreateEmbeddingsRequestModel
-from .types.create_embeddings_response import CreateEmbeddingsResponse
-from .types.retrieve_assemblyai_transcript_response import RetrieveAssemblyaiTranscriptResponse
-from .types.speech_to_text_request_model import SpeechToTextRequestModel
-from .types.speech_to_text_request_response_format import SpeechToTextRequestResponseFormat
-from .types.speech_to_text_response import SpeechToTextResponse
-from .types.text_to_speech_request_model import TextToSpeechRequestModel
-from .types.text_to_speech_request_response_format import TextToSpeechRequestResponseFormat
-from .types.text_to_speech_request_voice import TextToSpeechRequestVoice
-
-# this is used as the default value for optional parameters
-OMIT = typing.cast(typing.Any, ...)
+from .types.create_embeddings_request_format import CreateEmbeddingsRequestFormat
+from .types.text_to_speech_request_format import TextToSpeechRequestFormat
 
 
 class MultimodalClient:
@@ -36,317 +24,256 @@ class MultimodalClient:
         """
         return self._raw_client
 
-    def create_embeddings(
-        self,
-        *,
-        model: CreateEmbeddingsRequestModel,
-        input: typing.Any,
-        data_respan_params: typing.Optional[str] = None,
-        encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
-        dimensions: typing.Optional[int] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateEmbeddingsResponse:
+    def retrieve_assemblyai_transcript(
+        self, transcript_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
         """
-        Create embeddings through the Respan gateway with automatic logging.
+        Centralized respan_params initialization and backward-compat layer.
+
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
+
+        Initialization order::
+
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
+
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
 
         Parameters
         ----------
-        model : CreateEmbeddingsRequestModel
-            Embedding model ID.
-
-        input : typing.Any
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
-            Output format.
-
-        dimensions : typing.Optional[int]
-            Output embedding dimensions. Only supported by `text-embedding-3-*` models.
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials.
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics still recorded.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID.
+        transcript_id : str
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CreateEmbeddingsResponse
-            Embedding results.
+        None
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
-        client.multimodal.create_embeddings(
-            model="text-embedding-3-small",
-            input="Hello world",
-        )
-        """
-        _response = self._raw_client.create_embeddings(
-            model=model,
-            input=input,
-            data_respan_params=data_respan_params,
-            encoding_format=encoding_format,
-            dimensions=dimensions,
-            customer_credentials=customer_credentials,
-            disable_log=disable_log,
-            metadata=metadata,
-            customer_identifier=customer_identifier,
-            thread_identifier=thread_identifier,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def speech_to_text(
-        self,
-        *,
-        file: core.File,
-        model: SpeechToTextRequestModel,
-        data_respan_params: typing.Optional[str] = None,
-        language: typing.Optional[str] = OMIT,
-        prompt: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[SpeechToTextRequestResponseFormat] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        timestamp_granularities: typing.Optional[typing.List[str]] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SpeechToTextResponse:
-        """
-        Transcribe audio to text through the Respan gateway with automatic logging.
-
-        Parameters
-        ----------
-        file : core.File
-            See core.File for more documentation
-
-        model : SpeechToTextRequestModel
-            Model ID.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        language : typing.Optional[str]
-            Input audio language (ISO-639-1).
-
-        prompt : typing.Optional[str]
-            Optional text to guide the model's style.
-
-        response_format : typing.Optional[SpeechToTextRequestResponseFormat]
-            Output format.
-
-        temperature : typing.Optional[float]
-            Sampling temperature (0-1).
-
-        timestamp_granularities : typing.Optional[typing.List[str]]
-            Timestamp granularities. Requires `verbose_json` response format.
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials.
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics still recorded.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        SpeechToTextResponse
-            Transcription result.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.multimodal.speech_to_text(
-            model="whisper-1",
+        client.multimodal.retrieve_assemblyai_transcript(
+            transcript_id="transcript_id",
         )
         """
-        _response = self._raw_client.speech_to_text(
-            file=file,
-            model=model,
-            data_respan_params=data_respan_params,
-            language=language,
-            prompt=prompt,
-            response_format=response_format,
-            temperature=temperature,
-            timestamp_granularities=timestamp_granularities,
-            customer_credentials=customer_credentials,
-            disable_log=disable_log,
-            metadata=metadata,
-            customer_identifier=customer_identifier,
-            thread_identifier=thread_identifier,
-            request_options=request_options,
-        )
+        _response = self._raw_client.retrieve_assemblyai_transcript(transcript_id, request_options=request_options)
         return _response.data
 
     def text_to_speech(
         self,
         *,
-        model: TextToSpeechRequestModel,
-        input: str,
-        voice: TextToSpeechRequestVoice,
-        data_respan_params: typing.Optional[str] = None,
-        response_format: typing.Optional[TextToSpeechRequestResponseFormat] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
+        format: typing.Optional[TextToSpeechRequestFormat] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Iterator[bytes]:
+    ) -> None:
         """
-        Convert text to speech through the Respan gateway with automatic logging.
+        Centralized respan_params initialization and backward-compat layer.
+
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
+
+        Initialization order::
+
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
+
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
 
         Parameters
         ----------
-        model : TextToSpeechRequestModel
-            TTS model.
-
-        input : str
-            Text to generate audio for. Max 4096 characters.
-
-        voice : TextToSpeechRequestVoice
-            Voice to use.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        response_format : typing.Optional[TextToSpeechRequestResponseFormat]
-            Audio output format.
-
-        speed : typing.Optional[float]
-            Audio speed (0.25 to 4.0).
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials.
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics still recorded.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
-
-        Returns
-        -------
-        typing.Iterator[bytes]
-            Audio content in the requested format.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.multimodal.text_to_speech(
-            model="tts-1",
-            input="input",
-            voice="alloy",
-        )
-        """
-        with self._raw_client.text_to_speech(
-            model=model,
-            input=input,
-            voice=voice,
-            data_respan_params=data_respan_params,
-            response_format=response_format,
-            speed=speed,
-            customer_credentials=customer_credentials,
-            disable_log=disable_log,
-            metadata=metadata,
-            customer_identifier=customer_identifier,
-            thread_identifier=thread_identifier,
-            request_options=request_options,
-        ) as r:
-            yield from r.data
-
-    def retrieve_assemblyai_transcript(
-        self, transcript_id: str, *, assemblyai_api_key: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> RetrieveAssemblyaiTranscriptResponse:
-        """
-        Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
-
-        Parameters
-        ----------
-        transcript_id : str
-            The AssemblyAI transcript ID to retrieve.
-
-        assemblyai_api_key : str
-            Your AssemblyAI API key for authentication with AssemblyAI services.
+        format : typing.Optional[TextToSpeechRequestFormat]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RetrieveAssemblyaiTranscriptResponse
-            Transcript details.
+        None
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
-        client.multimodal.retrieve_assemblyai_transcript(
-            transcript_id="transcript_id",
-            assemblyai_api_key="X-Assemblyai-Api-Key",
-        )
+        client.multimodal.text_to_speech()
         """
-        _response = self._raw_client.retrieve_assemblyai_transcript(
-            transcript_id, assemblyai_api_key=assemblyai_api_key, request_options=request_options
+        _response = self._raw_client.text_to_speech(format=format, request_options=request_options)
+        return _response.data
+
+    def speech_to_text(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Centralized respan_params initialization and backward-compat layer.
+
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
+
+        Initialization order::
+
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
+
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
+        client.multimodal.speech_to_text()
+        """
+        _response = self._raw_client.speech_to_text(request_options=request_options)
+        return _response.data
+
+    def create_embeddings(
+        self,
+        *,
+        format: typing.Optional[CreateEmbeddingsRequestFormat] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> None:
+        """
+        Centralized respan_params initialization and backward-compat layer.
+
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
+
+        Initialization order::
+
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
+
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
+
+        Parameters
+        ----------
+        format : typing.Optional[CreateEmbeddingsRequestFormat]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.multimodal.create_embeddings()
+        """
+        _response = self._raw_client.create_embeddings(format=format, request_options=request_options)
         return _response.data
 
 
@@ -365,326 +292,54 @@ class AsyncMultimodalClient:
         """
         return self._raw_client
 
-    async def create_embeddings(
-        self,
-        *,
-        model: CreateEmbeddingsRequestModel,
-        input: typing.Any,
-        data_respan_params: typing.Optional[str] = None,
-        encoding_format: typing.Optional[CreateEmbeddingsRequestEncodingFormat] = OMIT,
-        dimensions: typing.Optional[int] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateEmbeddingsResponse:
-        """
-        Create embeddings through the Respan gateway with automatic logging.
-
-        Parameters
-        ----------
-        model : CreateEmbeddingsRequestModel
-            Embedding model ID.
-
-        input : typing.Any
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        encoding_format : typing.Optional[CreateEmbeddingsRequestEncodingFormat]
-            Output format.
-
-        dimensions : typing.Optional[int]
-            Output embedding dimensions. Only supported by `text-embedding-3-*` models.
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials.
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics still recorded.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        CreateEmbeddingsResponse
-            Embedding results.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.multimodal.create_embeddings(
-                model="text-embedding-3-small",
-                input="Hello world",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.create_embeddings(
-            model=model,
-            input=input,
-            data_respan_params=data_respan_params,
-            encoding_format=encoding_format,
-            dimensions=dimensions,
-            customer_credentials=customer_credentials,
-            disable_log=disable_log,
-            metadata=metadata,
-            customer_identifier=customer_identifier,
-            thread_identifier=thread_identifier,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def speech_to_text(
-        self,
-        *,
-        file: core.File,
-        model: SpeechToTextRequestModel,
-        data_respan_params: typing.Optional[str] = None,
-        language: typing.Optional[str] = OMIT,
-        prompt: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[SpeechToTextRequestResponseFormat] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        timestamp_granularities: typing.Optional[typing.List[str]] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> SpeechToTextResponse:
-        """
-        Transcribe audio to text through the Respan gateway with automatic logging.
-
-        Parameters
-        ----------
-        file : core.File
-            See core.File for more documentation
-
-        model : SpeechToTextRequestModel
-            Model ID.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        language : typing.Optional[str]
-            Input audio language (ISO-639-1).
-
-        prompt : typing.Optional[str]
-            Optional text to guide the model's style.
-
-        response_format : typing.Optional[SpeechToTextRequestResponseFormat]
-            Output format.
-
-        temperature : typing.Optional[float]
-            Sampling temperature (0-1).
-
-        timestamp_granularities : typing.Optional[typing.List[str]]
-            Timestamp granularities. Requires `verbose_json` response format.
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials.
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics still recorded.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        SpeechToTextResponse
-            Transcription result.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.multimodal.speech_to_text(
-                model="whisper-1",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.speech_to_text(
-            file=file,
-            model=model,
-            data_respan_params=data_respan_params,
-            language=language,
-            prompt=prompt,
-            response_format=response_format,
-            temperature=temperature,
-            timestamp_granularities=timestamp_granularities,
-            customer_credentials=customer_credentials,
-            disable_log=disable_log,
-            metadata=metadata,
-            customer_identifier=customer_identifier,
-            thread_identifier=thread_identifier,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def text_to_speech(
-        self,
-        *,
-        model: TextToSpeechRequestModel,
-        input: str,
-        voice: TextToSpeechRequestVoice,
-        data_respan_params: typing.Optional[str] = None,
-        response_format: typing.Optional[TextToSpeechRequestResponseFormat] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.AsyncIterator[bytes]:
-        """
-        Convert text to speech through the Respan gateway with automatic logging.
-
-        Parameters
-        ----------
-        model : TextToSpeechRequestModel
-            TTS model.
-
-        input : str
-            Text to generate audio for. Max 4096 characters.
-
-        voice : TextToSpeechRequestVoice
-            Voice to use.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        response_format : typing.Optional[TextToSpeechRequestResponseFormat]
-            Audio output format.
-
-        speed : typing.Optional[float]
-            Audio speed (0.25 to 4.0).
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials.
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics still recorded.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration. You can pass in configuration such as `chunk_size`, and more to customize the request and response.
-
-        Returns
-        -------
-        typing.AsyncIterator[bytes]
-            Audio content in the requested format.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.multimodal.text_to_speech(
-                model="tts-1",
-                input="input",
-                voice="alloy",
-            )
-
-
-        asyncio.run(main())
-        """
-        async with self._raw_client.text_to_speech(
-            model=model,
-            input=input,
-            voice=voice,
-            data_respan_params=data_respan_params,
-            response_format=response_format,
-            speed=speed,
-            customer_credentials=customer_credentials,
-            disable_log=disable_log,
-            metadata=metadata,
-            customer_identifier=customer_identifier,
-            thread_identifier=thread_identifier,
-            request_options=request_options,
-        ) as r:
-            async for _chunk in r.data:
-                yield _chunk
-
     async def retrieve_assemblyai_transcript(
-        self, transcript_id: str, *, assemblyai_api_key: str, request_options: typing.Optional[RequestOptions] = None
-    ) -> RetrieveAssemblyaiTranscriptResponse:
+        self, transcript_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
         """
-        Retrieve an AssemblyAI transcript by ID. Proxied through Respan for logging.
+        Centralized respan_params initialization and backward-compat layer.
+
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
+
+        Initialization order::
+
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
+
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
 
         Parameters
         ----------
         transcript_id : str
-            The AssemblyAI transcript ID to retrieve.
-
-        assemblyai_api_key : str
-            Your AssemblyAI API key for authentication with AssemblyAI services.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RetrieveAssemblyaiTranscriptResponse
-            Transcript details.
+        None
 
         Examples
         --------
@@ -693,20 +348,232 @@ class AsyncMultimodalClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
             await client.multimodal.retrieve_assemblyai_transcript(
                 transcript_id="transcript_id",
-                assemblyai_api_key="X-Assemblyai-Api-Key",
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.retrieve_assemblyai_transcript(
-            transcript_id, assemblyai_api_key=assemblyai_api_key, request_options=request_options
+            transcript_id, request_options=request_options
         )
+        return _response.data
+
+    async def text_to_speech(
+        self,
+        *,
+        format: typing.Optional[TextToSpeechRequestFormat] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> None:
+        """
+        Centralized respan_params initialization and backward-compat layer.
+
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
+
+        Initialization order::
+
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
+
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
+
+        Parameters
+        ----------
+        format : typing.Optional[TextToSpeechRequestFormat]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.multimodal.text_to_speech()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.text_to_speech(format=format, request_options=request_options)
+        return _response.data
+
+    async def speech_to_text(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Centralized respan_params initialization and backward-compat layer.
+
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
+
+        Initialization order::
+
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
+
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.multimodal.speech_to_text()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.speech_to_text(request_options=request_options)
+        return _response.data
+
+    async def create_embeddings(
+        self,
+        *,
+        format: typing.Optional[CreateEmbeddingsRequestFormat] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> None:
+        """
+        Centralized respan_params initialization and backward-compat layer.
+
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
+
+        Initialization order::
+
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
+
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
+
+        Parameters
+        ----------
+        format : typing.Optional[CreateEmbeddingsRequestFormat]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.multimodal.create_embeddings()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.create_embeddings(format=format, request_options=request_options)
         return _response.data

@@ -10,16 +10,66 @@ from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pagination import AsyncPager, SyncPager
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
-from ..errors.not_found_error import NotFoundError
-from ..errors.unauthorized_error import UnauthorizedError
-from .types.list_credit_transactions_response import ListCreditTransactionsResponse
-from .types.list_credit_transactions_response_results_item import ListCreditTransactionsResponseResultsItem
-from .types.retrieve_credit_transaction_response import RetrieveCreditTransactionResponse
+from ..types.credit_transaction_detail import CreditTransactionDetail
+from ..types.credit_transaction_list import CreditTransactionList
+from ..types.paginated_credit_transaction_list_list import PaginatedCreditTransactionListList
 
 
 class RawCreditTransactionsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
+
+    def retrieve_credit_transaction(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[CreditTransactionDetail]:
+        """
+        GET /api/credit-transactions/<id>/
+        Retrieve a single credit transaction by ID
+
+        Args:
+            - id (str): The transaction ID (primary key)
+
+        Response:
+            - Full credit transaction details
+            - Excludes 'usage' transactions (users shouldn't access these directly)
+
+        Permissions:
+            - Regular users: Can view their own org's transactions
+            - Superadmin: Can view any transaction
+
+        NOTE: CLICKHOUSE-ONLY STRATEGY - Queries ClickHouse directly instead of PostgreSQL
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[CreditTransactionDetail]
+
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/credit-transactions/{jsonable_encoder(id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    CreditTransactionDetail,
+                    parse_obj_as(
+                        type_=CreditTransactionDetail,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def list_credit_transactions(
         self,
@@ -27,25 +77,39 @@ class RawCreditTransactionsClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
+    ) -> SyncPager[CreditTransactionList, PaginatedCreditTransactionListList]:
         """
-        List credit transactions with pagination.
+        GET /api/credit-transactions/list/
+        POST /api/credit-transactions/list/ (POST-for-Filtering)
+        List credit transactions with optional filtering
+
+        This is the primary endpoint for listing transactions.
+        Supports both GET (simple list) and POST (filtered list) operations.
+
+        Permissions:
+            - Regular users: Can view their own org's transactions
+            - Superadmin: Can view all transactions (with org filter via query params)
+
+        Query params (superadmin only):
+            - org: Organization UUID to filter by
+
+        NOTE: CLICKHOUSE-ONLY STRATEGY - Queries ClickHouse directly instead of PostgreSQL
 
         Parameters
         ----------
         page : typing.Optional[int]
-            Page number for pagination.
+            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of items per page. Maximum is 1000.
+            Number of results to return per page.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        SyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]
-            Paginated list of transactions.
+        SyncPager[CreditTransactionList, PaginatedCreditTransactionListList]
+
         """
         page = page if page is not None else 1
 
@@ -61,9 +125,9 @@ class RawCreditTransactionsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _parsed_response = typing.cast(
-                    ListCreditTransactionsResponse,
+                    PaginatedCreditTransactionListList,
                     parse_obj_as(
-                        type_=ListCreditTransactionsResponse,  # type: ignore
+                        type_=PaginatedCreditTransactionListList,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -75,78 +139,6 @@ class RawCreditTransactionsClient:
                     request_options=request_options,
                 )
                 return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def retrieve_credit_transaction(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[RetrieveCreditTransactionResponse]:
-        """
-        Retrieve details of a specific credit transaction.
-
-        Parameters
-        ----------
-        id : str
-            The unique identifier of the transaction to retrieve (e.g., ct_1a2b3c4d5e6f7g8h)
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[RetrieveCreditTransactionResponse]
-            Transaction details.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/credit-transactions/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    RetrieveCreditTransactionResponse,
-                    parse_obj_as(
-                        type_=RetrieveCreditTransactionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -157,31 +149,97 @@ class AsyncRawCreditTransactionsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def list_credit_transactions(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
+    async def retrieve_credit_transaction(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[CreditTransactionDetail]:
         """
-        List credit transactions with pagination.
+        GET /api/credit-transactions/<id>/
+        Retrieve a single credit transaction by ID
+
+        Args:
+            - id (str): The transaction ID (primary key)
+
+        Response:
+            - Full credit transaction details
+            - Excludes 'usage' transactions (users shouldn't access these directly)
+
+        Permissions:
+            - Regular users: Can view their own org's transactions
+            - Superadmin: Can view any transaction
+
+        NOTE: CLICKHOUSE-ONLY STRATEGY - Queries ClickHouse directly instead of PostgreSQL
 
         Parameters
         ----------
-        page : typing.Optional[int]
-            Page number for pagination.
-
-        page_size : typing.Optional[int]
-            Number of items per page. Maximum is 1000.
+        id : str
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]
-            Paginated list of transactions.
+        AsyncHttpResponse[CreditTransactionDetail]
+
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/credit-transactions/{jsonable_encoder(id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    CreditTransactionDetail,
+                    parse_obj_as(
+                        type_=CreditTransactionDetail,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_credit_transactions(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncPager[CreditTransactionList, PaginatedCreditTransactionListList]:
+        """
+        GET /api/credit-transactions/list/
+        POST /api/credit-transactions/list/ (POST-for-Filtering)
+        List credit transactions with optional filtering
+
+        This is the primary endpoint for listing transactions.
+        Supports both GET (simple list) and POST (filtered list) operations.
+
+        Permissions:
+            - Regular users: Can view their own org's transactions
+            - Superadmin: Can view all transactions (with org filter via query params)
+
+        Query params (superadmin only):
+            - org: Organization UUID to filter by
+
+        NOTE: CLICKHOUSE-ONLY STRATEGY - Queries ClickHouse directly instead of PostgreSQL
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+            A page number within the paginated result set.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncPager[CreditTransactionList, PaginatedCreditTransactionListList]
+
         """
         page = page if page is not None else 1
 
@@ -197,9 +255,9 @@ class AsyncRawCreditTransactionsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _parsed_response = typing.cast(
-                    ListCreditTransactionsResponse,
+                    PaginatedCreditTransactionListList,
                     parse_obj_as(
-                        type_=ListCreditTransactionsResponse,  # type: ignore
+                        type_=PaginatedCreditTransactionListList,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -214,78 +272,6 @@ class AsyncRawCreditTransactionsClient:
                     )
 
                 return AsyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def retrieve_credit_transaction(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[RetrieveCreditTransactionResponse]:
-        """
-        Retrieve details of a specific credit transaction.
-
-        Parameters
-        ----------
-        id : str
-            The unique identifier of the transaction to retrieve (e.g., ct_1a2b3c4d5e6f7g8h)
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[RetrieveCreditTransactionResponse]
-            Transaction details.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/credit-transactions/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    RetrieveCreditTransactionResponse,
-                    parse_obj_as(
-                        type_=RetrieveCreditTransactionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

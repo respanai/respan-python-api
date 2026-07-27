@@ -4,69 +4,22 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
+from ..types.evaluator_create_version import EvaluatorCreateVersion
+from ..types.evaluator_create_version_request_eval_class import EvaluatorCreateVersionRequestEvalClass
+from ..types.paginated_public_evaluator_version_list_list import PaginatedPublicEvaluatorVersionListList
+from ..types.patched_public_evaluator_version_detail_request_eval_class import (
+    PatchedPublicEvaluatorVersionDetailRequestEvalClass,
+)
+from ..types.public_evaluator_create import PublicEvaluatorCreate
+from ..types.public_evaluator_detail import PublicEvaluatorDetail
+from ..types.public_evaluator_list import PublicEvaluatorList
+from ..types.public_evaluator_list_request_eval_class import PublicEvaluatorListRequestEvalClass
+from ..types.public_evaluator_update import PublicEvaluatorUpdate
+from ..types.public_evaluator_version_detail import PublicEvaluatorVersionDetail
+from ..types.public_evaluator_version_detail_request_eval_class import PublicEvaluatorVersionDetailRequestEvalClass
+from ..types.score_value_type_enum import ScoreValueTypeEnum
+from ..types.type4e2enum import Type4E2Enum
 from .raw_client import AsyncRawEvaluatorsClient, RawEvaluatorsClient
-from .types.create_evaluator_request_categorical_choices_item import CreateEvaluatorRequestCategoricalChoicesItem
-from .types.create_evaluator_request_code_config import CreateEvaluatorRequestCodeConfig
-from .types.create_evaluator_request_eval_class import CreateEvaluatorRequestEvalClass
-from .types.create_evaluator_request_llm_config import CreateEvaluatorRequestLlmConfig
-from .types.create_evaluator_request_score_config import CreateEvaluatorRequestScoreConfig
-from .types.create_evaluator_request_score_value_type import CreateEvaluatorRequestScoreValueType
-from .types.create_evaluator_request_type import CreateEvaluatorRequestType
-from .types.create_evaluator_response import CreateEvaluatorResponse
-from .types.create_evaluator_version_request_categorical_choices_item import (
-    CreateEvaluatorVersionRequestCategoricalChoicesItem,
-)
-from .types.create_evaluator_version_request_code_config import CreateEvaluatorVersionRequestCodeConfig
-from .types.create_evaluator_version_request_eval_class import CreateEvaluatorVersionRequestEvalClass
-from .types.create_evaluator_version_request_llm_config import CreateEvaluatorVersionRequestLlmConfig
-from .types.create_evaluator_version_request_score_config import CreateEvaluatorVersionRequestScoreConfig
-from .types.create_evaluator_version_request_score_value_type import CreateEvaluatorVersionRequestScoreValueType
-from .types.create_evaluator_version_request_type import CreateEvaluatorVersionRequestType
-from .types.create_evaluator_version_response import CreateEvaluatorVersionResponse
-from .types.get_filtered_evaluators_summary_response import GetFilteredEvaluatorsSummaryResponse
-from .types.list_evaluator_versions_response import ListEvaluatorVersionsResponse
-from .types.list_evaluators_response import ListEvaluatorsResponse
-from .types.replace_evaluator_request_categorical_choices_item import ReplaceEvaluatorRequestCategoricalChoicesItem
-from .types.replace_evaluator_request_code_config import ReplaceEvaluatorRequestCodeConfig
-from .types.replace_evaluator_request_eval_class import ReplaceEvaluatorRequestEvalClass
-from .types.replace_evaluator_request_llm_config import ReplaceEvaluatorRequestLlmConfig
-from .types.replace_evaluator_request_score_config import ReplaceEvaluatorRequestScoreConfig
-from .types.replace_evaluator_request_score_value_type import ReplaceEvaluatorRequestScoreValueType
-from .types.replace_evaluator_request_type import ReplaceEvaluatorRequestType
-from .types.replace_evaluator_response import ReplaceEvaluatorResponse
-from .types.replace_evaluator_version_request_categorical_choices_item import (
-    ReplaceEvaluatorVersionRequestCategoricalChoicesItem,
-)
-from .types.replace_evaluator_version_request_code_config import ReplaceEvaluatorVersionRequestCodeConfig
-from .types.replace_evaluator_version_request_eval_class import ReplaceEvaluatorVersionRequestEvalClass
-from .types.replace_evaluator_version_request_llm_config import ReplaceEvaluatorVersionRequestLlmConfig
-from .types.replace_evaluator_version_request_score_config import ReplaceEvaluatorVersionRequestScoreConfig
-from .types.replace_evaluator_version_request_score_value_type import ReplaceEvaluatorVersionRequestScoreValueType
-from .types.replace_evaluator_version_request_type import ReplaceEvaluatorVersionRequestType
-from .types.replace_evaluator_version_response import ReplaceEvaluatorVersionResponse
-from .types.retrieve_evaluator_response import RetrieveEvaluatorResponse
-from .types.retrieve_evaluator_version_response import RetrieveEvaluatorVersionResponse
-from .types.run_evaluator_request_generation_method import RunEvaluatorRequestGenerationMethod
-from .types.run_evaluator_request_inputs import RunEvaluatorRequestInputs
-from .types.run_evaluator_response import RunEvaluatorResponse
-from .types.update_evaluator_request_categorical_choices_item import UpdateEvaluatorRequestCategoricalChoicesItem
-from .types.update_evaluator_request_code_config import UpdateEvaluatorRequestCodeConfig
-from .types.update_evaluator_request_eval_class import UpdateEvaluatorRequestEvalClass
-from .types.update_evaluator_request_llm_config import UpdateEvaluatorRequestLlmConfig
-from .types.update_evaluator_request_score_config import UpdateEvaluatorRequestScoreConfig
-from .types.update_evaluator_request_score_value_type import UpdateEvaluatorRequestScoreValueType
-from .types.update_evaluator_request_type import UpdateEvaluatorRequestType
-from .types.update_evaluator_response import UpdateEvaluatorResponse
-from .types.update_evaluator_version_request_categorical_choices_item import (
-    UpdateEvaluatorVersionRequestCategoricalChoicesItem,
-)
-from .types.update_evaluator_version_request_code_config import UpdateEvaluatorVersionRequestCodeConfig
-from .types.update_evaluator_version_request_eval_class import UpdateEvaluatorVersionRequestEvalClass
-from .types.update_evaluator_version_request_llm_config import UpdateEvaluatorVersionRequestLlmConfig
-from .types.update_evaluator_version_request_score_config import UpdateEvaluatorVersionRequestScoreConfig
-from .types.update_evaluator_version_request_score_value_type import UpdateEvaluatorVersionRequestScoreValueType
-from .types.update_evaluator_version_request_type import UpdateEvaluatorVersionRequestType
-from .types.update_evaluator_version_response import UpdateEvaluatorVersionResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -91,231 +44,168 @@ class EvaluatorsClient:
         self,
         *,
         name: str,
-        type: CreateEvaluatorRequestType,
-        score_value_type: CreateEvaluatorRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[CreateEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[CreateEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[CreateEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[CreateEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        eval_class: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateEvaluatorResponse:
+    ) -> PublicEvaluatorCreate:
         """
-        Create a grader/evaluator. Current public evaluator types are `llm`, `human`, and `code`; legacy human-specific types remain readable for older evaluators. New clients should use the flat config fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of relying on legacy `configurations`.
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
 
         Parameters
         ----------
         name : str
 
-        type : CreateEvaluatorRequestType
+        version_id : typing.Optional[str]
 
-        score_value_type : CreateEvaluatorRequestScoreValueType
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        eval_class : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
 
-        eval_class : typing.Optional[CreateEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[CreateEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[CreateEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[CreateEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CreateEvaluatorResponse
-            Created evaluator.
+        PublicEvaluatorCreate
+
 
         Examples
         --------
         from respan import RespanClient
-        from respan.evaluators import (
-            CreateEvaluatorRequestLlmConfig,
-            CreateEvaluatorRequestScoreConfig,
-        )
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.create_evaluator(
-            name="Response Quality",
-            evaluator_slug="response_quality",
-            type="llm",
-            score_value_type="numerical",
-            eval_class="keywordsai_custom_llm",
-            score_config=CreateEvaluatorRequestScoreConfig(
-                min_score=1.0,
-                max_score=5.0,
-            ),
-            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-            llm_config=CreateEvaluatorRequestLlmConfig(
-                model="gpt-4o-mini",
-                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                scoring_rubric="1=Poor, 5=Excellent",
-            ),
+            name="name",
         )
         """
         _response = self._raw_client.create_evaluator(
             name=name,
-            type=type,
-            score_value_type=score_value_type,
-            evaluator_slug=evaluator_slug,
-            eval_class=eval_class,
-            description=description,
+            version_id=version_id,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
-            configurations=configurations,
-            categorical_choices=categorical_choices,
+            project=project,
+            eval_class=eval_class,
+            id=id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            evaluator_slug=evaluator_slug,
+            unique_organization_id=unique_organization_id,
+            description=description,
+            type=type,
+            score_value_type=score_value_type,
+            custom_required_fields=custom_required_fields,
             starred=starred,
+            organization=organization,
             request_options=request_options,
         )
-        return _response.data
-
-    def list_evaluators(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListEvaluatorsResponse:
-        """
-        List evaluators using POST-for-filtering. The backend returns only the current draft/latest row for each evaluator and includes filter metadata for dashboard clients.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListEvaluatorsResponse
-            Paginated filtered evaluator list.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.evaluators.list_evaluators(
-            sort_by="name",
-        )
-        """
-        _response = self._raw_client.list_evaluators(
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            is_exporting=is_exporting,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def get_filtered_evaluators_summary(
-        self,
-        *,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetFilteredEvaluatorsSummaryResponse:
-        """
-        Return the total number of current draft/latest evaluators after applying standard filters.
-
-        Parameters
-        ----------
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetFilteredEvaluatorsSummaryResponse
-            Filtered evaluator summary.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.evaluators.get_filtered_evaluators_summary()
-        """
-        _response = self._raw_client.get_filtered_evaluators_summary(filters=filters, request_options=request_options)
         return _response.data
 
     def retrieve_evaluator(
         self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> RetrieveEvaluatorResponse:
+    ) -> PublicEvaluatorDetail:
         """
-        Retrieve the current draft/latest version of an evaluator by ID.
+        Get, update, or delete an evaluator's draft version.
+
+        GET /api/evaluators/{evaluator_id}/ - Get draft version (is_read_only=False)
+        PATCH /api/evaluators/{evaluator_id}/ - Update draft version
+        DELETE /api/evaluators/{evaluator_id}/ - Delete ALL versions
+
+        Superadmin: Can READ any evaluator across all organizations via JWT.
+                    Cannot WRITE via JWT - must use API key for write operations.
+        Regular users: Can only access evaluators in their organization.
+
+        NOTE: Queryset filters by is_read_only=False, ensuring unique lookup per evaluator_id.
+        This allows DRF's standard get_object() to work without manual overrides.
+        Delete removes ALL versions of the evaluator.
+
+        Defense-in-depth:
+        - SuperAdminMixin: Queryset routing + JWT write protection + object-level ownership
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RetrieveEvaluatorResponse
-            Evaluator details.
+        PublicEvaluatorDetail
+
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.retrieve_evaluator(
             evaluator_id="evaluator_id",
@@ -329,126 +219,138 @@ class EvaluatorsClient:
         evaluator_id: str,
         *,
         name: str,
-        type: ReplaceEvaluatorRequestType,
-        score_value_type: ReplaceEvaluatorRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[ReplaceEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[ReplaceEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[ReplaceEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[ReplaceEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ReplaceEvaluatorResponse:
+    ) -> PublicEvaluatorUpdate:
         """
-        Replace the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
+        PUT handler with superadmin lock and field protection.
+
+        Same as patch() - checks lock and field protection before delegating.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         name : str
 
-        type : ReplaceEvaluatorRequestType
+        version_id : typing.Optional[str]
 
-        score_value_type : ReplaceEvaluatorRequestScoreValueType
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
 
-        eval_class : typing.Optional[ReplaceEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[ReplaceEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[ReplaceEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[ReplaceEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ReplaceEvaluatorResponse
-            Updated evaluator.
+        PublicEvaluatorUpdate
+
 
         Examples
         --------
         from respan import RespanClient
-        from respan.evaluators import (
-            ReplaceEvaluatorRequestLlmConfig,
-            ReplaceEvaluatorRequestScoreConfig,
-        )
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.replace_evaluator(
             evaluator_id="evaluator_id",
-            name="Response Quality",
-            evaluator_slug="response_quality",
-            type="llm",
-            score_value_type="numerical",
-            eval_class="keywordsai_custom_llm",
-            score_config=ReplaceEvaluatorRequestScoreConfig(
-                min_score=1.0,
-                max_score=5.0,
-            ),
-            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-            llm_config=ReplaceEvaluatorRequestLlmConfig(
-                model="gpt-4o-mini",
-                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                scoring_rubric="1=Poor, 5=Excellent",
-            ),
+            name="name",
         )
         """
         _response = self._raw_client.replace_evaluator(
             evaluator_id,
             name=name,
-            type=type,
-            score_value_type=score_value_type,
-            evaluator_slug=evaluator_slug,
-            eval_class=eval_class,
-            description=description,
+            version_id=version_id,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
-            configurations=configurations,
-            categorical_choices=categorical_choices,
+            project=project,
+            id=id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            evaluator_slug=evaluator_slug,
+            unique_organization_id=unique_organization_id,
+            description=description,
+            type=type,
+            score_value_type=score_value_type,
+            custom_required_fields=custom_required_fields,
             starred=starred,
+            organization=organization,
             request_options=request_options,
         )
         return _response.data
 
     def delete_evaluator(self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
+        Delete ALL versions of the evaluator.
+
+        Uses SuperAdminMixin's queryset routing for org filtering.
+        Cross-org JWT write protection is enforced automatically by ObjectOwnershipPermission
+        in get_object() via check_object_permissions().
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -462,7 +364,8 @@ class EvaluatorsClient:
         from respan import RespanClient
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.delete_evaluator(
             evaluator_id="evaluator_id",
@@ -475,184 +378,158 @@ class EvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
-        score_value_type: typing.Optional[UpdateEvaluatorRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[UpdateEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[UpdateEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[UpdateEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[UpdateEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> UpdateEvaluatorResponse:
+    ) -> PublicEvaluatorUpdate:
         """
-        Partially update the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
+        Update the draft version (queryset already filters is_read_only=False).
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version_id : typing.Optional[str]
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
-
-        type : typing.Optional[UpdateEvaluatorRequestType]
-
-        score_value_type : typing.Optional[UpdateEvaluatorRequestScoreValueType]
-
-        eval_class : typing.Optional[UpdateEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[UpdateEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[UpdateEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[UpdateEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        UpdateEvaluatorResponse
-            Updated evaluator.
+        PublicEvaluatorUpdate
+
 
         Examples
         --------
         from respan import RespanClient
-        from respan.evaluators import (
-            UpdateEvaluatorRequestLlmConfig,
-            UpdateEvaluatorRequestScoreConfig,
-        )
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.update_evaluator(
             evaluator_id="evaluator_id",
-            name="Response Quality",
-            evaluator_slug="response_quality",
-            type="llm",
-            score_value_type="numerical",
-            eval_class="keywordsai_custom_llm",
-            score_config=UpdateEvaluatorRequestScoreConfig(
-                min_score=1.0,
-                max_score=5.0,
-            ),
-            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-            llm_config=UpdateEvaluatorRequestLlmConfig(
-                model="gpt-4o-mini",
-                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                scoring_rubric="1=Poor, 5=Excellent",
-            ),
         )
         """
         _response = self._raw_client.update_evaluator(
             evaluator_id,
-            name=name,
-            evaluator_slug=evaluator_slug,
-            type=type,
-            score_value_type=score_value_type,
-            eval_class=eval_class,
-            description=description,
+            version_id=version_id,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
-            configurations=configurations,
-            categorical_choices=categorical_choices,
+            project=project,
+            id=id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            evaluator_slug=evaluator_slug,
+            name=name,
+            unique_organization_id=unique_organization_id,
+            description=description,
+            type=type,
+            score_value_type=score_value_type,
+            custom_required_fields=custom_required_fields,
             starred=starred,
+            organization=organization,
             request_options=request_options,
         )
         return _response.data
 
-    def run_evaluator(
-        self,
-        evaluator_id: str,
-        *,
-        inputs: RunEvaluatorRequestInputs,
-        generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
-        evaluation_id: typing.Optional[str] = OMIT,
-        run_evaluator_request_evaluator_id: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> RunEvaluatorResponse:
+    def run_evaluator(self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Run an evaluator against raw unified inputs. The evaluator ID may include a version suffix such as `evl_abc123:2` to run a specific version.
+        Main entry point for test run evaluations.
+        Handles four modes of operation:
+        1. Evaluation from raw eval inputs & evaluator id (backward compatibility)
+        2. Evaluation from log
+        3. Evaluation from evaluator configuration form
+        4. Evaluation from raw eval inputs & evaluator id (new public API mode)
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        inputs : RunEvaluatorRequestInputs
-            Unified evaluator inputs.
-
-        generation_method : typing.Optional[RunEvaluatorRequestGenerationMethod]
-            Optional method override for evaluators that support multiple execution modes.
-
-        evaluation_id : typing.Optional[str]
-            Legacy evaluator ID field. Prefer the path parameter or `evaluator_id`.
-
-        run_evaluator_request_evaluator_id : typing.Optional[str]
-            Optional evaluator ID override. Supports version suffixes such as `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RunEvaluatorResponse
-            Evaluation result.
+        None
 
         Examples
         --------
         from respan import RespanClient
-        from respan.evaluators import RunEvaluatorRequestInputs
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.run_evaluator(
             evaluator_id="evaluator_id",
-            inputs=RunEvaluatorRequestInputs(
-                input="What is the capital of France?",
-                output="The capital of France is Paris.",
-                expected_output="Paris",
-                metrics={"latency": 0.45, "cost": 0.0023},
-                metadata={"model": "gpt-4o-mini"},
-            ),
         )
         """
-        _response = self._raw_client.run_evaluator(
-            evaluator_id,
-            inputs=inputs,
-            generation_method=generation_method,
-            evaluation_id=evaluation_id,
-            run_evaluator_request_evaluator_id=run_evaluator_request_evaluator_id,
-            request_options=request_options,
-        )
+        _response = self._raw_client.run_evaluator(evaluator_id, request_options=request_options)
         return _response.data
 
     def list_evaluator_versions(
@@ -662,35 +539,42 @@ class EvaluatorsClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListEvaluatorVersionsResponse:
+    ) -> PaginatedPublicEvaluatorVersionListList:
         """
-        List all versions of an evaluator, ordered newest first. Version `0` is the initial draft; committed versions are returned with `is_read_only: true`.
+        List all versions or create new version (commit).
+
+        GET /api/evaluators/{id}/versions/ - List all versions
+        POST /api/evaluators/{id}/versions/ - Commit (create new version)
+
+        Access control via NestedResourceMixin: org identity derived from parent evaluator.
+        Superadmin: Can LIST all versions across all organizations via JWT.
+        Regular users: Can only access versions in their organization.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         page : typing.Optional[int]
-            Page number.
+            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
+            Number of results to return per page.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ListEvaluatorVersionsResponse
-            Paginated evaluator versions.
+        PaginatedPublicEvaluatorVersionListList
+
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.list_evaluator_versions(
             evaluator_id="evaluator_id",
@@ -705,136 +589,146 @@ class EvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
-        score_value_type: typing.Optional[CreateEvaluatorVersionRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[CreateEvaluatorVersionRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[CreateEvaluatorVersionRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[CreateEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[CreateEvaluatorVersionRequestCodeConfig] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        score_value_type: typing.Optional[str] = OMIT,
         version_description: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        eval_class: typing.Optional[EvaluatorCreateVersionRequestEvalClass] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        created_by: typing.Optional[int] = OMIT,
+        updated_by: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateEvaluatorVersionResponse:
+    ) -> EvaluatorCreateVersion:
         """
-        Commit the current draft and create the next draft version. Supplying only `version_description` commits the existing draft snapshot; supplying configuration fields commits with changes.
+        Create a new version (commit). Org derived from parent evaluator.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
+        score_value_type : typing.Optional[str]
 
-        type : typing.Optional[CreateEvaluatorVersionRequestType]
-
-        score_value_type : typing.Optional[CreateEvaluatorVersionRequestScoreValueType]
-
-        eval_class : typing.Optional[CreateEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
+        version_description : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[CreateEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        eval_class : typing.Optional[EvaluatorCreateVersionRequestEvalClass]
 
-        llm_config : typing.Optional[CreateEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[CreateEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
 
-        version_description : typing.Optional[str]
-            Commit message for this version.
+        created_by : typing.Optional[int]
+
+        updated_by : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CreateEvaluatorVersionResponse
-            Created evaluator version.
+        EvaluatorCreateVersion
+
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.create_evaluator_version(
             evaluator_id="evaluator_id",
-            version_description="Ready for production",
         )
         """
         _response = self._raw_client.create_evaluator_version(
             evaluator_id,
-            name=name,
-            evaluator_slug=evaluator_slug,
-            type=type,
-            score_value_type=score_value_type,
-            eval_class=eval_class,
-            description=description,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
-            configurations=configurations,
-            categorical_choices=categorical_choices,
-            starred=starred,
+            project=project,
+            name=name,
+            score_value_type=score_value_type,
             version_description=version_description,
+            description=description,
+            type=type,
+            eval_class=eval_class,
+            custom_required_fields=custom_required_fields,
+            starred=starred,
+            created_by=created_by,
+            updated_by=updated_by,
             request_options=request_options,
         )
         return _response.data
 
     def retrieve_evaluator_version(
         self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> RetrieveEvaluatorVersionResponse:
+    ) -> PublicEvaluatorVersionDetail:
         """
-        Retrieve a specific evaluator version by version number.
+        Get or edit a specific version by version number.
+
+        GET /api/evaluators/{evaluator_id}/versions/{version}/ - Get specific version
+        PATCH /api/evaluators/{evaluator_id}/versions/{version}/ - Edit (only if is_read_only=False)
+
+        NOTE: DELETE is not allowed for specific versions. Delete the entire evaluator instead.
+        Versions are immutable history - you can only add new versions, not remove old ones.
+
+        Access control via NestedResourceMixin: org identity derived from parent evaluator.
+        Superadmin: Can READ any version across all organizations via JWT.
+        Regular users: Can only access versions in their organization.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         version : int
-            Evaluator version number.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RetrieveEvaluatorVersionResponse
-            Evaluator version details.
+        PublicEvaluatorVersionDetail
+
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.retrieve_evaluator_version(
             evaluator_id="evaluator_id",
@@ -847,66 +741,67 @@ class EvaluatorsClient:
     def replace_evaluator_version(
         self,
         evaluator_id: str,
-        version: int,
+        version_: int,
         *,
         name: str,
-        type: ReplaceEvaluatorVersionRequestType,
-        score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[ReplaceEvaluatorVersionRequestEvalClass] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        eval_class: typing.Optional[PublicEvaluatorVersionDetailRequestEvalClass] = OMIT,
         starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ReplaceEvaluatorVersionResponse:
+    ) -> PublicEvaluatorVersionDetail:
         """
-        Replace a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Full update - only allowed if is_read_only=False.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        version : int
-            Evaluator version number.
+        version_ : int
 
         name : str
 
-        type : ReplaceEvaluatorVersionRequestType
+        id : typing.Optional[str]
 
-        score_value_type : ReplaceEvaluatorVersionRequestScoreValueType
+        version_id : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
+        version : typing.Optional[int]
 
-        eval_class : typing.Optional[ReplaceEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
 
-        code_config : typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
 
-        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]]
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        eval_class : typing.Optional[PublicEvaluatorVersionDetailRequestEvalClass]
 
         starred : typing.Optional[bool]
 
@@ -915,55 +810,42 @@ class EvaluatorsClient:
 
         Returns
         -------
-        ReplaceEvaluatorVersionResponse
-            Updated evaluator version.
+        PublicEvaluatorVersionDetail
+
 
         Examples
         --------
         from respan import RespanClient
-        from respan.evaluators import (
-            ReplaceEvaluatorVersionRequestLlmConfig,
-            ReplaceEvaluatorVersionRequestScoreConfig,
-        )
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.replace_evaluator_version(
             evaluator_id="evaluator_id",
-            version=1,
-            name="Response Quality",
-            evaluator_slug="response_quality",
-            type="llm",
-            score_value_type="numerical",
-            eval_class="keywordsai_custom_llm",
-            score_config=ReplaceEvaluatorVersionRequestScoreConfig(
-                min_score=1.0,
-                max_score=5.0,
-            ),
-            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-            llm_config=ReplaceEvaluatorVersionRequestLlmConfig(
-                model="gpt-4o-mini",
-                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                scoring_rubric="1=Poor, 5=Excellent",
-            ),
+            version_=1,
+            name="name",
         )
         """
         _response = self._raw_client.replace_evaluator_version(
             evaluator_id,
-            version,
+            version_,
             name=name,
+            id=id,
+            version_id=version_id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            description=description,
             type=type,
             score_value_type=score_value_type,
-            evaluator_slug=evaluator_slug,
-            eval_class=eval_class,
-            description=description,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
             configurations=configurations,
             categorical_choices=categorical_choices,
+            eval_class=eval_class,
             starred=starred,
             request_options=request_options,
         )
@@ -972,66 +854,67 @@ class EvaluatorsClient:
     def update_evaluator_version(
         self,
         evaluator_id: str,
-        version: int,
+        version_: int,
         *,
+        id: typing.Optional[str] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
-        score_value_type: typing.Optional[UpdateEvaluatorVersionRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[UpdateEvaluatorVersionRequestEvalClass] = OMIT,
         description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[UpdateEvaluatorVersionRequestScoreConfig] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[UpdateEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[UpdateEvaluatorVersionRequestCodeConfig] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        eval_class: typing.Optional[PatchedPublicEvaluatorVersionDetailRequestEvalClass] = OMIT,
         starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> UpdateEvaluatorVersionResponse:
+    ) -> PublicEvaluatorVersionDetail:
         """
-        Partially update a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Edit version - only allowed if is_read_only=False.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        version : int
-            Evaluator version number.
+        version_ : int
+
+        id : typing.Optional[str]
+
+        version_id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
-
-        type : typing.Optional[UpdateEvaluatorVersionRequestType]
-
-        score_value_type : typing.Optional[UpdateEvaluatorVersionRequestScoreValueType]
-
-        eval_class : typing.Optional[UpdateEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
-
         description : typing.Optional[str]
 
-        score_config : typing.Optional[UpdateEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[UpdateEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
 
-        code_config : typing.Optional[UpdateEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
 
-        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]]
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        eval_class : typing.Optional[PatchedPublicEvaluatorVersionDetailRequestEvalClass]
 
         starred : typing.Optional[bool]
 
@@ -1040,58 +923,195 @@ class EvaluatorsClient:
 
         Returns
         -------
-        UpdateEvaluatorVersionResponse
-            Updated evaluator version.
+        PublicEvaluatorVersionDetail
+
 
         Examples
         --------
         from respan import RespanClient
-        from respan.evaluators import (
-            UpdateEvaluatorVersionRequestLlmConfig,
-            UpdateEvaluatorVersionRequestScoreConfig,
-        )
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.evaluators.update_evaluator_version(
             evaluator_id="evaluator_id",
-            version=1,
-            name="Response Quality",
-            evaluator_slug="response_quality",
-            type="llm",
-            score_value_type="numerical",
-            eval_class="keywordsai_custom_llm",
-            score_config=UpdateEvaluatorVersionRequestScoreConfig(
-                min_score=1.0,
-                max_score=5.0,
-            ),
-            passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-            llm_config=UpdateEvaluatorVersionRequestLlmConfig(
-                model="gpt-4o-mini",
-                evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                scoring_rubric="1=Poor, 5=Excellent",
-            ),
+            version_=1,
         )
         """
         _response = self._raw_client.update_evaluator_version(
             evaluator_id,
-            version,
+            version_,
+            id=id,
+            version_id=version_id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
             name=name,
-            evaluator_slug=evaluator_slug,
+            description=description,
             type=type,
             score_value_type=score_value_type,
-            eval_class=eval_class,
-            description=description,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
             configurations=configurations,
             categorical_choices=categorical_choices,
+            eval_class=eval_class,
             starred=starred,
             request_options=request_options,
         )
+        return _response.data
+
+    def list_evaluators(
+        self,
+        *,
+        name: str,
+        version_id: typing.Optional[str] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        eval_class: typing.Optional[PublicEvaluatorListRequestEvalClass] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> PublicEvaluatorList:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        name : str
+
+        version_id : typing.Optional[str]
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
+
+        unique_organization_id : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        eval_class : typing.Optional[PublicEvaluatorListRequestEvalClass]
+
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
+
+        starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        PublicEvaluatorList
+
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.evaluators.list_evaluators(
+            name="name",
+        )
+        """
+        _response = self._raw_client.list_evaluators(
+            name=name,
+            version_id=version_id,
+            configurations=configurations,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            project=project,
+            id=id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            evaluator_slug=evaluator_slug,
+            unique_organization_id=unique_organization_id,
+            description=description,
+            type=type,
+            score_value_type=score_value_type,
+            eval_class=eval_class,
+            custom_required_fields=custom_required_fields,
+            starred=starred,
+            organization=organization,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def get_filtered_evaluators_summary(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.evaluators.get_filtered_evaluators_summary()
+        """
+        _response = self._raw_client.get_filtered_evaluators_summary(request_options=request_options)
         return _response.data
 
 
@@ -1114,98 +1134,104 @@ class AsyncEvaluatorsClient:
         self,
         *,
         name: str,
-        type: CreateEvaluatorRequestType,
-        score_value_type: CreateEvaluatorRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[CreateEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[CreateEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[CreateEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[CreateEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        eval_class: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateEvaluatorResponse:
+    ) -> PublicEvaluatorCreate:
         """
-        Create a grader/evaluator. Current public evaluator types are `llm`, `human`, and `code`; legacy human-specific types remain readable for older evaluators. New clients should use the flat config fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of relying on legacy `configurations`.
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
 
         Parameters
         ----------
         name : str
 
-        type : CreateEvaluatorRequestType
+        version_id : typing.Optional[str]
 
-        score_value_type : CreateEvaluatorRequestScoreValueType
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        eval_class : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
 
-        eval_class : typing.Optional[CreateEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[CreateEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[CreateEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[CreateEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CreateEvaluatorResponse
-            Created evaluator.
+        PublicEvaluatorCreate
+
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.evaluators import (
-            CreateEvaluatorRequestLlmConfig,
-            CreateEvaluatorRequestScoreConfig,
-        )
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
             await client.evaluators.create_evaluator(
-                name="Response Quality",
-                evaluator_slug="response_quality",
-                type="llm",
-                score_value_type="numerical",
-                eval_class="keywordsai_custom_llm",
-                score_config=CreateEvaluatorRequestScoreConfig(
-                    min_score=1.0,
-                    max_score=5.0,
-                ),
-                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-                llm_config=CreateEvaluatorRequestLlmConfig(
-                    model="gpt-4o-mini",
-                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                    scoring_rubric="1=Poor, 5=Excellent",
-                ),
+                name="name",
             )
 
 
@@ -1213,151 +1239,63 @@ class AsyncEvaluatorsClient:
         """
         _response = await self._raw_client.create_evaluator(
             name=name,
-            type=type,
-            score_value_type=score_value_type,
-            evaluator_slug=evaluator_slug,
-            eval_class=eval_class,
-            description=description,
+            version_id=version_id,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
-            configurations=configurations,
-            categorical_choices=categorical_choices,
+            project=project,
+            eval_class=eval_class,
+            id=id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            evaluator_slug=evaluator_slug,
+            unique_organization_id=unique_organization_id,
+            description=description,
+            type=type,
+            score_value_type=score_value_type,
+            custom_required_fields=custom_required_fields,
             starred=starred,
+            organization=organization,
             request_options=request_options,
-        )
-        return _response.data
-
-    async def list_evaluators(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListEvaluatorsResponse:
-        """
-        List evaluators using POST-for-filtering. The backend returns only the current draft/latest row for each evaluator and includes filter metadata for dashboard clients.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListEvaluatorsResponse
-            Paginated filtered evaluator list.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.evaluators.list_evaluators(
-                sort_by="name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_evaluators(
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            filters=filters,
-            is_exporting=is_exporting,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def get_filtered_evaluators_summary(
-        self,
-        *,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> GetFilteredEvaluatorsSummaryResponse:
-        """
-        Return the total number of current draft/latest evaluators after applying standard filters.
-
-        Parameters
-        ----------
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        GetFilteredEvaluatorsSummaryResponse
-            Filtered evaluator summary.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.evaluators.get_filtered_evaluators_summary()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_filtered_evaluators_summary(
-            filters=filters, request_options=request_options
         )
         return _response.data
 
     async def retrieve_evaluator(
         self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> RetrieveEvaluatorResponse:
+    ) -> PublicEvaluatorDetail:
         """
-        Retrieve the current draft/latest version of an evaluator by ID.
+        Get, update, or delete an evaluator's draft version.
+
+        GET /api/evaluators/{evaluator_id}/ - Get draft version (is_read_only=False)
+        PATCH /api/evaluators/{evaluator_id}/ - Update draft version
+        DELETE /api/evaluators/{evaluator_id}/ - Delete ALL versions
+
+        Superadmin: Can READ any evaluator across all organizations via JWT.
+                    Cannot WRITE via JWT - must use API key for write operations.
+        Regular users: Can only access evaluators in their organization.
+
+        NOTE: Queryset filters by is_read_only=False, ensuring unique lookup per evaluator_id.
+        This allows DRF's standard get_object() to work without manual overrides.
+        Delete removes ALL versions of the evaluator.
+
+        Defense-in-depth:
+        - SuperAdminMixin: Queryset routing + JWT write protection + object-level ownership
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RetrieveEvaluatorResponse
-            Evaluator details.
+        PublicEvaluatorDetail
+
 
         Examples
         --------
@@ -1366,7 +1304,8 @@ class AsyncEvaluatorsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
@@ -1386,102 +1325,103 @@ class AsyncEvaluatorsClient:
         evaluator_id: str,
         *,
         name: str,
-        type: ReplaceEvaluatorRequestType,
-        score_value_type: ReplaceEvaluatorRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[ReplaceEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[ReplaceEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[ReplaceEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[ReplaceEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ReplaceEvaluatorResponse:
+    ) -> PublicEvaluatorUpdate:
         """
-        Replace the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
+        PUT handler with superadmin lock and field protection.
+
+        Same as patch() - checks lock and field protection before delegating.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         name : str
 
-        type : ReplaceEvaluatorRequestType
+        version_id : typing.Optional[str]
 
-        score_value_type : ReplaceEvaluatorRequestScoreValueType
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
 
-        eval_class : typing.Optional[ReplaceEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[ReplaceEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[ReplaceEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[ReplaceEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ReplaceEvaluatorResponse
-            Updated evaluator.
+        PublicEvaluatorUpdate
+
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.evaluators import (
-            ReplaceEvaluatorRequestLlmConfig,
-            ReplaceEvaluatorRequestScoreConfig,
-        )
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
             await client.evaluators.replace_evaluator(
                 evaluator_id="evaluator_id",
-                name="Response Quality",
-                evaluator_slug="response_quality",
-                type="llm",
-                score_value_type="numerical",
-                eval_class="keywordsai_custom_llm",
-                score_config=ReplaceEvaluatorRequestScoreConfig(
-                    min_score=1.0,
-                    max_score=5.0,
-                ),
-                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-                llm_config=ReplaceEvaluatorRequestLlmConfig(
-                    model="gpt-4o-mini",
-                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                    scoring_rubric="1=Poor, 5=Excellent",
-                ),
+                name="name",
             )
 
 
@@ -1490,18 +1430,26 @@ class AsyncEvaluatorsClient:
         _response = await self._raw_client.replace_evaluator(
             evaluator_id,
             name=name,
-            type=type,
-            score_value_type=score_value_type,
-            evaluator_slug=evaluator_slug,
-            eval_class=eval_class,
-            description=description,
+            version_id=version_id,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
-            configurations=configurations,
-            categorical_choices=categorical_choices,
+            project=project,
+            id=id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            evaluator_slug=evaluator_slug,
+            unique_organization_id=unique_organization_id,
+            description=description,
+            type=type,
+            score_value_type=score_value_type,
+            custom_required_fields=custom_required_fields,
             starred=starred,
+            organization=organization,
             request_options=request_options,
         )
         return _response.data
@@ -1510,12 +1458,15 @@ class AsyncEvaluatorsClient:
         self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
+        Delete ALL versions of the evaluator.
+
+        Uses SuperAdminMixin's queryset routing for org filtering.
+        Cross-org JWT write protection is enforced automatically by ObjectOwnershipPermission
+        in get_object() via check_object_permissions().
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1531,7 +1482,8 @@ class AsyncEvaluatorsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
@@ -1550,103 +1502,101 @@ class AsyncEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
-        score_value_type: typing.Optional[UpdateEvaluatorRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[UpdateEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[UpdateEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[UpdateEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[UpdateEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> UpdateEvaluatorResponse:
+    ) -> PublicEvaluatorUpdate:
         """
-        Partially update the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
+        Update the draft version (queryset already filters is_read_only=False).
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version_id : typing.Optional[str]
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
-
-        type : typing.Optional[UpdateEvaluatorRequestType]
-
-        score_value_type : typing.Optional[UpdateEvaluatorRequestScoreValueType]
-
-        eval_class : typing.Optional[UpdateEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[UpdateEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[UpdateEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[UpdateEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        UpdateEvaluatorResponse
-            Updated evaluator.
+        PublicEvaluatorUpdate
+
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.evaluators import (
-            UpdateEvaluatorRequestLlmConfig,
-            UpdateEvaluatorRequestScoreConfig,
-        )
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
             await client.evaluators.update_evaluator(
                 evaluator_id="evaluator_id",
-                name="Response Quality",
-                evaluator_slug="response_quality",
-                type="llm",
-                score_value_type="numerical",
-                eval_class="keywordsai_custom_llm",
-                score_config=UpdateEvaluatorRequestScoreConfig(
-                    min_score=1.0,
-                    max_score=5.0,
-                ),
-                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-                llm_config=UpdateEvaluatorRequestLlmConfig(
-                    model="gpt-4o-mini",
-                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                    scoring_rubric="1=Poor, 5=Excellent",
-                ),
             )
 
 
@@ -1654,96 +1604,74 @@ class AsyncEvaluatorsClient:
         """
         _response = await self._raw_client.update_evaluator(
             evaluator_id,
-            name=name,
-            evaluator_slug=evaluator_slug,
-            type=type,
-            score_value_type=score_value_type,
-            eval_class=eval_class,
-            description=description,
+            version_id=version_id,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
-            configurations=configurations,
-            categorical_choices=categorical_choices,
+            project=project,
+            id=id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            evaluator_slug=evaluator_slug,
+            name=name,
+            unique_organization_id=unique_organization_id,
+            description=description,
+            type=type,
+            score_value_type=score_value_type,
+            custom_required_fields=custom_required_fields,
             starred=starred,
+            organization=organization,
             request_options=request_options,
         )
         return _response.data
 
     async def run_evaluator(
-        self,
-        evaluator_id: str,
-        *,
-        inputs: RunEvaluatorRequestInputs,
-        generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
-        evaluation_id: typing.Optional[str] = OMIT,
-        run_evaluator_request_evaluator_id: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> RunEvaluatorResponse:
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
         """
-        Run an evaluator against raw unified inputs. The evaluator ID may include a version suffix such as `evl_abc123:2` to run a specific version.
+        Main entry point for test run evaluations.
+        Handles four modes of operation:
+        1. Evaluation from raw eval inputs & evaluator id (backward compatibility)
+        2. Evaluation from log
+        3. Evaluation from evaluator configuration form
+        4. Evaluation from raw eval inputs & evaluator id (new public API mode)
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        inputs : RunEvaluatorRequestInputs
-            Unified evaluator inputs.
-
-        generation_method : typing.Optional[RunEvaluatorRequestGenerationMethod]
-            Optional method override for evaluators that support multiple execution modes.
-
-        evaluation_id : typing.Optional[str]
-            Legacy evaluator ID field. Prefer the path parameter or `evaluator_id`.
-
-        run_evaluator_request_evaluator_id : typing.Optional[str]
-            Optional evaluator ID override. Supports version suffixes such as `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RunEvaluatorResponse
-            Evaluation result.
+        None
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.evaluators import RunEvaluatorRequestInputs
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
             await client.evaluators.run_evaluator(
                 evaluator_id="evaluator_id",
-                inputs=RunEvaluatorRequestInputs(
-                    input="What is the capital of France?",
-                    output="The capital of France is Paris.",
-                    expected_output="Paris",
-                    metrics={"latency": 0.45, "cost": 0.0023},
-                    metadata={"model": "gpt-4o-mini"},
-                ),
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.run_evaluator(
-            evaluator_id,
-            inputs=inputs,
-            generation_method=generation_method,
-            evaluation_id=evaluation_id,
-            run_evaluator_request_evaluator_id=run_evaluator_request_evaluator_id,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.run_evaluator(evaluator_id, request_options=request_options)
         return _response.data
 
     async def list_evaluator_versions(
@@ -1753,28 +1681,34 @@ class AsyncEvaluatorsClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListEvaluatorVersionsResponse:
+    ) -> PaginatedPublicEvaluatorVersionListList:
         """
-        List all versions of an evaluator, ordered newest first. Version `0` is the initial draft; committed versions are returned with `is_read_only: true`.
+        List all versions or create new version (commit).
+
+        GET /api/evaluators/{id}/versions/ - List all versions
+        POST /api/evaluators/{id}/versions/ - Commit (create new version)
+
+        Access control via NestedResourceMixin: org identity derived from parent evaluator.
+        Superadmin: Can LIST all versions across all organizations via JWT.
+        Regular users: Can only access versions in their organization.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         page : typing.Optional[int]
-            Page number.
+            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
+            Number of results to return per page.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ListEvaluatorVersionsResponse
-            Paginated evaluator versions.
+        PaginatedPublicEvaluatorVersionListList
+
 
         Examples
         --------
@@ -1783,7 +1717,8 @@ class AsyncEvaluatorsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
@@ -1804,75 +1739,73 @@ class AsyncEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
-        score_value_type: typing.Optional[CreateEvaluatorVersionRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[CreateEvaluatorVersionRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[CreateEvaluatorVersionRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[CreateEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[CreateEvaluatorVersionRequestCodeConfig] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        score_value_type: typing.Optional[str] = OMIT,
         version_description: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        eval_class: typing.Optional[EvaluatorCreateVersionRequestEvalClass] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        created_by: typing.Optional[int] = OMIT,
+        updated_by: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateEvaluatorVersionResponse:
+    ) -> EvaluatorCreateVersion:
         """
-        Commit the current draft and create the next draft version. Supplying only `version_description` commits the existing draft snapshot; supplying configuration fields commits with changes.
+        Create a new version (commit). Org derived from parent evaluator.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
+        score_value_type : typing.Optional[str]
 
-        type : typing.Optional[CreateEvaluatorVersionRequestType]
-
-        score_value_type : typing.Optional[CreateEvaluatorVersionRequestScoreValueType]
-
-        eval_class : typing.Optional[CreateEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
+        version_description : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[CreateEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        eval_class : typing.Optional[EvaluatorCreateVersionRequestEvalClass]
 
-        llm_config : typing.Optional[CreateEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[CreateEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
 
-        version_description : typing.Optional[str]
-            Commit message for this version.
+        created_by : typing.Optional[int]
+
+        updated_by : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CreateEvaluatorVersionResponse
-            Created evaluator version.
+        EvaluatorCreateVersion
+
 
         Examples
         --------
@@ -1881,14 +1814,14 @@ class AsyncEvaluatorsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
             await client.evaluators.create_evaluator_version(
                 evaluator_id="evaluator_id",
-                version_description="Ready for production",
             )
 
 
@@ -1896,45 +1829,56 @@ class AsyncEvaluatorsClient:
         """
         _response = await self._raw_client.create_evaluator_version(
             evaluator_id,
-            name=name,
-            evaluator_slug=evaluator_slug,
-            type=type,
-            score_value_type=score_value_type,
-            eval_class=eval_class,
-            description=description,
+            configurations=configurations,
+            categorical_choices=categorical_choices,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
-            configurations=configurations,
-            categorical_choices=categorical_choices,
-            starred=starred,
+            project=project,
+            name=name,
+            score_value_type=score_value_type,
             version_description=version_description,
+            description=description,
+            type=type,
+            eval_class=eval_class,
+            custom_required_fields=custom_required_fields,
+            starred=starred,
+            created_by=created_by,
+            updated_by=updated_by,
             request_options=request_options,
         )
         return _response.data
 
     async def retrieve_evaluator_version(
         self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> RetrieveEvaluatorVersionResponse:
+    ) -> PublicEvaluatorVersionDetail:
         """
-        Retrieve a specific evaluator version by version number.
+        Get or edit a specific version by version number.
+
+        GET /api/evaluators/{evaluator_id}/versions/{version}/ - Get specific version
+        PATCH /api/evaluators/{evaluator_id}/versions/{version}/ - Edit (only if is_read_only=False)
+
+        NOTE: DELETE is not allowed for specific versions. Delete the entire evaluator instead.
+        Versions are immutable history - you can only add new versions, not remove old ones.
+
+        Access control via NestedResourceMixin: org identity derived from parent evaluator.
+        Superadmin: Can READ any version across all organizations via JWT.
+        Regular users: Can only access versions in their organization.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         version : int
-            Evaluator version number.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RetrieveEvaluatorVersionResponse
-            Evaluator version details.
+        PublicEvaluatorVersionDetail
+
 
         Examples
         --------
@@ -1943,7 +1887,8 @@ class AsyncEvaluatorsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
@@ -1964,66 +1909,67 @@ class AsyncEvaluatorsClient:
     async def replace_evaluator_version(
         self,
         evaluator_id: str,
-        version: int,
+        version_: int,
         *,
         name: str,
-        type: ReplaceEvaluatorVersionRequestType,
-        score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[ReplaceEvaluatorVersionRequestEvalClass] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        eval_class: typing.Optional[PublicEvaluatorVersionDetailRequestEvalClass] = OMIT,
         starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ReplaceEvaluatorVersionResponse:
+    ) -> PublicEvaluatorVersionDetail:
         """
-        Replace a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Full update - only allowed if is_read_only=False.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        version : int
-            Evaluator version number.
+        version_ : int
 
         name : str
 
-        type : ReplaceEvaluatorVersionRequestType
+        id : typing.Optional[str]
 
-        score_value_type : ReplaceEvaluatorVersionRequestScoreValueType
+        version_id : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
+        version : typing.Optional[int]
 
-        eval_class : typing.Optional[ReplaceEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
 
-        code_config : typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
 
-        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]]
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        eval_class : typing.Optional[PublicEvaluatorVersionDetailRequestEvalClass]
 
         starred : typing.Optional[bool]
 
@@ -2032,43 +1978,26 @@ class AsyncEvaluatorsClient:
 
         Returns
         -------
-        ReplaceEvaluatorVersionResponse
-            Updated evaluator version.
+        PublicEvaluatorVersionDetail
+
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.evaluators import (
-            ReplaceEvaluatorVersionRequestLlmConfig,
-            ReplaceEvaluatorVersionRequestScoreConfig,
-        )
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
             await client.evaluators.replace_evaluator_version(
                 evaluator_id="evaluator_id",
-                version=1,
-                name="Response Quality",
-                evaluator_slug="response_quality",
-                type="llm",
-                score_value_type="numerical",
-                eval_class="keywordsai_custom_llm",
-                score_config=ReplaceEvaluatorVersionRequestScoreConfig(
-                    min_score=1.0,
-                    max_score=5.0,
-                ),
-                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-                llm_config=ReplaceEvaluatorVersionRequestLlmConfig(
-                    model="gpt-4o-mini",
-                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                    scoring_rubric="1=Poor, 5=Excellent",
-                ),
+                version_=1,
+                name="name",
             )
 
 
@@ -2076,19 +2005,23 @@ class AsyncEvaluatorsClient:
         """
         _response = await self._raw_client.replace_evaluator_version(
             evaluator_id,
-            version,
+            version_,
             name=name,
+            id=id,
+            version_id=version_id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            description=description,
             type=type,
             score_value_type=score_value_type,
-            evaluator_slug=evaluator_slug,
-            eval_class=eval_class,
-            description=description,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
             configurations=configurations,
             categorical_choices=categorical_choices,
+            eval_class=eval_class,
             starred=starred,
             request_options=request_options,
         )
@@ -2097,66 +2030,67 @@ class AsyncEvaluatorsClient:
     async def update_evaluator_version(
         self,
         evaluator_id: str,
-        version: int,
+        version_: int,
         *,
+        id: typing.Optional[str] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
-        score_value_type: typing.Optional[UpdateEvaluatorVersionRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[UpdateEvaluatorVersionRequestEvalClass] = OMIT,
         description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[UpdateEvaluatorVersionRequestScoreConfig] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[UpdateEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[UpdateEvaluatorVersionRequestCodeConfig] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        eval_class: typing.Optional[PatchedPublicEvaluatorVersionDetailRequestEvalClass] = OMIT,
         starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> UpdateEvaluatorVersionResponse:
+    ) -> PublicEvaluatorVersionDetail:
         """
-        Partially update a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Edit version - only allowed if is_read_only=False.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        version : int
-            Evaluator version number.
+        version_ : int
+
+        id : typing.Optional[str]
+
+        version_id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
-
-        type : typing.Optional[UpdateEvaluatorVersionRequestType]
-
-        score_value_type : typing.Optional[UpdateEvaluatorVersionRequestScoreValueType]
-
-        eval_class : typing.Optional[UpdateEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
-
         description : typing.Optional[str]
 
-        score_config : typing.Optional[UpdateEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[UpdateEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
 
-        code_config : typing.Optional[UpdateEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
 
-        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]]
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        eval_class : typing.Optional[PatchedPublicEvaluatorVersionDetailRequestEvalClass]
 
         starred : typing.Optional[bool]
 
@@ -2165,43 +2099,25 @@ class AsyncEvaluatorsClient:
 
         Returns
         -------
-        UpdateEvaluatorVersionResponse
-            Updated evaluator version.
+        PublicEvaluatorVersionDetail
+
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.evaluators import (
-            UpdateEvaluatorVersionRequestLlmConfig,
-            UpdateEvaluatorVersionRequestScoreConfig,
-        )
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
             await client.evaluators.update_evaluator_version(
                 evaluator_id="evaluator_id",
-                version=1,
-                name="Response Quality",
-                evaluator_slug="response_quality",
-                type="llm",
-                score_value_type="numerical",
-                eval_class="keywordsai_custom_llm",
-                score_config=UpdateEvaluatorVersionRequestScoreConfig(
-                    min_score=1.0,
-                    max_score=5.0,
-                ),
-                passing_conditions={"primary_score": {"operator": "gte", "value": 3}},
-                llm_config=UpdateEvaluatorVersionRequestLlmConfig(
-                    model="gpt-4o-mini",
-                    evaluator_definition="Rate the quality.\n<input>{{input}}</input>\n<output>{{output}}</output>",
-                    scoring_rubric="1=Poor, 5=Excellent",
-                ),
+                version_=1,
             )
 
 
@@ -2209,20 +2125,191 @@ class AsyncEvaluatorsClient:
         """
         _response = await self._raw_client.update_evaluator_version(
             evaluator_id,
-            version,
+            version_,
+            id=id,
+            version_id=version_id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
             name=name,
-            evaluator_slug=evaluator_slug,
+            description=description,
             type=type,
             score_value_type=score_value_type,
-            eval_class=eval_class,
-            description=description,
             score_config=score_config,
             passing_conditions=passing_conditions,
             llm_config=llm_config,
             code_config=code_config,
             configurations=configurations,
             categorical_choices=categorical_choices,
+            eval_class=eval_class,
             starred=starred,
             request_options=request_options,
         )
+        return _response.data
+
+    async def list_evaluators(
+        self,
+        *,
+        name: str,
+        version_id: typing.Optional[str] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        eval_class: typing.Optional[PublicEvaluatorListRequestEvalClass] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> PublicEvaluatorList:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        name : str
+
+        version_id : typing.Optional[str]
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
+
+        unique_organization_id : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        eval_class : typing.Optional[PublicEvaluatorListRequestEvalClass]
+
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
+
+        starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        PublicEvaluatorList
+
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.evaluators.list_evaluators(
+                name="name",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_evaluators(
+            name=name,
+            version_id=version_id,
+            configurations=configurations,
+            score_config=score_config,
+            passing_conditions=passing_conditions,
+            llm_config=llm_config,
+            code_config=code_config,
+            project=project,
+            id=id,
+            version=version,
+            is_read_only=is_read_only,
+            version_description=version_description,
+            evaluator_slug=evaluator_slug,
+            unique_organization_id=unique_organization_id,
+            description=description,
+            type=type,
+            score_value_type=score_value_type,
+            eval_class=eval_class,
+            custom_required_fields=custom_required_fields,
+            starred=starred,
+            organization=organization,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def get_filtered_evaluators_summary(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.evaluators.get_filtered_evaluators_summary()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.get_filtered_evaluators_summary(request_options=request_options)
         return _response.data

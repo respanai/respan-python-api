@@ -10,72 +10,21 @@ from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
-from ..errors.bad_request_error import BadRequestError
-from ..errors.forbidden_error import ForbiddenError
-from ..errors.not_found_error import NotFoundError
-from ..errors.unauthorized_error import UnauthorizedError
-from .types.create_evaluator_request_categorical_choices_item import CreateEvaluatorRequestCategoricalChoicesItem
-from .types.create_evaluator_request_code_config import CreateEvaluatorRequestCodeConfig
-from .types.create_evaluator_request_eval_class import CreateEvaluatorRequestEvalClass
-from .types.create_evaluator_request_llm_config import CreateEvaluatorRequestLlmConfig
-from .types.create_evaluator_request_score_config import CreateEvaluatorRequestScoreConfig
-from .types.create_evaluator_request_score_value_type import CreateEvaluatorRequestScoreValueType
-from .types.create_evaluator_request_type import CreateEvaluatorRequestType
-from .types.create_evaluator_response import CreateEvaluatorResponse
-from .types.create_evaluator_version_request_categorical_choices_item import (
-    CreateEvaluatorVersionRequestCategoricalChoicesItem,
+from ..types.evaluator_create_version import EvaluatorCreateVersion
+from ..types.evaluator_create_version_request_eval_class import EvaluatorCreateVersionRequestEvalClass
+from ..types.paginated_public_evaluator_version_list_list import PaginatedPublicEvaluatorVersionListList
+from ..types.patched_public_evaluator_version_detail_request_eval_class import (
+    PatchedPublicEvaluatorVersionDetailRequestEvalClass,
 )
-from .types.create_evaluator_version_request_code_config import CreateEvaluatorVersionRequestCodeConfig
-from .types.create_evaluator_version_request_eval_class import CreateEvaluatorVersionRequestEvalClass
-from .types.create_evaluator_version_request_llm_config import CreateEvaluatorVersionRequestLlmConfig
-from .types.create_evaluator_version_request_score_config import CreateEvaluatorVersionRequestScoreConfig
-from .types.create_evaluator_version_request_score_value_type import CreateEvaluatorVersionRequestScoreValueType
-from .types.create_evaluator_version_request_type import CreateEvaluatorVersionRequestType
-from .types.create_evaluator_version_response import CreateEvaluatorVersionResponse
-from .types.get_filtered_evaluators_summary_response import GetFilteredEvaluatorsSummaryResponse
-from .types.list_evaluator_versions_response import ListEvaluatorVersionsResponse
-from .types.list_evaluators_response import ListEvaluatorsResponse
-from .types.replace_evaluator_request_categorical_choices_item import ReplaceEvaluatorRequestCategoricalChoicesItem
-from .types.replace_evaluator_request_code_config import ReplaceEvaluatorRequestCodeConfig
-from .types.replace_evaluator_request_eval_class import ReplaceEvaluatorRequestEvalClass
-from .types.replace_evaluator_request_llm_config import ReplaceEvaluatorRequestLlmConfig
-from .types.replace_evaluator_request_score_config import ReplaceEvaluatorRequestScoreConfig
-from .types.replace_evaluator_request_score_value_type import ReplaceEvaluatorRequestScoreValueType
-from .types.replace_evaluator_request_type import ReplaceEvaluatorRequestType
-from .types.replace_evaluator_response import ReplaceEvaluatorResponse
-from .types.replace_evaluator_version_request_categorical_choices_item import (
-    ReplaceEvaluatorVersionRequestCategoricalChoicesItem,
-)
-from .types.replace_evaluator_version_request_code_config import ReplaceEvaluatorVersionRequestCodeConfig
-from .types.replace_evaluator_version_request_eval_class import ReplaceEvaluatorVersionRequestEvalClass
-from .types.replace_evaluator_version_request_llm_config import ReplaceEvaluatorVersionRequestLlmConfig
-from .types.replace_evaluator_version_request_score_config import ReplaceEvaluatorVersionRequestScoreConfig
-from .types.replace_evaluator_version_request_score_value_type import ReplaceEvaluatorVersionRequestScoreValueType
-from .types.replace_evaluator_version_request_type import ReplaceEvaluatorVersionRequestType
-from .types.replace_evaluator_version_response import ReplaceEvaluatorVersionResponse
-from .types.retrieve_evaluator_response import RetrieveEvaluatorResponse
-from .types.retrieve_evaluator_version_response import RetrieveEvaluatorVersionResponse
-from .types.run_evaluator_request_generation_method import RunEvaluatorRequestGenerationMethod
-from .types.run_evaluator_request_inputs import RunEvaluatorRequestInputs
-from .types.run_evaluator_response import RunEvaluatorResponse
-from .types.update_evaluator_request_categorical_choices_item import UpdateEvaluatorRequestCategoricalChoicesItem
-from .types.update_evaluator_request_code_config import UpdateEvaluatorRequestCodeConfig
-from .types.update_evaluator_request_eval_class import UpdateEvaluatorRequestEvalClass
-from .types.update_evaluator_request_llm_config import UpdateEvaluatorRequestLlmConfig
-from .types.update_evaluator_request_score_config import UpdateEvaluatorRequestScoreConfig
-from .types.update_evaluator_request_score_value_type import UpdateEvaluatorRequestScoreValueType
-from .types.update_evaluator_request_type import UpdateEvaluatorRequestType
-from .types.update_evaluator_response import UpdateEvaluatorResponse
-from .types.update_evaluator_version_request_categorical_choices_item import (
-    UpdateEvaluatorVersionRequestCategoricalChoicesItem,
-)
-from .types.update_evaluator_version_request_code_config import UpdateEvaluatorVersionRequestCodeConfig
-from .types.update_evaluator_version_request_eval_class import UpdateEvaluatorVersionRequestEvalClass
-from .types.update_evaluator_version_request_llm_config import UpdateEvaluatorVersionRequestLlmConfig
-from .types.update_evaluator_version_request_score_config import UpdateEvaluatorVersionRequestScoreConfig
-from .types.update_evaluator_version_request_score_value_type import UpdateEvaluatorVersionRequestScoreValueType
-from .types.update_evaluator_version_request_type import UpdateEvaluatorVersionRequestType
-from .types.update_evaluator_version_response import UpdateEvaluatorVersionResponse
+from ..types.public_evaluator_create import PublicEvaluatorCreate
+from ..types.public_evaluator_detail import PublicEvaluatorDetail
+from ..types.public_evaluator_list import PublicEvaluatorList
+from ..types.public_evaluator_list_request_eval_class import PublicEvaluatorListRequestEvalClass
+from ..types.public_evaluator_update import PublicEvaluatorUpdate
+from ..types.public_evaluator_version_detail import PublicEvaluatorVersionDetail
+from ..types.public_evaluator_version_detail_request_eval_class import PublicEvaluatorVersionDetailRequestEvalClass
+from ..types.score_value_type_enum import ScoreValueTypeEnum
+from ..types.type4e2enum import Type4E2Enum
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -89,93 +38,115 @@ class RawEvaluatorsClient:
         self,
         *,
         name: str,
-        type: CreateEvaluatorRequestType,
-        score_value_type: CreateEvaluatorRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[CreateEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[CreateEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[CreateEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[CreateEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        eval_class: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[CreateEvaluatorResponse]:
+    ) -> HttpResponse[PublicEvaluatorCreate]:
         """
-        Create a grader/evaluator. Current public evaluator types are `llm`, `human`, and `code`; legacy human-specific types remain readable for older evaluators. New clients should use the flat config fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of relying on legacy `configurations`.
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
 
         Parameters
         ----------
         name : str
 
-        type : CreateEvaluatorRequestType
+        version_id : typing.Optional[str]
 
-        score_value_type : CreateEvaluatorRequestScoreValueType
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        eval_class : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
 
-        eval_class : typing.Optional[CreateEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[CreateEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[CreateEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[CreateEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[CreateEvaluatorResponse]
-            Created evaluator.
+        HttpResponse[PublicEvaluatorCreate]
+
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/evaluators/",
             method="POST",
             json={
-                "name": name,
+                "version_id": version_id,
+                "configurations": configurations,
+                "categorical_choices": categorical_choices,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "eval_class": eval_class,
+                "id": id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "evaluator_slug": evaluator_slug,
+                "name": name,
+                "unique_organization_id": unique_organization_id,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=CreateEvaluatorRequestScoreConfig, direction="write"
-                ),
-                "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config, annotation=typing.Optional[CreateEvaluatorRequestLlmConfig], direction="write"
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config, annotation=typing.Optional[CreateEvaluatorRequestCodeConfig], direction="write"
-                ),
-                "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem],
-                    direction="write",
-                ),
+                "custom_required_fields": custom_required_fields,
                 "starred": starred,
+                "organization": organization,
             },
             headers={
                 "content-type": "application/json",
@@ -186,199 +157,13 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CreateEvaluatorResponse,
+                    PublicEvaluatorCreate,
                     parse_obj_as(
-                        type_=CreateEvaluatorResponse,  # type: ignore
+                        type_=PublicEvaluatorCreate,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def list_evaluators(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListEvaluatorsResponse]:
-        """
-        List evaluators using POST-for-filtering. The backend returns only the current draft/latest row for each evaluator and includes filter metadata for dashboard clients.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ListEvaluatorsResponse]
-            Paginated filtered evaluator list.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/evaluators/list/",
-            method="POST",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-            },
-            json={
-                "filters": filters,
-                "is_exporting": is_exporting,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListEvaluatorsResponse,
-                    parse_obj_as(
-                        type_=ListEvaluatorsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def get_filtered_evaluators_summary(
-        self,
-        *,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[GetFilteredEvaluatorsSummaryResponse]:
-        """
-        Return the total number of current draft/latest evaluators after applying standard filters.
-
-        Parameters
-        ----------
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[GetFilteredEvaluatorsSummaryResponse]
-            Filtered evaluator summary.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/evaluators/summary/",
-            method="POST",
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetFilteredEvaluatorsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetFilteredEvaluatorsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -386,22 +171,36 @@ class RawEvaluatorsClient:
 
     def retrieve_evaluator(
         self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[RetrieveEvaluatorResponse]:
+    ) -> HttpResponse[PublicEvaluatorDetail]:
         """
-        Retrieve the current draft/latest version of an evaluator by ID.
+        Get, update, or delete an evaluator's draft version.
+
+        GET /api/evaluators/{evaluator_id}/ - Get draft version (is_read_only=False)
+        PATCH /api/evaluators/{evaluator_id}/ - Update draft version
+        DELETE /api/evaluators/{evaluator_id}/ - Delete ALL versions
+
+        Superadmin: Can READ any evaluator across all organizations via JWT.
+                    Cannot WRITE via JWT - must use API key for write operations.
+        Regular users: Can only access evaluators in their organization.
+
+        NOTE: Queryset filters by is_read_only=False, ensuring unique lookup per evaluator_id.
+        This allows DRF's standard get_object() to work without manual overrides.
+        Delete removes ALL versions of the evaluator.
+
+        Defense-in-depth:
+        - SuperAdminMixin: Queryset routing + JWT write protection + object-level ownership
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[RetrieveEvaluatorResponse]
-            Evaluator details.
+        HttpResponse[PublicEvaluatorDetail]
+
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
@@ -411,35 +210,13 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    RetrieveEvaluatorResponse,
+                    PublicEvaluatorDetail,
                     parse_obj_as(
-                        type_=RetrieveEvaluatorResponse,  # type: ignore
+                        type_=PublicEvaluatorDetail,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -450,98 +227,112 @@ class RawEvaluatorsClient:
         evaluator_id: str,
         *,
         name: str,
-        type: ReplaceEvaluatorRequestType,
-        score_value_type: ReplaceEvaluatorRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[ReplaceEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[ReplaceEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[ReplaceEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[ReplaceEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ReplaceEvaluatorResponse]:
+    ) -> HttpResponse[PublicEvaluatorUpdate]:
         """
-        Replace the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
+        PUT handler with superadmin lock and field protection.
+
+        Same as patch() - checks lock and field protection before delegating.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         name : str
 
-        type : ReplaceEvaluatorRequestType
+        version_id : typing.Optional[str]
 
-        score_value_type : ReplaceEvaluatorRequestScoreValueType
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
 
-        eval_class : typing.Optional[ReplaceEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[ReplaceEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[ReplaceEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[ReplaceEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[ReplaceEvaluatorResponse]
-            Updated evaluator.
+        HttpResponse[PublicEvaluatorUpdate]
+
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
             method="PUT",
             json={
-                "name": name,
+                "version_id": version_id,
+                "configurations": configurations,
+                "categorical_choices": categorical_choices,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "id": id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "evaluator_slug": evaluator_slug,
+                "name": name,
+                "unique_organization_id": unique_organization_id,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=ReplaceEvaluatorRequestScoreConfig, direction="write"
-                ),
-                "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config, annotation=typing.Optional[ReplaceEvaluatorRequestLlmConfig], direction="write"
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config,
-                    annotation=typing.Optional[ReplaceEvaluatorRequestCodeConfig],
-                    direction="write",
-                ),
-                "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem],
-                    direction="write",
-                ),
+                "custom_required_fields": custom_required_fields,
                 "starred": starred,
+                "organization": organization,
             },
             headers={
                 "content-type": "application/json",
@@ -552,46 +343,13 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ReplaceEvaluatorResponse,
+                    PublicEvaluatorUpdate,
                     parse_obj_as(
-                        type_=ReplaceEvaluatorResponse,  # type: ignore
+                        type_=PublicEvaluatorUpdate,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -601,12 +359,15 @@ class RawEvaluatorsClient:
         self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
+        Delete ALL versions of the evaluator.
+
+        Uses SuperAdminMixin's queryset routing for org filtering.
+        Cross-org JWT write protection is enforced automatically by ObjectOwnershipPermission
+        in get_object() via check_object_permissions().
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -623,28 +384,6 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -654,97 +393,111 @@ class RawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
-        score_value_type: typing.Optional[UpdateEvaluatorRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[UpdateEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[UpdateEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[UpdateEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[UpdateEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[UpdateEvaluatorResponse]:
+    ) -> HttpResponse[PublicEvaluatorUpdate]:
         """
-        Partially update the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
+        Update the draft version (queryset already filters is_read_only=False).
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version_id : typing.Optional[str]
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
-
-        type : typing.Optional[UpdateEvaluatorRequestType]
-
-        score_value_type : typing.Optional[UpdateEvaluatorRequestScoreValueType]
-
-        eval_class : typing.Optional[UpdateEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[UpdateEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[UpdateEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[UpdateEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[UpdateEvaluatorResponse]
-            Updated evaluator.
+        HttpResponse[PublicEvaluatorUpdate]
+
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
             method="PATCH",
             json={
-                "name": name,
+                "version_id": version_id,
+                "configurations": configurations,
+                "categorical_choices": categorical_choices,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "id": id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "evaluator_slug": evaluator_slug,
+                "name": name,
+                "unique_organization_id": unique_organization_id,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=UpdateEvaluatorRequestScoreConfig, direction="write"
-                ),
-                "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config, annotation=typing.Optional[UpdateEvaluatorRequestLlmConfig], direction="write"
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config, annotation=typing.Optional[UpdateEvaluatorRequestCodeConfig], direction="write"
-                ),
-                "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem],
-                    direction="write",
-                ),
+                "custom_required_fields": custom_required_fields,
                 "starred": starred,
+                "organization": organization,
             },
             headers={
                 "content-type": "application/json",
@@ -755,149 +508,48 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    UpdateEvaluatorResponse,
+                    PublicEvaluatorUpdate,
                     parse_obj_as(
-                        type_=UpdateEvaluatorResponse,  # type: ignore
+                        type_=PublicEvaluatorUpdate,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def run_evaluator(
-        self,
-        evaluator_id: str,
-        *,
-        inputs: RunEvaluatorRequestInputs,
-        generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
-        evaluation_id: typing.Optional[str] = OMIT,
-        run_evaluator_request_evaluator_id: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[RunEvaluatorResponse]:
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[None]:
         """
-        Run an evaluator against raw unified inputs. The evaluator ID may include a version suffix such as `evl_abc123:2` to run a specific version.
+        Main entry point for test run evaluations.
+        Handles four modes of operation:
+        1. Evaluation from raw eval inputs & evaluator id (backward compatibility)
+        2. Evaluation from log
+        3. Evaluation from evaluator configuration form
+        4. Evaluation from raw eval inputs & evaluator id (new public API mode)
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        inputs : RunEvaluatorRequestInputs
-            Unified evaluator inputs.
-
-        generation_method : typing.Optional[RunEvaluatorRequestGenerationMethod]
-            Optional method override for evaluators that support multiple execution modes.
-
-        evaluation_id : typing.Optional[str]
-            Legacy evaluator ID field. Prefer the path parameter or `evaluator_id`.
-
-        run_evaluator_request_evaluator_id : typing.Optional[str]
-            Optional evaluator ID override. Supports version suffixes such as `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[RunEvaluatorResponse]
-            Evaluation result.
+        HttpResponse[None]
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/run/",
             method="POST",
-            json={
-                "inputs": convert_and_respect_annotation_metadata(
-                    object_=inputs, annotation=RunEvaluatorRequestInputs, direction="write"
-                ),
-                "generation_method": generation_method,
-                "evaluation_id": evaluation_id,
-                "evaluator_id": run_evaluator_request_evaluator_id,
-            },
-            headers={
-                "content-type": "application/json",
-            },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    RunEvaluatorResponse,
-                    parse_obj_as(
-                        type_=RunEvaluatorResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                return HttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -910,28 +562,34 @@ class RawEvaluatorsClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ListEvaluatorVersionsResponse]:
+    ) -> HttpResponse[PaginatedPublicEvaluatorVersionListList]:
         """
-        List all versions of an evaluator, ordered newest first. Version `0` is the initial draft; committed versions are returned with `is_read_only: true`.
+        List all versions or create new version (commit).
+
+        GET /api/evaluators/{id}/versions/ - List all versions
+        POST /api/evaluators/{id}/versions/ - Commit (create new version)
+
+        Access control via NestedResourceMixin: org identity derived from parent evaluator.
+        Superadmin: Can LIST all versions across all organizations via JWT.
+        Regular users: Can only access versions in their organization.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         page : typing.Optional[int]
-            Page number.
+            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
+            Number of results to return per page.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[ListEvaluatorVersionsResponse]
-            Paginated evaluator versions.
+        HttpResponse[PaginatedPublicEvaluatorVersionListList]
+
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/",
@@ -945,35 +603,13 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ListEvaluatorVersionsResponse,
+                    PaginatedPublicEvaluatorVersionListList,
                     parse_obj_as(
-                        type_=ListEvaluatorVersionsResponse,  # type: ignore
+                        type_=PaginatedPublicEvaluatorVersionListList,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -983,108 +619,97 @@ class RawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
-        score_value_type: typing.Optional[CreateEvaluatorVersionRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[CreateEvaluatorVersionRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[CreateEvaluatorVersionRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[CreateEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[CreateEvaluatorVersionRequestCodeConfig] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        score_value_type: typing.Optional[str] = OMIT,
         version_description: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        eval_class: typing.Optional[EvaluatorCreateVersionRequestEvalClass] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        created_by: typing.Optional[int] = OMIT,
+        updated_by: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[CreateEvaluatorVersionResponse]:
+    ) -> HttpResponse[EvaluatorCreateVersion]:
         """
-        Commit the current draft and create the next draft version. Supplying only `version_description` commits the existing draft snapshot; supplying configuration fields commits with changes.
+        Create a new version (commit). Org derived from parent evaluator.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
+        score_value_type : typing.Optional[str]
 
-        type : typing.Optional[CreateEvaluatorVersionRequestType]
-
-        score_value_type : typing.Optional[CreateEvaluatorVersionRequestScoreValueType]
-
-        eval_class : typing.Optional[CreateEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
+        version_description : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[CreateEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        eval_class : typing.Optional[EvaluatorCreateVersionRequestEvalClass]
 
-        llm_config : typing.Optional[CreateEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[CreateEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
 
-        version_description : typing.Optional[str]
-            Commit message for this version.
+        created_by : typing.Optional[int]
+
+        updated_by : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[CreateEvaluatorVersionResponse]
-            Created evaluator version.
+        HttpResponse[EvaluatorCreateVersion]
+
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/",
             method="POST",
             json={
-                "name": name,
-                "evaluator_slug": evaluator_slug,
-                "type": type,
-                "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=CreateEvaluatorVersionRequestScoreConfig, direction="write"
-                ),
-                "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config,
-                    annotation=typing.Optional[CreateEvaluatorVersionRequestLlmConfig],
-                    direction="write",
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config,
-                    annotation=typing.Optional[CreateEvaluatorVersionRequestCodeConfig],
-                    direction="write",
-                ),
                 "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem],
-                    direction="write",
-                ),
-                "starred": starred,
+                "categorical_choices": categorical_choices,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "name": name,
+                "score_value_type": score_value_type,
                 "version_description": version_description,
+                "description": description,
+                "type": type,
+                "eval_class": convert_and_respect_annotation_metadata(
+                    object_=eval_class, annotation=EvaluatorCreateVersionRequestEvalClass, direction="write"
+                ),
+                "custom_required_fields": custom_required_fields,
+                "starred": starred,
+                "created_by": created_by,
+                "updated_by": updated_by,
             },
             headers={
                 "content-type": "application/json",
@@ -1095,46 +720,13 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CreateEvaluatorVersionResponse,
+                    EvaluatorCreateVersion,
                     parse_obj_as(
-                        type_=CreateEvaluatorVersionResponse,  # type: ignore
+                        type_=EvaluatorCreateVersion,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1142,25 +734,33 @@ class RawEvaluatorsClient:
 
     def retrieve_evaluator_version(
         self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[RetrieveEvaluatorVersionResponse]:
+    ) -> HttpResponse[PublicEvaluatorVersionDetail]:
         """
-        Retrieve a specific evaluator version by version number.
+        Get or edit a specific version by version number.
+
+        GET /api/evaluators/{evaluator_id}/versions/{version}/ - Get specific version
+        PATCH /api/evaluators/{evaluator_id}/versions/{version}/ - Edit (only if is_read_only=False)
+
+        NOTE: DELETE is not allowed for specific versions. Delete the entire evaluator instead.
+        Versions are immutable history - you can only add new versions, not remove old ones.
+
+        Access control via NestedResourceMixin: org identity derived from parent evaluator.
+        Superadmin: Can READ any version across all organizations via JWT.
+        Regular users: Can only access versions in their organization.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         version : int
-            Evaluator version number.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[RetrieveEvaluatorVersionResponse]
-            Evaluator version details.
+        HttpResponse[PublicEvaluatorVersionDetail]
+
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version)}/",
@@ -1170,35 +770,13 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    RetrieveEvaluatorVersionResponse,
+                    PublicEvaluatorVersionDetail,
                     parse_obj_as(
-                        type_=RetrieveEvaluatorVersionResponse,  # type: ignore
+                        type_=PublicEvaluatorVersionDetail,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1207,66 +785,67 @@ class RawEvaluatorsClient:
     def replace_evaluator_version(
         self,
         evaluator_id: str,
-        version: int,
+        version_: int,
         *,
         name: str,
-        type: ReplaceEvaluatorVersionRequestType,
-        score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[ReplaceEvaluatorVersionRequestEvalClass] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        eval_class: typing.Optional[PublicEvaluatorVersionDetailRequestEvalClass] = OMIT,
         starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ReplaceEvaluatorVersionResponse]:
+    ) -> HttpResponse[PublicEvaluatorVersionDetail]:
         """
-        Replace a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Full update - only allowed if is_read_only=False.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        version : int
-            Evaluator version number.
+        version_ : int
 
         name : str
 
-        type : ReplaceEvaluatorVersionRequestType
+        id : typing.Optional[str]
 
-        score_value_type : ReplaceEvaluatorVersionRequestScoreValueType
+        version_id : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
+        version : typing.Optional[int]
 
-        eval_class : typing.Optional[ReplaceEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
 
-        code_config : typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
 
-        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]]
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        eval_class : typing.Optional[PublicEvaluatorVersionDetailRequestEvalClass]
 
         starred : typing.Optional[bool]
 
@@ -1275,38 +854,30 @@ class RawEvaluatorsClient:
 
         Returns
         -------
-        HttpResponse[ReplaceEvaluatorVersionResponse]
-            Updated evaluator version.
+        HttpResponse[PublicEvaluatorVersionDetail]
+
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version)}/",
+            f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version_)}/",
             method="PUT",
             json={
+                "id": id,
+                "version_id": version_id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "name": name,
-                "evaluator_slug": evaluator_slug,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=ReplaceEvaluatorVersionRequestScoreConfig, direction="write"
-                ),
+                "score_config": score_config,
                 "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config,
-                    annotation=typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig],
-                    direction="write",
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config,
-                    annotation=typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig],
-                    direction="write",
-                ),
+                "llm_config": llm_config,
+                "code_config": code_config,
                 "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem],
-                    direction="write",
+                "categorical_choices": categorical_choices,
+                "eval_class": convert_and_respect_annotation_metadata(
+                    object_=eval_class, annotation=PublicEvaluatorVersionDetailRequestEvalClass, direction="write"
                 ),
                 "starred": starred,
             },
@@ -1319,57 +890,13 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ReplaceEvaluatorVersionResponse,
+                    PublicEvaluatorVersionDetail,
                     parse_obj_as(
-                        type_=ReplaceEvaluatorVersionResponse,  # type: ignore
+                        type_=PublicEvaluatorVersionDetail,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 403:
-                raise ForbiddenError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1378,66 +905,67 @@ class RawEvaluatorsClient:
     def update_evaluator_version(
         self,
         evaluator_id: str,
-        version: int,
+        version_: int,
         *,
+        id: typing.Optional[str] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
-        score_value_type: typing.Optional[UpdateEvaluatorVersionRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[UpdateEvaluatorVersionRequestEvalClass] = OMIT,
         description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[UpdateEvaluatorVersionRequestScoreConfig] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[UpdateEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[UpdateEvaluatorVersionRequestCodeConfig] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        eval_class: typing.Optional[PatchedPublicEvaluatorVersionDetailRequestEvalClass] = OMIT,
         starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[UpdateEvaluatorVersionResponse]:
+    ) -> HttpResponse[PublicEvaluatorVersionDetail]:
         """
-        Partially update a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Edit version - only allowed if is_read_only=False.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        version : int
-            Evaluator version number.
+        version_ : int
+
+        id : typing.Optional[str]
+
+        version_id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
-
-        type : typing.Optional[UpdateEvaluatorVersionRequestType]
-
-        score_value_type : typing.Optional[UpdateEvaluatorVersionRequestScoreValueType]
-
-        eval_class : typing.Optional[UpdateEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
-
         description : typing.Optional[str]
 
-        score_config : typing.Optional[UpdateEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[UpdateEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
 
-        code_config : typing.Optional[UpdateEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
 
-        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]]
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        eval_class : typing.Optional[PatchedPublicEvaluatorVersionDetailRequestEvalClass]
 
         starred : typing.Optional[bool]
 
@@ -1446,37 +974,31 @@ class RawEvaluatorsClient:
 
         Returns
         -------
-        HttpResponse[UpdateEvaluatorVersionResponse]
-            Updated evaluator version.
+        HttpResponse[PublicEvaluatorVersionDetail]
+
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version)}/",
+            f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version_)}/",
             method="PATCH",
             json={
+                "id": id,
+                "version_id": version_id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "name": name,
-                "evaluator_slug": evaluator_slug,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=UpdateEvaluatorVersionRequestScoreConfig, direction="write"
-                ),
+                "score_config": score_config,
                 "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config,
-                    annotation=typing.Optional[UpdateEvaluatorVersionRequestLlmConfig],
-                    direction="write",
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config,
-                    annotation=typing.Optional[UpdateEvaluatorVersionRequestCodeConfig],
-                    direction="write",
-                ),
+                "llm_config": llm_config,
+                "code_config": code_config,
                 "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem],
+                "categorical_choices": categorical_choices,
+                "eval_class": convert_and_respect_annotation_metadata(
+                    object_=eval_class,
+                    annotation=PatchedPublicEvaluatorVersionDetailRequestEvalClass,
                     direction="write",
                 ),
                 "starred": starred,
@@ -1490,57 +1012,177 @@ class RawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    UpdateEvaluatorVersionResponse,
+                    PublicEvaluatorVersionDetail,
                     parse_obj_as(
-                        type_=UpdateEvaluatorVersionResponse,  # type: ignore
+                        type_=PublicEvaluatorVersionDetail,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def list_evaluators(
+        self,
+        *,
+        name: str,
+        version_id: typing.Optional[str] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        eval_class: typing.Optional[PublicEvaluatorListRequestEvalClass] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[PublicEvaluatorList]:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        name : str
+
+        version_id : typing.Optional[str]
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
+
+        unique_organization_id : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        eval_class : typing.Optional[PublicEvaluatorListRequestEvalClass]
+
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
+
+        starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[PublicEvaluatorList]
+
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/evaluators/list/",
+            method="POST",
+            json={
+                "version_id": version_id,
+                "configurations": configurations,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "id": id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
+                "evaluator_slug": evaluator_slug,
+                "name": name,
+                "unique_organization_id": unique_organization_id,
+                "description": description,
+                "type": type,
+                "score_value_type": score_value_type,
+                "eval_class": convert_and_respect_annotation_metadata(
+                    object_=eval_class, annotation=PublicEvaluatorListRequestEvalClass, direction="write"
+                ),
+                "custom_required_fields": custom_required_fields,
+                "starred": starred,
+                "organization": organization,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    PublicEvaluatorList,
+                    parse_obj_as(
+                        type_=PublicEvaluatorList,  # type: ignore
+                        object_=_response.json(),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 403:
-                raise ForbiddenError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                return HttpResponse(response=_response, data=_data)
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def get_filtered_evaluators_summary(
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[None]:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[None]
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/evaluators/summary/",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return HttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1555,93 +1197,115 @@ class AsyncRawEvaluatorsClient:
         self,
         *,
         name: str,
-        type: CreateEvaluatorRequestType,
-        score_value_type: CreateEvaluatorRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[CreateEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[CreateEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[CreateEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[CreateEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        eval_class: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[CreateEvaluatorResponse]:
+    ) -> AsyncHttpResponse[PublicEvaluatorCreate]:
         """
-        Create a grader/evaluator. Current public evaluator types are `llm`, `human`, and `code`; legacy human-specific types remain readable for older evaluators. New clients should use the flat config fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of relying on legacy `configurations`.
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
 
         Parameters
         ----------
         name : str
 
-        type : CreateEvaluatorRequestType
+        version_id : typing.Optional[str]
 
-        score_value_type : CreateEvaluatorRequestScoreValueType
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        eval_class : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
 
-        eval_class : typing.Optional[CreateEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[CreateEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[CreateEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[CreateEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[CreateEvaluatorResponse]
-            Created evaluator.
+        AsyncHttpResponse[PublicEvaluatorCreate]
+
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/evaluators/",
             method="POST",
             json={
-                "name": name,
+                "version_id": version_id,
+                "configurations": configurations,
+                "categorical_choices": categorical_choices,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "eval_class": eval_class,
+                "id": id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "evaluator_slug": evaluator_slug,
+                "name": name,
+                "unique_organization_id": unique_organization_id,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=CreateEvaluatorRequestScoreConfig, direction="write"
-                ),
-                "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config, annotation=typing.Optional[CreateEvaluatorRequestLlmConfig], direction="write"
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config, annotation=typing.Optional[CreateEvaluatorRequestCodeConfig], direction="write"
-                ),
-                "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[CreateEvaluatorRequestCategoricalChoicesItem],
-                    direction="write",
-                ),
+                "custom_required_fields": custom_required_fields,
                 "starred": starred,
+                "organization": organization,
             },
             headers={
                 "content-type": "application/json",
@@ -1652,199 +1316,13 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CreateEvaluatorResponse,
+                    PublicEvaluatorCreate,
                     parse_obj_as(
-                        type_=CreateEvaluatorResponse,  # type: ignore
+                        type_=PublicEvaluatorCreate,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_evaluators(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        is_exporting: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListEvaluatorsResponse]:
-        """
-        List evaluators using POST-for-filtering. The backend returns only the current draft/latest row for each evaluator and includes filter metadata for dashboard clients.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix with `-` for descending order.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        is_exporting : typing.Optional[bool]
-            Reserved for dashboard exports.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ListEvaluatorsResponse]
-            Paginated filtered evaluator list.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/evaluators/list/",
-            method="POST",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "sort_by": sort_by,
-            },
-            json={
-                "filters": filters,
-                "is_exporting": is_exporting,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ListEvaluatorsResponse,
-                    parse_obj_as(
-                        type_=ListEvaluatorsResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def get_filtered_evaluators_summary(
-        self,
-        *,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[GetFilteredEvaluatorsSummaryResponse]:
-        """
-        Return the total number of current draft/latest evaluators after applying standard filters.
-
-        Parameters
-        ----------
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[GetFilteredEvaluatorsSummaryResponse]
-            Filtered evaluator summary.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/evaluators/summary/",
-            method="POST",
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    GetFilteredEvaluatorsSummaryResponse,
-                    parse_obj_as(
-                        type_=GetFilteredEvaluatorsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1852,22 +1330,36 @@ class AsyncRawEvaluatorsClient:
 
     async def retrieve_evaluator(
         self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[RetrieveEvaluatorResponse]:
+    ) -> AsyncHttpResponse[PublicEvaluatorDetail]:
         """
-        Retrieve the current draft/latest version of an evaluator by ID.
+        Get, update, or delete an evaluator's draft version.
+
+        GET /api/evaluators/{evaluator_id}/ - Get draft version (is_read_only=False)
+        PATCH /api/evaluators/{evaluator_id}/ - Update draft version
+        DELETE /api/evaluators/{evaluator_id}/ - Delete ALL versions
+
+        Superadmin: Can READ any evaluator across all organizations via JWT.
+                    Cannot WRITE via JWT - must use API key for write operations.
+        Regular users: Can only access evaluators in their organization.
+
+        NOTE: Queryset filters by is_read_only=False, ensuring unique lookup per evaluator_id.
+        This allows DRF's standard get_object() to work without manual overrides.
+        Delete removes ALL versions of the evaluator.
+
+        Defense-in-depth:
+        - SuperAdminMixin: Queryset routing + JWT write protection + object-level ownership
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[RetrieveEvaluatorResponse]
-            Evaluator details.
+        AsyncHttpResponse[PublicEvaluatorDetail]
+
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
@@ -1877,35 +1369,13 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    RetrieveEvaluatorResponse,
+                    PublicEvaluatorDetail,
                     parse_obj_as(
-                        type_=RetrieveEvaluatorResponse,  # type: ignore
+                        type_=PublicEvaluatorDetail,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1916,98 +1386,112 @@ class AsyncRawEvaluatorsClient:
         evaluator_id: str,
         *,
         name: str,
-        type: ReplaceEvaluatorRequestType,
-        score_value_type: ReplaceEvaluatorRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[ReplaceEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[ReplaceEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[ReplaceEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[ReplaceEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ReplaceEvaluatorResponse]:
+    ) -> AsyncHttpResponse[PublicEvaluatorUpdate]:
         """
-        Replace the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
+        PUT handler with superadmin lock and field protection.
+
+        Same as patch() - checks lock and field protection before delegating.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         name : str
 
-        type : ReplaceEvaluatorRequestType
+        version_id : typing.Optional[str]
 
-        score_value_type : ReplaceEvaluatorRequestScoreValueType
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
 
-        eval_class : typing.Optional[ReplaceEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[ReplaceEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[ReplaceEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[ReplaceEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[ReplaceEvaluatorResponse]
-            Updated evaluator.
+        AsyncHttpResponse[PublicEvaluatorUpdate]
+
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
             method="PUT",
             json={
-                "name": name,
+                "version_id": version_id,
+                "configurations": configurations,
+                "categorical_choices": categorical_choices,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "id": id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "evaluator_slug": evaluator_slug,
+                "name": name,
+                "unique_organization_id": unique_organization_id,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=ReplaceEvaluatorRequestScoreConfig, direction="write"
-                ),
-                "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config, annotation=typing.Optional[ReplaceEvaluatorRequestLlmConfig], direction="write"
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config,
-                    annotation=typing.Optional[ReplaceEvaluatorRequestCodeConfig],
-                    direction="write",
-                ),
-                "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[ReplaceEvaluatorRequestCategoricalChoicesItem],
-                    direction="write",
-                ),
+                "custom_required_fields": custom_required_fields,
                 "starred": starred,
+                "organization": organization,
             },
             headers={
                 "content-type": "application/json",
@@ -2018,46 +1502,13 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ReplaceEvaluatorResponse,
+                    PublicEvaluatorUpdate,
                     parse_obj_as(
-                        type_=ReplaceEvaluatorResponse,  # type: ignore
+                        type_=PublicEvaluatorUpdate,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2067,12 +1518,15 @@ class AsyncRawEvaluatorsClient:
         self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Delete an evaluator and all of its versions. Individual committed versions cannot be deleted separately.
+        Delete ALL versions of the evaluator.
+
+        Uses SuperAdminMixin's queryset routing for org filtering.
+        Cross-org JWT write protection is enforced automatically by ObjectOwnershipPermission
+        in get_object() via check_object_permissions().
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2089,28 +1543,6 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2120,97 +1552,111 @@ class AsyncRawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[UpdateEvaluatorRequestType] = OMIT,
-        score_value_type: typing.Optional[UpdateEvaluatorRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[UpdateEvaluatorRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[UpdateEvaluatorRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[UpdateEvaluatorRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[UpdateEvaluatorRequestCodeConfig] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
         starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[UpdateEvaluatorResponse]:
+    ) -> AsyncHttpResponse[PublicEvaluatorUpdate]:
         """
-        Partially update the current draft/latest evaluator configuration. Committed read-only versions cannot be edited.
+        Update the draft version (queryset already filters is_read_only=False).
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        version_id : typing.Optional[str]
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
-
-        type : typing.Optional[UpdateEvaluatorRequestType]
-
-        score_value_type : typing.Optional[UpdateEvaluatorRequestScoreValueType]
-
-        eval_class : typing.Optional[UpdateEvaluatorRequestEvalClass]
-            Optional pre-built evaluator template.
+        unique_organization_id : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[UpdateEvaluatorRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
 
-        llm_config : typing.Optional[UpdateEvaluatorRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[UpdateEvaluatorRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[UpdateEvaluatorResponse]
-            Updated evaluator.
+        AsyncHttpResponse[PublicEvaluatorUpdate]
+
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/",
             method="PATCH",
             json={
-                "name": name,
+                "version_id": version_id,
+                "configurations": configurations,
+                "categorical_choices": categorical_choices,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "id": id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "evaluator_slug": evaluator_slug,
+                "name": name,
+                "unique_organization_id": unique_organization_id,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=UpdateEvaluatorRequestScoreConfig, direction="write"
-                ),
-                "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config, annotation=typing.Optional[UpdateEvaluatorRequestLlmConfig], direction="write"
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config, annotation=typing.Optional[UpdateEvaluatorRequestCodeConfig], direction="write"
-                ),
-                "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[UpdateEvaluatorRequestCategoricalChoicesItem],
-                    direction="write",
-                ),
+                "custom_required_fields": custom_required_fields,
                 "starred": starred,
+                "organization": organization,
             },
             headers={
                 "content-type": "application/json",
@@ -2221,149 +1667,48 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    UpdateEvaluatorResponse,
+                    PublicEvaluatorUpdate,
                     parse_obj_as(
-                        type_=UpdateEvaluatorResponse,  # type: ignore
+                        type_=PublicEvaluatorUpdate,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def run_evaluator(
-        self,
-        evaluator_id: str,
-        *,
-        inputs: RunEvaluatorRequestInputs,
-        generation_method: typing.Optional[RunEvaluatorRequestGenerationMethod] = OMIT,
-        evaluation_id: typing.Optional[str] = OMIT,
-        run_evaluator_request_evaluator_id: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[RunEvaluatorResponse]:
+        self, evaluator_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
         """
-        Run an evaluator against raw unified inputs. The evaluator ID may include a version suffix such as `evl_abc123:2` to run a specific version.
+        Main entry point for test run evaluations.
+        Handles four modes of operation:
+        1. Evaluation from raw eval inputs & evaluator id (backward compatibility)
+        2. Evaluation from log
+        3. Evaluation from evaluator configuration form
+        4. Evaluation from raw eval inputs & evaluator id (new public API mode)
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
-
-        inputs : RunEvaluatorRequestInputs
-            Unified evaluator inputs.
-
-        generation_method : typing.Optional[RunEvaluatorRequestGenerationMethod]
-            Optional method override for evaluators that support multiple execution modes.
-
-        evaluation_id : typing.Optional[str]
-            Legacy evaluator ID field. Prefer the path parameter or `evaluator_id`.
-
-        run_evaluator_request_evaluator_id : typing.Optional[str]
-            Optional evaluator ID override. Supports version suffixes such as `evl_abc123:2`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[RunEvaluatorResponse]
-            Evaluation result.
+        AsyncHttpResponse[None]
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/run/",
             method="POST",
-            json={
-                "inputs": convert_and_respect_annotation_metadata(
-                    object_=inputs, annotation=RunEvaluatorRequestInputs, direction="write"
-                ),
-                "generation_method": generation_method,
-                "evaluation_id": evaluation_id,
-                "evaluator_id": run_evaluator_request_evaluator_id,
-            },
-            headers={
-                "content-type": "application/json",
-            },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    RunEvaluatorResponse,
-                    parse_obj_as(
-                        type_=RunEvaluatorResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                return AsyncHttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2376,28 +1721,34 @@ class AsyncRawEvaluatorsClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ListEvaluatorVersionsResponse]:
+    ) -> AsyncHttpResponse[PaginatedPublicEvaluatorVersionListList]:
         """
-        List all versions of an evaluator, ordered newest first. Version `0` is the initial draft; committed versions are returned with `is_read_only: true`.
+        List all versions or create new version (commit).
+
+        GET /api/evaluators/{id}/versions/ - List all versions
+        POST /api/evaluators/{id}/versions/ - Commit (create new version)
+
+        Access control via NestedResourceMixin: org identity derived from parent evaluator.
+        Superadmin: Can LIST all versions across all organizations via JWT.
+        Regular users: Can only access versions in their organization.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         page : typing.Optional[int]
-            Page number.
+            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
+            Number of results to return per page.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[ListEvaluatorVersionsResponse]
-            Paginated evaluator versions.
+        AsyncHttpResponse[PaginatedPublicEvaluatorVersionListList]
+
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/",
@@ -2411,35 +1762,13 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ListEvaluatorVersionsResponse,
+                    PaginatedPublicEvaluatorVersionListList,
                     parse_obj_as(
-                        type_=ListEvaluatorVersionsResponse,  # type: ignore
+                        type_=PaginatedPublicEvaluatorVersionListList,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2449,108 +1778,97 @@ class AsyncRawEvaluatorsClient:
         self,
         evaluator_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[CreateEvaluatorVersionRequestType] = OMIT,
-        score_value_type: typing.Optional[CreateEvaluatorVersionRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[CreateEvaluatorVersionRequestEvalClass] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[CreateEvaluatorVersionRequestScoreConfig] = OMIT,
-        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[CreateEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[CreateEvaluatorVersionRequestCodeConfig] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        score_value_type: typing.Optional[str] = OMIT,
         version_description: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        eval_class: typing.Optional[EvaluatorCreateVersionRequestEvalClass] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        created_by: typing.Optional[int] = OMIT,
+        updated_by: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[CreateEvaluatorVersionResponse]:
+    ) -> AsyncHttpResponse[EvaluatorCreateVersion]:
         """
-        Commit the current draft and create the next draft version. Supplying only `version_description` commits the existing draft snapshot; supplying configuration fields commits with changes.
+        Create a new version (commit). Org derived from parent evaluator.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
+        score_value_type : typing.Optional[str]
 
-        type : typing.Optional[CreateEvaluatorVersionRequestType]
-
-        score_value_type : typing.Optional[CreateEvaluatorVersionRequestScoreValueType]
-
-        eval_class : typing.Optional[CreateEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
+        version_description : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[CreateEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
 
-        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
+        eval_class : typing.Optional[EvaluatorCreateVersionRequestEvalClass]
 
-        llm_config : typing.Optional[CreateEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
-
-        code_config : typing.Optional[CreateEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
-
-        configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
-
-        categorical_choices : typing.Optional[typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem]]
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
 
         starred : typing.Optional[bool]
 
-        version_description : typing.Optional[str]
-            Commit message for this version.
+        created_by : typing.Optional[int]
+
+        updated_by : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[CreateEvaluatorVersionResponse]
-            Created evaluator version.
+        AsyncHttpResponse[EvaluatorCreateVersion]
+
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/",
             method="POST",
             json={
-                "name": name,
-                "evaluator_slug": evaluator_slug,
-                "type": type,
-                "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=CreateEvaluatorVersionRequestScoreConfig, direction="write"
-                ),
-                "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config,
-                    annotation=typing.Optional[CreateEvaluatorVersionRequestLlmConfig],
-                    direction="write",
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config,
-                    annotation=typing.Optional[CreateEvaluatorVersionRequestCodeConfig],
-                    direction="write",
-                ),
                 "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[CreateEvaluatorVersionRequestCategoricalChoicesItem],
-                    direction="write",
-                ),
-                "starred": starred,
+                "categorical_choices": categorical_choices,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "name": name,
+                "score_value_type": score_value_type,
                 "version_description": version_description,
+                "description": description,
+                "type": type,
+                "eval_class": convert_and_respect_annotation_metadata(
+                    object_=eval_class, annotation=EvaluatorCreateVersionRequestEvalClass, direction="write"
+                ),
+                "custom_required_fields": custom_required_fields,
+                "starred": starred,
+                "created_by": created_by,
+                "updated_by": updated_by,
             },
             headers={
                 "content-type": "application/json",
@@ -2561,46 +1879,13 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    CreateEvaluatorVersionResponse,
+                    EvaluatorCreateVersion,
                     parse_obj_as(
-                        type_=CreateEvaluatorVersionResponse,  # type: ignore
+                        type_=EvaluatorCreateVersion,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2608,25 +1893,33 @@ class AsyncRawEvaluatorsClient:
 
     async def retrieve_evaluator_version(
         self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[RetrieveEvaluatorVersionResponse]:
+    ) -> AsyncHttpResponse[PublicEvaluatorVersionDetail]:
         """
-        Retrieve a specific evaluator version by version number.
+        Get or edit a specific version by version number.
+
+        GET /api/evaluators/{evaluator_id}/versions/{version}/ - Get specific version
+        PATCH /api/evaluators/{evaluator_id}/versions/{version}/ - Edit (only if is_read_only=False)
+
+        NOTE: DELETE is not allowed for specific versions. Delete the entire evaluator instead.
+        Versions are immutable history - you can only add new versions, not remove old ones.
+
+        Access control via NestedResourceMixin: org identity derived from parent evaluator.
+        Superadmin: Can READ any version across all organizations via JWT.
+        Regular users: Can only access versions in their organization.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
         version : int
-            Evaluator version number.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[RetrieveEvaluatorVersionResponse]
-            Evaluator version details.
+        AsyncHttpResponse[PublicEvaluatorVersionDetail]
+
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version)}/",
@@ -2636,35 +1929,13 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    RetrieveEvaluatorVersionResponse,
+                    PublicEvaluatorVersionDetail,
                     parse_obj_as(
-                        type_=RetrieveEvaluatorVersionResponse,  # type: ignore
+                        type_=PublicEvaluatorVersionDetail,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2673,66 +1944,67 @@ class AsyncRawEvaluatorsClient:
     async def replace_evaluator_version(
         self,
         evaluator_id: str,
-        version: int,
+        version_: int,
         *,
         name: str,
-        type: ReplaceEvaluatorVersionRequestType,
-        score_value_type: ReplaceEvaluatorVersionRequestScoreValueType,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        eval_class: typing.Optional[ReplaceEvaluatorVersionRequestEvalClass] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        eval_class: typing.Optional[PublicEvaluatorVersionDetailRequestEvalClass] = OMIT,
         starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ReplaceEvaluatorVersionResponse]:
+    ) -> AsyncHttpResponse[PublicEvaluatorVersionDetail]:
         """
-        Replace a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Full update - only allowed if is_read_only=False.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        version : int
-            Evaluator version number.
+        version_ : int
 
         name : str
 
-        type : ReplaceEvaluatorVersionRequestType
+        id : typing.Optional[str]
 
-        score_value_type : ReplaceEvaluatorVersionRequestScoreValueType
+        version_id : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
+        version : typing.Optional[int]
 
-        eval_class : typing.Optional[ReplaceEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        score_config : typing.Optional[ReplaceEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
 
-        code_config : typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
 
-        categorical_choices : typing.Optional[typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem]]
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        eval_class : typing.Optional[PublicEvaluatorVersionDetailRequestEvalClass]
 
         starred : typing.Optional[bool]
 
@@ -2741,38 +2013,30 @@ class AsyncRawEvaluatorsClient:
 
         Returns
         -------
-        AsyncHttpResponse[ReplaceEvaluatorVersionResponse]
-            Updated evaluator version.
+        AsyncHttpResponse[PublicEvaluatorVersionDetail]
+
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version)}/",
+            f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version_)}/",
             method="PUT",
             json={
+                "id": id,
+                "version_id": version_id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "name": name,
-                "evaluator_slug": evaluator_slug,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=ReplaceEvaluatorVersionRequestScoreConfig, direction="write"
-                ),
+                "score_config": score_config,
                 "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config,
-                    annotation=typing.Optional[ReplaceEvaluatorVersionRequestLlmConfig],
-                    direction="write",
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config,
-                    annotation=typing.Optional[ReplaceEvaluatorVersionRequestCodeConfig],
-                    direction="write",
-                ),
+                "llm_config": llm_config,
+                "code_config": code_config,
                 "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[ReplaceEvaluatorVersionRequestCategoricalChoicesItem],
-                    direction="write",
+                "categorical_choices": categorical_choices,
+                "eval_class": convert_and_respect_annotation_metadata(
+                    object_=eval_class, annotation=PublicEvaluatorVersionDetailRequestEvalClass, direction="write"
                 ),
                 "starred": starred,
             },
@@ -2785,57 +2049,13 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ReplaceEvaluatorVersionResponse,
+                    PublicEvaluatorVersionDetail,
                     parse_obj_as(
-                        type_=ReplaceEvaluatorVersionResponse,  # type: ignore
+                        type_=PublicEvaluatorVersionDetail,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 403:
-                raise ForbiddenError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2844,66 +2064,67 @@ class AsyncRawEvaluatorsClient:
     async def update_evaluator_version(
         self,
         evaluator_id: str,
-        version: int,
+        version_: int,
         *,
+        id: typing.Optional[str] = OMIT,
+        version_id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        type: typing.Optional[UpdateEvaluatorVersionRequestType] = OMIT,
-        score_value_type: typing.Optional[UpdateEvaluatorVersionRequestScoreValueType] = OMIT,
-        eval_class: typing.Optional[UpdateEvaluatorVersionRequestEvalClass] = OMIT,
         description: typing.Optional[str] = OMIT,
-        score_config: typing.Optional[UpdateEvaluatorVersionRequestScoreConfig] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        llm_config: typing.Optional[UpdateEvaluatorVersionRequestLlmConfig] = OMIT,
-        code_config: typing.Optional[UpdateEvaluatorVersionRequestCodeConfig] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        categorical_choices: typing.Optional[
-            typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]
-        ] = OMIT,
+        categorical_choices: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        eval_class: typing.Optional[PatchedPublicEvaluatorVersionDetailRequestEvalClass] = OMIT,
         starred: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[UpdateEvaluatorVersionResponse]:
+    ) -> AsyncHttpResponse[PublicEvaluatorVersionDetail]:
         """
-        Partially update a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Edit version - only allowed if is_read_only=False.
 
         Parameters
         ----------
         evaluator_id : str
-            Evaluator ID. To run a specific version, pass an ID with a version suffix where supported, for example `evl_abc123:2`.
 
-        version : int
-            Evaluator version number.
+        version_ : int
+
+        id : typing.Optional[str]
+
+        version_id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
 
         name : typing.Optional[str]
 
-        evaluator_slug : typing.Optional[str]
-            Organization-scoped evaluator slug.
-
-        type : typing.Optional[UpdateEvaluatorVersionRequestType]
-
-        score_value_type : typing.Optional[UpdateEvaluatorVersionRequestScoreValueType]
-
-        eval_class : typing.Optional[UpdateEvaluatorVersionRequestEvalClass]
-            Optional pre-built evaluator template.
-
         description : typing.Optional[str]
 
-        score_config : typing.Optional[UpdateEvaluatorVersionRequestScoreConfig]
-            Score configuration. For numerical/percentage scores, use `min_score` and `max_score`. For select scores, use `choices`.
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
-            Passing conditions in the standard Respan filter format.
 
-        llm_config : typing.Optional[UpdateEvaluatorVersionRequestLlmConfig]
-            LLM grader configuration. The backend validates this against the selected evaluator form.
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
 
-        code_config : typing.Optional[UpdateEvaluatorVersionRequestCodeConfig]
-            Code grader configuration.
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
 
         configurations : typing.Optional[typing.Dict[str, typing.Any]]
-            Legacy user-facing configuration object. New clients should prefer `llm_config`, `code_config`, `score_config`, and `passing_conditions`.
 
-        categorical_choices : typing.Optional[typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem]]
+        categorical_choices : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+
+        eval_class : typing.Optional[PatchedPublicEvaluatorVersionDetailRequestEvalClass]
 
         starred : typing.Optional[bool]
 
@@ -2912,37 +2133,31 @@ class AsyncRawEvaluatorsClient:
 
         Returns
         -------
-        AsyncHttpResponse[UpdateEvaluatorVersionResponse]
-            Updated evaluator version.
+        AsyncHttpResponse[PublicEvaluatorVersionDetail]
+
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version)}/",
+            f"api/evaluators/{jsonable_encoder(evaluator_id)}/versions/{jsonable_encoder(version_)}/",
             method="PATCH",
             json={
+                "id": id,
+                "version_id": version_id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
                 "name": name,
-                "evaluator_slug": evaluator_slug,
+                "description": description,
                 "type": type,
                 "score_value_type": score_value_type,
-                "eval_class": eval_class,
-                "description": description,
-                "score_config": convert_and_respect_annotation_metadata(
-                    object_=score_config, annotation=UpdateEvaluatorVersionRequestScoreConfig, direction="write"
-                ),
+                "score_config": score_config,
                 "passing_conditions": passing_conditions,
-                "llm_config": convert_and_respect_annotation_metadata(
-                    object_=llm_config,
-                    annotation=typing.Optional[UpdateEvaluatorVersionRequestLlmConfig],
-                    direction="write",
-                ),
-                "code_config": convert_and_respect_annotation_metadata(
-                    object_=code_config,
-                    annotation=typing.Optional[UpdateEvaluatorVersionRequestCodeConfig],
-                    direction="write",
-                ),
+                "llm_config": llm_config,
+                "code_config": code_config,
                 "configurations": configurations,
-                "categorical_choices": convert_and_respect_annotation_metadata(
-                    object_=categorical_choices,
-                    annotation=typing.Sequence[UpdateEvaluatorVersionRequestCategoricalChoicesItem],
+                "categorical_choices": categorical_choices,
+                "eval_class": convert_and_respect_annotation_metadata(
+                    object_=eval_class,
+                    annotation=PatchedPublicEvaluatorVersionDetailRequestEvalClass,
                     direction="write",
                 ),
                 "starred": starred,
@@ -2956,57 +2171,177 @@ class AsyncRawEvaluatorsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    UpdateEvaluatorVersionResponse,
+                    PublicEvaluatorVersionDetail,
                     parse_obj_as(
-                        type_=UpdateEvaluatorVersionResponse,  # type: ignore
+                        type_=PublicEvaluatorVersionDetail,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_evaluators(
+        self,
+        *,
+        name: str,
+        version_id: typing.Optional[str] = OMIT,
+        configurations: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        score_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        passing_conditions: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        llm_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        code_config: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        project: typing.Optional[str] = OMIT,
+        id: typing.Optional[str] = OMIT,
+        version: typing.Optional[int] = OMIT,
+        is_read_only: typing.Optional[bool] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[Type4E2Enum] = OMIT,
+        score_value_type: typing.Optional[ScoreValueTypeEnum] = OMIT,
+        eval_class: typing.Optional[PublicEvaluatorListRequestEvalClass] = OMIT,
+        custom_required_fields: typing.Optional[typing.Sequence[str]] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        organization: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[PublicEvaluatorList]:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        name : str
+
+        version_id : typing.Optional[str]
+
+        configurations : typing.Optional[typing.Dict[str, typing.Any]]
+
+        score_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        passing_conditions : typing.Optional[typing.Dict[str, typing.Any]]
+
+        llm_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        code_config : typing.Optional[typing.Dict[str, typing.Any]]
+
+        project : typing.Optional[str]
+
+        id : typing.Optional[str]
+
+        version : typing.Optional[int]
+
+        is_read_only : typing.Optional[bool]
+
+        version_description : typing.Optional[str]
+
+        evaluator_slug : typing.Optional[str]
+
+        unique_organization_id : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[Type4E2Enum]
+
+        score_value_type : typing.Optional[ScoreValueTypeEnum]
+
+        eval_class : typing.Optional[PublicEvaluatorListRequestEvalClass]
+
+        custom_required_fields : typing.Optional[typing.Sequence[str]]
+
+        starred : typing.Optional[bool]
+
+        organization : typing.Optional[int]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[PublicEvaluatorList]
+
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/evaluators/list/",
+            method="POST",
+            json={
+                "version_id": version_id,
+                "configurations": configurations,
+                "score_config": score_config,
+                "passing_conditions": passing_conditions,
+                "llm_config": llm_config,
+                "code_config": code_config,
+                "project": project,
+                "id": id,
+                "version": version,
+                "is_read_only": is_read_only,
+                "version_description": version_description,
+                "evaluator_slug": evaluator_slug,
+                "name": name,
+                "unique_organization_id": unique_organization_id,
+                "description": description,
+                "type": type,
+                "score_value_type": score_value_type,
+                "eval_class": convert_and_respect_annotation_metadata(
+                    object_=eval_class, annotation=PublicEvaluatorListRequestEvalClass, direction="write"
+                ),
+                "custom_required_fields": custom_required_fields,
+                "starred": starred,
+                "organization": organization,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    PublicEvaluatorList,
+                    parse_obj_as(
+                        type_=PublicEvaluatorList,  # type: ignore
+                        object_=_response.json(),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 403:
-                raise ForbiddenError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def get_filtered_evaluators_summary(
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[None]
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/evaluators/summary/",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return AsyncHttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

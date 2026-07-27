@@ -6,20 +6,9 @@ from json.decoder import JSONDecodeError
 from ..core.api_error import ApiError
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.http_response import AsyncHttpResponse, HttpResponse
-from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
-from ..core.serialization import convert_and_respect_annotation_metadata
-from ..errors.bad_request_error import BadRequestError
-from ..errors.internal_server_error import InternalServerError
-from ..errors.unauthorized_error import UnauthorizedError
-from .types.create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
-from .types.create_chat_completion_request_messages_item import CreateChatCompletionRequestMessagesItem
-from .types.create_chat_completion_response import CreateChatCompletionResponse
-from .types.create_response_request_cache_options import CreateResponseRequestCacheOptions
-from .types.create_response_request_input import CreateResponseRequestInput
-
-# this is used as the default value for optional parameters
-OMIT = typing.cast(typing.Any, ...)
+from .types.create_chat_completion_request_format import CreateChatCompletionRequestFormat
+from .types.create_response_request_format import CreateResponseRequestFormat
 
 
 class RawGatewayClient:
@@ -29,302 +18,66 @@ class RawGatewayClient:
     def create_chat_completion(
         self,
         *,
-        messages: typing.Sequence[CreateChatCompletionRequestMessagesItem],
-        model: str,
-        data_respan_params: typing.Optional[str] = None,
-        respan_route_provider: typing.Optional[str] = None,
-        respan_beta: typing.Optional[str] = None,
-        stream: typing.Optional[bool] = OMIT,
-        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        tool_choice: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[float] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        n: typing.Optional[float] = OMIT,
-        logprobs: typing.Optional[bool] = OMIT,
-        echo: typing.Optional[bool] = OMIT,
-        stop: typing.Optional[typing.Sequence[str]] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        logit_bias: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        parallel_tool_calls: typing.Optional[bool] = OMIT,
-        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        cache_enabled: typing.Optional[bool] = OMIT,
-        cache_ttl: typing.Optional[float] = OMIT,
-        cache_options: typing.Optional[CreateChatCompletionRequestCacheOptions] = OMIT,
-        prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        model_name_map: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        models: typing.Optional[typing.Sequence[str]] = OMIT,
-        exclude_providers: typing.Optional[typing.Sequence[str]] = OMIT,
-        exclude_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
-        positive_feedback: typing.Optional[bool] = OMIT,
-        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        retries: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        format: typing.Optional[CreateChatCompletionRequestFormat] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[CreateChatCompletionResponse]:
+    ) -> HttpResponse[None]:
         """
-        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
+        Centralized respan_params initialization and backward-compat layer.
 
-        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
-        1. **Top-level body fields** - add directly to the request body
-        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
-        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
 
-        Merge order: top-level body fields > `respan_params` > header.
+        Initialization order::
 
-        Legacy compatibility:
-        - `keywordsai_params` is still accepted and merged into `respan_params`
-        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
 
-        When using the OpenAI SDK, pass Respan parameters via `extra_body`.
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
 
         Parameters
         ----------
-        messages : typing.Sequence[CreateChatCompletionRequestMessagesItem]
-            Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
-
-        model : str
-            Model to use. See [Models](https://platform.respan.ai/platform/models) for available options.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        respan_route_provider : typing.Optional[str]
-            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
-
-        respan_beta : typing.Optional[str]
-            Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
-
-        stream : typing.Optional[bool]
-            Stream back partial progress token by token as server-sent events.
-
-        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Tools the model may call. Currently only functions are supported.
-
-        tool_choice : typing.Optional[typing.Dict[str, typing.Any]]
-            Controls tool selection. `"none"` = no tools, `"auto"` = model decides, or specify a tool object.
-
-        frequency_penalty : typing.Optional[float]
-            Penalizes tokens based on frequency in text so far (-2 to 2).
-
-        max_tokens : typing.Optional[float]
-            Maximum tokens to generate.
-
-        temperature : typing.Optional[float]
-            Sampling temperature (0-2). Higher = more random.
-
-        n : typing.Optional[float]
-            Number of completions to generate. Note: costs multiply with `n`.
-
-        logprobs : typing.Optional[bool]
-            Return log probabilities of output tokens.
-
-        echo : typing.Optional[bool]
-            Echo back the prompt in addition to the completion
-
-        stop : typing.Optional[typing.Sequence[str]]
-            Stop sequences where generation halts.
-
-        presence_penalty : typing.Optional[float]
-            Penalizes tokens already present in text (-2 to 2).
-
-        logit_bias : typing.Optional[typing.Dict[str, typing.Any]]
-            Used to modify the probability of tokens appearing in the response
-
-        response_format : typing.Optional[typing.Dict[str, typing.Any]]
-            Output format. Set `{"type": "json_schema", "json_schema": {...}}` for structured output, or `{"type": "json_object"}` for JSON mode.
-
-        parallel_tool_calls : typing.Optional[bool]
-            Enable parallel function calling during tool use.
-
-        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
-            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
-
-        fallback_models : typing.Optional[typing.Sequence[str]]
-            Backup models (ranked by priority) if the primary model fails.
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials. Keys are provider names, values are API keys.
-
-        credential_override : typing.Optional[typing.Dict[str, typing.Any]]
-            One-off credential overrides per provider. Overrides uploaded provider keys for this request only.
-
-        cache_enabled : typing.Optional[bool]
-            Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
-
-        cache_ttl : typing.Optional[float]
-            Cache time-to-live in seconds. Default: 30 days.
-
-        cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
-            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
-
-        prompt : typing.Optional[typing.Dict[str, typing.Any]]
-            Prompt template config. Properties: `prompt_id` (required), `variables` (template variables), `version` (number, or `"latest"` for draft), `echo` (return rendered prompt), `override` (use override_params), `override_params` (OpenAI params to override), `schema_version` (`1` = legacy, `2` = prompt config wins). See [Prompt management](/docs/documentation/features/prompt-management/advanced).
-
-        retry_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Retry config. Properties: `retry_enabled` (boolean, required), `num_retries` (number), `retry_after` (seconds to wait).
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics (tokens, cost, latency) are still recorded.
-
-        model_name_map : typing.Optional[typing.Dict[str, typing.Any]]
-            Azure deployment name mapping. Maps your custom Azure deployment names to standard model names.
-
-        models : typing.Optional[typing.Sequence[str]]
-            Model list for LLM router selection.
-
-        exclude_providers : typing.Optional[typing.Sequence[str]]
-            Providers to exclude from routing. All models under excluded providers are skipped.
-
-        exclude_models : typing.Optional[typing.Sequence[str]]
-            Specific models to exclude from routing.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata attached to the span.
-
-        custom_identifier : typing.Optional[str]
-            Indexed custom tag for fast querying.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier for analytics and budgets.
-
-        customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
-
-        positive_feedback : typing.Optional[bool]
-            User feedback. `true` = liked, `false` = disliked.
-
-        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Inline load balancing options. Each item can include `model`, `weight`, and optional `credentials`.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID. Spans with the same `thread_identifier` are grouped together.
-
-        properties : typing.Optional[typing.Dict[str, typing.Any]]
-            Typed metadata preserving native types (numbers, booleans, nested objects). Unlike `metadata` which coerces to strings.
-
-        retries : typing.Optional[int]
-            Number of retries on failure.
-
-        weight : typing.Optional[float]
-            Load balancing weight.
-
-        span_name : typing.Optional[str]
-            Custom span name for tracing.
-
-        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Namespaced container for all Respan parameters. Alternative to passing them at top level.
+        format : typing.Optional[CreateChatCompletionRequestFormat]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[CreateChatCompletionResponse]
-            Successful response for Create chat completion
+        HttpResponse[None]
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/chat/completions",
             method="POST",
-            json={
-                "messages": convert_and_respect_annotation_metadata(
-                    object_=messages,
-                    annotation=typing.Sequence[CreateChatCompletionRequestMessagesItem],
-                    direction="write",
-                ),
-                "model": model,
-                "stream": stream,
-                "tools": tools,
-                "tool_choice": tool_choice,
-                "frequency_penalty": frequency_penalty,
-                "max_tokens": max_tokens,
-                "temperature": temperature,
-                "n": n,
-                "logprobs": logprobs,
-                "echo": echo,
-                "stop": stop,
-                "presence_penalty": presence_penalty,
-                "logit_bias": logit_bias,
-                "response_format": response_format,
-                "parallel_tool_calls": parallel_tool_calls,
-                "load_balance_group": load_balance_group,
-                "fallback_models": fallback_models,
-                "customer_credentials": customer_credentials,
-                "credential_override": credential_override,
-                "cache_enabled": cache_enabled,
-                "cache_ttl": cache_ttl,
-                "cache_options": convert_and_respect_annotation_metadata(
-                    object_=cache_options, annotation=CreateChatCompletionRequestCacheOptions, direction="write"
-                ),
-                "prompt": prompt,
-                "retry_params": retry_params,
-                "disable_log": disable_log,
-                "model_name_map": model_name_map,
-                "models": models,
-                "exclude_providers": exclude_providers,
-                "exclude_models": exclude_models,
-                "metadata": metadata,
-                "custom_identifier": custom_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_params": customer_params,
-                "request_breakdown": request_breakdown,
-                "positive_feedback": positive_feedback,
-                "load_balance_models": load_balance_models,
-                "thread_identifier": thread_identifier,
-                "properties": properties,
-                "retries": retries,
-                "weight": weight,
-                "span_name": span_name,
-                "respan_params": respan_params,
-            },
-            headers={
-                "content-type": "application/json",
-                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
-                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
-                "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
+            params={
+                "format": format,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    CreateChatCompletionResponse,
-                    parse_obj_as(
-                        type_=CreateChatCompletionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                return HttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -333,262 +86,66 @@ class RawGatewayClient:
     def create_response(
         self,
         *,
-        model: str,
-        input: CreateResponseRequestInput,
-        data_respan_params: typing.Optional[str] = None,
-        respan_route_provider: typing.Optional[str] = None,
-        respan_beta: typing.Optional[str] = None,
-        instructions: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_output_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        previous_response_id: typing.Optional[str] = OMIT,
-        fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        cache_enabled: typing.Optional[bool] = OMIT,
-        cache_ttl: typing.Optional[int] = OMIT,
-        cache_options: typing.Optional[CreateResponseRequestCacheOptions] = OMIT,
-        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
-        prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        models: typing.Optional[typing.Sequence[str]] = OMIT,
-        exclude_providers: typing.Optional[typing.Sequence[str]] = OMIT,
-        exclude_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        positive_feedback: typing.Optional[bool] = OMIT,
-        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        format: typing.Optional[CreateResponseRequestFormat] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Dict[str, typing.Any]]:
+    ) -> HttpResponse[None]:
         """
-        Send an OpenAI Responses API request through Respan provider passthrough. This endpoint currently routes to OpenAI direct by default, or Azure OpenAI when `X-Respan-Route-Provider: azure` is set. It requires OpenAI or Azure OpenAI provider credentials configured in Settings -> Providers, or supplied with `credential_override`. In the API reference auth field, enter your Respan API key. Paste the OpenAI or Azure OpenAI provider token in `credential_override.<model>.api_key`; a Respan API key with managed credits alone is not enough for this Responses API passthrough path today.
+        Centralized respan_params initialization and backward-compat layer.
 
-        For credit-backed gateway model calls with only a Respan API key, use `POST /api/chat/completions`.
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
 
-        Respan-specific parameters can be passed three ways:
-        1. **Top-level body fields** - add directly to the request body
-        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
-        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
+        Initialization order::
 
-        Merge order: top-level body fields > `respan_params` > header.
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
 
-        Legacy compatibility:
-        - `keywordsai_params` is still accepted and merged into `respan_params`
-        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
 
         Parameters
         ----------
-        model : str
-            OpenAI Responses API model to use. This passthrough path supports OpenAI direct by default and Azure OpenAI with `X-Respan-Route-Provider: azure`; use `/api/chat/completions` for credit-backed gateway calls with only a Respan API key.
-
-        input : CreateResponseRequestInput
-            Input text or array of conversation messages.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        respan_route_provider : typing.Optional[str]
-            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
-
-        respan_beta : typing.Optional[str]
-            Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
-
-        instructions : typing.Optional[str]
-            System instructions for the model.
-
-        stream : typing.Optional[bool]
-            Stream the response as server-sent events.
-
-        temperature : typing.Optional[float]
-            Sampling temperature (0-2).
-
-        max_output_tokens : typing.Optional[int]
-            Maximum tokens to generate.
-
-        top_p : typing.Optional[float]
-            Nucleus sampling parameter.
-
-        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Tools the model may call.
-
-        previous_response_id : typing.Optional[str]
-            ID of a previous response for multi-turn conversations.
-
-        fallback_models : typing.Optional[typing.Sequence[str]]
-            Backup models if the primary model fails.
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials.
-
-        credential_override : typing.Optional[typing.Dict[str, typing.Any]]
-            One-off OpenAI or Azure OpenAI provider credentials for this request. This is where you paste the provider token for /api/responses. Do not put your Respan API key here. For OpenAI direct, use `{ "gpt-4o-mini": { "api_key": "OPENAI_API_KEY" } }`. For Azure OpenAI, provide `api_key`, `api_base`, and `api_version` for the Azure-routed model.
-
-        cache_enabled : typing.Optional[bool]
-            Enable response caching.
-
-        cache_ttl : typing.Optional[int]
-            Cache TTL in seconds. Default: 30 days.
-
-        cache_options : typing.Optional[CreateResponseRequestCacheOptions]
-            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
-
-        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
-            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
-
-        prompt : typing.Optional[typing.Dict[str, typing.Any]]
-            Prompt template config. Properties: `prompt_id` (required), `variables`, `version`, `echo`. See [Prompt management](/docs/documentation/features/prompt-management/advanced).
-
-        retry_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Retry config. Properties: `retry_enabled` (boolean), `num_retries`, `retry_after` (seconds).
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics still recorded.
-
-        models : typing.Optional[typing.Sequence[str]]
-            Model list for LLM router selection.
-
-        exclude_providers : typing.Optional[typing.Sequence[str]]
-            Providers to exclude from routing.
-
-        exclude_models : typing.Optional[typing.Sequence[str]]
-            Models to exclude from routing.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata attached to the span.
-
-        custom_identifier : typing.Optional[str]
-            Indexed custom tag for fast querying.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier for analytics and budgets.
-
-        customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID.
-
-        positive_feedback : typing.Optional[bool]
-            User feedback. `true` = liked, `false` = disliked.
-
-        properties : typing.Optional[typing.Dict[str, typing.Any]]
-            Typed metadata preserving native types.
-
-        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Namespaced container for all Respan parameters.
+        format : typing.Optional[CreateResponseRequestFormat]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[typing.Dict[str, typing.Any]]
-            Model response
+        HttpResponse[None]
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/responses",
             method="POST",
-            json={
-                "model": model,
-                "input": convert_and_respect_annotation_metadata(
-                    object_=input, annotation=CreateResponseRequestInput, direction="write"
-                ),
-                "instructions": instructions,
-                "stream": stream,
-                "temperature": temperature,
-                "max_output_tokens": max_output_tokens,
-                "top_p": top_p,
-                "tools": tools,
-                "previous_response_id": previous_response_id,
-                "fallback_models": fallback_models,
-                "customer_credentials": customer_credentials,
-                "credential_override": credential_override,
-                "cache_enabled": cache_enabled,
-                "cache_ttl": cache_ttl,
-                "cache_options": convert_and_respect_annotation_metadata(
-                    object_=cache_options, annotation=CreateResponseRequestCacheOptions, direction="write"
-                ),
-                "load_balance_group": load_balance_group,
-                "request_breakdown": request_breakdown,
-                "prompt": prompt,
-                "retry_params": retry_params,
-                "disable_log": disable_log,
-                "models": models,
-                "exclude_providers": exclude_providers,
-                "exclude_models": exclude_models,
-                "metadata": metadata,
-                "custom_identifier": custom_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_params": customer_params,
-                "thread_identifier": thread_identifier,
-                "positive_feedback": positive_feedback,
-                "properties": properties,
-                "respan_params": respan_params,
-            },
-            headers={
-                "content-type": "application/json",
-                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
-                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
-                "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
+            params={
+                "format": format,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.Dict[str, typing.Any],
-                    parse_obj_as(
-                        type_=typing.Dict[str, typing.Any],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                return HttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -602,302 +159,66 @@ class AsyncRawGatewayClient:
     async def create_chat_completion(
         self,
         *,
-        messages: typing.Sequence[CreateChatCompletionRequestMessagesItem],
-        model: str,
-        data_respan_params: typing.Optional[str] = None,
-        respan_route_provider: typing.Optional[str] = None,
-        respan_beta: typing.Optional[str] = None,
-        stream: typing.Optional[bool] = OMIT,
-        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        tool_choice: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[float] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        n: typing.Optional[float] = OMIT,
-        logprobs: typing.Optional[bool] = OMIT,
-        echo: typing.Optional[bool] = OMIT,
-        stop: typing.Optional[typing.Sequence[str]] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        logit_bias: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        parallel_tool_calls: typing.Optional[bool] = OMIT,
-        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        cache_enabled: typing.Optional[bool] = OMIT,
-        cache_ttl: typing.Optional[float] = OMIT,
-        cache_options: typing.Optional[CreateChatCompletionRequestCacheOptions] = OMIT,
-        prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        model_name_map: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        models: typing.Optional[typing.Sequence[str]] = OMIT,
-        exclude_providers: typing.Optional[typing.Sequence[str]] = OMIT,
-        exclude_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
-        positive_feedback: typing.Optional[bool] = OMIT,
-        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        retries: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        format: typing.Optional[CreateChatCompletionRequestFormat] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[CreateChatCompletionResponse]:
+    ) -> AsyncHttpResponse[None]:
         """
-        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
+        Centralized respan_params initialization and backward-compat layer.
 
-        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
-        1. **Top-level body fields** - add directly to the request body
-        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
-        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
 
-        Merge order: top-level body fields > `respan_params` > header.
+        Initialization order::
 
-        Legacy compatibility:
-        - `keywordsai_params` is still accepted and merged into `respan_params`
-        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
 
-        When using the OpenAI SDK, pass Respan parameters via `extra_body`.
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
 
         Parameters
         ----------
-        messages : typing.Sequence[CreateChatCompletionRequestMessagesItem]
-            Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
-
-        model : str
-            Model to use. See [Models](https://platform.respan.ai/platform/models) for available options.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        respan_route_provider : typing.Optional[str]
-            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
-
-        respan_beta : typing.Optional[str]
-            Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
-
-        stream : typing.Optional[bool]
-            Stream back partial progress token by token as server-sent events.
-
-        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Tools the model may call. Currently only functions are supported.
-
-        tool_choice : typing.Optional[typing.Dict[str, typing.Any]]
-            Controls tool selection. `"none"` = no tools, `"auto"` = model decides, or specify a tool object.
-
-        frequency_penalty : typing.Optional[float]
-            Penalizes tokens based on frequency in text so far (-2 to 2).
-
-        max_tokens : typing.Optional[float]
-            Maximum tokens to generate.
-
-        temperature : typing.Optional[float]
-            Sampling temperature (0-2). Higher = more random.
-
-        n : typing.Optional[float]
-            Number of completions to generate. Note: costs multiply with `n`.
-
-        logprobs : typing.Optional[bool]
-            Return log probabilities of output tokens.
-
-        echo : typing.Optional[bool]
-            Echo back the prompt in addition to the completion
-
-        stop : typing.Optional[typing.Sequence[str]]
-            Stop sequences where generation halts.
-
-        presence_penalty : typing.Optional[float]
-            Penalizes tokens already present in text (-2 to 2).
-
-        logit_bias : typing.Optional[typing.Dict[str, typing.Any]]
-            Used to modify the probability of tokens appearing in the response
-
-        response_format : typing.Optional[typing.Dict[str, typing.Any]]
-            Output format. Set `{"type": "json_schema", "json_schema": {...}}` for structured output, or `{"type": "json_object"}` for JSON mode.
-
-        parallel_tool_calls : typing.Optional[bool]
-            Enable parallel function calling during tool use.
-
-        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
-            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
-
-        fallback_models : typing.Optional[typing.Sequence[str]]
-            Backup models (ranked by priority) if the primary model fails.
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials. Keys are provider names, values are API keys.
-
-        credential_override : typing.Optional[typing.Dict[str, typing.Any]]
-            One-off credential overrides per provider. Overrides uploaded provider keys for this request only.
-
-        cache_enabled : typing.Optional[bool]
-            Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
-
-        cache_ttl : typing.Optional[float]
-            Cache time-to-live in seconds. Default: 30 days.
-
-        cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
-            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
-
-        prompt : typing.Optional[typing.Dict[str, typing.Any]]
-            Prompt template config. Properties: `prompt_id` (required), `variables` (template variables), `version` (number, or `"latest"` for draft), `echo` (return rendered prompt), `override` (use override_params), `override_params` (OpenAI params to override), `schema_version` (`1` = legacy, `2` = prompt config wins). See [Prompt management](/docs/documentation/features/prompt-management/advanced).
-
-        retry_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Retry config. Properties: `retry_enabled` (boolean, required), `num_retries` (number), `retry_after` (seconds to wait).
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics (tokens, cost, latency) are still recorded.
-
-        model_name_map : typing.Optional[typing.Dict[str, typing.Any]]
-            Azure deployment name mapping. Maps your custom Azure deployment names to standard model names.
-
-        models : typing.Optional[typing.Sequence[str]]
-            Model list for LLM router selection.
-
-        exclude_providers : typing.Optional[typing.Sequence[str]]
-            Providers to exclude from routing. All models under excluded providers are skipped.
-
-        exclude_models : typing.Optional[typing.Sequence[str]]
-            Specific models to exclude from routing.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata attached to the span.
-
-        custom_identifier : typing.Optional[str]
-            Indexed custom tag for fast querying.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier for analytics and budgets.
-
-        customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
-
-        positive_feedback : typing.Optional[bool]
-            User feedback. `true` = liked, `false` = disliked.
-
-        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Inline load balancing options. Each item can include `model`, `weight`, and optional `credentials`.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID. Spans with the same `thread_identifier` are grouped together.
-
-        properties : typing.Optional[typing.Dict[str, typing.Any]]
-            Typed metadata preserving native types (numbers, booleans, nested objects). Unlike `metadata` which coerces to strings.
-
-        retries : typing.Optional[int]
-            Number of retries on failure.
-
-        weight : typing.Optional[float]
-            Load balancing weight.
-
-        span_name : typing.Optional[str]
-            Custom span name for tracing.
-
-        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Namespaced container for all Respan parameters. Alternative to passing them at top level.
+        format : typing.Optional[CreateChatCompletionRequestFormat]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[CreateChatCompletionResponse]
-            Successful response for Create chat completion
+        AsyncHttpResponse[None]
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/chat/completions",
             method="POST",
-            json={
-                "messages": convert_and_respect_annotation_metadata(
-                    object_=messages,
-                    annotation=typing.Sequence[CreateChatCompletionRequestMessagesItem],
-                    direction="write",
-                ),
-                "model": model,
-                "stream": stream,
-                "tools": tools,
-                "tool_choice": tool_choice,
-                "frequency_penalty": frequency_penalty,
-                "max_tokens": max_tokens,
-                "temperature": temperature,
-                "n": n,
-                "logprobs": logprobs,
-                "echo": echo,
-                "stop": stop,
-                "presence_penalty": presence_penalty,
-                "logit_bias": logit_bias,
-                "response_format": response_format,
-                "parallel_tool_calls": parallel_tool_calls,
-                "load_balance_group": load_balance_group,
-                "fallback_models": fallback_models,
-                "customer_credentials": customer_credentials,
-                "credential_override": credential_override,
-                "cache_enabled": cache_enabled,
-                "cache_ttl": cache_ttl,
-                "cache_options": convert_and_respect_annotation_metadata(
-                    object_=cache_options, annotation=CreateChatCompletionRequestCacheOptions, direction="write"
-                ),
-                "prompt": prompt,
-                "retry_params": retry_params,
-                "disable_log": disable_log,
-                "model_name_map": model_name_map,
-                "models": models,
-                "exclude_providers": exclude_providers,
-                "exclude_models": exclude_models,
-                "metadata": metadata,
-                "custom_identifier": custom_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_params": customer_params,
-                "request_breakdown": request_breakdown,
-                "positive_feedback": positive_feedback,
-                "load_balance_models": load_balance_models,
-                "thread_identifier": thread_identifier,
-                "properties": properties,
-                "retries": retries,
-                "weight": weight,
-                "span_name": span_name,
-                "respan_params": respan_params,
-            },
-            headers={
-                "content-type": "application/json",
-                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
-                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
-                "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
+            params={
+                "format": format,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    CreateChatCompletionResponse,
-                    parse_obj_as(
-                        type_=CreateChatCompletionResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                return AsyncHttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -906,262 +227,66 @@ class AsyncRawGatewayClient:
     async def create_response(
         self,
         *,
-        model: str,
-        input: CreateResponseRequestInput,
-        data_respan_params: typing.Optional[str] = None,
-        respan_route_provider: typing.Optional[str] = None,
-        respan_beta: typing.Optional[str] = None,
-        instructions: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_output_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
-        previous_response_id: typing.Optional[str] = OMIT,
-        fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        cache_enabled: typing.Optional[bool] = OMIT,
-        cache_ttl: typing.Optional[int] = OMIT,
-        cache_options: typing.Optional[CreateResponseRequestCacheOptions] = OMIT,
-        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_breakdown: typing.Optional[bool] = OMIT,
-        prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        disable_log: typing.Optional[bool] = OMIT,
-        models: typing.Optional[typing.Sequence[str]] = OMIT,
-        exclude_providers: typing.Optional[typing.Sequence[str]] = OMIT,
-        exclude_models: typing.Optional[typing.Sequence[str]] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        positive_feedback: typing.Optional[bool] = OMIT,
-        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        format: typing.Optional[CreateResponseRequestFormat] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Dict[str, typing.Any]]:
+    ) -> AsyncHttpResponse[None]:
         """
-        Send an OpenAI Responses API request through Respan provider passthrough. This endpoint currently routes to OpenAI direct by default, or Azure OpenAI when `X-Respan-Route-Provider: azure` is set. It requires OpenAI or Azure OpenAI provider credentials configured in Settings -> Providers, or supplied with `credential_override`. In the API reference auth field, enter your Respan API key. Paste the OpenAI or Azure OpenAI provider token in `credential_override.<model>.api_key`; a Respan API key with managed credits alone is not enough for this Responses API passthrough path today.
+        Centralized respan_params initialization and backward-compat layer.
 
-        For credit-backed gateway model calls with only a Respan API key, use `POST /api/chat/completions`.
+        This mixin is the SINGLE initialization point for ``respan_params``.
+        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
+        that by the time the throttle runs, ``respan_params`` is a fully resolved
+        dict.  Downstream code (throttle, preprocessing, view handler) only
+        **enriches** the existing dict — they never need to create it.
 
-        Respan-specific parameters can be passed three ways:
-        1. **Top-level body fields** - add directly to the request body
-        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
-        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
+        Initialization order::
 
-        Merge order: top-level body fields > `respan_params` > header.
+            _initialize_respan_params()   ← legacy rename + header parse + metadata
+                ↓
+            super().initial()             ← throttle ENRICHES the existing dict
+                ↓
+            view handler                  ← billing, security strip, etc.
 
-        Legacy compatibility:
-        - `keywordsai_params` is still accepted and merged into `respan_params`
-        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
+        Responsibilities consolidated here (previously scattered across 4 callsites):
+        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
+        2. Parse X-Data-Respan-Params header  (base64 → dict)
+        3. Legacy body rename  (keywordsai_params → respan_params)
+        4. Form data handling  (JSON string → dict)
+        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
+        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
+        7. Add request_url_path from request.META['PATH_INFO']
+        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
+
+        Safe for protobuf endpoints: body adaptation is skipped when request.data
+        is not a dict; header adaptation always runs.
+
+        Usage::
+
+            class MyChatView(AdaptRespanParamsMixin, APIView):
+                ...
 
         Parameters
         ----------
-        model : str
-            OpenAI Responses API model to use. This passthrough path supports OpenAI direct by default and Azure OpenAI with `X-Respan-Route-Provider: azure`; use `/api/chat/completions` for credit-backed gateway calls with only a Respan API key.
-
-        input : CreateResponseRequestInput
-            Input text or array of conversation messages.
-
-        data_respan_params : typing.Optional[str]
-            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
-
-        respan_route_provider : typing.Optional[str]
-            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
-
-        respan_beta : typing.Optional[str]
-            Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
-
-        instructions : typing.Optional[str]
-            System instructions for the model.
-
-        stream : typing.Optional[bool]
-            Stream the response as server-sent events.
-
-        temperature : typing.Optional[float]
-            Sampling temperature (0-2).
-
-        max_output_tokens : typing.Optional[int]
-            Maximum tokens to generate.
-
-        top_p : typing.Optional[float]
-            Nucleus sampling parameter.
-
-        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
-            Tools the model may call.
-
-        previous_response_id : typing.Optional[str]
-            ID of a previous response for multi-turn conversations.
-
-        fallback_models : typing.Optional[typing.Sequence[str]]
-            Backup models if the primary model fails.
-
-        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
-            Per-customer LLM provider credentials.
-
-        credential_override : typing.Optional[typing.Dict[str, typing.Any]]
-            One-off OpenAI or Azure OpenAI provider credentials for this request. This is where you paste the provider token for /api/responses. Do not put your Respan API key here. For OpenAI direct, use `{ "gpt-4o-mini": { "api_key": "OPENAI_API_KEY" } }`. For Azure OpenAI, provide `api_key`, `api_base`, and `api_version` for the Azure-routed model.
-
-        cache_enabled : typing.Optional[bool]
-            Enable response caching.
-
-        cache_ttl : typing.Optional[int]
-            Cache TTL in seconds. Default: 30 days.
-
-        cache_options : typing.Optional[CreateResponseRequestCacheOptions]
-            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
-
-        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
-            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
-
-        request_breakdown : typing.Optional[bool]
-            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
-
-        prompt : typing.Optional[typing.Dict[str, typing.Any]]
-            Prompt template config. Properties: `prompt_id` (required), `variables`, `version`, `echo`. See [Prompt management](/docs/documentation/features/prompt-management/advanced).
-
-        retry_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Retry config. Properties: `retry_enabled` (boolean), `num_retries`, `retry_after` (seconds).
-
-        disable_log : typing.Optional[bool]
-            When `true`, omits input/output from the log. Metrics still recorded.
-
-        models : typing.Optional[typing.Sequence[str]]
-            Model list for LLM router selection.
-
-        exclude_providers : typing.Optional[typing.Sequence[str]]
-            Providers to exclude from routing.
-
-        exclude_models : typing.Optional[typing.Sequence[str]]
-            Models to exclude from routing.
-
-        metadata : typing.Optional[typing.Dict[str, typing.Any]]
-            Custom key-value metadata attached to the span.
-
-        custom_identifier : typing.Optional[str]
-            Indexed custom tag for fast querying.
-
-        customer_identifier : typing.Optional[str]
-            End user identifier for analytics and budgets.
-
-        customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
-
-        thread_identifier : typing.Optional[str]
-            Conversation thread ID.
-
-        positive_feedback : typing.Optional[bool]
-            User feedback. `true` = liked, `false` = disliked.
-
-        properties : typing.Optional[typing.Dict[str, typing.Any]]
-            Typed metadata preserving native types.
-
-        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Namespaced container for all Respan parameters.
+        format : typing.Optional[CreateResponseRequestFormat]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[typing.Dict[str, typing.Any]]
-            Model response
+        AsyncHttpResponse[None]
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/responses",
             method="POST",
-            json={
-                "model": model,
-                "input": convert_and_respect_annotation_metadata(
-                    object_=input, annotation=CreateResponseRequestInput, direction="write"
-                ),
-                "instructions": instructions,
-                "stream": stream,
-                "temperature": temperature,
-                "max_output_tokens": max_output_tokens,
-                "top_p": top_p,
-                "tools": tools,
-                "previous_response_id": previous_response_id,
-                "fallback_models": fallback_models,
-                "customer_credentials": customer_credentials,
-                "credential_override": credential_override,
-                "cache_enabled": cache_enabled,
-                "cache_ttl": cache_ttl,
-                "cache_options": convert_and_respect_annotation_metadata(
-                    object_=cache_options, annotation=CreateResponseRequestCacheOptions, direction="write"
-                ),
-                "load_balance_group": load_balance_group,
-                "request_breakdown": request_breakdown,
-                "prompt": prompt,
-                "retry_params": retry_params,
-                "disable_log": disable_log,
-                "models": models,
-                "exclude_providers": exclude_providers,
-                "exclude_models": exclude_models,
-                "metadata": metadata,
-                "custom_identifier": custom_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_params": customer_params,
-                "thread_identifier": thread_identifier,
-                "positive_feedback": positive_feedback,
-                "properties": properties,
-                "respan_params": respan_params,
-            },
-            headers={
-                "content-type": "application/json",
-                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
-                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
-                "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
+            params={
+                "format": format,
             },
             request_options=request_options,
-            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.Dict[str, typing.Any],
-                    parse_obj_as(
-                        type_=typing.Dict[str, typing.Any],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 500:
-                raise InternalServerError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
+                return AsyncHttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

@@ -5,7 +5,6 @@ import typing
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawHealthClient, RawHealthClient
-from .types.api_health_check_response import ApiHealthCheckResponse
 
 
 class HealthClient:
@@ -23,9 +22,10 @@ class HealthClient:
         """
         return self._raw_client
 
-    def api_health_check(self, *, request_options: typing.Optional[RequestOptions] = None) -> ApiHealthCheckResponse:
+    def root_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Check API availability. This endpoint does not require authentication.
+        Basic liveness check - just returns 200 if the process is alive.
+        This should be fast and not check external dependencies.
 
         Parameters
         ----------
@@ -34,19 +34,120 @@ class HealthClient:
 
         Returns
         -------
-        ApiHealthCheckResponse
-            API health check passed.
+        None
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.health.root_retrieve()
+        """
+        _response = self._raw_client.root_retrieve(request_options=request_options)
+        return _response.data
+
+    def api_health_check(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.health.api_health_check()
         """
         _response = self._raw_client.api_health_check(request_options=request_options)
+        return _response.data
+
+    def retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Basic liveness check - just returns 200 if the process is alive.
+        This should be fast and not check external dependencies.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.health.retrieve()
+        """
+        _response = self._raw_client.retrieve(request_options=request_options)
+        return _response.data
+
+    def deep_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Structured per-component health (CH, Celery, Pulsar, Redbeat, Redis, PG).
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.health.deep_retrieve()
+        """
+        _response = self._raw_client.deep_retrieve(request_options=request_options)
+        return _response.data
+
+    def ready_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.health.ready_retrieve()
+        """
+        _response = self._raw_client.ready_retrieve(request_options=request_options)
         return _response.data
 
 
@@ -65,11 +166,10 @@ class AsyncHealthClient:
         """
         return self._raw_client
 
-    async def api_health_check(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ApiHealthCheckResponse:
+    async def root_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Check API availability. This endpoint does not require authentication.
+        Basic liveness check - just returns 200 if the process is alive.
+        This should be fast and not check external dependencies.
 
         Parameters
         ----------
@@ -78,8 +178,7 @@ class AsyncHealthClient:
 
         Returns
         -------
-        ApiHealthCheckResponse
-            API health check passed.
+        None
 
         Examples
         --------
@@ -88,7 +187,40 @@ class AsyncHealthClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.health.root_retrieve()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.root_retrieve(request_options=request_options)
+        return _response.data
+
+    async def api_health_check(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
@@ -99,4 +231,105 @@ class AsyncHealthClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.api_health_check(request_options=request_options)
+        return _response.data
+
+    async def retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Basic liveness check - just returns 200 if the process is alive.
+        This should be fast and not check external dependencies.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.health.retrieve()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.retrieve(request_options=request_options)
+        return _response.data
+
+    async def deep_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Structured per-component health (CH, Celery, Pulsar, Redbeat, Redis, PG).
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.health.deep_retrieve()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.deep_retrieve(request_options=request_options)
+        return _response.data
+
+    async def ready_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.health.ready_retrieve()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.ready_retrieve(request_options=request_options)
         return _response.data

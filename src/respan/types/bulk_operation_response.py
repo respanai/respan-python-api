@@ -8,24 +8,9 @@ from .bulk_item_error import BulkItemError
 
 
 class BulkOperationResponse(UniversalBaseModel):
-    """
-    Canonical result envelope for a bulk operation.
-    """
-
-    success_count: int = pydantic.Field()
-    """
-    Number of items successfully processed.
-    """
-
-    error_count: int = pydantic.Field()
-    """
-    Number of items that failed.
-    """
-
-    errors: typing.List[BulkItemError] = pydantic.Field()
-    """
-    Item-level failures, keyed by zero-based input index.
-    """
+    success_count: int
+    error_count: int
+    errors: typing.List[BulkItemError]
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

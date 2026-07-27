@@ -6,29 +6,10 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .types import (
-        CreateChatCompletionRequestCacheOptions,
-        CreateChatCompletionRequestMessagesItem,
-        CreateChatCompletionRequestMessagesItemContent,
-        CreateChatCompletionRequestMessagesItemRole,
-        CreateChatCompletionResponse,
-        CreateChatCompletionResponseChoicesItem,
-        CreateChatCompletionResponseChoicesItemMessage,
-        CreateChatCompletionResponseUsage,
-        CreateResponseRequestCacheOptions,
-        CreateResponseRequestInput,
-    )
+    from .types import CreateChatCompletionRequestFormat, CreateResponseRequestFormat
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreateChatCompletionRequestCacheOptions": ".types",
-    "CreateChatCompletionRequestMessagesItem": ".types",
-    "CreateChatCompletionRequestMessagesItemContent": ".types",
-    "CreateChatCompletionRequestMessagesItemRole": ".types",
-    "CreateChatCompletionResponse": ".types",
-    "CreateChatCompletionResponseChoicesItem": ".types",
-    "CreateChatCompletionResponseChoicesItemMessage": ".types",
-    "CreateChatCompletionResponseUsage": ".types",
-    "CreateResponseRequestCacheOptions": ".types",
-    "CreateResponseRequestInput": ".types",
+    "CreateChatCompletionRequestFormat": ".types",
+    "CreateResponseRequestFormat": ".types",
 }
 
 
@@ -53,15 +34,4 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = [
-    "CreateChatCompletionRequestCacheOptions",
-    "CreateChatCompletionRequestMessagesItem",
-    "CreateChatCompletionRequestMessagesItemContent",
-    "CreateChatCompletionRequestMessagesItemRole",
-    "CreateChatCompletionResponse",
-    "CreateChatCompletionResponseChoicesItem",
-    "CreateChatCompletionResponseChoicesItemMessage",
-    "CreateChatCompletionResponseUsage",
-    "CreateResponseRequestCacheOptions",
-    "CreateResponseRequestInput",
-]
+__all__ = ["CreateChatCompletionRequestFormat", "CreateResponseRequestFormat"]

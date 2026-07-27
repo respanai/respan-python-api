@@ -5,19 +5,8 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
-from ..types.bulk_delete_response import BulkDeleteResponse
-from ..types.filters import Filters
-from ..types.trace_bulk_delete_filters import TraceBulkDeleteFilters
+from ..types.ch_trace_list import ChTraceList
 from .raw_client import AsyncRawTracesClient, RawTracesClient
-from .types.create_trace_legacy_request import CreateTraceLegacyRequest
-from .types.create_trace_legacy_response import CreateTraceLegacyResponse
-from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
-from .types.create_trace_response import CreateTraceResponse
-from .types.delete_trace_response import DeleteTraceResponse
-from .types.list_traces_response import ListTracesResponse
-from .types.retrieve_public_trace_response import RetrievePublicTraceResponse
-from .types.retrieve_trace_response import RetrieveTraceResponse
-from .types.share_trace_response import ShareTraceResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -38,327 +27,39 @@ class TracesClient:
         """
         return self._raw_client
 
-    def list_traces(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListTracesResponse:
-        """
-        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListTracesResponse
-            Paginated list of traces.
-
-        Examples
-        --------
-        import datetime
-
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.traces.list_traces(
-            sort_by="-total_cost",
-            start_time=datetime.datetime.fromisoformat(
-                "2025-01-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2025-01-31 23:59:59+00:00",
-            ),
-            environment="prod",
-        )
-        """
-        _response = self._raw_client.list_traces(
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            filters=filters,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def bulk_delete_traces(
-        self,
-        *,
-        filters: TraceBulkDeleteFilters,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> BulkDeleteResponse:
-        """
-        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
-
-        Parameters
-        ----------
-        filters : TraceBulkDeleteFilters
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        BulkDeleteResponse
-            Traces were matched and submitted for asynchronous deletion.
-
-        Examples
-        --------
-        import datetime
-
-        from respan import RespanClient, TraceBulkDeleteFilters, TraceFilterCondition
-
-        client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.traces.bulk_delete_traces(
-            start_time=datetime.datetime.fromisoformat(
-                "2025-01-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2025-01-31 23:59:59+00:00",
-            ),
-            environment="prod",
-            filters=TraceBulkDeleteFilters(
-                customer_identifier=TraceFilterCondition(
-                    operator="is",
-                    value=["customer-123"],
-                ),
-            ),
-        )
-        """
-        _response = self._raw_client.bulk_delete_traces(
-            filters=filters,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def retrieve_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> RetrieveTraceResponse:
-        """
-        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree. `start_time` and `end_time` are accepted query parameters for clients that keep trace lookups scoped to a known time window.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique trace identifier.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional start of the trace time window (ISO 8601). Use with `end_time` when you know the trace window.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional end of the trace time window (ISO 8601). Use with `start_time` when you know the trace window.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        RetrieveTraceResponse
-            Trace detail with span tree.
-
-        Examples
-        --------
-        import datetime
-
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.traces.retrieve_trace(
-            trace_unique_id="trace_unique_id",
-            start_time=datetime.datetime.fromisoformat(
-                "2026-06-04 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2026-06-04 23:59:59+00:00",
-            ),
-        )
-        """
-        _response = self._raw_client.retrieve_trace(
-            trace_unique_id, start_time=start_time, end_time=end_time, request_options=request_options
-        )
-        return _response.data
-
-    def delete_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DeleteTraceResponse:
-        """
-        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique trace identifier.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DeleteTraceResponse
-            Trace delete issued successfully.
-
-        Examples
-        --------
-        import datetime
-
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.traces.delete_trace(
-            trace_unique_id="trace_unique_id",
-            start_time=datetime.datetime.fromisoformat(
-                "2025-01-01 00:00:00+00:00",
-            ),
-            end_time=datetime.datetime.fromisoformat(
-                "2025-01-31 23:59:59+00:00",
-            ),
-        )
-        """
-        _response = self._raw_client.delete_trace(
-            trace_unique_id, start_time=start_time, end_time=end_time, request_options=request_options
-        )
-        return _response.data
-
-    def share_trace(
-        self, trace_unique_id: str, *, is_public: bool, request_options: typing.Optional[RequestOptions] = None
-    ) -> ShareTraceResponse:
-        """
-        Toggle public sharing for a trace. When `is_public` is `true`, the trace becomes accessible through the public trace URL.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique trace identifier.
-
-        is_public : bool
-            Set `true` to make the trace public, or `false` to revoke public access.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ShareTraceResponse
-            Trace sharing state updated.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.traces.share_trace(
-            trace_unique_id="trace_unique_id",
-            is_public=True,
-        )
-        """
-        _response = self._raw_client.share_trace(trace_unique_id, is_public=is_public, request_options=request_options)
-        return _response.data
-
     def retrieve_public_trace(
         self,
         unique_organization_id: str,
         trace_unique_id: str,
         *,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> RetrievePublicTraceResponse:
+    ) -> None:
         """
-        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`.
+        Retrieve a single trace by trace_unique_id.
+
+        Public path (unique_organization_id in kwargs): checks ch_trace_metadata.is_public.
+        Authenticated path: gets org from auth context.
 
         Parameters
         ----------
         unique_organization_id : str
-            Organization unique ID used in a public trace share link.
 
         trace_unique_id : str
-            Unique trace identifier.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RetrievePublicTraceResponse
-            Trace detail with span tree.
+        None
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
         client.traces.retrieve_public_trace(
             unique_organization_id="unique_organization_id",
@@ -370,230 +71,331 @@ class TracesClient:
         )
         return _response.data
 
-    def create_trace_legacy(
-        self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
-    ) -> CreateTraceLegacyResponse:
+    def retrieve_trace(self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
+        Retrieve a single trace by trace_unique_id.
+
+        Public path (unique_organization_id in kwargs): checks ch_trace_metadata.is_public.
+        Authenticated path: gets org from auth context.
 
         Parameters
         ----------
-        request : CreateTraceLegacyRequest
+        trace_unique_id : str
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CreateTraceLegacyResponse
-            Trace spans processed successfully
+        None
 
         Examples
         --------
         from respan import RespanClient
-        from respan.traces import CreateTraceLegacyRequestZeroItem
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
-        client.traces.create_trace_legacy(
-            request=[
-                CreateTraceLegacyRequestZeroItem(
-                    trace_unique_id="trace_abc123",
-                    span_unique_id="span_001",
-                )
-            ],
+        client.traces.retrieve_trace(
+            trace_unique_id="trace_unique_id",
         )
         """
-        _response = self._raw_client.create_trace_legacy(request=request, request_options=request_options)
+        _response = self._raw_client.retrieve_trace(trace_unique_id, request_options=request_options)
         return _response.data
 
-    def create_trace(
-        self,
-        *,
-        resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateTraceResponse:
+    def delete_trace(self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
-
-        For SDK setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
+        Delete a single trace by trace_unique_id.
+        Deletes from CHLogV3 (raw spans) and CHTraceAggregation.
+        Parses start_time/end_time from query params for CH ORDER BY key efficiency.
 
         Parameters
         ----------
-        resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
-            Array of resource spans. Each element represents spans from a single resource (service).
+        trace_unique_id : str
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CreateTraceResponse
-            Spans accepted.
+        None
 
         Examples
         --------
         from respan import RespanClient
-        from respan.traces import (
-            CreateTraceRequestResourceSpansItem,
-            CreateTraceRequestResourceSpansItemResource,
-            CreateTraceRequestResourceSpansItemResourceAttributesItem,
-            CreateTraceRequestResourceSpansItemScopeSpansItem,
-            CreateTraceRequestResourceSpansItemScopeSpansItemScope,
-            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem,
-            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem,
-            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus,
-        )
 
         client = RespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
-        client.traces.create_trace(
-            resource_spans=[
-                CreateTraceRequestResourceSpansItem(
-                    resource=CreateTraceRequestResourceSpansItemResource(
-                        attributes=[
-                            CreateTraceRequestResourceSpansItemResourceAttributesItem(
-                                key="service.name",
-                                value={"stringValue": "respan-docs-api-reference"},
-                            )
-                        ],
-                    ),
-                    scope_spans=[
-                        CreateTraceRequestResourceSpansItemScopeSpansItem(
-                            scope=CreateTraceRequestResourceSpansItemScopeSpansItemScope(
-                                name="manual-api-reference",
-                                version="1.0.0",
-                            ),
-                            spans=[
-                                CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem(
-                                    trace_id="11111111111111111111111111111111",
-                                    span_id="2222222222222222",
-                                    name="sample_trace",
-                                    start_time_unix_nano="1780000000000000000",
-                                    end_time_unix_nano="1780000001000000000",
-                                    status=CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus(
-                                        code=1,
-                                    ),
-                                    attributes=[
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="traceloop.span.kind",
-                                            value={"stringValue": "workflow"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="traceloop.workflow.name",
-                                            value={
-                                                "stringValue": "api-reference-sample-trace"
-                                            },
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="respan.trace.trace_group_identifier",
-                                            value={
-                                                "stringValue": "api-reference-sample-trace"
-                                            },
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="respan.customer_params.customer_identifier",
-                                            value={"stringValue": "docs-sample-user"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="respan.metadata.source",
-                                            value={
-                                                "stringValue": "api-reference-create-trace"
-                                            },
-                                        ),
-                                    ],
-                                ),
-                                CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem(
-                                    trace_id="11111111111111111111111111111111",
-                                    span_id="3333333333333333",
-                                    parent_span_id="2222222222222222",
-                                    name="sample_llm_call",
-                                    start_time_unix_nano="1780000000100000000",
-                                    end_time_unix_nano="1780000000900000000",
-                                    status=CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus(
-                                        code=1,
-                                    ),
-                                    attributes=[
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="traceloop.span.kind",
-                                            value={"stringValue": "chat"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="llm.request.type",
-                                            value={"stringValue": "chat"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="traceloop.workflow.name",
-                                            value={
-                                                "stringValue": "api-reference-sample-trace"
-                                            },
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="respan.trace.trace_group_identifier",
-                                            value={
-                                                "stringValue": "api-reference-sample-trace"
-                                            },
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="respan.customer_params.customer_identifier",
-                                            value={"stringValue": "docs-sample-user"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.system",
-                                            value={"stringValue": "openai"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.request.model",
-                                            value={"stringValue": "gpt-4o-mini"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.response.model",
-                                            value={"stringValue": "gpt-4o-mini"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.prompt.0.role",
-                                            value={"stringValue": "user"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.prompt.0.content",
-                                            value={
-                                                "stringValue": "Hello from the Create a trace API reference."
-                                            },
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.completion.0.role",
-                                            value={"stringValue": "assistant"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.completion.0.content",
-                                            value={
-                                                "stringValue": "Hello! This is a sample trace."
-                                            },
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.usage.prompt_tokens",
-                                            value={"intValue": "9"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.usage.completion_tokens",
-                                            value={"intValue": "8"},
-                                        ),
-                                        CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                            key="gen_ai.usage.total_tokens",
-                                            value={"intValue": "17"},
-                                        ),
-                                    ],
-                                ),
-                            ],
-                        )
-                    ],
-                )
-            ],
+        client.traces.delete_trace(
+            trace_unique_id="trace_unique_id",
         )
         """
-        _response = self._raw_client.create_trace(resource_spans=resource_spans, request_options=request_options)
+        _response = self._raw_client.delete_trace(trace_unique_id, request_options=request_options)
+        return _response.data
+
+    def share_trace(self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Toggle is_public on a trace via ch_trace_metadata upsert.
+
+        ReplacingMergeTree — INSERT with newer updated_at supersedes old row.
+        PK hit on (org_id, trace_unique_id).
+
+        Parameters
+        ----------
+        trace_unique_id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.traces.share_trace(
+            trace_unique_id="trace_unique_id",
+        )
+        """
+        _response = self._raw_client.share_trace(trace_unique_id, request_options=request_options)
+        return _response.data
+
+    def bulk_delete_traces(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.traces.bulk_delete_traces()
+        """
+        _response = self._raw_client.bulk_delete_traces(request_options=request_options)
+        return _response.data
+
+    def list_traces(
+        self,
+        *,
+        id: str,
+        trace_unique_id: str,
+        root_span_unique_id: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        customer_identifier: typing.Optional[str] = OMIT,
+        start_time: typing.Optional[dt.datetime] = OMIT,
+        end_time: typing.Optional[dt.datetime] = OMIT,
+        duration: typing.Optional[float] = OMIT,
+        span_count: typing.Optional[int] = OMIT,
+        llm_call_count: typing.Optional[int] = OMIT,
+        total_cost: typing.Optional[float] = OMIT,
+        total_prompt_tokens: typing.Optional[int] = OMIT,
+        total_completion_tokens: typing.Optional[int] = OMIT,
+        total_tokens: typing.Optional[int] = OMIT,
+        error_count: typing.Optional[int] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        input: typing.Optional[str] = OMIT,
+        output: typing.Optional[str] = OMIT,
+        storage_object_key: typing.Optional[str] = OMIT,
+        organization_name: typing.Optional[str] = OMIT,
+        organization_id: typing.Optional[str] = OMIT,
+        organization_key_id: typing.Optional[str] = OMIT,
+        metadata: typing.Optional[typing.Any] = OMIT,
+        trace_group_identifier: typing.Optional[str] = OMIT,
+        session_identifier: typing.Optional[str] = OMIT,
+        model: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ChTraceList:
+        """
+        Handle POST requests the same as GET for filtering.
+
+        Parameters
+        ----------
+        id : str
+
+        trace_unique_id : str
+
+        root_span_unique_id : typing.Optional[str]
+
+        unique_organization_id : typing.Optional[str]
+
+        environment : typing.Optional[str]
+
+        customer_identifier : typing.Optional[str]
+
+        start_time : typing.Optional[dt.datetime]
+
+        end_time : typing.Optional[dt.datetime]
+
+        duration : typing.Optional[float]
+
+        span_count : typing.Optional[int]
+
+        llm_call_count : typing.Optional[int]
+
+        total_cost : typing.Optional[float]
+
+        total_prompt_tokens : typing.Optional[int]
+
+        total_completion_tokens : typing.Optional[int]
+
+        total_tokens : typing.Optional[int]
+
+        error_count : typing.Optional[int]
+
+        name : typing.Optional[str]
+
+        input : typing.Optional[str]
+
+        output : typing.Optional[str]
+
+        storage_object_key : typing.Optional[str]
+
+        organization_name : typing.Optional[str]
+
+        organization_id : typing.Optional[str]
+
+        organization_key_id : typing.Optional[str]
+
+        metadata : typing.Optional[typing.Any]
+
+        trace_group_identifier : typing.Optional[str]
+
+        session_identifier : typing.Optional[str]
+
+        model : typing.Optional[str]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ChTraceList
+
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.traces.list_traces(
+            id="id",
+            trace_unique_id="trace_unique_id",
+        )
+        """
+        _response = self._raw_client.list_traces(
+            id=id,
+            trace_unique_id=trace_unique_id,
+            root_span_unique_id=root_span_unique_id,
+            unique_organization_id=unique_organization_id,
+            environment=environment,
+            customer_identifier=customer_identifier,
+            start_time=start_time,
+            end_time=end_time,
+            duration=duration,
+            span_count=span_count,
+            llm_call_count=llm_call_count,
+            total_cost=total_cost,
+            total_prompt_tokens=total_prompt_tokens,
+            total_completion_tokens=total_completion_tokens,
+            total_tokens=total_tokens,
+            error_count=error_count,
+            name=name,
+            input=input,
+            output=output,
+            storage_object_key=storage_object_key,
+            organization_name=organization_name,
+            organization_id=organization_id,
+            organization_key_id=organization_key_id,
+            metadata=metadata,
+            trace_group_identifier=trace_group_identifier,
+            session_identifier=session_identifier,
+            model=model,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def create_trace_legacy(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Process Vercel traces.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.traces.create_trace_legacy()
+        """
+        _response = self._raw_client.create_trace_legacy(request_options=request_options)
+        return _response.data
+
+    def create_trace(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        OTel Ingest v2 — passthrough endpoint.
+
+        Accepts OTLP/HTTP JSON (primary) or protobuf (fallback).
+        Promotes recognized Gen AI semantic conventions to typed columns.
+        Stores ALL remaining attributes in metadata — nothing is dropped.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+        client.traces.create_trace()
+        """
+        _response = self._raw_client.create_trace(request_options=request_options)
         return _response.data
 
 
@@ -612,362 +414,31 @@ class AsyncTracesClient:
         """
         return self._raw_client
 
-    async def list_traces(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        sort_by: typing.Optional[str] = None,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        filters: typing.Optional[Filters] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ListTracesResponse:
-        """
-        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            Page number.
-
-        page_size : typing.Optional[int]
-            Results per page (max 1000).
-
-        sort_by : typing.Optional[str]
-            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        filters : typing.Optional[Filters]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ListTracesResponse
-            Paginated list of traces.
-
-        Examples
-        --------
-        import asyncio
-        import datetime
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.traces.list_traces(
-                sort_by="-total_cost",
-                start_time=datetime.datetime.fromisoformat(
-                    "2025-01-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2025-01-31 23:59:59+00:00",
-                ),
-                environment="prod",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_traces(
-            page=page,
-            page_size=page_size,
-            sort_by=sort_by,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            filters=filters,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def bulk_delete_traces(
-        self,
-        *,
-        filters: TraceBulkDeleteFilters,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        environment: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> BulkDeleteResponse:
-        """
-        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
-
-        Parameters
-        ----------
-        filters : TraceBulkDeleteFilters
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        environment : typing.Optional[str]
-            Filter by environment.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        BulkDeleteResponse
-            Traces were matched and submitted for asynchronous deletion.
-
-        Examples
-        --------
-        import asyncio
-        import datetime
-
-        from respan import (
-            AsyncRespanClient,
-            TraceBulkDeleteFilters,
-            TraceFilterCondition,
-        )
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.traces.bulk_delete_traces(
-                start_time=datetime.datetime.fromisoformat(
-                    "2025-01-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2025-01-31 23:59:59+00:00",
-                ),
-                environment="prod",
-                filters=TraceBulkDeleteFilters(
-                    customer_identifier=TraceFilterCondition(
-                        operator="is",
-                        value=["customer-123"],
-                    ),
-                ),
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.bulk_delete_traces(
-            filters=filters,
-            start_time=start_time,
-            end_time=end_time,
-            environment=environment,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def retrieve_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> RetrieveTraceResponse:
-        """
-        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree. `start_time` and `end_time` are accepted query parameters for clients that keep trace lookups scoped to a known time window.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique trace identifier.
-
-        start_time : typing.Optional[dt.datetime]
-            Optional start of the trace time window (ISO 8601). Use with `end_time` when you know the trace window.
-
-        end_time : typing.Optional[dt.datetime]
-            Optional end of the trace time window (ISO 8601). Use with `start_time` when you know the trace window.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        RetrieveTraceResponse
-            Trace detail with span tree.
-
-        Examples
-        --------
-        import asyncio
-        import datetime
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.traces.retrieve_trace(
-                trace_unique_id="trace_unique_id",
-                start_time=datetime.datetime.fromisoformat(
-                    "2026-06-04 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2026-06-04 23:59:59+00:00",
-                ),
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.retrieve_trace(
-            trace_unique_id, start_time=start_time, end_time=end_time, request_options=request_options
-        )
-        return _response.data
-
-    async def delete_trace(
-        self,
-        trace_unique_id: str,
-        *,
-        start_time: typing.Optional[dt.datetime] = None,
-        end_time: typing.Optional[dt.datetime] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> DeleteTraceResponse:
-        """
-        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique trace identifier.
-
-        start_time : typing.Optional[dt.datetime]
-            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
-
-        end_time : typing.Optional[dt.datetime]
-            End of time range (ISO 8601). Defaults to now when omitted.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DeleteTraceResponse
-            Trace delete issued successfully.
-
-        Examples
-        --------
-        import asyncio
-        import datetime
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.traces.delete_trace(
-                trace_unique_id="trace_unique_id",
-                start_time=datetime.datetime.fromisoformat(
-                    "2025-01-01 00:00:00+00:00",
-                ),
-                end_time=datetime.datetime.fromisoformat(
-                    "2025-01-31 23:59:59+00:00",
-                ),
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.delete_trace(
-            trace_unique_id, start_time=start_time, end_time=end_time, request_options=request_options
-        )
-        return _response.data
-
-    async def share_trace(
-        self, trace_unique_id: str, *, is_public: bool, request_options: typing.Optional[RequestOptions] = None
-    ) -> ShareTraceResponse:
-        """
-        Toggle public sharing for a trace. When `is_public` is `true`, the trace becomes accessible through the public trace URL.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-            Unique trace identifier.
-
-        is_public : bool
-            Set `true` to make the trace public, or `false` to revoke public access.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ShareTraceResponse
-            Trace sharing state updated.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.traces.share_trace(
-                trace_unique_id="trace_unique_id",
-                is_public=True,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.share_trace(
-            trace_unique_id, is_public=is_public, request_options=request_options
-        )
-        return _response.data
-
     async def retrieve_public_trace(
         self,
         unique_organization_id: str,
         trace_unique_id: str,
         *,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> RetrievePublicTraceResponse:
+    ) -> None:
         """
-        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`.
+        Retrieve a single trace by trace_unique_id.
+
+        Public path (unique_organization_id in kwargs): checks ch_trace_metadata.is_public.
+        Authenticated path: gets org from auth context.
 
         Parameters
         ----------
         unique_organization_id : str
-            Organization unique ID used in a public trace share link.
 
         trace_unique_id : str
-            Unique trace identifier.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        RetrievePublicTraceResponse
-            Trace detail with span tree.
+        None
 
         Examples
         --------
@@ -976,7 +447,8 @@ class AsyncTracesClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
@@ -994,248 +466,391 @@ class AsyncTracesClient:
         )
         return _response.data
 
-    async def create_trace_legacy(
-        self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
-    ) -> CreateTraceLegacyResponse:
+    async def retrieve_trace(
+        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
         """
-        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
+        Retrieve a single trace by trace_unique_id.
+
+        Public path (unique_organization_id in kwargs): checks ch_trace_metadata.is_public.
+        Authenticated path: gets org from auth context.
 
         Parameters
         ----------
-        request : CreateTraceLegacyRequest
+        trace_unique_id : str
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CreateTraceLegacyResponse
-            Trace spans processed successfully
+        None
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.traces import CreateTraceLegacyRequestZeroItem
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
-            await client.traces.create_trace_legacy(
-                request=[
-                    CreateTraceLegacyRequestZeroItem(
-                        trace_unique_id="trace_abc123",
-                        span_unique_id="span_001",
-                    )
-                ],
+            await client.traces.retrieve_trace(
+                trace_unique_id="trace_unique_id",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_trace_legacy(request=request, request_options=request_options)
+        _response = await self._raw_client.retrieve_trace(trace_unique_id, request_options=request_options)
         return _response.data
 
-    async def create_trace(
-        self,
-        *,
-        resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> CreateTraceResponse:
+    async def delete_trace(
+        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
         """
-        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
-
-        For SDK setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
+        Delete a single trace by trace_unique_id.
+        Deletes from CHLogV3 (raw spans) and CHTraceAggregation.
+        Parses start_time/end_time from query params for CH ORDER BY key efficiency.
 
         Parameters
         ----------
-        resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
-            Array of resource spans. Each element represents spans from a single resource (service).
+        trace_unique_id : str
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        CreateTraceResponse
-            Spans accepted.
+        None
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
-        from respan.traces import (
-            CreateTraceRequestResourceSpansItem,
-            CreateTraceRequestResourceSpansItemResource,
-            CreateTraceRequestResourceSpansItemResourceAttributesItem,
-            CreateTraceRequestResourceSpansItemScopeSpansItem,
-            CreateTraceRequestResourceSpansItemScopeSpansItemScope,
-            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem,
-            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem,
-            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus,
-        )
 
         client = AsyncRespanClient(
-            respan_api_key="YOUR_RESPAN_API_KEY",
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
         )
 
 
         async def main() -> None:
-            await client.traces.create_trace(
-                resource_spans=[
-                    CreateTraceRequestResourceSpansItem(
-                        resource=CreateTraceRequestResourceSpansItemResource(
-                            attributes=[
-                                CreateTraceRequestResourceSpansItemResourceAttributesItem(
-                                    key="service.name",
-                                    value={"stringValue": "respan-docs-api-reference"},
-                                )
-                            ],
-                        ),
-                        scope_spans=[
-                            CreateTraceRequestResourceSpansItemScopeSpansItem(
-                                scope=CreateTraceRequestResourceSpansItemScopeSpansItemScope(
-                                    name="manual-api-reference",
-                                    version="1.0.0",
-                                ),
-                                spans=[
-                                    CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem(
-                                        trace_id="11111111111111111111111111111111",
-                                        span_id="2222222222222222",
-                                        name="sample_trace",
-                                        start_time_unix_nano="1780000000000000000",
-                                        end_time_unix_nano="1780000001000000000",
-                                        status=CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus(
-                                            code=1,
-                                        ),
-                                        attributes=[
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="traceloop.span.kind",
-                                                value={"stringValue": "workflow"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="traceloop.workflow.name",
-                                                value={
-                                                    "stringValue": "api-reference-sample-trace"
-                                                },
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="respan.trace.trace_group_identifier",
-                                                value={
-                                                    "stringValue": "api-reference-sample-trace"
-                                                },
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="respan.customer_params.customer_identifier",
-                                                value={
-                                                    "stringValue": "docs-sample-user"
-                                                },
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="respan.metadata.source",
-                                                value={
-                                                    "stringValue": "api-reference-create-trace"
-                                                },
-                                            ),
-                                        ],
-                                    ),
-                                    CreateTraceRequestResourceSpansItemScopeSpansItemSpansItem(
-                                        trace_id="11111111111111111111111111111111",
-                                        span_id="3333333333333333",
-                                        parent_span_id="2222222222222222",
-                                        name="sample_llm_call",
-                                        start_time_unix_nano="1780000000100000000",
-                                        end_time_unix_nano="1780000000900000000",
-                                        status=CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemStatus(
-                                            code=1,
-                                        ),
-                                        attributes=[
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="traceloop.span.kind",
-                                                value={"stringValue": "chat"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="llm.request.type",
-                                                value={"stringValue": "chat"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="traceloop.workflow.name",
-                                                value={
-                                                    "stringValue": "api-reference-sample-trace"
-                                                },
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="respan.trace.trace_group_identifier",
-                                                value={
-                                                    "stringValue": "api-reference-sample-trace"
-                                                },
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="respan.customer_params.customer_identifier",
-                                                value={
-                                                    "stringValue": "docs-sample-user"
-                                                },
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.system",
-                                                value={"stringValue": "openai"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.request.model",
-                                                value={"stringValue": "gpt-4o-mini"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.response.model",
-                                                value={"stringValue": "gpt-4o-mini"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.prompt.0.role",
-                                                value={"stringValue": "user"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.prompt.0.content",
-                                                value={
-                                                    "stringValue": "Hello from the Create a trace API reference."
-                                                },
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.completion.0.role",
-                                                value={"stringValue": "assistant"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.completion.0.content",
-                                                value={
-                                                    "stringValue": "Hello! This is a sample trace."
-                                                },
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.usage.prompt_tokens",
-                                                value={"intValue": "9"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.usage.completion_tokens",
-                                                value={"intValue": "8"},
-                                            ),
-                                            CreateTraceRequestResourceSpansItemScopeSpansItemSpansItemAttributesItem(
-                                                key="gen_ai.usage.total_tokens",
-                                                value={"intValue": "17"},
-                                            ),
-                                        ],
-                                    ),
-                                ],
-                            )
-                        ],
-                    )
-                ],
+            await client.traces.delete_trace(
+                trace_unique_id="trace_unique_id",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_trace(resource_spans=resource_spans, request_options=request_options)
+        _response = await self._raw_client.delete_trace(trace_unique_id, request_options=request_options)
+        return _response.data
+
+    async def share_trace(
+        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Toggle is_public on a trace via ch_trace_metadata upsert.
+
+        ReplacingMergeTree — INSERT with newer updated_at supersedes old row.
+        PK hit on (org_id, trace_unique_id).
+
+        Parameters
+        ----------
+        trace_unique_id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.traces.share_trace(
+                trace_unique_id="trace_unique_id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.share_trace(trace_unique_id, request_options=request_options)
+        return _response.data
+
+    async def bulk_delete_traces(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        POST handler with superadmin-only field protection.
+
+        Strips superadmin-only fields from non-superadmin requests before
+        delegating to OrganizationInjectionMixin.post() for org injection.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.traces.bulk_delete_traces()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.bulk_delete_traces(request_options=request_options)
+        return _response.data
+
+    async def list_traces(
+        self,
+        *,
+        id: str,
+        trace_unique_id: str,
+        root_span_unique_id: typing.Optional[str] = OMIT,
+        unique_organization_id: typing.Optional[str] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        customer_identifier: typing.Optional[str] = OMIT,
+        start_time: typing.Optional[dt.datetime] = OMIT,
+        end_time: typing.Optional[dt.datetime] = OMIT,
+        duration: typing.Optional[float] = OMIT,
+        span_count: typing.Optional[int] = OMIT,
+        llm_call_count: typing.Optional[int] = OMIT,
+        total_cost: typing.Optional[float] = OMIT,
+        total_prompt_tokens: typing.Optional[int] = OMIT,
+        total_completion_tokens: typing.Optional[int] = OMIT,
+        total_tokens: typing.Optional[int] = OMIT,
+        error_count: typing.Optional[int] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        input: typing.Optional[str] = OMIT,
+        output: typing.Optional[str] = OMIT,
+        storage_object_key: typing.Optional[str] = OMIT,
+        organization_name: typing.Optional[str] = OMIT,
+        organization_id: typing.Optional[str] = OMIT,
+        organization_key_id: typing.Optional[str] = OMIT,
+        metadata: typing.Optional[typing.Any] = OMIT,
+        trace_group_identifier: typing.Optional[str] = OMIT,
+        session_identifier: typing.Optional[str] = OMIT,
+        model: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ChTraceList:
+        """
+        Handle POST requests the same as GET for filtering.
+
+        Parameters
+        ----------
+        id : str
+
+        trace_unique_id : str
+
+        root_span_unique_id : typing.Optional[str]
+
+        unique_organization_id : typing.Optional[str]
+
+        environment : typing.Optional[str]
+
+        customer_identifier : typing.Optional[str]
+
+        start_time : typing.Optional[dt.datetime]
+
+        end_time : typing.Optional[dt.datetime]
+
+        duration : typing.Optional[float]
+
+        span_count : typing.Optional[int]
+
+        llm_call_count : typing.Optional[int]
+
+        total_cost : typing.Optional[float]
+
+        total_prompt_tokens : typing.Optional[int]
+
+        total_completion_tokens : typing.Optional[int]
+
+        total_tokens : typing.Optional[int]
+
+        error_count : typing.Optional[int]
+
+        name : typing.Optional[str]
+
+        input : typing.Optional[str]
+
+        output : typing.Optional[str]
+
+        storage_object_key : typing.Optional[str]
+
+        organization_name : typing.Optional[str]
+
+        organization_id : typing.Optional[str]
+
+        organization_key_id : typing.Optional[str]
+
+        metadata : typing.Optional[typing.Any]
+
+        trace_group_identifier : typing.Optional[str]
+
+        session_identifier : typing.Optional[str]
+
+        model : typing.Optional[str]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ChTraceList
+
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.traces.list_traces(
+                id="id",
+                trace_unique_id="trace_unique_id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_traces(
+            id=id,
+            trace_unique_id=trace_unique_id,
+            root_span_unique_id=root_span_unique_id,
+            unique_organization_id=unique_organization_id,
+            environment=environment,
+            customer_identifier=customer_identifier,
+            start_time=start_time,
+            end_time=end_time,
+            duration=duration,
+            span_count=span_count,
+            llm_call_count=llm_call_count,
+            total_cost=total_cost,
+            total_prompt_tokens=total_prompt_tokens,
+            total_completion_tokens=total_completion_tokens,
+            total_tokens=total_tokens,
+            error_count=error_count,
+            name=name,
+            input=input,
+            output=output,
+            storage_object_key=storage_object_key,
+            organization_name=organization_name,
+            organization_id=organization_id,
+            organization_key_id=organization_key_id,
+            metadata=metadata,
+            trace_group_identifier=trace_group_identifier,
+            session_identifier=session_identifier,
+            model=model,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def create_trace_legacy(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Process Vercel traces.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.traces.create_trace_legacy()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.create_trace_legacy(request_options=request_options)
+        return _response.data
+
+    async def create_trace(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        OTel Ingest v2 — passthrough endpoint.
+
+        Accepts OTLP/HTTP JSON (primary) or protobuf (fallback).
+        Promotes recognized Gen AI semantic conventions to typed columns.
+        Stores ALL remaining attributes in metadata — nothing is dropped.
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.traces.create_trace()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.create_trace(request_options=request_options)
         return _response.data

@@ -6,39 +6,10 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .types import (
-        CreateEmbeddingsRequestEncodingFormat,
-        CreateEmbeddingsRequestModel,
-        CreateEmbeddingsResponse,
-        CreateEmbeddingsResponseDataItem,
-        CreateEmbeddingsResponseUsage,
-        RetrieveAssemblyaiTranscriptResponse,
-        RetrieveAssemblyaiTranscriptResponseStatus,
-        RetrieveAssemblyaiTranscriptResponseWordsItem,
-        SpeechToTextRequestModel,
-        SpeechToTextRequestResponseFormat,
-        SpeechToTextResponse,
-        SpeechToTextResponseWordsItem,
-        TextToSpeechRequestModel,
-        TextToSpeechRequestResponseFormat,
-        TextToSpeechRequestVoice,
-    )
+    from .types import CreateEmbeddingsRequestFormat, TextToSpeechRequestFormat
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreateEmbeddingsRequestEncodingFormat": ".types",
-    "CreateEmbeddingsRequestModel": ".types",
-    "CreateEmbeddingsResponse": ".types",
-    "CreateEmbeddingsResponseDataItem": ".types",
-    "CreateEmbeddingsResponseUsage": ".types",
-    "RetrieveAssemblyaiTranscriptResponse": ".types",
-    "RetrieveAssemblyaiTranscriptResponseStatus": ".types",
-    "RetrieveAssemblyaiTranscriptResponseWordsItem": ".types",
-    "SpeechToTextRequestModel": ".types",
-    "SpeechToTextRequestResponseFormat": ".types",
-    "SpeechToTextResponse": ".types",
-    "SpeechToTextResponseWordsItem": ".types",
-    "TextToSpeechRequestModel": ".types",
-    "TextToSpeechRequestResponseFormat": ".types",
-    "TextToSpeechRequestVoice": ".types",
+    "CreateEmbeddingsRequestFormat": ".types",
+    "TextToSpeechRequestFormat": ".types",
 }
 
 
@@ -63,20 +34,4 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = [
-    "CreateEmbeddingsRequestEncodingFormat",
-    "CreateEmbeddingsRequestModel",
-    "CreateEmbeddingsResponse",
-    "CreateEmbeddingsResponseDataItem",
-    "CreateEmbeddingsResponseUsage",
-    "RetrieveAssemblyaiTranscriptResponse",
-    "RetrieveAssemblyaiTranscriptResponseStatus",
-    "RetrieveAssemblyaiTranscriptResponseWordsItem",
-    "SpeechToTextRequestModel",
-    "SpeechToTextRequestResponseFormat",
-    "SpeechToTextResponse",
-    "SpeechToTextResponseWordsItem",
-    "TextToSpeechRequestModel",
-    "TextToSpeechRequestResponseFormat",
-    "TextToSpeechRequestVoice",
-]
+__all__ = ["CreateEmbeddingsRequestFormat", "TextToSpeechRequestFormat"]
