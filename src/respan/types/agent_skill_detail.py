@@ -17,7 +17,7 @@ class AgentSkillDetail(UniversalBaseModel):
     name: typing.Optional[str] = None
     description: typing.Optional[str] = None
     instructions: typing.Optional[str] = None
-    context_attachments: typing.Optional[typing.Any] = None
+    context_attachments: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = None
     project: typing.Optional[str] = None
     created_by: typing.Optional[Editor] = None
     updated_by: typing.Optional[Editor] = None

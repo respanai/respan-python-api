@@ -6,10 +6,21 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .types import CreateChatCompletionRequestFormat, CreateResponseRequestFormat
+    from .types import (
+        CreateChatCompletionRequestFormat,
+        CreateResponseRequestFormat,
+        CreateResponseRequestInput,
+        CreateResponseRequestRespanParams,
+        CreateResponseRequestRespanParamsCredentialOverrideValue,
+        CreateResponseRequestXRespanRouteProvider,
+    )
 _dynamic_imports: typing.Dict[str, str] = {
     "CreateChatCompletionRequestFormat": ".types",
     "CreateResponseRequestFormat": ".types",
+    "CreateResponseRequestInput": ".types",
+    "CreateResponseRequestRespanParams": ".types",
+    "CreateResponseRequestRespanParamsCredentialOverrideValue": ".types",
+    "CreateResponseRequestXRespanRouteProvider": ".types",
 }
 
 
@@ -34,4 +45,11 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["CreateChatCompletionRequestFormat", "CreateResponseRequestFormat"]
+__all__ = [
+    "CreateChatCompletionRequestFormat",
+    "CreateResponseRequestFormat",
+    "CreateResponseRequestInput",
+    "CreateResponseRequestRespanParams",
+    "CreateResponseRequestRespanParamsCredentialOverrideValue",
+    "CreateResponseRequestXRespanRouteProvider",
+]

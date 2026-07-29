@@ -6663,7 +6663,7 @@ class DashboardClient:
         description: typing.Optional[str] = OMIT,
         saved_filter: typing.Optional[str] = OMIT,
         widgets: typing.Optional[typing.Any] = OMIT,
-        default_time_range: typing.Optional[typing.Any] = OMIT,
+        default_time_range: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         default_time_tick: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardCreate:
@@ -6683,7 +6683,7 @@ class DashboardClient:
 
         widgets : typing.Optional[typing.Any]
 
-        default_time_range : typing.Optional[typing.Any]
+        default_time_range : typing.Optional[typing.Dict[str, typing.Any]]
 
         default_time_tick : typing.Optional[str]
 
@@ -6857,7 +6857,7 @@ class DashboardClient:
         description: typing.Optional[str] = OMIT,
         saved_filter: typing.Optional[str] = OMIT,
         widgets: typing.Optional[typing.Any] = OMIT,
-        default_time_range: typing.Optional[typing.Any] = OMIT,
+        default_time_range: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         default_time_tick: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardUpdate:
@@ -6878,7 +6878,7 @@ class DashboardClient:
 
         widgets : typing.Optional[typing.Any]
 
-        default_time_range : typing.Optional[typing.Any]
+        default_time_range : typing.Optional[typing.Dict[str, typing.Any]]
 
         default_time_tick : typing.Optional[str]
 
@@ -6955,7 +6955,7 @@ class DashboardClient:
         description: typing.Optional[str] = OMIT,
         saved_filter: typing.Optional[str] = OMIT,
         widgets: typing.Optional[typing.Any] = OMIT,
-        default_time_range: typing.Optional[typing.Any] = OMIT,
+        default_time_range: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         default_time_tick: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardUpdate:
@@ -6978,7 +6978,7 @@ class DashboardClient:
 
         widgets : typing.Optional[typing.Any]
 
-        default_time_range : typing.Optional[typing.Any]
+        default_time_range : typing.Optional[typing.Dict[str, typing.Any]]
 
         default_time_tick : typing.Optional[str]
 
@@ -20677,7 +20677,7 @@ class AsyncDashboardClient:
         description: typing.Optional[str] = OMIT,
         saved_filter: typing.Optional[str] = OMIT,
         widgets: typing.Optional[typing.Any] = OMIT,
-        default_time_range: typing.Optional[typing.Any] = OMIT,
+        default_time_range: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         default_time_tick: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardCreate:
@@ -20697,7 +20697,7 @@ class AsyncDashboardClient:
 
         widgets : typing.Optional[typing.Any]
 
-        default_time_range : typing.Optional[typing.Any]
+        default_time_range : typing.Optional[typing.Dict[str, typing.Any]]
 
         default_time_tick : typing.Optional[str]
 
@@ -20911,7 +20911,7 @@ class AsyncDashboardClient:
         description: typing.Optional[str] = OMIT,
         saved_filter: typing.Optional[str] = OMIT,
         widgets: typing.Optional[typing.Any] = OMIT,
-        default_time_range: typing.Optional[typing.Any] = OMIT,
+        default_time_range: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         default_time_tick: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardUpdate:
@@ -20932,7 +20932,7 @@ class AsyncDashboardClient:
 
         widgets : typing.Optional[typing.Any]
 
-        default_time_range : typing.Optional[typing.Any]
+        default_time_range : typing.Optional[typing.Dict[str, typing.Any]]
 
         default_time_tick : typing.Optional[str]
 
@@ -21025,7 +21025,7 @@ class AsyncDashboardClient:
         description: typing.Optional[str] = OMIT,
         saved_filter: typing.Optional[str] = OMIT,
         widgets: typing.Optional[typing.Any] = OMIT,
-        default_time_range: typing.Optional[typing.Any] = OMIT,
+        default_time_range: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         default_time_tick: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DashboardUpdate:
@@ -21048,7 +21048,7 @@ class AsyncDashboardClient:
 
         widgets : typing.Optional[typing.Any]
 
-        default_time_range : typing.Optional[typing.Any]
+        default_time_range : typing.Optional[typing.Dict[str, typing.Any]]
 
         default_time_tick : typing.Optional[str]
 

@@ -24,7 +24,7 @@ class LimitPolicyDetail(UniversalBaseModel):
     name: typing.Optional[str] = None
     scope: typing.Optional[str] = None
     scope_value: typing.Optional[str] = None
-    compose: typing.Optional[typing.Any] = None
+    compose: typing.Optional[typing.List[str]] = None
     metric: typing.Optional[MetricEnum] = None
     algorithm: typing.Optional[AlgorithmEnum] = None
     period: typing.Optional[str] = None
@@ -47,7 +47,7 @@ class LimitPolicyDetail(UniversalBaseModel):
     ``GenericTag`` rows assigned to this policy. Managed via ``/api/tag-assignments/limit_policies/...`` — read-only here.
     """
 
-    rules: typing.Optional[typing.Any] = None
+    rules: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = None
     anchor: typing.Optional[AnchorEnum] = None
     anchor_at: typing.Optional[dt.datetime] = None
     refill_rate: typing.Optional[float] = None

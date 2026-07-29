@@ -27,7 +27,7 @@ class PatchedAutomationConditionUpdateRequest(UniversalBaseModel):
     Description of what this condition does
     """
 
-    condition_policy: typing.Optional[typing.Any] = pydantic.Field(default=None)
+    condition_policy: typing.Optional[typing.Dict[str, typing.Any]] = pydantic.Field(default=None)
     """
     Complex condition rules and logic stored as JSON
     """

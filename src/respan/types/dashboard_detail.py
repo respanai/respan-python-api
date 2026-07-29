@@ -14,7 +14,7 @@ class DashboardDetail(UniversalBaseModel):
     name: typing.Optional[str] = None
     description: typing.Optional[str] = None
     saved_filter: typing.Optional[str] = None
-    default_time_range: typing.Optional[typing.Any] = None
+    default_time_range: typing.Optional[typing.Dict[str, typing.Any]] = None
     default_time_tick: typing.Optional[str] = None
     created_by: typing.Optional[Editor] = None
     updated_by: typing.Optional[Editor] = None

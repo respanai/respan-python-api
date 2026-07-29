@@ -28,7 +28,7 @@ class ExportJobDetail(UniversalBaseModel):
     celery_task_id: typing.Optional[str] = None
     list_type: typing.Optional[str] = None
     failed_reason: typing.Optional[str] = None
-    warnings: typing.Optional[typing.Any] = None
+    warnings: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = None
     generated_sql: typing.Optional[str] = None
     dispatch_generation: typing.Optional[int] = None
     source_workflow_version_id: typing.Optional[str] = None

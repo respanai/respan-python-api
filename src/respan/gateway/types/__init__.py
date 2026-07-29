@@ -8,9 +8,19 @@ from importlib import import_module
 if typing.TYPE_CHECKING:
     from .create_chat_completion_request_format import CreateChatCompletionRequestFormat
     from .create_response_request_format import CreateResponseRequestFormat
+    from .create_response_request_input import CreateResponseRequestInput
+    from .create_response_request_respan_params import CreateResponseRequestRespanParams
+    from .create_response_request_respan_params_credential_override_value import (
+        CreateResponseRequestRespanParamsCredentialOverrideValue,
+    )
+    from .create_response_request_x_respan_route_provider import CreateResponseRequestXRespanRouteProvider
 _dynamic_imports: typing.Dict[str, str] = {
     "CreateChatCompletionRequestFormat": ".create_chat_completion_request_format",
     "CreateResponseRequestFormat": ".create_response_request_format",
+    "CreateResponseRequestInput": ".create_response_request_input",
+    "CreateResponseRequestRespanParams": ".create_response_request_respan_params",
+    "CreateResponseRequestRespanParamsCredentialOverrideValue": ".create_response_request_respan_params_credential_override_value",
+    "CreateResponseRequestXRespanRouteProvider": ".create_response_request_x_respan_route_provider",
 }
 
 
@@ -35,4 +45,11 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["CreateChatCompletionRequestFormat", "CreateResponseRequestFormat"]
+__all__ = [
+    "CreateChatCompletionRequestFormat",
+    "CreateResponseRequestFormat",
+    "CreateResponseRequestInput",
+    "CreateResponseRequestRespanParams",
+    "CreateResponseRequestRespanParamsCredentialOverrideValue",
+    "CreateResponseRequestXRespanRouteProvider",
+]

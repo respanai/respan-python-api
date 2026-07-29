@@ -33,7 +33,7 @@ class LimitPolicyList(UniversalBaseModel):
     name: typing.Optional[str] = None
     scope: typing.Optional[str] = None
     scope_value: typing.Optional[str] = None
-    compose: typing.Optional[typing.Any] = None
+    compose: typing.Optional[typing.List[str]] = None
     metric: typing.Optional[MetricEnum] = None
     algorithm: typing.Optional[AlgorithmEnum] = None
     period: typing.Optional[str] = None

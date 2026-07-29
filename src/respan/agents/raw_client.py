@@ -1108,7 +1108,7 @@ class RawAgentsClient:
         name: str,
         instructions: str,
         description: typing.Optional[str] = OMIT,
-        context_attachments: typing.Optional[typing.Any] = OMIT,
+        context_attachments: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[AgentSkillCreate]:
         """
@@ -1125,7 +1125,7 @@ class RawAgentsClient:
 
         description : typing.Optional[str]
 
-        context_attachments : typing.Optional[typing.Any]
+        context_attachments : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1210,7 +1210,7 @@ class RawAgentsClient:
         name: str,
         instructions: str,
         description: typing.Optional[str] = OMIT,
-        context_attachments: typing.Optional[typing.Any] = OMIT,
+        context_attachments: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[AgentSkillUpdate]:
         """
@@ -1228,7 +1228,7 @@ class RawAgentsClient:
 
         description : typing.Optional[str]
 
-        context_attachments : typing.Optional[typing.Any]
+        context_attachments : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1303,7 +1303,7 @@ class RawAgentsClient:
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         instructions: typing.Optional[str] = OMIT,
-        context_attachments: typing.Optional[typing.Any] = OMIT,
+        context_attachments: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[AgentSkillUpdate]:
         """
@@ -1323,7 +1323,7 @@ class RawAgentsClient:
 
         instructions : typing.Optional[str]
 
-        context_attachments : typing.Optional[typing.Any]
+        context_attachments : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2722,7 +2722,7 @@ class AsyncRawAgentsClient:
         name: str,
         instructions: str,
         description: typing.Optional[str] = OMIT,
-        context_attachments: typing.Optional[typing.Any] = OMIT,
+        context_attachments: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[AgentSkillCreate]:
         """
@@ -2739,7 +2739,7 @@ class AsyncRawAgentsClient:
 
         description : typing.Optional[str]
 
-        context_attachments : typing.Optional[typing.Any]
+        context_attachments : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2824,7 +2824,7 @@ class AsyncRawAgentsClient:
         name: str,
         instructions: str,
         description: typing.Optional[str] = OMIT,
-        context_attachments: typing.Optional[typing.Any] = OMIT,
+        context_attachments: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[AgentSkillUpdate]:
         """
@@ -2842,7 +2842,7 @@ class AsyncRawAgentsClient:
 
         description : typing.Optional[str]
 
-        context_attachments : typing.Optional[typing.Any]
+        context_attachments : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2919,7 +2919,7 @@ class AsyncRawAgentsClient:
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         instructions: typing.Optional[str] = OMIT,
-        context_attachments: typing.Optional[typing.Any] = OMIT,
+        context_attachments: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[AgentSkillUpdate]:
         """
@@ -2939,7 +2939,7 @@ class AsyncRawAgentsClient:
 
         instructions : typing.Optional[str]
 
-        context_attachments : typing.Optional[typing.Any]
+        context_attachments : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.

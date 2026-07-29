@@ -7,6 +7,12 @@ from ..core.request_options import RequestOptions
 from .raw_client import AsyncRawGatewayClient, RawGatewayClient
 from .types.create_chat_completion_request_format import CreateChatCompletionRequestFormat
 from .types.create_response_request_format import CreateResponseRequestFormat
+from .types.create_response_request_input import CreateResponseRequestInput
+from .types.create_response_request_respan_params import CreateResponseRequestRespanParams
+from .types.create_response_request_x_respan_route_provider import CreateResponseRequestXRespanRouteProvider
+
+# this is used as the default value for optional parameters
+OMIT = typing.cast(typing.Any, ...)
 
 
 class GatewayClient:
@@ -92,66 +98,114 @@ class GatewayClient:
     def create_response(
         self,
         *,
+        input: CreateResponseRequestInput,
         format: typing.Optional[CreateResponseRequestFormat] = None,
+        respan_route_provider: typing.Optional[CreateResponseRequestXRespanRouteProvider] = None,
+        model: typing.Optional[str] = OMIT,
+        stream: typing.Optional[bool] = OMIT,
+        preset: typing.Optional[str] = OMIT,
+        models: typing.Optional[typing.Sequence[str]] = OMIT,
+        max_steps: typing.Optional[int] = OMIT,
+        language_preference: typing.Optional[str] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        skills: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
+        respan_params: typing.Optional[CreateResponseRequestRespanParams] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
+    ) -> typing.Dict[str, typing.Any]:
         """
-        Centralized respan_params initialization and backward-compat layer.
-
-        This mixin is the SINGLE initialization point for ``respan_params``.
-        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
-        that by the time the throttle runs, ``respan_params`` is a fully resolved
-        dict.  Downstream code (throttle, preprocessing, view handler) only
-        **enriches** the existing dict — they never need to create it.
-
-        Initialization order::
-
-            _initialize_respan_params()   ← legacy rename + header parse + metadata
-                ↓
-            super().initial()             ← throttle ENRICHES the existing dict
-                ↓
-            view handler                  ← billing, security strip, etc.
-
-        Responsibilities consolidated here (previously scattered across 4 callsites):
-        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
-        2. Parse X-Data-Respan-Params header  (base64 → dict)
-        3. Legacy body rename  (keywordsai_params → respan_params)
-        4. Form data handling  (JSON string → dict)
-        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
-        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
-        7. Add request_url_path from request.META['PATH_INFO']
-        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
-
-        Safe for protobuf endpoints: body adaptation is skipped when request.data
-        is not a dict; header adaptation always runs.
-
-        Usage::
-
-            class MyChatView(AdaptRespanParamsMixin, APIView):
-                ...
+        Create an OpenAI-compatible response through Respan. Enter RESPAN_API_KEY in the Authorization control, choose the openai, azure, or perplexity example, and replace PROVIDER_API_KEY with that provider's key. Each example owns its fixed route-provider header and compatible request shape. The OpenAI example is otherwise ready to run. For Azure, also replace YOUR_AZURE_DEPLOYMENT and YOUR_RESOURCE; a Responses-compatible api_version is prefilled. Switching examples clears provider-specific fields left by the previous selection. Provider credentials may alternatively be stored in Settings -> Providers. Successful responses include X-Respan-Log-Id and are logged with the actual provider model and cost.
 
         Parameters
         ----------
+        input : CreateResponseRequestInput
+            Text or structured input for the response.
+
         format : typing.Optional[CreateResponseRequestFormat]
+
+        respan_route_provider : typing.Optional[CreateResponseRequestXRespanRouteProvider]
+            Responses upstream. Each named API Explorer example prepopulates its matching value; keep the header paired with the selected example. The Perplexity opt-in is header-only, case-insensitive, and whitespace-tolerant.
+
+        model : typing.Optional[str]
+            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, or omit model when using preset or models.
+
+        stream : typing.Optional[bool]
+            Return Responses API server-sent events when true.
+
+        preset : typing.Optional[str]
+            Perplexity Agent API preset. May be used without model.
+
+        models : typing.Optional[typing.Sequence[str]]
+            Perplexity Agent API fallback model chain, tried in order.
+
+        max_steps : typing.Optional[int]
+            Maximum Perplexity agent steps.
+
+        language_preference : typing.Optional[str]
+            Preferred response language for Perplexity Agent API.
+
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Perplexity Agent API structured response configuration.
+
+        skills : typing.Optional[typing.Sequence[typing.Any]]
+            Perplexity Agent API skills.
+
+        tools : typing.Optional[typing.Sequence[typing.Any]]
+            Response tools. Perplexity supports web_search with filters such as search_domain_filter.
+
+        respan_params : typing.Optional[CreateResponseRequestRespanParams]
+            Respan metadata, prompt configuration, customer identifiers, provider credentials, and other gateway parameters. route_provider_override here cannot activate the Perplexity route.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        None
+        typing.Dict[str, typing.Any]
+            Response object or event stream from the selected Responses upstream.
 
         Examples
         --------
         from respan import RespanClient
+        from respan.gateway import (
+            CreateResponseRequestRespanParams,
+            CreateResponseRequestRespanParamsCredentialOverrideValue,
+        )
 
         client = RespanClient(
             respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
             token="YOUR_TOKEN",
         )
-        client.gateway.create_response()
+        client.gateway.create_response(
+            respan_route_provider="openai",
+            model="gpt-4o-mini",
+            input="Explain why small language models are useful.",
+            stream=False,
+            respan_params=CreateResponseRequestRespanParams(
+                credential_override={
+                    "gpt-4o-mini": CreateResponseRequestRespanParamsCredentialOverrideValue(
+                        api_key="PROVIDER_API_KEY",
+                    )
+                },
+            ),
+        )
         """
-        _response = self._raw_client.create_response(format=format, request_options=request_options)
+        _response = self._raw_client.create_response(
+            input=input,
+            format=format,
+            respan_route_provider=respan_route_provider,
+            model=model,
+            stream=stream,
+            preset=preset,
+            models=models,
+            max_steps=max_steps,
+            language_preference=language_preference,
+            response_format=response_format,
+            skills=skills,
+            tools=tools,
+            respan_params=respan_params,
+            request_options=request_options,
+        )
         return _response.data
 
 
@@ -246,60 +300,81 @@ class AsyncGatewayClient:
     async def create_response(
         self,
         *,
+        input: CreateResponseRequestInput,
         format: typing.Optional[CreateResponseRequestFormat] = None,
+        respan_route_provider: typing.Optional[CreateResponseRequestXRespanRouteProvider] = None,
+        model: typing.Optional[str] = OMIT,
+        stream: typing.Optional[bool] = OMIT,
+        preset: typing.Optional[str] = OMIT,
+        models: typing.Optional[typing.Sequence[str]] = OMIT,
+        max_steps: typing.Optional[int] = OMIT,
+        language_preference: typing.Optional[str] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        skills: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
+        respan_params: typing.Optional[CreateResponseRequestRespanParams] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> None:
+    ) -> typing.Dict[str, typing.Any]:
         """
-        Centralized respan_params initialization and backward-compat layer.
-
-        This mixin is the SINGLE initialization point for ``respan_params``.
-        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
-        that by the time the throttle runs, ``respan_params`` is a fully resolved
-        dict.  Downstream code (throttle, preprocessing, view handler) only
-        **enriches** the existing dict — they never need to create it.
-
-        Initialization order::
-
-            _initialize_respan_params()   ← legacy rename + header parse + metadata
-                ↓
-            super().initial()             ← throttle ENRICHES the existing dict
-                ↓
-            view handler                  ← billing, security strip, etc.
-
-        Responsibilities consolidated here (previously scattered across 4 callsites):
-        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
-        2. Parse X-Data-Respan-Params header  (base64 → dict)
-        3. Legacy body rename  (keywordsai_params → respan_params)
-        4. Form data handling  (JSON string → dict)
-        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
-        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
-        7. Add request_url_path from request.META['PATH_INFO']
-        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
-
-        Safe for protobuf endpoints: body adaptation is skipped when request.data
-        is not a dict; header adaptation always runs.
-
-        Usage::
-
-            class MyChatView(AdaptRespanParamsMixin, APIView):
-                ...
+        Create an OpenAI-compatible response through Respan. Enter RESPAN_API_KEY in the Authorization control, choose the openai, azure, or perplexity example, and replace PROVIDER_API_KEY with that provider's key. Each example owns its fixed route-provider header and compatible request shape. The OpenAI example is otherwise ready to run. For Azure, also replace YOUR_AZURE_DEPLOYMENT and YOUR_RESOURCE; a Responses-compatible api_version is prefilled. Switching examples clears provider-specific fields left by the previous selection. Provider credentials may alternatively be stored in Settings -> Providers. Successful responses include X-Respan-Log-Id and are logged with the actual provider model and cost.
 
         Parameters
         ----------
+        input : CreateResponseRequestInput
+            Text or structured input for the response.
+
         format : typing.Optional[CreateResponseRequestFormat]
+
+        respan_route_provider : typing.Optional[CreateResponseRequestXRespanRouteProvider]
+            Responses upstream. Each named API Explorer example prepopulates its matching value; keep the header paired with the selected example. The Perplexity opt-in is header-only, case-insensitive, and whitespace-tolerant.
+
+        model : typing.Optional[str]
+            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, or omit model when using preset or models.
+
+        stream : typing.Optional[bool]
+            Return Responses API server-sent events when true.
+
+        preset : typing.Optional[str]
+            Perplexity Agent API preset. May be used without model.
+
+        models : typing.Optional[typing.Sequence[str]]
+            Perplexity Agent API fallback model chain, tried in order.
+
+        max_steps : typing.Optional[int]
+            Maximum Perplexity agent steps.
+
+        language_preference : typing.Optional[str]
+            Preferred response language for Perplexity Agent API.
+
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Perplexity Agent API structured response configuration.
+
+        skills : typing.Optional[typing.Sequence[typing.Any]]
+            Perplexity Agent API skills.
+
+        tools : typing.Optional[typing.Sequence[typing.Any]]
+            Response tools. Perplexity supports web_search with filters such as search_domain_filter.
+
+        respan_params : typing.Optional[CreateResponseRequestRespanParams]
+            Respan metadata, prompt configuration, customer identifiers, provider credentials, and other gateway parameters. route_provider_override here cannot activate the Perplexity route.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        None
+        typing.Dict[str, typing.Any]
+            Response object or event stream from the selected Responses upstream.
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
+        from respan.gateway import (
+            CreateResponseRequestRespanParams,
+            CreateResponseRequestRespanParamsCredentialOverrideValue,
+        )
 
         client = AsyncRespanClient(
             respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
@@ -308,10 +383,37 @@ class AsyncGatewayClient:
 
 
         async def main() -> None:
-            await client.gateway.create_response()
+            await client.gateway.create_response(
+                respan_route_provider="openai",
+                model="gpt-4o-mini",
+                input="Explain why small language models are useful.",
+                stream=False,
+                respan_params=CreateResponseRequestRespanParams(
+                    credential_override={
+                        "gpt-4o-mini": CreateResponseRequestRespanParamsCredentialOverrideValue(
+                            api_key="PROVIDER_API_KEY",
+                        )
+                    },
+                ),
+            )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.create_response(format=format, request_options=request_options)
+        _response = await self._raw_client.create_response(
+            input=input,
+            format=format,
+            respan_route_provider=respan_route_provider,
+            model=model,
+            stream=stream,
+            preset=preset,
+            models=models,
+            max_steps=max_steps,
+            language_preference=language_preference,
+            response_format=response_format,
+            skills=skills,
+            tools=tools,
+            respan_params=respan_params,
+            request_options=request_options,
+        )
         return _response.data

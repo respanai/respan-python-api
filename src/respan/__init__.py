@@ -1033,6 +1033,7 @@ if typing.TYPE_CHECKING:
         NotFoundError,
         ServiceUnavailableError,
         UnauthorizedError,
+        UnprocessableEntityError,
     )
     from . import (
         activities,
@@ -1114,7 +1115,14 @@ if typing.TYPE_CHECKING:
         SavedFilterUpdateRequestDisplaySettings,
         SavedFilterUpdateRequestEnvironment,
     )
-    from .gateway import CreateChatCompletionRequestFormat, CreateResponseRequestFormat
+    from .gateway import (
+        CreateChatCompletionRequestFormat,
+        CreateResponseRequestFormat,
+        CreateResponseRequestInput,
+        CreateResponseRequestRespanParams,
+        CreateResponseRequestRespanParamsCredentialOverrideValue,
+        CreateResponseRequestXRespanRouteProvider,
+    )
     from .logs import RequestLogsGroupsList2RequestGroupBy, RequestLogsGroupsListRequestGroupBy
     from .models import ApiModelsStatusRetrieveRequestTimeTick, LlmModelsModelsStatusRetrieveRequestTimeTick
     from .multimodal import CreateEmbeddingsRequestFormat, TextToSpeechRequestFormat
@@ -1319,6 +1327,10 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateChatCompletionRequestFormat": ".gateway",
     "CreateEmbeddingsRequestFormat": ".multimodal",
     "CreateResponseRequestFormat": ".gateway",
+    "CreateResponseRequestInput": ".gateway",
+    "CreateResponseRequestRespanParams": ".gateway",
+    "CreateResponseRequestRespanParamsCredentialOverrideValue": ".gateway",
+    "CreateResponseRequestXRespanRouteProvider": ".gateway",
     "Credit": ".types",
     "CreditBalanceSummary": ".types",
     "CreditRequest": ".types",
@@ -2124,6 +2136,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "Type0CbEnum": ".types",
     "Type4E2Enum": ".types",
     "UnauthorizedError": ".errors",
+    "UnprocessableEntityError": ".errors",
     "UsageBreakdownByFeatureResponse": ".types",
     "UsageBreakdownItem": ".types",
     "UsageBreakdownResponse": ".types",
@@ -2482,6 +2495,10 @@ __all__ = [
     "CreateChatCompletionRequestFormat",
     "CreateEmbeddingsRequestFormat",
     "CreateResponseRequestFormat",
+    "CreateResponseRequestInput",
+    "CreateResponseRequestRespanParams",
+    "CreateResponseRequestRespanParamsCredentialOverrideValue",
+    "CreateResponseRequestXRespanRouteProvider",
     "Credit",
     "CreditBalanceSummary",
     "CreditRequest",
@@ -3287,6 +3304,7 @@ __all__ = [
     "Type0CbEnum",
     "Type4E2Enum",
     "UnauthorizedError",
+    "UnprocessableEntityError",
     "UsageBreakdownByFeatureResponse",
     "UsageBreakdownItem",
     "UsageBreakdownResponse",

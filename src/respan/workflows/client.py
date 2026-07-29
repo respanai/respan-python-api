@@ -100,7 +100,7 @@ class WorkflowsClient:
         self,
         *,
         name: str,
-        condition_policy: typing.Any,
+        condition_policy: typing.Dict[str, typing.Any],
         id: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         filter_set_id: typing.Optional[str] = OMIT,
@@ -127,7 +127,8 @@ class WorkflowsClient:
         name : str
             Human-readable name for the condition
 
-        condition_policy : typing.Any
+        condition_policy : typing.Dict[str, typing.Any]
+            Complex condition rules and logic stored as JSON
 
         id : typing.Optional[str]
 
@@ -162,7 +163,7 @@ class WorkflowsClient:
             token="YOUR_TOKEN",
         )
         client.workflows.api_conditions_create(
-            name="x",
+            name="name",
             condition_policy={"key": "value"},
         )
         """
@@ -409,7 +410,7 @@ class WorkflowsClient:
         *,
         unique_organization_id: str,
         name: str,
-        condition_policy: typing.Any,
+        condition_policy: typing.Dict[str, typing.Any],
         id: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         filter_set_id: typing.Optional[str] = OMIT,
@@ -433,7 +434,8 @@ class WorkflowsClient:
         name : str
             Human-readable name for the condition
 
-        condition_policy : typing.Any
+        condition_policy : typing.Dict[str, typing.Any]
+            Complex condition rules and logic stored as JSON
 
         id : typing.Optional[str]
 
@@ -469,8 +471,8 @@ class WorkflowsClient:
         )
         client.workflows.api_conditions_update2(
             condition_id="condition_id",
-            unique_organization_id="x",
-            name="x",
+            unique_organization_id="unique_organization_id",
+            name="name",
             condition_policy={"key": "value"},
         )
         """
@@ -541,7 +543,7 @@ class WorkflowsClient:
         unique_organization_id: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        condition_policy: typing.Optional[typing.Any] = OMIT,
+        condition_policy: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         filter_set_id: typing.Optional[str] = OMIT,
         time_step_minutes: typing.Optional[int] = OMIT,
         sampling_rate: typing.Optional[float] = OMIT,
@@ -570,7 +572,7 @@ class WorkflowsClient:
         description : typing.Optional[str]
             Description of what this condition does
 
-        condition_policy : typing.Optional[typing.Any]
+        condition_policy : typing.Optional[typing.Dict[str, typing.Any]]
             Complex condition rules and logic stored as JSON
 
         filter_set_id : typing.Optional[str]
@@ -1964,7 +1966,7 @@ class AsyncWorkflowsClient:
         self,
         *,
         name: str,
-        condition_policy: typing.Any,
+        condition_policy: typing.Dict[str, typing.Any],
         id: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         filter_set_id: typing.Optional[str] = OMIT,
@@ -1991,7 +1993,8 @@ class AsyncWorkflowsClient:
         name : str
             Human-readable name for the condition
 
-        condition_policy : typing.Any
+        condition_policy : typing.Dict[str, typing.Any]
+            Complex condition rules and logic stored as JSON
 
         id : typing.Optional[str]
 
@@ -2031,7 +2034,7 @@ class AsyncWorkflowsClient:
 
         async def main() -> None:
             await client.workflows.api_conditions_create(
-                name="x",
+                name="name",
                 condition_policy={"key": "value"},
             )
 
@@ -2313,7 +2316,7 @@ class AsyncWorkflowsClient:
         *,
         unique_organization_id: str,
         name: str,
-        condition_policy: typing.Any,
+        condition_policy: typing.Dict[str, typing.Any],
         id: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         filter_set_id: typing.Optional[str] = OMIT,
@@ -2337,7 +2340,8 @@ class AsyncWorkflowsClient:
         name : str
             Human-readable name for the condition
 
-        condition_policy : typing.Any
+        condition_policy : typing.Dict[str, typing.Any]
+            Complex condition rules and logic stored as JSON
 
         id : typing.Optional[str]
 
@@ -2378,8 +2382,8 @@ class AsyncWorkflowsClient:
         async def main() -> None:
             await client.workflows.api_conditions_update2(
                 condition_id="condition_id",
-                unique_organization_id="x",
-                name="x",
+                unique_organization_id="unique_organization_id",
+                name="name",
                 condition_policy={"key": "value"},
             )
 
@@ -2461,7 +2465,7 @@ class AsyncWorkflowsClient:
         unique_organization_id: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        condition_policy: typing.Optional[typing.Any] = OMIT,
+        condition_policy: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         filter_set_id: typing.Optional[str] = OMIT,
         time_step_minutes: typing.Optional[int] = OMIT,
         sampling_rate: typing.Optional[float] = OMIT,
@@ -2490,7 +2494,7 @@ class AsyncWorkflowsClient:
         description : typing.Optional[str]
             Description of what this condition does
 
-        condition_policy : typing.Optional[typing.Any]
+        condition_policy : typing.Optional[typing.Dict[str, typing.Any]]
             Complex condition rules and logic stored as JSON
 
         filter_set_id : typing.Optional[str]

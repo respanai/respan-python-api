@@ -22,7 +22,11 @@ class AutomationConditionCreateRequest(UniversalBaseModel):
     Description of what this condition does
     """
 
-    condition_policy: typing.Any
+    condition_policy: typing.Dict[str, typing.Any] = pydantic.Field()
+    """
+    Complex condition rules and logic stored as JSON
+    """
+
     filter_set_id: typing.Optional[str] = pydantic.Field(default=None)
     """
     Filter set identifier for log filtering

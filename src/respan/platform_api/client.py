@@ -1129,7 +1129,7 @@ class PlatformApiClient:
         project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
         scope: typing.Optional[str] = OMIT,
-        compose: typing.Optional[typing.Any] = OMIT,
+        compose: typing.Optional[typing.Sequence[str]] = OMIT,
         metric: typing.Optional[MetricEnum] = OMIT,
         algorithm: typing.Optional[AlgorithmEnum] = OMIT,
         period: typing.Optional[str] = OMIT,
@@ -1138,7 +1138,7 @@ class PlatformApiClient:
         anchor: typing.Optional[AnchorEnum] = OMIT,
         anchor_at: typing.Optional[dt.datetime] = OMIT,
         refill_rate: typing.Optional[float] = OMIT,
-        rules: typing.Optional[typing.Any] = OMIT,
+        rules: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         priority: typing.Optional[int] = OMIT,
         is_active: typing.Optional[bool] = OMIT,
         include_existing_usage: typing.Optional[bool] = OMIT,
@@ -1160,7 +1160,7 @@ class PlatformApiClient:
 
         scope : typing.Optional[str]
 
-        compose : typing.Optional[typing.Any]
+        compose : typing.Optional[typing.Sequence[str]]
 
         metric : typing.Optional[MetricEnum]
 
@@ -1178,7 +1178,7 @@ class PlatformApiClient:
 
         refill_rate : typing.Optional[float]
 
-        rules : typing.Optional[typing.Any]
+        rules : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         priority : typing.Optional[int]
 
@@ -1369,7 +1369,7 @@ class PlatformApiClient:
         *,
         name: typing.Optional[str] = OMIT,
         scope: typing.Optional[str] = OMIT,
-        rules: typing.Optional[typing.Any] = OMIT,
+        rules: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         priority: typing.Optional[int] = OMIT,
         is_active: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1387,7 +1387,7 @@ class PlatformApiClient:
 
         scope : typing.Optional[str]
 
-        rules : typing.Optional[typing.Any]
+        rules : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         priority : typing.Optional[int]
 
@@ -1463,7 +1463,7 @@ class PlatformApiClient:
         *,
         name: typing.Optional[str] = OMIT,
         scope: typing.Optional[str] = OMIT,
-        rules: typing.Optional[typing.Any] = OMIT,
+        rules: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         priority: typing.Optional[int] = OMIT,
         is_active: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -1483,7 +1483,7 @@ class PlatformApiClient:
 
         scope : typing.Optional[str]
 
-        rules : typing.Optional[typing.Any]
+        rules : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         priority : typing.Optional[int]
 
@@ -6777,7 +6777,7 @@ class AsyncPlatformApiClient:
         project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
         scope: typing.Optional[str] = OMIT,
-        compose: typing.Optional[typing.Any] = OMIT,
+        compose: typing.Optional[typing.Sequence[str]] = OMIT,
         metric: typing.Optional[MetricEnum] = OMIT,
         algorithm: typing.Optional[AlgorithmEnum] = OMIT,
         period: typing.Optional[str] = OMIT,
@@ -6786,7 +6786,7 @@ class AsyncPlatformApiClient:
         anchor: typing.Optional[AnchorEnum] = OMIT,
         anchor_at: typing.Optional[dt.datetime] = OMIT,
         refill_rate: typing.Optional[float] = OMIT,
-        rules: typing.Optional[typing.Any] = OMIT,
+        rules: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         priority: typing.Optional[int] = OMIT,
         is_active: typing.Optional[bool] = OMIT,
         include_existing_usage: typing.Optional[bool] = OMIT,
@@ -6808,7 +6808,7 @@ class AsyncPlatformApiClient:
 
         scope : typing.Optional[str]
 
-        compose : typing.Optional[typing.Any]
+        compose : typing.Optional[typing.Sequence[str]]
 
         metric : typing.Optional[MetricEnum]
 
@@ -6826,7 +6826,7 @@ class AsyncPlatformApiClient:
 
         refill_rate : typing.Optional[float]
 
-        rules : typing.Optional[typing.Any]
+        rules : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         priority : typing.Optional[int]
 
@@ -7059,7 +7059,7 @@ class AsyncPlatformApiClient:
         *,
         name: typing.Optional[str] = OMIT,
         scope: typing.Optional[str] = OMIT,
-        rules: typing.Optional[typing.Any] = OMIT,
+        rules: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         priority: typing.Optional[int] = OMIT,
         is_active: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -7077,7 +7077,7 @@ class AsyncPlatformApiClient:
 
         scope : typing.Optional[str]
 
-        rules : typing.Optional[typing.Any]
+        rules : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         priority : typing.Optional[int]
 
@@ -7171,7 +7171,7 @@ class AsyncPlatformApiClient:
         *,
         name: typing.Optional[str] = OMIT,
         scope: typing.Optional[str] = OMIT,
-        rules: typing.Optional[typing.Any] = OMIT,
+        rules: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
         priority: typing.Optional[int] = OMIT,
         is_active: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -7191,7 +7191,7 @@ class AsyncPlatformApiClient:
 
         scope : typing.Optional[str]
 
-        rules : typing.Optional[typing.Any]
+        rules : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
 
         priority : typing.Optional[int]
 
