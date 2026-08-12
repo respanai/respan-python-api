@@ -4,6 +4,7 @@ import typing
 
 import pydantic
 from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .create_response_request_respan_params_cache_options import CreateResponseRequestRespanParamsCacheOptions
 from .create_response_request_respan_params_credential_override_value import (
     CreateResponseRequestRespanParamsCredentialOverrideValue,
 )
@@ -19,6 +20,22 @@ class CreateResponseRequestRespanParams(UniversalBaseModel):
     )
     """
     Request-scoped provider credentials. Named examples prefill the correct selector; keep that selector and replace only its credential values. OpenAI and Azure selectors exactly match model. Perplexity uses an empty-string selector because its credential is provider-scoped.
+    """
+
+    cache_enabled: typing.Optional[bool] = pydantic.Field(default=None)
+    """
+    Enable response caching for this request.
+    """
+
+    cache_ttl: typing.Optional[float] = pydantic.Field(default=None)
+    """
+    Cache lifetime in seconds.
+    """
+
+    cache_options: typing.Optional[CreateResponseRequestRespanParamsCacheOptions] = None
+    customer_identifier: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    End-customer identifier used for logging and optional cache partitioning.
     """
 
     if IS_PYDANTIC_V2:

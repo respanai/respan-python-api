@@ -5,9 +5,12 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
-from ..types.public_cached_response_detail import PublicCachedResponseDetail
-from ..types.public_cached_response_list import PublicCachedResponseList
+from ..types.bulk_delete_response import BulkDeleteResponse
 from .raw_client import AsyncRawCachesClient, RawCachesClient
+from .types.api_caches_partial_update2response import ApiCachesPartialUpdate2Response
+from .types.api_caches_retrieve_response import ApiCachesRetrieveResponse
+from .types.filter_cached_responses_response import FilterCachedResponsesResponse
+from .types.get_filtered_cached_responses_summary_response import GetFilteredCachedResponsesSummaryResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -28,190 +31,241 @@ class CachesClient:
         """
         return self._raw_client
 
-    def retrieve_cached_response(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicCachedResponseDetail:
-        """
-        GET/PATCH/DELETE /api/caches/<cache_key>/ — Retrieve, update, delete by cache_key.
-        GET/PATCH/DELETE /api/cache/<id>/ — Legacy alias, lookup by integer PK (JWT only).
-        GET/PATCH/DELETE /api/cache/key/<cache_key>/ — Legacy alias, lookup by cache_key.
-
-        JWT auth uses pk lookup when an integer id is supplied; otherwise (and for
-        API key auth) lookup is by cache_key_by_org_uuid.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCachedResponseDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.caches.retrieve_cached_response(
-            id=1,
-        )
-        """
-        _response = self._raw_client.retrieve_cached_response(id, request_options=request_options)
-        return _response.data
-
     def filter_cached_responses(
         self,
         *,
-        cache_key: typing.Optional[str] = OMIT,
-        cache_key_by_org_uuid: typing.Optional[str] = OMIT,
-        hit_count: typing.Optional[int] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        expiry_date: typing.Optional[dt.datetime] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCachedResponseList:
+    ) -> FilterCachedResponsesResponse:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        List cached responses using POST-for-filtering. API-key responses expose public cache keys; dashboard JWT responses may include internal numeric identifiers.
 
         Parameters
         ----------
-        cache_key : typing.Optional[str]
+        page : typing.Optional[int]
+            Page number.
 
-        cache_key_by_org_uuid : typing.Optional[str]
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 1000.
 
-        hit_count : typing.Optional[int]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        expiry_date : typing.Optional[dt.datetime]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicCachedResponseList
-
+        FilterCachedResponsesResponse
+            Filtered cached responses plus aggregate cache savings.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.caches.filter_cached_responses()
         """
         _response = self._raw_client.filter_cached_responses(
-            cache_key=cache_key,
-            cache_key_by_org_uuid=cache_key_by_org_uuid,
-            hit_count=hit_count,
-            timestamp=timestamp,
-            updated_at=updated_at,
-            expiry_date=expiry_date,
-            request_options=request_options,
+            page=page, page_size=page_size, filters=filters, request_options=request_options
         )
         return _response.data
 
-    def delete_cached_responses(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+    def get_filtered_cached_responses_summary(
+        self,
+        *,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> GetFilteredCachedResponsesSummaryResponse:
         """
-        DEPRECATED: Batch delete via DELETE /api/caches/ with {"ids": [...]}.
-        Use DELETE /api/caches/bulk/ instead. Kept for backward compatibility.
-        JWT only — integer IDs are internal and not exposed via API key.
+        Return the total number of cached responses after applying filters. This endpoint supports both JWT and API key authentication.
 
         Parameters
         ----------
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        None
+        GetFilteredCachedResponsesSummaryResponse
+            Filtered cache summary statistics.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.caches.delete_cached_responses()
-        """
-        _response = self._raw_client.delete_cached_responses(request_options=request_options)
-        return _response.data
-
-    def bulk_delete_cached_responses(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        DELETE /api/caches/bulk/ — Bulk delete cached responses.
-
-        Request body (exactly one of):
-            {"ids": [1, 2, 3]}         — JWT only (internal integer PKs)
-            {"cache_keys": ["k1","k2"]} — by cache_key_by_org_uuid
-            {"all": true}              — deletes all cached responses for the org
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.caches.bulk_delete_cached_responses()
-        """
-        _response = self._raw_client.bulk_delete_cached_responses(request_options=request_options)
-        return _response.data
-
-    def get_filtered_cached_responses_summary(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.caches.get_filtered_cached_responses_summary()
         """
-        _response = self._raw_client.get_filtered_cached_responses_summary(request_options=request_options)
+        _response = self._raw_client.get_filtered_cached_responses_summary(
+            filters=filters, request_options=request_options
+        )
+        return _response.data
+
+    def bulk_delete_cached_responses(
+        self,
+        *,
+        cache_keys: typing.Optional[typing.Sequence[str]] = OMIT,
+        ids: typing.Optional[typing.Sequence[int]] = OMIT,
+        all_: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> BulkDeleteResponse:
+        """
+        Delete cached responses using exactly one selector: `cache_keys`, `ids`, or `all: true`. Up to 1,000 keys or IDs can be deleted per request. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`. Rate limit: 60 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
+
+        Parameters
+        ----------
+        cache_keys : typing.Optional[typing.Sequence[str]]
+            Cache keys to delete. Supported for API key and JWT authentication.
+
+        ids : typing.Optional[typing.Sequence[int]]
+            Internal numeric cache entry IDs to delete. JWT only.
+
+        all_ : typing.Optional[bool]
+            Set to true to delete all cached responses for the current organization. The server rejects false.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        BulkDeleteResponse
+            Cached responses were deleted synchronously.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.caches.bulk_delete_cached_responses(
+            cache_keys=["cached_response_550e8400"],
+        )
+        """
+        _response = self._raw_client.bulk_delete_cached_responses(
+            cache_keys=cache_keys, ids=ids, all_=all_, request_options=request_options
+        )
+        return _response.data
+
+    def api_caches_retrieve(
+        self, cache_key: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> ApiCachesRetrieveResponse:
+        """
+        Retrieve a cached response by its organization-scoped cache key. API-key responses omit internal numeric IDs.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ApiCachesRetrieveResponse
+            Cached response details.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.caches.api_caches_retrieve(
+            cache_key="cache_key",
+        )
+        """
+        _response = self._raw_client.api_caches_retrieve(cache_key, request_options=request_options)
+        return _response.data
+
+    def api_caches_destroy2(self, cache_key: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Delete one cached response by its organization-scoped cache key.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.caches.api_caches_destroy2(
+            cache_key="cache_key",
+        )
+        """
+        _response = self._raw_client.api_caches_destroy2(cache_key, request_options=request_options)
+        return _response.data
+
+    def api_caches_partial_update2(
+        self,
+        cache_key: str,
+        *,
+        expiry_date: typing.Optional[dt.datetime] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ApiCachesPartialUpdate2Response:
+        """
+        Update the expiry date of a cached response identified by its public cache key.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        expiry_date : typing.Optional[dt.datetime]
+            New expiry time; null clears it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ApiCachesPartialUpdate2Response
+            Updated cached response.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.caches.api_caches_partial_update2(
+            cache_key="cache_key",
+        )
+        """
+        _response = self._raw_client.api_caches_partial_update2(
+            cache_key, expiry_date=expiry_date, request_options=request_options
+        )
         return _response.data
 
 
@@ -230,90 +284,35 @@ class AsyncCachesClient:
         """
         return self._raw_client
 
-    async def retrieve_cached_response(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicCachedResponseDetail:
-        """
-        GET/PATCH/DELETE /api/caches/<cache_key>/ — Retrieve, update, delete by cache_key.
-        GET/PATCH/DELETE /api/cache/<id>/ — Legacy alias, lookup by integer PK (JWT only).
-        GET/PATCH/DELETE /api/cache/key/<cache_key>/ — Legacy alias, lookup by cache_key.
-
-        JWT auth uses pk lookup when an integer id is supplied; otherwise (and for
-        API key auth) lookup is by cache_key_by_org_uuid.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCachedResponseDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.caches.retrieve_cached_response(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.retrieve_cached_response(id, request_options=request_options)
-        return _response.data
-
     async def filter_cached_responses(
         self,
         *,
-        cache_key: typing.Optional[str] = OMIT,
-        cache_key_by_org_uuid: typing.Optional[str] = OMIT,
-        hit_count: typing.Optional[int] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        expiry_date: typing.Optional[dt.datetime] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCachedResponseList:
+    ) -> FilterCachedResponsesResponse:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        List cached responses using POST-for-filtering. API-key responses expose public cache keys; dashboard JWT responses may include internal numeric identifiers.
 
         Parameters
         ----------
-        cache_key : typing.Optional[str]
+        page : typing.Optional[int]
+            Page number.
 
-        cache_key_by_org_uuid : typing.Optional[str]
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 1000.
 
-        hit_count : typing.Optional[int]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        expiry_date : typing.Optional[dt.datetime]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicCachedResponseList
-
+        FilterCachedResponsesResponse
+            Filtered cached responses plus aggregate cache savings.
 
         Examples
         --------
@@ -322,8 +321,8 @@ class AsyncCachesClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -334,108 +333,31 @@ class AsyncCachesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.filter_cached_responses(
-            cache_key=cache_key,
-            cache_key_by_org_uuid=cache_key_by_org_uuid,
-            hit_count=hit_count,
-            timestamp=timestamp,
-            updated_at=updated_at,
-            expiry_date=expiry_date,
-            request_options=request_options,
+            page=page, page_size=page_size, filters=filters, request_options=request_options
         )
-        return _response.data
-
-    async def delete_cached_responses(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        DEPRECATED: Batch delete via DELETE /api/caches/ with {"ids": [...]}.
-        Use DELETE /api/caches/bulk/ instead. Kept for backward compatibility.
-        JWT only — integer IDs are internal and not exposed via API key.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.caches.delete_cached_responses()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.delete_cached_responses(request_options=request_options)
-        return _response.data
-
-    async def bulk_delete_cached_responses(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        DELETE /api/caches/bulk/ — Bulk delete cached responses.
-
-        Request body (exactly one of):
-            {"ids": [1, 2, 3]}         — JWT only (internal integer PKs)
-            {"cache_keys": ["k1","k2"]} — by cache_key_by_org_uuid
-            {"all": true}              — deletes all cached responses for the org
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.caches.bulk_delete_cached_responses()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.bulk_delete_cached_responses(request_options=request_options)
         return _response.data
 
     async def get_filtered_cached_responses_summary(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+        self,
+        *,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> GetFilteredCachedResponsesSummaryResponse:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Return the total number of cached responses after applying filters. This endpoint supports both JWT and API key authentication.
 
         Parameters
         ----------
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        None
+        GetFilteredCachedResponsesSummaryResponse
+            Filtered cache summary statistics.
 
         Examples
         --------
@@ -444,8 +366,8 @@ class AsyncCachesClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -455,5 +377,196 @@ class AsyncCachesClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.get_filtered_cached_responses_summary(request_options=request_options)
+        _response = await self._raw_client.get_filtered_cached_responses_summary(
+            filters=filters, request_options=request_options
+        )
+        return _response.data
+
+    async def bulk_delete_cached_responses(
+        self,
+        *,
+        cache_keys: typing.Optional[typing.Sequence[str]] = OMIT,
+        ids: typing.Optional[typing.Sequence[int]] = OMIT,
+        all_: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> BulkDeleteResponse:
+        """
+        Delete cached responses using exactly one selector: `cache_keys`, `ids`, or `all: true`. Up to 1,000 keys or IDs can be deleted per request. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`. Rate limit: 60 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
+
+        Parameters
+        ----------
+        cache_keys : typing.Optional[typing.Sequence[str]]
+            Cache keys to delete. Supported for API key and JWT authentication.
+
+        ids : typing.Optional[typing.Sequence[int]]
+            Internal numeric cache entry IDs to delete. JWT only.
+
+        all_ : typing.Optional[bool]
+            Set to true to delete all cached responses for the current organization. The server rejects false.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        BulkDeleteResponse
+            Cached responses were deleted synchronously.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.caches.bulk_delete_cached_responses(
+                cache_keys=["cached_response_550e8400"],
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.bulk_delete_cached_responses(
+            cache_keys=cache_keys, ids=ids, all_=all_, request_options=request_options
+        )
+        return _response.data
+
+    async def api_caches_retrieve(
+        self, cache_key: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> ApiCachesRetrieveResponse:
+        """
+        Retrieve a cached response by its organization-scoped cache key. API-key responses omit internal numeric IDs.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ApiCachesRetrieveResponse
+            Cached response details.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.caches.api_caches_retrieve(
+                cache_key="cache_key",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.api_caches_retrieve(cache_key, request_options=request_options)
+        return _response.data
+
+    async def api_caches_destroy2(
+        self, cache_key: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Delete one cached response by its organization-scoped cache key.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.caches.api_caches_destroy2(
+                cache_key="cache_key",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.api_caches_destroy2(cache_key, request_options=request_options)
+        return _response.data
+
+    async def api_caches_partial_update2(
+        self,
+        cache_key: str,
+        *,
+        expiry_date: typing.Optional[dt.datetime] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ApiCachesPartialUpdate2Response:
+        """
+        Update the expiry date of a cached response identified by its public cache key.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        expiry_date : typing.Optional[dt.datetime]
+            New expiry time; null clears it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ApiCachesPartialUpdate2Response
+            Updated cached response.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.caches.api_caches_partial_update2(
+                cache_key="cache_key",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.api_caches_partial_update2(
+            cache_key, expiry_date=expiry_date, request_options=request_options
+        )
         return _response.data

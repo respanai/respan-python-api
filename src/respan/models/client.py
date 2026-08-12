@@ -3,45 +3,25 @@
 import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
+from ..core.pagination import AsyncPager, SyncPager
 from ..core.request_options import RequestOptions
-from ..types.affiliation_category_enum import AffiliationCategoryEnum
-from ..types.llm_foundation_model import LlmFoundationModel
-from ..types.llm_foundation_model_detail import LlmFoundationModelDetail
-from ..types.llm_model_detail import LlmModelDetail
-from ..types.llm_model_detail_request_metadata import LlmModelDetailRequestMetadata
-from ..types.llm_provider import LlmProvider
-from ..types.llm_provider_integration import LlmProviderIntegration
-from ..types.llm_provider_request import LlmProviderRequest
 from ..types.model_status_response import ModelStatusResponse
-from ..types.model_type_enum import ModelTypeEnum
-from ..types.paginated_llm_foundation_model_list import PaginatedLlmFoundationModelList
-from ..types.paginated_llm_provider_list import PaginatedLlmProviderList
-from ..types.paginated_public_custom_provider_list_list import PaginatedPublicCustomProviderListList
-from ..types.paginated_public_model_list_list import PaginatedPublicModelListList
-from ..types.patched_public_model_list_request_metadata import PatchedPublicModelListRequestMetadata
-from ..types.patched_public_model_update_request_metadata import PatchedPublicModelUpdateRequestMetadata
-from ..types.patched_public_model_update_request_supported_params_override import (
-    PatchedPublicModelUpdateRequestSupportedParamsOverride,
-)
-from ..types.provider_credential_field_list_request import ProviderCredentialFieldListRequest
-from ..types.public_custom_provider_create import PublicCustomProviderCreate
-from ..types.public_custom_provider_detail import PublicCustomProviderDetail
-from ..types.public_custom_provider_list import PublicCustomProviderList
-from ..types.public_custom_provider_update import PublicCustomProviderUpdate
-from ..types.public_model_detail import PublicModelDetail
-from ..types.public_model_list import PublicModelList
-from ..types.public_model_list_request_metadata import PublicModelListRequestMetadata
-from ..types.public_model_update import PublicModelUpdate
-from ..types.public_model_update_request_metadata import PublicModelUpdateRequestMetadata
-from ..types.public_model_update_request_supported_params_override import (
-    PublicModelUpdateRequestSupportedParamsOverride,
-)
-from ..types.source7d1enum import Source7D1Enum
-from ..types.status359enum import Status359Enum
-from ..types.time_tick_enum import TimeTickEnum
 from .raw_client import AsyncRawModelsClient, RawModelsClient
+from .types.api_models_status_create_request_time_tick import ApiModelsStatusCreateRequestTimeTick
 from .types.api_models_status_retrieve_request_time_tick import ApiModelsStatusRetrieveRequestTimeTick
-from .types.llm_models_models_status_retrieve_request_time_tick import LlmModelsModelsStatusRetrieveRequestTimeTick
+from .types.create_custom_model_response import CreateCustomModelResponse
+from .types.create_custom_provider_response import CreateCustomProviderResponse
+from .types.filter_models_response import FilterModelsResponse
+from .types.filter_models_response_results_item import FilterModelsResponseResultsItem
+from .types.filter_models_summary_response import FilterModelsSummaryResponse
+from .types.list_custom_providers_response import ListCustomProvidersResponse
+from .types.list_models_response import ListModelsResponse
+from .types.replace_custom_model_response import ReplaceCustomModelResponse
+from .types.replace_custom_provider_response import ReplaceCustomProviderResponse
+from .types.retrieve_custom_model_response import RetrieveCustomModelResponse
+from .types.retrieve_custom_provider_response import RetrieveCustomProviderResponse
+from .types.update_custom_model_response import UpdateCustomModelResponse
+from .types.update_custom_provider_response import UpdateCustomProviderResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -62,124 +42,59 @@ class ModelsClient:
         """
         return self._raw_client
 
-    def api_models_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicModelListList:
-        """
-        GET/POST /api/llm_models/models/  (platform - shows global + custom)
-        GET/POST /api/llm-models/custom-models/  (public API - shows ONLY custom)
-
-        Unified endpoint for models.
-
-        GET:  List models
-              - Platform: global + org's custom (same for superadmin - no cross-org listing)
-              - Public (custom-models path): ONLY org's custom models
-              Filter with standard syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-
-        POST:
-            - Without 'model_name' in body: Filter/list models (backward compatible)
-            - With 'model_name' in body: Create model
-                - organization_id=null + superadmin: Create global model
-                - Otherwise: Create custom model for target org (superadmin can specify organization_id)
-
-        Note: Uses SuperAdminMixin for consistency, but queryset is intentionally the same
-        for both regular users and superadmins (global + org's custom pattern).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicModelListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.api_models_list()
-        """
-        _response = self._raw_client.api_models_list(page=page, page_size=page_size, request_options=request_options)
-        return _response.data
-
     def create_custom_model(
         self,
         *,
         model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
+    ) -> CreateCustomModelResponse:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Create an organization-specific custom model. If a model with the same `model_name` already exists in your organization, it is updated and the endpoint returns `200`.
 
         Parameters
         ----------
         model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Unique model name within your organization.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -187,410 +102,176 @@ class ModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelList
-
+        CreateCustomModelResponse
+            Updated existing model.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.models.create_custom_model(
-            model_name="model_name",
+            model_name="my-custom-gpt-4o",
         )
         """
         _response = self._raw_client.create_custom_model(
             model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
             base_model_name=base_model_name,
             display_name=display_name,
-            max_context_window=max_context_window,
+            custom_provider_id=custom_provider_id,
+            provider_id=provider_id,
             input_cost=input_cost,
             output_cost=output_cost,
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
+            max_context_window=max_context_window,
             streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
+            supported_params_override=supported_params_override,
             request_options=request_options,
         )
         return _response.data
 
-    def api_models_update(
+    def filter_models(
         self,
         *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
+    ) -> SyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        List models using POST-for-filtering. Authentication is optional: anonymous callers receive managed global models, while API-key and dashboard callers also receive their organization's custom models. Anonymous requests are rate-limited per client IP.
 
         Parameters
         ----------
-        model_name : str
+        page : typing.Optional[int]
+            Page number.
 
-        project : typing.Optional[str]
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
 
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
 
-        is_managed : typing.Optional[bool]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelList
-
+        SyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]
+            Paginated filtered list of models.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.models.api_models_update(
-            model_name="model_name",
+        response = client.models.filter_models(
+            sort_by="model_name",
+            filters={"affiliation_category": {"operator": "", "value": ["custom"]}},
         )
+        for item in response:
+            yield item
+        # alternatively, you can paginate page-by-page
+        for page in response.iter_pages():
+            yield page
         """
-        _response = self._raw_client.api_models_update(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
+        return self._raw_client.filter_models(
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            filters=filters,
+            is_exporting=is_exporting,
             request_options=request_options,
         )
-        return _response.data
 
-    def api_models_partial_update(
+    def filter_models_summary(
         self,
         *,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        model_name: typing.Optional[str] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
+    ) -> FilterModelsSummaryResponse:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Return model counts after applying an optional POST filter. Authentication is optional: anonymous counts cover managed global models, while authenticated counts also include the caller's custom models.
 
         Parameters
         ----------
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        model_name : typing.Optional[str]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelList
-
+        FilterModelsSummaryResponse
+            Models summary.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.models.api_models_partial_update()
+        client.models.filter_models_summary(
+            filters={"affiliation_category": {"operator": "", "value": ["custom"]}},
+        )
         """
-        _response = self._raw_client.api_models_partial_update(
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            model_name=model_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
+        _response = self._raw_client.filter_models_summary(filters=filters, request_options=request_options)
         return _response.data
 
     def retrieve_custom_model(
         self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicModelDetail:
+    ) -> RetrieveCustomModelResponse:
         """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
+        Retrieve a built-in or custom model by model name. Custom models are only visible to the owning organization.
 
         Parameters
         ----------
         model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelDetail
-
+        RetrieveCustomModelResponse
+            Model details.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.models.retrieve_custom_model(
             model_name="model_name",
@@ -599,317 +280,59 @@ class ModelsClient:
         _response = self._raw_client.retrieve_custom_model(model_name, request_options=request_options)
         return _response.data
 
-    def api_models_create2(
-        self,
-        model_name_: str,
-        *,
-        provider: LlmProviderRequest,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        order: typing.Optional[int] = OMIT,
-        sdk: typing.Optional[str] = OMIT,
-        foundation_model_name: typing.Optional[str] = OMIT,
-        drop_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        fallbacks: typing.Optional[typing.Any] = OMIT,
-        deprecated: typing.Optional[bool] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[LlmModelDetailRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        foundation_model: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmModelDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        model_name_ : str
-
-        provider : LlmProviderRequest
-
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        order : typing.Optional[int]
-
-        sdk : typing.Optional[str]
-
-        foundation_model_name : typing.Optional[str]
-
-        drop_params : typing.Optional[typing.Sequence[str]]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        fallbacks : typing.Optional[typing.Any]
-
-        deprecated : typing.Optional[bool]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[LlmModelDetailRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        foundation_model : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmModelDetail
-
-
-        Examples
-        --------
-        from respan import LlmProviderRequest, RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.api_models_create2(
-            model_name_="model_name",
-            provider=LlmProviderRequest(
-                provider_name="provider_name",
-                provider_id="provider_id",
-            ),
-            model_name="model_name",
-        )
-        """
-        _response = self._raw_client.api_models_create2(
-            model_name_,
-            provider=provider,
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            speed=speed,
-            max_context_window=max_context_window,
-            model_size=model_size,
-            mmlu_score=mmlu_score,
-            mt_bench_score=mt_bench_score,
-            big_bench_score=big_bench_score,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            rate_limit=rate_limit,
-            token_rate_limit=token_rate_limit,
-            multilingual=multilingual,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            enforce_function_call=enforce_function_call,
-            weight=weight,
-            image_support=image_support,
-            order=order,
-            sdk=sdk,
-            foundation_model_name=foundation_model_name,
-            drop_params=drop_params,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            fallbacks=fallbacks,
-            deprecated=deprecated,
-            status=status,
-            is_verified=is_verified,
-            total_requests=total_requests,
-            total_cost=total_cost,
-            total_tokens=total_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_prompt_tokens=total_prompt_tokens,
-            avg_tps=avg_tps,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            foundation_model=foundation_model,
-            request_options=request_options,
-        )
-        return _response.data
-
     def replace_custom_model(
         self,
         model_name: str,
         *,
-        supported_params_override: typing.Optional[PublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelUpdate:
+    ) -> ReplaceCustomModelResponse:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        Replace editable fields for a custom model. The `model_name` path value remains the identifier.
 
         Parameters
         ----------
         model_name : str
-
-        supported_params_override : typing.Optional[PublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -917,48 +340,24 @@ class ModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelUpdate
-
+        ReplaceCustomModelResponse
+            Updated model.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.models.replace_custom_model(
             model_name="model_name",
@@ -966,55 +365,31 @@ class ModelsClient:
         """
         _response = self._raw_client.replace_custom_model(
             model_name,
-            supported_params_override=supported_params_override,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
             base_model_name=base_model_name,
             display_name=display_name,
-            max_context_window=max_context_window,
+            custom_provider_id=custom_provider_id,
+            provider_id=provider_id,
             input_cost=input_cost,
             output_cost=output_cost,
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
+            max_context_window=max_context_window,
             streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            provider=provider,
+            supported_params_override=supported_params_override,
             request_options=request_options,
         )
         return _response.data
 
     def delete_custom_model(self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
+        Delete a custom model by model name.
 
         Parameters
         ----------
         model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1028,8 +403,8 @@ class ModelsClient:
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.models.delete_custom_model(
             model_name="model_name",
@@ -1042,65 +417,55 @@ class ModelsClient:
         self,
         model_name: str,
         *,
-        supported_params_override: typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelUpdate:
+    ) -> UpdateCustomModelResponse:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Partially update editable fields for a custom model. The `model_name` field is read-only.
 
         Parameters
         ----------
         model_name : str
-
-        supported_params_override : typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -1108,48 +473,24 @@ class ModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelUpdate
-
+        UpdateCustomModelResponse
+            Updated model.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.models.update_custom_model(
             model_name="model_name",
@@ -1157,88 +498,331 @@ class ModelsClient:
         """
         _response = self._raw_client.update_custom_model(
             model_name,
-            supported_params_override=supported_params_override,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
             base_model_name=base_model_name,
             display_name=display_name,
-            max_context_window=max_context_window,
+            custom_provider_id=custom_provider_id,
+            provider_id=provider_id,
             input_cost=input_cost,
             output_cost=output_cost,
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
+            max_context_window=max_context_window,
             streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            provider=provider,
+            supported_params_override=supported_params_override,
             request_options=request_options,
         )
+        return _response.data
+
+    def list_custom_providers(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListCustomProvidersResponse:
+        """
+        List custom providers for the authenticated organization.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListCustomProvidersResponse
+            Paginated custom providers.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.models.list_custom_providers()
+        """
+        _response = self._raw_client.list_custom_providers(
+            page=page, page_size=page_size, request_options=request_options
+        )
+        return _response.data
+
+    def create_custom_provider(
+        self,
+        *,
+        provider_id: str,
+        provider_name: str,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> CreateCustomProviderResponse:
+        """
+        Create a custom provider. Use `PATCH /api/providers/{provider_id}/` to update an existing provider.
+
+        Parameters
+        ----------
+        provider_id : str
+            Unique provider identifier within your organization.
+
+        provider_name : str
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        CreateCustomProviderResponse
+            Created provider.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.models.create_custom_provider(
+            provider_id="my-vllm",
+            provider_name="My vLLM Server",
+        )
+        """
+        _response = self._raw_client.create_custom_provider(
+            provider_id=provider_id,
+            provider_name=provider_name,
+            extra_kwargs=extra_kwargs,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def retrieve_custom_provider(
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> RetrieveCustomProviderResponse:
+        """
+        Retrieve a custom provider by its string provider ID. The current backend returns `extra_kwargs`, including any credentials stored in that object; handle this response as sensitive.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveCustomProviderResponse
+            Provider details.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.models.retrieve_custom_provider(
+            provider_id="provider_id",
+        )
+        """
+        _response = self._raw_client.retrieve_custom_provider(provider_id, request_options=request_options)
+        return _response.data
+
+    def replace_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        provider_name: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceCustomProviderResponse:
+        """
+        Replace editable fields for a custom provider. The `provider_id` path value remains the identifier.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceCustomProviderResponse
+            Updated provider.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.models.replace_custom_provider(
+            provider_id="provider_id",
+        )
+        """
+        _response = self._raw_client.replace_custom_provider(
+            provider_id, provider_name=provider_name, extra_kwargs=extra_kwargs, request_options=request_options
+        )
+        return _response.data
+
+    def delete_custom_provider(
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Delete a custom provider by string provider ID.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.models.delete_custom_provider(
+            provider_id="provider_id",
+        )
+        """
+        _response = self._raw_client.delete_custom_provider(provider_id, request_options=request_options)
+        return _response.data
+
+    def update_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        provider_name: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> UpdateCustomProviderResponse:
+        """
+        Partially update editable fields for a custom provider. The `provider_id` field is read-only.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        UpdateCustomProviderResponse
+            Updated provider.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.models.update_custom_provider(
+            provider_id="provider_id",
+        )
+        """
+        _response = self._raw_client.update_custom_provider(
+            provider_id, provider_name=provider_name, extra_kwargs=extra_kwargs, request_options=request_options
+        )
+        return _response.data
+
+    def list_models(
+        self, *, unnest: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> ListModelsResponse:
+        """
+        List built-in public models and provider metadata. This endpoint does not require authentication. By default the response is `{ "models": [...] }`; pass `unnest=true` to return the array directly.
+
+        Parameters
+        ----------
+        unnest : typing.Optional[bool]
+            If `true`, return the public model catalog as an array instead of `{ "models": [...] }`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListModelsResponse
+            Public model catalog.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.models.list_models()
+        """
+        _response = self._raw_client.list_models(unnest=unnest, request_options=request_options)
         return _response.data
 
     def api_models_status_retrieve(
         self,
         model_name: str,
         *,
-        end_time: str,
         start_time: str,
+        end_time: str,
         provider_id: typing.Optional[str] = None,
         time_tick: typing.Optional[ApiModelsStatusRetrieveRequestTimeTick] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ModelStatusResponse:
         """
-        GET/POST /api/models/<model_name>/status/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/<model_name>/status/ (Platform)
-
-        Per-model status resource for the exact logged model string in the URL path,
-        over an absolute UTC ``[start_time, end_time)`` range, bucketed by
-        ``time_tick`` (minute / hour / day).
-        Returns four things (see ``ModelStatusResponseSerializer``):
-          - ``data`` — per-provider uptime time series (per-attempt grain). Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``respan_uptime`` — request-grain "via Respan" uptime time series: one
-            verdict per client call (UP if ANY retry/fallback attempt succeeded), so
-            it reflects failover and sits at/above the per-provider line. Omitted for
-            provider-filtered requests because it is inherently cross-provider.
-          - ``metrics_series`` — per-bucket performance metrics over the window (tps,
-            ttft, latency, cache-hit %, + admin-only counts/cost), so the other
-            metrics can be plotted over time just like uptime. Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``status`` — scalar model-wide summary over the window (uptime %, tps,
-            ttft, latency, cache-hit %, catalog input list price). Omitted when a
-            ``provider_id`` filter is supplied (it is cross-provider).
-
-        Redaction: public/regular callers get only normalized rates/percentages plus
-        the catalog list price; staff/superadmins additionally get volume scalars
-        (request/down counts, total cost) — those are withheld from the public so
-        competitors can't infer platform traffic/revenue from counts × price.
-
-        The model is the URL path segment (``<path:model_name>``) so provider-prefixed
-        identifiers (e.g. ``vertex_ai/gemini-1.5-pro``) survive routing; the filters
-        (``provider_id``, ``time_tick``, range) stay query/body params.
+        Get public uptime and normalized performance metrics for an exact logged model string. Authentication is optional. Public callers receive redacted volume fields.
 
         Parameters
         ----------
         model_name : str
-
-        end_time : str
+            Exact logged model string; provider-prefixed values may contain a slash.
 
         start_time : str
+
+        end_time : str
 
         provider_id : typing.Optional[str]
 
         time_tick : typing.Optional[ApiModelsStatusRetrieveRequestTimeTick]
-            * `minute` - minute
-            * `hour` - hour
-            * `day` - day
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1246,26 +830,26 @@ class ModelsClient:
         Returns
         -------
         ModelStatusResponse
-
+            Model status series. Unknown model names return empty series rather than 404.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.models.api_models_status_retrieve(
             model_name="model_name",
-            end_time="end_time",
             start_time="start_time",
+            end_time="end_time",
         )
         """
         _response = self._raw_client.api_models_status_retrieve(
             model_name,
-            end_time=end_time,
             start_time=start_time,
+            end_time=end_time,
             provider_id=provider_id,
             time_tick=time_tick,
             request_options=request_options,
@@ -1279,23 +863,26 @@ class ModelsClient:
         start_time: str,
         end_time: str,
         provider_id: typing.Optional[str] = OMIT,
-        time_tick: typing.Optional[TimeTickEnum] = OMIT,
+        time_tick: typing.Optional[ApiModelsStatusCreateRequestTimeTick] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ModelStatusResponse:
         """
-        POST for filtering - delegate to GET (BE conventions).
+        POST-for-filtering model status. Manually supplied query parameters override the same body values.
 
         Parameters
         ----------
         model_name : str
+            Exact logged model string; provider-prefixed values may contain a slash.
 
         start_time : str
+            ISO-8601 or epoch timestamp. Raw window max 90 days.
 
         end_time : str
+            Timestamp after start_time.
 
         provider_id : typing.Optional[str]
 
-        time_tick : typing.Optional[TimeTickEnum]
+        time_tick : typing.Optional[ApiModelsStatusCreateRequestTimeTick]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1303,15 +890,15 @@ class ModelsClient:
         Returns
         -------
         ModelStatusResponse
-
+            Model status series. Unknown model names return empty series rather than 404.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.models.api_models_status_create(
             model_name="model_name",
@@ -1327,4238 +914,6 @@ class ModelsClient:
             time_tick=time_tick,
             request_options=request_options,
         )
-        return _response.data
-
-    def api_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicModelListList:
-        """
-        GET/POST /api/models/list/        (Public API)
-        GET/POST /api/llm_models/models/list/  (Platform)
-
-        List models. **Authentication is optional** (OpenRouter-style catalog) — the
-        SAME endpoint serves both public and authenticated callers:
-
-        - **Unauthenticated** → managed/shared models only (``organization=None``).
-          Rate-limited per client IP.
-        - **API key / JWT** → managed models PLUS the caller's own custom models.
-
-        Read-only: there is no create/write path (``ListAPIView``); ``post()`` only
-        delegates to ``get()`` to support POST-body filtering (BE conventions). Both
-        auth modes fully support filtering.
-
-        Optionally enriches each model with cross-org performance metrics (opt-in via
-        ``is_including_metrics``) over an absolute UTC ``[start_time, end_time)`` window
-        read at ``time_tick`` grain (dashboard convention). Each model gets a ``metrics``
-        object: average_tps / average_ttft / average_latency (OpenRouter-style
-        averages), uptime_percent, number_of_requests, cost, the prompt/completion/
-        cache token sums, and cache_hit_percentage. Sourced from the cross-org
-        ``get_public_breakdown_metrics`` reader (clickhouse/tasks.py). The metrics are
-        cross-org aggregates, so they're identical regardless of auth.
-
-        Filtering:
-            Use standard filter syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-            See boilerplates/keywordsai/feature_docs/shared/filters_api_reference.md
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicModelListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.api_models_list_list()
-        """
-        _response = self._raw_client.api_models_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def filter_models(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.filter_models(
-            model_name="model_name",
-        )
-        """
-        _response = self._raw_client.filter_models(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def list_models(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.list_models()
-        """
-        _response = self._raw_client.list_models(request_options=request_options)
-        return _response.data
-
-    def api_models_summary_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        GET/POST /api/models/summary/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/summary/ (Platform)
-
-        Summary counts for LLM models. **Auth is optional** — same model as
-        ``ModelsListView``:
-
-        - **Unauthenticated** → counts over managed/global models only
-          (``organization=null``). Rate-limited per client IP.
-        - **API key / JWT** → counts include the caller's custom models too.
-
-        Read-only: only GET (and POST-as-filter, delegating to GET). No write path.
-
-        Returns:
-            {
-                "summary": {
-                    "total_count": 150,
-                    "global_count": 120,
-                    "custom_count": 30
-                }
-            }
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.api_models_summary_retrieve()
-        """
-        _response = self._raw_client.api_models_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    def filter_models_summary(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.filter_models_summary()
-        """
-        _response = self._raw_client.filter_models_summary(request_options=request_options)
-        return _response.data
-
-    def api_provider_integrations_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.List[LlmProviderIntegration]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[LlmProviderIntegration]
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.api_provider_integrations_list()
-        """
-        _response = self._raw_client.api_provider_integrations_list(request_options=request_options)
-        return _response.data
-
-    def api_provider_integrations_create(
-        self,
-        *,
-        credential_fields: typing.Sequence[ProviderCredentialFieldListRequest],
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        integration_id: typing.Optional[int] = OMIT,
-        active_integrations_count: typing.Optional[int] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProviderIntegration:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        credential_fields : typing.Sequence[ProviderCredentialFieldListRequest]
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        integration_id : typing.Optional[int]
-
-        active_integrations_count : typing.Optional[int]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProviderIntegration
-
-
-        Examples
-        --------
-        from respan import ProviderCredentialFieldListRequest, RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.api_provider_integrations_create(
-            credential_fields=[
-                ProviderCredentialFieldListRequest(
-                    title="title",
-                    field_name="field_name",
-                )
-            ],
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.api_provider_integrations_create(
-            credential_fields=credential_fields,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            integration_id=integration_id,
-            active_integrations_count=active_integrations_count,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def list_custom_providers(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicCustomProviderListList:
-        """
-        Create and list custom LLM providers for an organization
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Superadmin access:
-            Superadmins can access ALL custom providers across all organizations.
-            Regular users can only access their own organization's providers.
-
-        Endpoint:
-            GET/POST /llm_models/custom_providers/
-            GET/POST /api/llm-models/custom-providers/
-
-        Args (POST):
-            - provider_id (Required): Unique identifier for the custom provider
-            - provider_name (Required): Human-readable name for the provider
-            - litellm_provider_id (Optional): Base provider ID for LiteLLM compatibility (e.g., "openai", "anthropic")
-            - moderation (Optional): Moderation setting ("filtered", "unfiltered")
-            - extra_kwargs (Optional): Additional provider-specific configuration (all credentials live here)
-                * api_key: Provider API key
-                * base_url: Custom base URL for the provider's API
-                * temperature: Default temperature setting
-                * max_tokens: Default max tokens setting
-                * timeout: Request timeout in seconds
-
-        Returns (POST):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z"
-            }
-
-        Returns (GET):
-            [
-                {
-                    "id": 123,
-                    "provider_id": "my-custom-openai",
-                    "provider_name": "My Custom OpenAI Provider",
-                    "litellm_provider_id": "openai",
-                    ...
-                }
-            ]
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicCustomProviderListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.list_custom_providers()
-        """
-        _response = self._raw_client.list_custom_providers(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def create_custom_provider(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderCreate:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderCreate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.create_custom_provider(
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.create_custom_provider(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_providers_update(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderList:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.api_providers_update(
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.api_providers_update(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_providers_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderList:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.api_providers_partial_update()
-        """
-        _response = self._raw_client.api_providers_partial_update(
-            project=project,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def retrieve_custom_provider(
-        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicCustomProviderDetail:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        provider_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.retrieve_custom_provider(
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.retrieve_custom_provider(provider_id, request_options=request_options)
-        return _response.data
-
-    def api_providers_create2(
-        self,
-        provider_id_: str,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_id_ : str
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.api_providers_create2(
-            provider_id_="provider_id",
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.api_providers_create2(
-            provider_id_,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def replace_custom_provider(
-        self,
-        provider_id: str,
-        *,
-        provider_name: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderUpdate:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_id : str
-
-        provider_name : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.replace_custom_provider(
-            provider_id="provider_id",
-            provider_name="provider_name",
-        )
-        """
-        _response = self._raw_client.replace_custom_provider(
-            provider_id,
-            provider_name=provider_name,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def delete_custom_provider(
-        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        provider_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.delete_custom_provider(
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.delete_custom_provider(provider_id, request_options=request_options)
-        return _response.data
-
-    def update_custom_provider(
-        self,
-        provider_id: str,
-        *,
-        provider_name: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        provider_id : str
-
-        provider_name : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.update_custom_provider(
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.update_custom_provider(
-            provider_id,
-            provider_name=provider_name,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_custom_providers_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicCustomProviderListList:
-        """
-        Create and list custom LLM providers for an organization
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Superadmin access:
-            Superadmins can access ALL custom providers across all organizations.
-            Regular users can only access their own organization's providers.
-
-        Endpoint:
-            GET/POST /llm_models/custom_providers/
-            GET/POST /api/llm-models/custom-providers/
-
-        Args (POST):
-            - provider_id (Required): Unique identifier for the custom provider
-            - provider_name (Required): Human-readable name for the provider
-            - litellm_provider_id (Optional): Base provider ID for LiteLLM compatibility (e.g., "openai", "anthropic")
-            - moderation (Optional): Moderation setting ("filtered", "unfiltered")
-            - extra_kwargs (Optional): Additional provider-specific configuration (all credentials live here)
-                * api_key: Provider API key
-                * base_url: Custom base URL for the provider's API
-                * temperature: Default temperature setting
-                * max_tokens: Default max tokens setting
-                * timeout: Request timeout in seconds
-
-        Returns (POST):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z"
-            }
-
-        Returns (GET):
-            [
-                {
-                    "id": 123,
-                    "provider_id": "my-custom-openai",
-                    "provider_name": "My Custom OpenAI Provider",
-                    "litellm_provider_id": "openai",
-                    ...
-                }
-            ]
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicCustomProviderListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_custom_providers_list()
-        """
-        _response = self._raw_client.llm_models_custom_providers_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def llm_models_custom_providers_create(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderCreate:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderCreate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_custom_providers_create(
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.llm_models_custom_providers_create(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_custom_providers_update(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderList:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_custom_providers_update(
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.llm_models_custom_providers_update(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_custom_providers_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderList:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_custom_providers_partial_update()
-        """
-        _response = self._raw_client.llm_models_custom_providers_partial_update(
-            project=project,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_custom_providers_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicCustomProviderDetail:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_custom_providers_retrieve(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_custom_providers_retrieve(id, request_options=request_options)
-        return _response.data
-
-    def llm_models_custom_providers_create2(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_custom_providers_create2(
-            id=1,
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.llm_models_custom_providers_create2(
-            id,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_custom_providers_update2(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderUpdate:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_custom_providers_update2(
-            id=1,
-            provider_name="provider_name",
-        )
-        """
-        _response = self._raw_client.llm_models_custom_providers_update2(
-            id,
-            provider_name=provider_name,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_custom_providers_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_custom_providers_destroy(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_custom_providers_destroy(id, request_options=request_options)
-        return _response.data
-
-    def llm_models_custom_providers_partial_update2(
-        self,
-        id: int,
-        *,
-        provider_name: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_custom_providers_partial_update2(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_custom_providers_partial_update2(
-            id,
-            provider_name=provider_name,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_foundation_model_retrieve2(
-        self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> LlmFoundationModelDetail:
-        """
-        Foundation model detail by model_name. Auth optional — API key OR JWT
-        parsed if present, anonymous allowed. Serializer filters variants by org
-        when authenticated. See ``FoundationModelView`` for why the optional mixin
-        replaces the bare JWT authenticator (it 401'd valid API-key callers).
-
-        Parameters
-        ----------
-        model_name : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmFoundationModelDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_foundation_model_retrieve2(
-            model_name="model_name",
-        )
-        """
-        _response = self._raw_client.llm_models_foundation_model_retrieve2(model_name, request_options=request_options)
-        return _response.data
-
-    def llm_models_foundation_model_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> LlmFoundationModelDetail:
-        """
-        Foundation model detail by PK. Auth optional — API key OR JWT parsed if
-        present, anonymous allowed. Serializer filters variants by org when
-        authenticated.
-
-        Uses ``OptionalJWTAndAPIKeyAuthenticationViewMixin`` (not bare
-        ``authentication_classes=[KeywordsAIJWTAuthentication]``): SimpleJWT raises
-        ``InvalidToken`` (401) on any present-but-non-JWT bearer — i.e. an API key —
-        so the bare config 401'd legitimate API-key callers despite ``AllowAny``.
-        The mixin accepts API key OR JWT and treats unparseable creds as anonymous,
-        and IP-rate-limits anonymous callers via ``TokenBucketThrottle``.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmFoundationModelDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_foundation_model_retrieve(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_foundation_model_retrieve(id, request_options=request_options)
-        return _response.data
-
-    def llm_models_foundation_models_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.List[LlmFoundationModel]:
-        """
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[LlmFoundationModel]
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_foundation_models_list()
-        """
-        _response = self._raw_client.llm_models_foundation_models_list(request_options=request_options)
-        return _response.data
-
-    def llm_models_foundation_models_create(
-        self,
-        *,
-        model_name: str,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        hf_url: typing.Optional[str] = OMIT,
-        model_description: typing.Optional[str] = OMIT,
-        model_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmFoundationModel:
-        """
-        Parameters
-        ----------
-        model_name : str
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        hf_url : typing.Optional[str]
-
-        model_description : typing.Optional[str]
-
-        model_params : typing.Optional[typing.Sequence[str]]
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmFoundationModel
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_foundation_models_create(
-            model_name="model_name",
-        )
-        """
-        _response = self._raw_client.llm_models_foundation_models_create(
-            model_name=model_name,
-            display_name=display_name,
-            speed=speed,
-            max_context_window=max_context_window,
-            model_size=model_size,
-            mmlu_score=mmlu_score,
-            mt_bench_score=mt_bench_score,
-            big_bench_score=big_bench_score,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            rate_limit=rate_limit,
-            token_rate_limit=token_rate_limit,
-            multilingual=multilingual,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            enforce_function_call=enforce_function_call,
-            weight=weight,
-            image_support=image_support,
-            hf_url=hf_url,
-            model_description=model_description,
-            model_params=model_params,
-            total_requests=total_requests,
-            total_cost=total_cost,
-            total_tokens=total_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_prompt_tokens=total_prompt_tokens,
-            avg_tps=avg_tps,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_foundation_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedLlmFoundationModelList:
-        """
-        View mixin that handles both JWT and API Key authentication.
-
-        Inherits from JWTAuthUtils:
-        - is_jwt_auth(request): Post-auth check (reliable, uses DRF's successful_authenticator)
-        - is_jwt_token_format(request): Pre-auth heuristic (used here to route authenticators)
-
-        This mixin uses is_jwt_token_format() (pre-auth) in get_authenticators() and get_permissions()
-        because those methods run BEFORE authentication completes. For post-auth checks,
-        use is_jwt_auth() instead.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedLlmFoundationModelList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_foundation_models_list_list()
-        """
-        _response = self._raw_client.llm_models_foundation_models_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def llm_models_model_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicModelDetail:
-        """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_model_retrieve(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_model_retrieve(id, request_options=request_options)
-        return _response.data
-
-    def llm_models_model_create(
-        self,
-        id: int,
-        *,
-        provider: LlmProviderRequest,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        order: typing.Optional[int] = OMIT,
-        sdk: typing.Optional[str] = OMIT,
-        foundation_model_name: typing.Optional[str] = OMIT,
-        drop_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        fallbacks: typing.Optional[typing.Any] = OMIT,
-        deprecated: typing.Optional[bool] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[LlmModelDetailRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        foundation_model: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmModelDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : int
-
-        provider : LlmProviderRequest
-
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        order : typing.Optional[int]
-
-        sdk : typing.Optional[str]
-
-        foundation_model_name : typing.Optional[str]
-
-        drop_params : typing.Optional[typing.Sequence[str]]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        fallbacks : typing.Optional[typing.Any]
-
-        deprecated : typing.Optional[bool]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[LlmModelDetailRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        foundation_model : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmModelDetail
-
-
-        Examples
-        --------
-        from respan import LlmProviderRequest, RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_model_create(
-            id=1,
-            provider=LlmProviderRequest(
-                provider_name="provider_name",
-                provider_id="provider_id",
-            ),
-            model_name="model_name",
-        )
-        """
-        _response = self._raw_client.llm_models_model_create(
-            id,
-            provider=provider,
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            speed=speed,
-            max_context_window=max_context_window,
-            model_size=model_size,
-            mmlu_score=mmlu_score,
-            mt_bench_score=mt_bench_score,
-            big_bench_score=big_bench_score,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            rate_limit=rate_limit,
-            token_rate_limit=token_rate_limit,
-            multilingual=multilingual,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            enforce_function_call=enforce_function_call,
-            weight=weight,
-            image_support=image_support,
-            order=order,
-            sdk=sdk,
-            foundation_model_name=foundation_model_name,
-            drop_params=drop_params,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            fallbacks=fallbacks,
-            deprecated=deprecated,
-            status=status,
-            is_verified=is_verified,
-            total_requests=total_requests,
-            total_cost=total_cost,
-            total_tokens=total_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_prompt_tokens=total_prompt_tokens,
-            avg_tps=avg_tps,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            foundation_model=foundation_model,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_model_update(
-        self,
-        id: int,
-        *,
-        supported_params_override: typing.Optional[PublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelUpdate:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : int
-
-        supported_params_override : typing.Optional[PublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_model_update(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_model_update(
-            id,
-            supported_params_override=supported_params_override,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            provider=provider,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_model_destroy(self, id: int, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_model_destroy(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_model_destroy(id, request_options=request_options)
-        return _response.data
-
-    def llm_models_model_partial_update(
-        self,
-        id: int,
-        *,
-        supported_params_override: typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : int
-
-        supported_params_override : typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_model_partial_update(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_model_partial_update(
-            id,
-            supported_params_override=supported_params_override,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            provider=provider,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_models_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicModelListList:
-        """
-        GET/POST /api/llm_models/models/  (platform - shows global + custom)
-        GET/POST /api/llm-models/custom-models/  (public API - shows ONLY custom)
-
-        Unified endpoint for models.
-
-        GET:  List models
-              - Platform: global + org's custom (same for superadmin - no cross-org listing)
-              - Public (custom-models path): ONLY org's custom models
-              Filter with standard syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-
-        POST:
-            - Without 'model_name' in body: Filter/list models (backward compatible)
-            - With 'model_name' in body: Create model
-                - organization_id=null + superadmin: Create global model
-                - Otherwise: Create custom model for target org (superadmin can specify organization_id)
-
-        Note: Uses SuperAdminMixin for consistency, but queryset is intentionally the same
-        for both regular users and superadmins (global + org's custom pattern).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicModelListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_list()
-        """
-        _response = self._raw_client.llm_models_models_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def llm_models_models_create(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_create(
-            model_name="model_name",
-        )
-        """
-        _response = self._raw_client.llm_models_models_create(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_models_update(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_update(
-            model_name="model_name",
-        )
-        """
-        _response = self._raw_client.llm_models_models_update(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_models_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        model_name: typing.Optional[str] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        model_name : typing.Optional[str]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_partial_update()
-        """
-        _response = self._raw_client.llm_models_models_partial_update(
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            model_name=model_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_models_status_retrieve(
-        self,
-        model_name: str,
-        *,
-        end_time: str,
-        start_time: str,
-        provider_id: typing.Optional[str] = None,
-        time_tick: typing.Optional[LlmModelsModelsStatusRetrieveRequestTimeTick] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ModelStatusResponse:
-        """
-        GET/POST /api/models/<model_name>/status/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/<model_name>/status/ (Platform)
-
-        Per-model status resource for the exact logged model string in the URL path,
-        over an absolute UTC ``[start_time, end_time)`` range, bucketed by
-        ``time_tick`` (minute / hour / day).
-        Returns four things (see ``ModelStatusResponseSerializer``):
-          - ``data`` — per-provider uptime time series (per-attempt grain). Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``respan_uptime`` — request-grain "via Respan" uptime time series: one
-            verdict per client call (UP if ANY retry/fallback attempt succeeded), so
-            it reflects failover and sits at/above the per-provider line. Omitted for
-            provider-filtered requests because it is inherently cross-provider.
-          - ``metrics_series`` — per-bucket performance metrics over the window (tps,
-            ttft, latency, cache-hit %, + admin-only counts/cost), so the other
-            metrics can be plotted over time just like uptime. Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``status`` — scalar model-wide summary over the window (uptime %, tps,
-            ttft, latency, cache-hit %, catalog input list price). Omitted when a
-            ``provider_id`` filter is supplied (it is cross-provider).
-
-        Redaction: public/regular callers get only normalized rates/percentages plus
-        the catalog list price; staff/superadmins additionally get volume scalars
-        (request/down counts, total cost) — those are withheld from the public so
-        competitors can't infer platform traffic/revenue from counts × price.
-
-        The model is the URL path segment (``<path:model_name>``) so provider-prefixed
-        identifiers (e.g. ``vertex_ai/gemini-1.5-pro``) survive routing; the filters
-        (``provider_id``, ``time_tick``, range) stay query/body params.
-
-        Parameters
-        ----------
-        model_name : str
-
-        end_time : str
-
-        start_time : str
-
-        provider_id : typing.Optional[str]
-
-        time_tick : typing.Optional[LlmModelsModelsStatusRetrieveRequestTimeTick]
-            * `minute` - minute
-            * `hour` - hour
-            * `day` - day
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ModelStatusResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_status_retrieve(
-            model_name="model_name",
-            end_time="end_time",
-            start_time="start_time",
-        )
-        """
-        _response = self._raw_client.llm_models_models_status_retrieve(
-            model_name,
-            end_time=end_time,
-            start_time=start_time,
-            provider_id=provider_id,
-            time_tick=time_tick,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_models_status_create(
-        self,
-        model_name: str,
-        *,
-        start_time: str,
-        end_time: str,
-        provider_id: typing.Optional[str] = OMIT,
-        time_tick: typing.Optional[TimeTickEnum] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ModelStatusResponse:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        start_time : str
-
-        end_time : str
-
-        provider_id : typing.Optional[str]
-
-        time_tick : typing.Optional[TimeTickEnum]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ModelStatusResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_status_create(
-            model_name="model_name",
-            start_time="start_time",
-            end_time="end_time",
-        )
-        """
-        _response = self._raw_client.llm_models_models_status_create(
-            model_name,
-            start_time=start_time,
-            end_time=end_time,
-            provider_id=provider_id,
-            time_tick=time_tick,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicModelListList:
-        """
-        GET/POST /api/models/list/        (Public API)
-        GET/POST /api/llm_models/models/list/  (Platform)
-
-        List models. **Authentication is optional** (OpenRouter-style catalog) — the
-        SAME endpoint serves both public and authenticated callers:
-
-        - **Unauthenticated** → managed/shared models only (``organization=None``).
-          Rate-limited per client IP.
-        - **API key / JWT** → managed models PLUS the caller's own custom models.
-
-        Read-only: there is no create/write path (``ListAPIView``); ``post()`` only
-        delegates to ``get()`` to support POST-body filtering (BE conventions). Both
-        auth modes fully support filtering.
-
-        Optionally enriches each model with cross-org performance metrics (opt-in via
-        ``is_including_metrics``) over an absolute UTC ``[start_time, end_time)`` window
-        read at ``time_tick`` grain (dashboard convention). Each model gets a ``metrics``
-        object: average_tps / average_ttft / average_latency (OpenRouter-style
-        averages), uptime_percent, number_of_requests, cost, the prompt/completion/
-        cache token sums, and cache_hit_percentage. Sourced from the cross-org
-        ``get_public_breakdown_metrics`` reader (clickhouse/tasks.py). The metrics are
-        cross-org aggregates, so they're identical regardless of auth.
-
-        Filtering:
-            Use standard filter syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-            See boilerplates/keywordsai/feature_docs/shared/filters_api_reference.md
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicModelListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_list_list()
-        """
-        _response = self._raw_client.llm_models_models_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def llm_models_models_list_create(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_list_create(
-            model_name="model_name",
-        )
-        """
-        _response = self._raw_client.llm_models_models_list_create(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_models_summary_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        GET/POST /api/models/summary/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/summary/ (Platform)
-
-        Summary counts for LLM models. **Auth is optional** — same model as
-        ``ModelsListView``:
-
-        - **Unauthenticated** → counts over managed/global models only
-          (``organization=null``). Rate-limited per client IP.
-        - **API key / JWT** → counts include the caller's custom models too.
-
-        Read-only: only GET (and POST-as-filter, delegating to GET). No write path.
-
-        Returns:
-            {
-                "summary": {
-                    "total_count": 150,
-                    "global_count": 120,
-                    "custom_count": 30
-                }
-            }
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_summary_retrieve()
-        """
-        _response = self._raw_client.llm_models_models_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    def llm_models_models_summary_create(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_models_summary_create()
-        """
-        _response = self._raw_client.llm_models_models_summary_create(request_options=request_options)
-        return _response.data
-
-    def llm_models_provider_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> LlmProvider:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProvider
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_provider_retrieve(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_provider_retrieve(id, request_options=request_options)
-        return _response.data
-
-    def llm_models_provider_update(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProvider:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProvider
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_provider_update(
-            id=1,
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.llm_models_provider_update(
-            id,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_provider_destroy(self, id: int, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_provider_destroy(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_provider_destroy(id, request_options=request_options)
-        return _response.data
-
-    def llm_models_provider_partial_update(
-        self,
-        id: int,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProvider:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProvider
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_provider_partial_update(
-            id=1,
-        )
-        """
-        _response = self._raw_client.llm_models_provider_partial_update(
-            id,
-            project=project,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_provider_integrations_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.List[LlmProviderIntegration]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[LlmProviderIntegration]
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_provider_integrations_list()
-        """
-        _response = self._raw_client.llm_models_provider_integrations_list(request_options=request_options)
-        return _response.data
-
-    def llm_models_provider_integrations_create(
-        self,
-        *,
-        credential_fields: typing.Sequence[ProviderCredentialFieldListRequest],
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        integration_id: typing.Optional[int] = OMIT,
-        active_integrations_count: typing.Optional[int] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProviderIntegration:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        credential_fields : typing.Sequence[ProviderCredentialFieldListRequest]
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        integration_id : typing.Optional[int]
-
-        active_integrations_count : typing.Optional[int]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProviderIntegration
-
-
-        Examples
-        --------
-        from respan import ProviderCredentialFieldListRequest, RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_provider_integrations_create(
-            credential_fields=[
-                ProviderCredentialFieldListRequest(
-                    title="title",
-                    field_name="field_name",
-                )
-            ],
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.llm_models_provider_integrations_create(
-            credential_fields=credential_fields,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            integration_id=integration_id,
-            active_integrations_count=active_integrations_count,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_providers_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedLlmProviderList:
-        """
-        Global providers list. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedLlmProviderList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_providers_list()
-        """
-        _response = self._raw_client.llm_models_providers_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def llm_models_providers_create(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProvider:
-        """
-        Global providers list. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProvider
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_providers_create(
-            provider_name="provider_name",
-            provider_id="provider_id",
-        )
-        """
-        _response = self._raw_client.llm_models_providers_create(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def llm_models_validate_api_key_create(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Validate API credentials. Supports both JWT and API key auth.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.models.llm_models_validate_api_key_create()
-        """
-        _response = self._raw_client.llm_models_validate_api_key_create(request_options=request_options)
         return _response.data
 
 
@@ -5577,134 +932,59 @@ class AsyncModelsClient:
         """
         return self._raw_client
 
-    async def api_models_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicModelListList:
-        """
-        GET/POST /api/llm_models/models/  (platform - shows global + custom)
-        GET/POST /api/llm-models/custom-models/  (public API - shows ONLY custom)
-
-        Unified endpoint for models.
-
-        GET:  List models
-              - Platform: global + org's custom (same for superadmin - no cross-org listing)
-              - Public (custom-models path): ONLY org's custom models
-              Filter with standard syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-
-        POST:
-            - Without 'model_name' in body: Filter/list models (backward compatible)
-            - With 'model_name' in body: Create model
-                - organization_id=null + superadmin: Create global model
-                - Otherwise: Create custom model for target org (superadmin can specify organization_id)
-
-        Note: Uses SuperAdminMixin for consistency, but queryset is intentionally the same
-        for both regular users and superadmins (global + org's custom pattern).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicModelListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_models_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_models_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
     async def create_custom_model(
         self,
         *,
         model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
+    ) -> CreateCustomModelResponse:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Create an organization-specific custom model. If a model with the same `model_name` already exists in your organization, it is updated and the endpoint returns `200`.
 
         Parameters
         ----------
         model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Unique model name within your organization.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -5712,40 +992,16 @@ class AsyncModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelList
-
+        CreateCustomModelResponse
+            Updated existing model.
 
         Examples
         --------
@@ -5754,14 +1010,14 @@ class AsyncModelsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
             await client.models.create_custom_model(
-                model_name="model_name",
+                model_name="my-custom-gpt-4o",
             )
 
 
@@ -5769,135 +1025,60 @@ class AsyncModelsClient:
         """
         _response = await self._raw_client.create_custom_model(
             model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
             base_model_name=base_model_name,
             display_name=display_name,
-            max_context_window=max_context_window,
+            custom_provider_id=custom_provider_id,
+            provider_id=provider_id,
             input_cost=input_cost,
             output_cost=output_cost,
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
+            max_context_window=max_context_window,
             streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
+            supported_params_override=supported_params_override,
             request_options=request_options,
         )
         return _response.data
 
-    async def api_models_update(
+    async def filter_models(
         self,
         *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
+    ) -> AsyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        List models using POST-for-filtering. Authentication is optional: anonymous callers receive managed global models, while API-key and dashboard callers also receive their organization's custom models. Anonymous requests are rate-limited per client IP.
 
         Parameters
         ----------
-        model_name : str
+        page : typing.Optional[int]
+            Page number.
 
-        project : typing.Optional[str]
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
 
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
 
-        is_managed : typing.Optional[bool]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelList
-
+        AsyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]
+            Paginated filtered list of models.
 
         Examples
         --------
@@ -5906,232 +1087,98 @@ class AsyncModelsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
-            await client.models.api_models_update(
-                model_name="model_name",
+            response = await client.models.filter_models(
+                sort_by="model_name",
+                filters={"affiliation_category": {"operator": "", "value": ["custom"]}},
+            )
+            async for item in response:
+                yield item
+
+            # alternatively, you can paginate page-by-page
+            async for page in response.iter_pages():
+                yield page
+
+
+        asyncio.run(main())
+        """
+        return await self._raw_client.filter_models(
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            filters=filters,
+            is_exporting=is_exporting,
+            request_options=request_options,
+        )
+
+    async def filter_models_summary(
+        self,
+        *,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FilterModelsSummaryResponse:
+        """
+        Return model counts after applying an optional POST filter. Authentication is optional: anonymous counts cover managed global models, while authenticated counts also include the caller's custom models.
+
+        Parameters
+        ----------
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        FilterModelsSummaryResponse
+            Models summary.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.models.filter_models_summary(
+                filters={"affiliation_category": {"operator": "", "value": ["custom"]}},
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.api_models_update(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_models_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        model_name: typing.Optional[str] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        model_name : typing.Optional[str]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_models_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_models_partial_update(
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            model_name=model_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
+        _response = await self._raw_client.filter_models_summary(filters=filters, request_options=request_options)
         return _response.data
 
     async def retrieve_custom_model(
         self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicModelDetail:
+    ) -> RetrieveCustomModelResponse:
         """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
+        Retrieve a built-in or custom model by model name. Custom models are only visible to the owning organization.
 
         Parameters
         ----------
         model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelDetail
-
+        RetrieveCustomModelResponse
+            Model details.
 
         Examples
         --------
@@ -6140,8 +1187,8 @@ class AsyncModelsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -6156,325 +1203,59 @@ class AsyncModelsClient:
         _response = await self._raw_client.retrieve_custom_model(model_name, request_options=request_options)
         return _response.data
 
-    async def api_models_create2(
-        self,
-        model_name_: str,
-        *,
-        provider: LlmProviderRequest,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        order: typing.Optional[int] = OMIT,
-        sdk: typing.Optional[str] = OMIT,
-        foundation_model_name: typing.Optional[str] = OMIT,
-        drop_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        fallbacks: typing.Optional[typing.Any] = OMIT,
-        deprecated: typing.Optional[bool] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[LlmModelDetailRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        foundation_model: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmModelDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        model_name_ : str
-
-        provider : LlmProviderRequest
-
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        order : typing.Optional[int]
-
-        sdk : typing.Optional[str]
-
-        foundation_model_name : typing.Optional[str]
-
-        drop_params : typing.Optional[typing.Sequence[str]]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        fallbacks : typing.Optional[typing.Any]
-
-        deprecated : typing.Optional[bool]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[LlmModelDetailRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        foundation_model : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmModelDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient, LlmProviderRequest
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_models_create2(
-                model_name_="model_name",
-                provider=LlmProviderRequest(
-                    provider_name="provider_name",
-                    provider_id="provider_id",
-                ),
-                model_name="model_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_models_create2(
-            model_name_,
-            provider=provider,
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            speed=speed,
-            max_context_window=max_context_window,
-            model_size=model_size,
-            mmlu_score=mmlu_score,
-            mt_bench_score=mt_bench_score,
-            big_bench_score=big_bench_score,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            rate_limit=rate_limit,
-            token_rate_limit=token_rate_limit,
-            multilingual=multilingual,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            enforce_function_call=enforce_function_call,
-            weight=weight,
-            image_support=image_support,
-            order=order,
-            sdk=sdk,
-            foundation_model_name=foundation_model_name,
-            drop_params=drop_params,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            fallbacks=fallbacks,
-            deprecated=deprecated,
-            status=status,
-            is_verified=is_verified,
-            total_requests=total_requests,
-            total_cost=total_cost,
-            total_tokens=total_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_prompt_tokens=total_prompt_tokens,
-            avg_tps=avg_tps,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            foundation_model=foundation_model,
-            request_options=request_options,
-        )
-        return _response.data
-
     async def replace_custom_model(
         self,
         model_name: str,
         *,
-        supported_params_override: typing.Optional[PublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelUpdate:
+    ) -> ReplaceCustomModelResponse:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        Replace editable fields for a custom model. The `model_name` path value remains the identifier.
 
         Parameters
         ----------
         model_name : str
-
-        supported_params_override : typing.Optional[PublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -6482,40 +1263,16 @@ class AsyncModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelUpdate
-
+        ReplaceCustomModelResponse
+            Updated model.
 
         Examples
         --------
@@ -6524,8 +1281,8 @@ class AsyncModelsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -6539,29 +1296,19 @@ class AsyncModelsClient:
         """
         _response = await self._raw_client.replace_custom_model(
             model_name,
-            supported_params_override=supported_params_override,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
             base_model_name=base_model_name,
             display_name=display_name,
-            max_context_window=max_context_window,
+            custom_provider_id=custom_provider_id,
+            provider_id=provider_id,
             input_cost=input_cost,
             output_cost=output_cost,
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
+            max_context_window=max_context_window,
             streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            provider=provider,
+            supported_params_override=supported_params_override,
             request_options=request_options,
         )
         return _response.data
@@ -6570,26 +1317,12 @@ class AsyncModelsClient:
         self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
+        Delete a custom model by model name.
 
         Parameters
         ----------
         model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -6605,8 +1338,8 @@ class AsyncModelsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -6625,65 +1358,55 @@ class AsyncModelsClient:
         self,
         model_name: str,
         *,
-        supported_params_override: typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelUpdate:
+    ) -> UpdateCustomModelResponse:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Partially update editable fields for a custom model. The `model_name` field is read-only.
 
         Parameters
         ----------
         model_name : str
-
-        supported_params_override : typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -6691,40 +1414,16 @@ class AsyncModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicModelUpdate
-
+        UpdateCustomModelResponse
+            Updated model.
 
         Examples
         --------
@@ -6733,8 +1432,8 @@ class AsyncModelsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -6748,96 +1447,46 @@ class AsyncModelsClient:
         """
         _response = await self._raw_client.update_custom_model(
             model_name,
-            supported_params_override=supported_params_override,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
             base_model_name=base_model_name,
             display_name=display_name,
-            max_context_window=max_context_window,
+            custom_provider_id=custom_provider_id,
+            provider_id=provider_id,
             input_cost=input_cost,
             output_cost=output_cost,
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
+            max_context_window=max_context_window,
             streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            provider=provider,
+            supported_params_override=supported_params_override,
             request_options=request_options,
         )
         return _response.data
 
-    async def api_models_status_retrieve(
+    async def list_custom_providers(
         self,
-        model_name: str,
         *,
-        end_time: str,
-        start_time: str,
-        provider_id: typing.Optional[str] = None,
-        time_tick: typing.Optional[ApiModelsStatusRetrieveRequestTimeTick] = None,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ModelStatusResponse:
+    ) -> ListCustomProvidersResponse:
         """
-        GET/POST /api/models/<model_name>/status/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/<model_name>/status/ (Platform)
-
-        Per-model status resource for the exact logged model string in the URL path,
-        over an absolute UTC ``[start_time, end_time)`` range, bucketed by
-        ``time_tick`` (minute / hour / day).
-        Returns four things (see ``ModelStatusResponseSerializer``):
-          - ``data`` — per-provider uptime time series (per-attempt grain). Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``respan_uptime`` — request-grain "via Respan" uptime time series: one
-            verdict per client call (UP if ANY retry/fallback attempt succeeded), so
-            it reflects failover and sits at/above the per-provider line. Omitted for
-            provider-filtered requests because it is inherently cross-provider.
-          - ``metrics_series`` — per-bucket performance metrics over the window (tps,
-            ttft, latency, cache-hit %, + admin-only counts/cost), so the other
-            metrics can be plotted over time just like uptime. Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``status`` — scalar model-wide summary over the window (uptime %, tps,
-            ttft, latency, cache-hit %, catalog input list price). Omitted when a
-            ``provider_id`` filter is supplied (it is cross-provider).
-
-        Redaction: public/regular callers get only normalized rates/percentages plus
-        the catalog list price; staff/superadmins additionally get volume scalars
-        (request/down counts, total cost) — those are withheld from the public so
-        competitors can't infer platform traffic/revenue from counts × price.
-
-        The model is the URL path segment (``<path:model_name>``) so provider-prefixed
-        identifiers (e.g. ``vertex_ai/gemini-1.5-pro``) survive routing; the filters
-        (``provider_id``, ``time_tick``, range) stay query/body params.
+        List custom providers for the authenticated organization.
 
         Parameters
         ----------
-        model_name : str
+        page : typing.Optional[int]
 
-        end_time : str
-
-        start_time : str
-
-        provider_id : typing.Optional[str]
-
-        time_tick : typing.Optional[ApiModelsStatusRetrieveRequestTimeTick]
-            * `minute` - minute
-            * `hour` - hour
-            * `day` - day
+        page_size : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ModelStatusResponse
-
+        ListCustomProvidersResponse
+            Paginated custom providers.
 
         Examples
         --------
@@ -6846,16 +1495,365 @@ class AsyncModelsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.models.list_custom_providers()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_custom_providers(
+            page=page, page_size=page_size, request_options=request_options
+        )
+        return _response.data
+
+    async def create_custom_provider(
+        self,
+        *,
+        provider_id: str,
+        provider_name: str,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> CreateCustomProviderResponse:
+        """
+        Create a custom provider. Use `PATCH /api/providers/{provider_id}/` to update an existing provider.
+
+        Parameters
+        ----------
+        provider_id : str
+            Unique provider identifier within your organization.
+
+        provider_name : str
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        CreateCustomProviderResponse
+            Created provider.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.models.create_custom_provider(
+                provider_id="my-vllm",
+                provider_name="My vLLM Server",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.create_custom_provider(
+            provider_id=provider_id,
+            provider_name=provider_name,
+            extra_kwargs=extra_kwargs,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def retrieve_custom_provider(
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> RetrieveCustomProviderResponse:
+        """
+        Retrieve a custom provider by its string provider ID. The current backend returns `extra_kwargs`, including any credentials stored in that object; handle this response as sensitive.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveCustomProviderResponse
+            Provider details.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.models.retrieve_custom_provider(
+                provider_id="provider_id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.retrieve_custom_provider(provider_id, request_options=request_options)
+        return _response.data
+
+    async def replace_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        provider_name: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceCustomProviderResponse:
+        """
+        Replace editable fields for a custom provider. The `provider_id` path value remains the identifier.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceCustomProviderResponse
+            Updated provider.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.models.replace_custom_provider(
+                provider_id="provider_id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.replace_custom_provider(
+            provider_id, provider_name=provider_name, extra_kwargs=extra_kwargs, request_options=request_options
+        )
+        return _response.data
+
+    async def delete_custom_provider(
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Delete a custom provider by string provider ID.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.models.delete_custom_provider(
+                provider_id="provider_id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.delete_custom_provider(provider_id, request_options=request_options)
+        return _response.data
+
+    async def update_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        provider_name: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> UpdateCustomProviderResponse:
+        """
+        Partially update editable fields for a custom provider. The `provider_id` field is read-only.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        UpdateCustomProviderResponse
+            Updated provider.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.models.update_custom_provider(
+                provider_id="provider_id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.update_custom_provider(
+            provider_id, provider_name=provider_name, extra_kwargs=extra_kwargs, request_options=request_options
+        )
+        return _response.data
+
+    async def list_models(
+        self, *, unnest: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> ListModelsResponse:
+        """
+        List built-in public models and provider metadata. This endpoint does not require authentication. By default the response is `{ "models": [...] }`; pass `unnest=true` to return the array directly.
+
+        Parameters
+        ----------
+        unnest : typing.Optional[bool]
+            If `true`, return the public model catalog as an array instead of `{ "models": [...] }`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListModelsResponse
+            Public model catalog.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.models.list_models()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_models(unnest=unnest, request_options=request_options)
+        return _response.data
+
+    async def api_models_status_retrieve(
+        self,
+        model_name: str,
+        *,
+        start_time: str,
+        end_time: str,
+        provider_id: typing.Optional[str] = None,
+        time_tick: typing.Optional[ApiModelsStatusRetrieveRequestTimeTick] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ModelStatusResponse:
+        """
+        Get public uptime and normalized performance metrics for an exact logged model string. Authentication is optional. Public callers receive redacted volume fields.
+
+        Parameters
+        ----------
+        model_name : str
+            Exact logged model string; provider-prefixed values may contain a slash.
+
+        start_time : str
+
+        end_time : str
+
+        provider_id : typing.Optional[str]
+
+        time_tick : typing.Optional[ApiModelsStatusRetrieveRequestTimeTick]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ModelStatusResponse
+            Model status series. Unknown model names return empty series rather than 404.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
             await client.models.api_models_status_retrieve(
                 model_name="model_name",
-                end_time="end_time",
                 start_time="start_time",
+                end_time="end_time",
             )
 
 
@@ -6863,8 +1861,8 @@ class AsyncModelsClient:
         """
         _response = await self._raw_client.api_models_status_retrieve(
             model_name,
-            end_time=end_time,
             start_time=start_time,
+            end_time=end_time,
             provider_id=provider_id,
             time_tick=time_tick,
             request_options=request_options,
@@ -6878,23 +1876,26 @@ class AsyncModelsClient:
         start_time: str,
         end_time: str,
         provider_id: typing.Optional[str] = OMIT,
-        time_tick: typing.Optional[TimeTickEnum] = OMIT,
+        time_tick: typing.Optional[ApiModelsStatusCreateRequestTimeTick] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ModelStatusResponse:
         """
-        POST for filtering - delegate to GET (BE conventions).
+        POST-for-filtering model status. Manually supplied query parameters override the same body values.
 
         Parameters
         ----------
         model_name : str
+            Exact logged model string; provider-prefixed values may contain a slash.
 
         start_time : str
+            ISO-8601 or epoch timestamp. Raw window max 90 days.
 
         end_time : str
+            Timestamp after start_time.
 
         provider_id : typing.Optional[str]
 
-        time_tick : typing.Optional[TimeTickEnum]
+        time_tick : typing.Optional[ApiModelsStatusCreateRequestTimeTick]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -6902,7 +1903,7 @@ class AsyncModelsClient:
         Returns
         -------
         ModelStatusResponse
-
+            Model status series. Unknown model names return empty series rather than 404.
 
         Examples
         --------
@@ -6911,8 +1912,8 @@ class AsyncModelsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -6934,4680 +1935,4 @@ class AsyncModelsClient:
             time_tick=time_tick,
             request_options=request_options,
         )
-        return _response.data
-
-    async def api_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicModelListList:
-        """
-        GET/POST /api/models/list/        (Public API)
-        GET/POST /api/llm_models/models/list/  (Platform)
-
-        List models. **Authentication is optional** (OpenRouter-style catalog) — the
-        SAME endpoint serves both public and authenticated callers:
-
-        - **Unauthenticated** → managed/shared models only (``organization=None``).
-          Rate-limited per client IP.
-        - **API key / JWT** → managed models PLUS the caller's own custom models.
-
-        Read-only: there is no create/write path (``ListAPIView``); ``post()`` only
-        delegates to ``get()`` to support POST-body filtering (BE conventions). Both
-        auth modes fully support filtering.
-
-        Optionally enriches each model with cross-org performance metrics (opt-in via
-        ``is_including_metrics``) over an absolute UTC ``[start_time, end_time)`` window
-        read at ``time_tick`` grain (dashboard convention). Each model gets a ``metrics``
-        object: average_tps / average_ttft / average_latency (OpenRouter-style
-        averages), uptime_percent, number_of_requests, cost, the prompt/completion/
-        cache token sums, and cache_hit_percentage. Sourced from the cross-org
-        ``get_public_breakdown_metrics`` reader (clickhouse/tasks.py). The metrics are
-        cross-org aggregates, so they're identical regardless of auth.
-
-        Filtering:
-            Use standard filter syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-            See boilerplates/keywordsai/feature_docs/shared/filters_api_reference.md
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicModelListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_models_list_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_models_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def filter_models(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.filter_models(
-                model_name="model_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.filter_models(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def list_models(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.list_models()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_models(request_options=request_options)
-        return _response.data
-
-    async def api_models_summary_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        GET/POST /api/models/summary/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/summary/ (Platform)
-
-        Summary counts for LLM models. **Auth is optional** — same model as
-        ``ModelsListView``:
-
-        - **Unauthenticated** → counts over managed/global models only
-          (``organization=null``). Rate-limited per client IP.
-        - **API key / JWT** → counts include the caller's custom models too.
-
-        Read-only: only GET (and POST-as-filter, delegating to GET). No write path.
-
-        Returns:
-            {
-                "summary": {
-                    "total_count": 150,
-                    "global_count": 120,
-                    "custom_count": 30
-                }
-            }
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_models_summary_retrieve()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_models_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    async def filter_models_summary(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.filter_models_summary()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.filter_models_summary(request_options=request_options)
-        return _response.data
-
-    async def api_provider_integrations_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.List[LlmProviderIntegration]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[LlmProviderIntegration]
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_provider_integrations_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_provider_integrations_list(request_options=request_options)
-        return _response.data
-
-    async def api_provider_integrations_create(
-        self,
-        *,
-        credential_fields: typing.Sequence[ProviderCredentialFieldListRequest],
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        integration_id: typing.Optional[int] = OMIT,
-        active_integrations_count: typing.Optional[int] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProviderIntegration:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        credential_fields : typing.Sequence[ProviderCredentialFieldListRequest]
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        integration_id : typing.Optional[int]
-
-        active_integrations_count : typing.Optional[int]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProviderIntegration
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient, ProviderCredentialFieldListRequest
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_provider_integrations_create(
-                credential_fields=[
-                    ProviderCredentialFieldListRequest(
-                        title="title",
-                        field_name="field_name",
-                    )
-                ],
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_provider_integrations_create(
-            credential_fields=credential_fields,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            integration_id=integration_id,
-            active_integrations_count=active_integrations_count,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def list_custom_providers(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicCustomProviderListList:
-        """
-        Create and list custom LLM providers for an organization
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Superadmin access:
-            Superadmins can access ALL custom providers across all organizations.
-            Regular users can only access their own organization's providers.
-
-        Endpoint:
-            GET/POST /llm_models/custom_providers/
-            GET/POST /api/llm-models/custom-providers/
-
-        Args (POST):
-            - provider_id (Required): Unique identifier for the custom provider
-            - provider_name (Required): Human-readable name for the provider
-            - litellm_provider_id (Optional): Base provider ID for LiteLLM compatibility (e.g., "openai", "anthropic")
-            - moderation (Optional): Moderation setting ("filtered", "unfiltered")
-            - extra_kwargs (Optional): Additional provider-specific configuration (all credentials live here)
-                * api_key: Provider API key
-                * base_url: Custom base URL for the provider's API
-                * temperature: Default temperature setting
-                * max_tokens: Default max tokens setting
-                * timeout: Request timeout in seconds
-
-        Returns (POST):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z"
-            }
-
-        Returns (GET):
-            [
-                {
-                    "id": 123,
-                    "provider_id": "my-custom-openai",
-                    "provider_name": "My Custom OpenAI Provider",
-                    "litellm_provider_id": "openai",
-                    ...
-                }
-            ]
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicCustomProviderListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.list_custom_providers()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_custom_providers(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def create_custom_provider(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderCreate:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderCreate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.create_custom_provider(
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.create_custom_provider(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_providers_update(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderList:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_providers_update(
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_providers_update(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_providers_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderList:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_providers_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_providers_partial_update(
-            project=project,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def retrieve_custom_provider(
-        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicCustomProviderDetail:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        provider_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.retrieve_custom_provider(
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.retrieve_custom_provider(provider_id, request_options=request_options)
-        return _response.data
-
-    async def api_providers_create2(
-        self,
-        provider_id_: str,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_id_ : str
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.api_providers_create2(
-                provider_id_="provider_id",
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_providers_create2(
-            provider_id_,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def replace_custom_provider(
-        self,
-        provider_id: str,
-        *,
-        provider_name: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderUpdate:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_id : str
-
-        provider_name : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.replace_custom_provider(
-                provider_id="provider_id",
-                provider_name="provider_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.replace_custom_provider(
-            provider_id,
-            provider_name=provider_name,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def delete_custom_provider(
-        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        provider_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.delete_custom_provider(
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.delete_custom_provider(provider_id, request_options=request_options)
-        return _response.data
-
-    async def update_custom_provider(
-        self,
-        provider_id: str,
-        *,
-        provider_name: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        provider_id : str
-
-        provider_name : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.update_custom_provider(
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.update_custom_provider(
-            provider_id,
-            provider_name=provider_name,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_custom_providers_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicCustomProviderListList:
-        """
-        Create and list custom LLM providers for an organization
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Superadmin access:
-            Superadmins can access ALL custom providers across all organizations.
-            Regular users can only access their own organization's providers.
-
-        Endpoint:
-            GET/POST /llm_models/custom_providers/
-            GET/POST /api/llm-models/custom-providers/
-
-        Args (POST):
-            - provider_id (Required): Unique identifier for the custom provider
-            - provider_name (Required): Human-readable name for the provider
-            - litellm_provider_id (Optional): Base provider ID for LiteLLM compatibility (e.g., "openai", "anthropic")
-            - moderation (Optional): Moderation setting ("filtered", "unfiltered")
-            - extra_kwargs (Optional): Additional provider-specific configuration (all credentials live here)
-                * api_key: Provider API key
-                * base_url: Custom base URL for the provider's API
-                * temperature: Default temperature setting
-                * max_tokens: Default max tokens setting
-                * timeout: Request timeout in seconds
-
-        Returns (POST):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z"
-            }
-
-        Returns (GET):
-            [
-                {
-                    "id": 123,
-                    "provider_id": "my-custom-openai",
-                    "provider_name": "My Custom OpenAI Provider",
-                    "litellm_provider_id": "openai",
-                    ...
-                }
-            ]
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicCustomProviderListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_custom_providers_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_custom_providers_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def llm_models_custom_providers_create(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderCreate:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderCreate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_custom_providers_create(
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_custom_providers_create(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_custom_providers_update(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderList:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_custom_providers_update(
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_custom_providers_update(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_custom_providers_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderList:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_custom_providers_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_custom_providers_partial_update(
-            project=project,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_custom_providers_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicCustomProviderDetail:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_custom_providers_retrieve(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_custom_providers_retrieve(id, request_options=request_options)
-        return _response.data
-
-    async def llm_models_custom_providers_create2(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_custom_providers_create2(
-                id=1,
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_custom_providers_create2(
-            id,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_custom_providers_update2(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderUpdate:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_custom_providers_update2(
-                id=1,
-                provider_name="provider_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_custom_providers_update2(
-            id,
-            provider_name=provider_name,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_custom_providers_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_custom_providers_destroy(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_custom_providers_destroy(id, request_options=request_options)
-        return _response.data
-
-    async def llm_models_custom_providers_partial_update2(
-        self,
-        id: int,
-        *,
-        provider_name: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicCustomProviderUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicCustomProviderUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_custom_providers_partial_update2(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_custom_providers_partial_update2(
-            id,
-            provider_name=provider_name,
-            extra_kwargs=extra_kwargs,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_foundation_model_retrieve2(
-        self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> LlmFoundationModelDetail:
-        """
-        Foundation model detail by model_name. Auth optional — API key OR JWT
-        parsed if present, anonymous allowed. Serializer filters variants by org
-        when authenticated. See ``FoundationModelView`` for why the optional mixin
-        replaces the bare JWT authenticator (it 401'd valid API-key callers).
-
-        Parameters
-        ----------
-        model_name : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmFoundationModelDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_foundation_model_retrieve2(
-                model_name="model_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_foundation_model_retrieve2(
-            model_name, request_options=request_options
-        )
-        return _response.data
-
-    async def llm_models_foundation_model_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> LlmFoundationModelDetail:
-        """
-        Foundation model detail by PK. Auth optional — API key OR JWT parsed if
-        present, anonymous allowed. Serializer filters variants by org when
-        authenticated.
-
-        Uses ``OptionalJWTAndAPIKeyAuthenticationViewMixin`` (not bare
-        ``authentication_classes=[KeywordsAIJWTAuthentication]``): SimpleJWT raises
-        ``InvalidToken`` (401) on any present-but-non-JWT bearer — i.e. an API key —
-        so the bare config 401'd legitimate API-key callers despite ``AllowAny``.
-        The mixin accepts API key OR JWT and treats unparseable creds as anonymous,
-        and IP-rate-limits anonymous callers via ``TokenBucketThrottle``.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmFoundationModelDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_foundation_model_retrieve(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_foundation_model_retrieve(id, request_options=request_options)
-        return _response.data
-
-    async def llm_models_foundation_models_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.List[LlmFoundationModel]:
-        """
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[LlmFoundationModel]
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_foundation_models_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_foundation_models_list(request_options=request_options)
-        return _response.data
-
-    async def llm_models_foundation_models_create(
-        self,
-        *,
-        model_name: str,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        hf_url: typing.Optional[str] = OMIT,
-        model_description: typing.Optional[str] = OMIT,
-        model_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmFoundationModel:
-        """
-        Parameters
-        ----------
-        model_name : str
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        hf_url : typing.Optional[str]
-
-        model_description : typing.Optional[str]
-
-        model_params : typing.Optional[typing.Sequence[str]]
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmFoundationModel
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_foundation_models_create(
-                model_name="model_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_foundation_models_create(
-            model_name=model_name,
-            display_name=display_name,
-            speed=speed,
-            max_context_window=max_context_window,
-            model_size=model_size,
-            mmlu_score=mmlu_score,
-            mt_bench_score=mt_bench_score,
-            big_bench_score=big_bench_score,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            rate_limit=rate_limit,
-            token_rate_limit=token_rate_limit,
-            multilingual=multilingual,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            enforce_function_call=enforce_function_call,
-            weight=weight,
-            image_support=image_support,
-            hf_url=hf_url,
-            model_description=model_description,
-            model_params=model_params,
-            total_requests=total_requests,
-            total_cost=total_cost,
-            total_tokens=total_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_prompt_tokens=total_prompt_tokens,
-            avg_tps=avg_tps,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_foundation_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedLlmFoundationModelList:
-        """
-        View mixin that handles both JWT and API Key authentication.
-
-        Inherits from JWTAuthUtils:
-        - is_jwt_auth(request): Post-auth check (reliable, uses DRF's successful_authenticator)
-        - is_jwt_token_format(request): Pre-auth heuristic (used here to route authenticators)
-
-        This mixin uses is_jwt_token_format() (pre-auth) in get_authenticators() and get_permissions()
-        because those methods run BEFORE authentication completes. For post-auth checks,
-        use is_jwt_auth() instead.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedLlmFoundationModelList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_foundation_models_list_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_foundation_models_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def llm_models_model_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicModelDetail:
-        """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_model_retrieve(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_model_retrieve(id, request_options=request_options)
-        return _response.data
-
-    async def llm_models_model_create(
-        self,
-        id: int,
-        *,
-        provider: LlmProviderRequest,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        order: typing.Optional[int] = OMIT,
-        sdk: typing.Optional[str] = OMIT,
-        foundation_model_name: typing.Optional[str] = OMIT,
-        drop_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        fallbacks: typing.Optional[typing.Any] = OMIT,
-        deprecated: typing.Optional[bool] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[LlmModelDetailRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        foundation_model: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmModelDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : int
-
-        provider : LlmProviderRequest
-
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        order : typing.Optional[int]
-
-        sdk : typing.Optional[str]
-
-        foundation_model_name : typing.Optional[str]
-
-        drop_params : typing.Optional[typing.Sequence[str]]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        fallbacks : typing.Optional[typing.Any]
-
-        deprecated : typing.Optional[bool]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[LlmModelDetailRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        foundation_model : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmModelDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient, LlmProviderRequest
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_model_create(
-                id=1,
-                provider=LlmProviderRequest(
-                    provider_name="provider_name",
-                    provider_id="provider_id",
-                ),
-                model_name="model_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_model_create(
-            id,
-            provider=provider,
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            speed=speed,
-            max_context_window=max_context_window,
-            model_size=model_size,
-            mmlu_score=mmlu_score,
-            mt_bench_score=mt_bench_score,
-            big_bench_score=big_bench_score,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            rate_limit=rate_limit,
-            token_rate_limit=token_rate_limit,
-            multilingual=multilingual,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            enforce_function_call=enforce_function_call,
-            weight=weight,
-            image_support=image_support,
-            order=order,
-            sdk=sdk,
-            foundation_model_name=foundation_model_name,
-            drop_params=drop_params,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            fallbacks=fallbacks,
-            deprecated=deprecated,
-            status=status,
-            is_verified=is_verified,
-            total_requests=total_requests,
-            total_cost=total_cost,
-            total_tokens=total_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_prompt_tokens=total_prompt_tokens,
-            avg_tps=avg_tps,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            foundation_model=foundation_model,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_model_update(
-        self,
-        id: int,
-        *,
-        supported_params_override: typing.Optional[PublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelUpdate:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : int
-
-        supported_params_override : typing.Optional[PublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_model_update(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_model_update(
-            id,
-            supported_params_override=supported_params_override,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            provider=provider,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_model_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_model_destroy(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_model_destroy(id, request_options=request_options)
-        return _response.data
-
-    async def llm_models_model_partial_update(
-        self,
-        id: int,
-        *,
-        supported_params_override: typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : int
-
-        supported_params_override : typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_model_partial_update(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_model_partial_update(
-            id,
-            supported_params_override=supported_params_override,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            provider=provider,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_models_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicModelListList:
-        """
-        GET/POST /api/llm_models/models/  (platform - shows global + custom)
-        GET/POST /api/llm-models/custom-models/  (public API - shows ONLY custom)
-
-        Unified endpoint for models.
-
-        GET:  List models
-              - Platform: global + org's custom (same for superadmin - no cross-org listing)
-              - Public (custom-models path): ONLY org's custom models
-              Filter with standard syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-
-        POST:
-            - Without 'model_name' in body: Filter/list models (backward compatible)
-            - With 'model_name' in body: Create model
-                - organization_id=null + superadmin: Create global model
-                - Otherwise: Create custom model for target org (superadmin can specify organization_id)
-
-        Note: Uses SuperAdminMixin for consistency, but queryset is intentionally the same
-        for both regular users and superadmins (global + org's custom pattern).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicModelListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def llm_models_models_create(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_create(
-                model_name="model_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_create(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_models_update(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_update(
-                model_name="model_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_update(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_models_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        model_name: typing.Optional[str] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        model_name : typing.Optional[str]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_partial_update(
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            model_name=model_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_models_status_retrieve(
-        self,
-        model_name: str,
-        *,
-        end_time: str,
-        start_time: str,
-        provider_id: typing.Optional[str] = None,
-        time_tick: typing.Optional[LlmModelsModelsStatusRetrieveRequestTimeTick] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ModelStatusResponse:
-        """
-        GET/POST /api/models/<model_name>/status/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/<model_name>/status/ (Platform)
-
-        Per-model status resource for the exact logged model string in the URL path,
-        over an absolute UTC ``[start_time, end_time)`` range, bucketed by
-        ``time_tick`` (minute / hour / day).
-        Returns four things (see ``ModelStatusResponseSerializer``):
-          - ``data`` — per-provider uptime time series (per-attempt grain). Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``respan_uptime`` — request-grain "via Respan" uptime time series: one
-            verdict per client call (UP if ANY retry/fallback attempt succeeded), so
-            it reflects failover and sits at/above the per-provider line. Omitted for
-            provider-filtered requests because it is inherently cross-provider.
-          - ``metrics_series`` — per-bucket performance metrics over the window (tps,
-            ttft, latency, cache-hit %, + admin-only counts/cost), so the other
-            metrics can be plotted over time just like uptime. Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``status`` — scalar model-wide summary over the window (uptime %, tps,
-            ttft, latency, cache-hit %, catalog input list price). Omitted when a
-            ``provider_id`` filter is supplied (it is cross-provider).
-
-        Redaction: public/regular callers get only normalized rates/percentages plus
-        the catalog list price; staff/superadmins additionally get volume scalars
-        (request/down counts, total cost) — those are withheld from the public so
-        competitors can't infer platform traffic/revenue from counts × price.
-
-        The model is the URL path segment (``<path:model_name>``) so provider-prefixed
-        identifiers (e.g. ``vertex_ai/gemini-1.5-pro``) survive routing; the filters
-        (``provider_id``, ``time_tick``, range) stay query/body params.
-
-        Parameters
-        ----------
-        model_name : str
-
-        end_time : str
-
-        start_time : str
-
-        provider_id : typing.Optional[str]
-
-        time_tick : typing.Optional[LlmModelsModelsStatusRetrieveRequestTimeTick]
-            * `minute` - minute
-            * `hour` - hour
-            * `day` - day
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ModelStatusResponse
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_status_retrieve(
-                model_name="model_name",
-                end_time="end_time",
-                start_time="start_time",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_status_retrieve(
-            model_name,
-            end_time=end_time,
-            start_time=start_time,
-            provider_id=provider_id,
-            time_tick=time_tick,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_models_status_create(
-        self,
-        model_name: str,
-        *,
-        start_time: str,
-        end_time: str,
-        provider_id: typing.Optional[str] = OMIT,
-        time_tick: typing.Optional[TimeTickEnum] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ModelStatusResponse:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        start_time : str
-
-        end_time : str
-
-        provider_id : typing.Optional[str]
-
-        time_tick : typing.Optional[TimeTickEnum]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ModelStatusResponse
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_status_create(
-                model_name="model_name",
-                start_time="start_time",
-                end_time="end_time",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_status_create(
-            model_name,
-            start_time=start_time,
-            end_time=end_time,
-            provider_id=provider_id,
-            time_tick=time_tick,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicModelListList:
-        """
-        GET/POST /api/models/list/        (Public API)
-        GET/POST /api/llm_models/models/list/  (Platform)
-
-        List models. **Authentication is optional** (OpenRouter-style catalog) — the
-        SAME endpoint serves both public and authenticated callers:
-
-        - **Unauthenticated** → managed/shared models only (``organization=None``).
-          Rate-limited per client IP.
-        - **API key / JWT** → managed models PLUS the caller's own custom models.
-
-        Read-only: there is no create/write path (``ListAPIView``); ``post()`` only
-        delegates to ``get()`` to support POST-body filtering (BE conventions). Both
-        auth modes fully support filtering.
-
-        Optionally enriches each model with cross-org performance metrics (opt-in via
-        ``is_including_metrics``) over an absolute UTC ``[start_time, end_time)`` window
-        read at ``time_tick`` grain (dashboard convention). Each model gets a ``metrics``
-        object: average_tps / average_ttft / average_latency (OpenRouter-style
-        averages), uptime_percent, number_of_requests, cost, the prompt/completion/
-        cache token sums, and cache_hit_percentage. Sourced from the cross-org
-        ``get_public_breakdown_metrics`` reader (clickhouse/tasks.py). The metrics are
-        cross-org aggregates, so they're identical regardless of auth.
-
-        Filtering:
-            Use standard filter syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-            See boilerplates/keywordsai/feature_docs/shared/filters_api_reference.md
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedPublicModelListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_list_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def llm_models_models_list_create(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicModelList:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicModelList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_list_create(
-                model_name="model_name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_list_create(
-            model_name=model_name,
-            project=project,
-            affiliation_category=affiliation_category,
-            is_managed=is_managed,
-            is_called_by_custom_name=is_called_by_custom_name,
-            base_model_name=base_model_name,
-            display_name=display_name,
-            max_context_window=max_context_window,
-            input_cost=input_cost,
-            output_cost=output_cost,
-            cache_hit_input_cost=cache_hit_input_cost,
-            cache_creation_input_cost=cache_creation_input_cost,
-            respan_discount_rate=respan_discount_rate,
-            streaming_support=streaming_support,
-            function_call=function_call,
-            image_support=image_support,
-            overridden_fields=overridden_fields,
-            load_balance_backups=load_balance_backups,
-            status=status,
-            is_verified=is_verified,
-            source=source,
-            model_type=model_type,
-            metadata=metadata,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_models_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        GET/POST /api/models/summary/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/summary/ (Platform)
-
-        Summary counts for LLM models. **Auth is optional** — same model as
-        ``ModelsListView``:
-
-        - **Unauthenticated** → counts over managed/global models only
-          (``organization=null``). Rate-limited per client IP.
-        - **API key / JWT** → counts include the caller's custom models too.
-
-        Read-only: only GET (and POST-as-filter, delegating to GET). No write path.
-
-        Returns:
-            {
-                "summary": {
-                    "total_count": 150,
-                    "global_count": 120,
-                    "custom_count": 30
-                }
-            }
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_summary_retrieve()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    async def llm_models_models_summary_create(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_models_summary_create()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_models_summary_create(request_options=request_options)
-        return _response.data
-
-    async def llm_models_provider_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> LlmProvider:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProvider
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_provider_retrieve(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_provider_retrieve(id, request_options=request_options)
-        return _response.data
-
-    async def llm_models_provider_update(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProvider:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProvider
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_provider_update(
-                id=1,
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_provider_update(
-            id,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_provider_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_provider_destroy(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_provider_destroy(id, request_options=request_options)
-        return _response.data
-
-    async def llm_models_provider_partial_update(
-        self,
-        id: int,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProvider:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProvider
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_provider_partial_update(
-                id=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_provider_partial_update(
-            id,
-            project=project,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_provider_integrations_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> typing.List[LlmProviderIntegration]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        typing.List[LlmProviderIntegration]
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_provider_integrations_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_provider_integrations_list(request_options=request_options)
-        return _response.data
-
-    async def llm_models_provider_integrations_create(
-        self,
-        *,
-        credential_fields: typing.Sequence[ProviderCredentialFieldListRequest],
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        integration_id: typing.Optional[int] = OMIT,
-        active_integrations_count: typing.Optional[int] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProviderIntegration:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        credential_fields : typing.Sequence[ProviderCredentialFieldListRequest]
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        integration_id : typing.Optional[int]
-
-        active_integrations_count : typing.Optional[int]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProviderIntegration
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient, ProviderCredentialFieldListRequest
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_provider_integrations_create(
-                credential_fields=[
-                    ProviderCredentialFieldListRequest(
-                        title="title",
-                        field_name="field_name",
-                    )
-                ],
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_provider_integrations_create(
-            credential_fields=credential_fields,
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            integration_id=integration_id,
-            active_integrations_count=active_integrations_count,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_providers_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedLlmProviderList:
-        """
-        Global providers list. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedLlmProviderList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_providers_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_providers_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def llm_models_providers_create(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> LlmProvider:
-        """
-        Global providers list. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        LlmProvider
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_providers_create(
-                provider_name="provider_name",
-                provider_id="provider_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_providers_create(
-            provider_name=provider_name,
-            provider_id=provider_id,
-            project=project,
-            litellm_provider_id=litellm_provider_id,
-            moderation=moderation,
-            extra_kwargs=extra_kwargs,
-            is_managed=is_managed,
-            respan_discount_rate=respan_discount_rate,
-            models_sync_config=models_sync_config,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def llm_models_validate_api_key_create(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Validate API credentials. Supports both JWT and API key auth.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.models.llm_models_validate_api_key_create()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.llm_models_validate_api_key_create(request_options=request_options)
         return _response.data

@@ -4,26 +4,35 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
-from ..types.automation_condition_create import AutomationConditionCreate
-from ..types.automation_condition_detail import AutomationConditionDetail
-from ..types.automation_condition_list import AutomationConditionList
-from ..types.automation_condition_update import AutomationConditionUpdate
-from ..types.filter_param_dict_pydantic import FilterParamDictPydantic
-from ..types.paginated_automation_condition_list_list import PaginatedAutomationConditionListList
-from ..types.paginated_workflow_list_list import PaginatedWorkflowListList
-from ..types.patched_workflow_update_request_tasks_item import PatchedWorkflowUpdateRequestTasksItem
-from ..types.patched_workflow_update_request_trigger_event_type import PatchedWorkflowUpdateRequestTriggerEventType
-from ..types.workflow_create import WorkflowCreate
-from ..types.workflow_create_request_tasks_item import WorkflowCreateRequestTasksItem
-from ..types.workflow_create_request_trigger_event_type import WorkflowCreateRequestTriggerEventType
-from ..types.workflow_deploy_response import WorkflowDeployResponse
-from ..types.workflow_detail import WorkflowDetail
-from ..types.workflow_retrieve_response import WorkflowRetrieveResponse
-from ..types.workflow_summary_response import WorkflowSummaryResponse
-from ..types.workflow_update import WorkflowUpdate
-from ..types.workflow_validation_response import WorkflowValidationResponse
-from ..types.workflow_version_type_enum import WorkflowVersionTypeEnum
 from .raw_client import AsyncRawWorkflowsClient, RawWorkflowsClient
+from .types.api_workflows_commits_create_response import ApiWorkflowsCommitsCreateResponse
+from .types.api_workflows_list_request_trigger_event_type import ApiWorkflowsListRequestTriggerEventType
+from .types.api_workflows_list_request_type import ApiWorkflowsListRequestType
+from .types.api_workflows_list_response import ApiWorkflowsListResponse
+from .types.create_workflow_request_tasks_item import CreateWorkflowRequestTasksItem
+from .types.create_workflow_request_trigger_event_type import CreateWorkflowRequestTriggerEventType
+from .types.create_workflow_request_type import CreateWorkflowRequestType
+from .types.create_workflow_response import CreateWorkflowResponse
+from .types.create_workflow_version_request_tasks_item import CreateWorkflowVersionRequestTasksItem
+from .types.create_workflow_version_request_trigger_event_type import CreateWorkflowVersionRequestTriggerEventType
+from .types.create_workflow_version_request_type import CreateWorkflowVersionRequestType
+from .types.create_workflow_version_response import CreateWorkflowVersionResponse
+from .types.deploy_workflow_response import DeployWorkflowResponse
+from .types.filter_workflows_request_trigger_event_type import FilterWorkflowsRequestTriggerEventType
+from .types.filter_workflows_request_type import FilterWorkflowsRequestType
+from .types.filter_workflows_response import FilterWorkflowsResponse
+from .types.get_workflow_response import GetWorkflowResponse
+from .types.get_workflow_version_response import GetWorkflowVersionResponse
+from .types.list_workflow_versions_response import ListWorkflowVersionsResponse
+from .types.update_workflow_request_tasks_item import UpdateWorkflowRequestTasksItem
+from .types.update_workflow_request_trigger_event_type import UpdateWorkflowRequestTriggerEventType
+from .types.update_workflow_request_type import UpdateWorkflowRequestType
+from .types.update_workflow_response import UpdateWorkflowResponse
+from .types.update_workflow_version_request_tasks_item import UpdateWorkflowVersionRequestTasksItem
+from .types.update_workflow_version_request_trigger_event_type import UpdateWorkflowVersionRequestTriggerEventType
+from .types.update_workflow_version_request_type import UpdateWorkflowVersionRequestType
+from .types.update_workflow_version_response import UpdateWorkflowVersionResponse
+from .types.validate_workflow_response import ValidateWorkflowResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -44,734 +53,199 @@ class WorkflowsClient:
         """
         return self._raw_client
 
-    def api_conditions_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedAutomationConditionListList:
-        """
-        REST API view for listing and creating automation conditions.
-
-        This view handles:
-        - GET: List automation conditions with filtering and pagination
-        - POST: Create new automation conditions or filter existing ones
-
-        Superadmin: Can LIST all conditions across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-        Pagination: LogPaginator
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedAutomationConditionListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_conditions_list()
-        """
-        _response = self._raw_client.api_conditions_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def api_conditions_create(
-        self,
-        *,
-        name: str,
-        condition_policy: typing.Dict[str, typing.Any],
-        id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionCreate:
-        """
-        Handle POST requests for both creation and filtering.
-
-        Determines whether the request is for creating a new condition
-        or filtering existing conditions based on the presence of
-        creation-specific fields.
-
-        Args:
-            request: HTTP request object
-
-        Returns:
-            Response: Either creation response or filtered list response
-
-        Parameters
-        ----------
-        name : str
-            Human-readable name for the condition
-
-        condition_policy : typing.Dict[str, typing.Any]
-            Complex condition rules and logic stored as JSON
-
-        id : typing.Optional[str]
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionCreate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_conditions_create(
-            name="name",
-            condition_policy={"key": "value"},
-        )
-        """
-        _response = self._raw_client.api_conditions_create(
-            name=name,
-            condition_policy=condition_policy,
-            id=id,
-            description=description,
-            filter_set_id=filter_set_id,
-            time_step_minutes=time_step_minutes,
-            sampling_rate=sampling_rate,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_conditions_update(
-        self,
-        *,
-        name: str,
-        unique_organization_id: str,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionList:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        name : str
-            Human-readable name for the condition
-
-        unique_organization_id : str
-            Organization identifier
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_conditions_update(
-            name="name",
-            unique_organization_id="unique_organization_id",
-        )
-        """
-        _response = self._raw_client.api_conditions_update(
-            name=name,
-            unique_organization_id=unique_organization_id,
-            time_step_minutes=time_step_minutes,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_conditions_partial_update(
-        self,
-        *,
-        name: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionList:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        name : typing.Optional[str]
-            Human-readable name for the condition
-
-        unique_organization_id : typing.Optional[str]
-            Organization identifier
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_conditions_partial_update()
-        """
-        _response = self._raw_client.api_conditions_partial_update(
-            name=name,
-            unique_organization_id=unique_organization_id,
-            time_step_minutes=time_step_minutes,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_conditions_retrieve(
-        self, condition_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AutomationConditionDetail:
-        """
-        REST API view for retrieving, updating, and deleting individual automation conditions.
-
-        This view handles:
-        - GET: Retrieve a specific automation condition by condition_id
-        - PUT/PATCH: Update an existing automation condition
-        - DELETE: Delete an automation condition
-
-        Superadmin: Can access any condition across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Lookup field: id (condition_id in URL)
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-
-        Parameters
-        ----------
-        condition_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_conditions_retrieve(
-            condition_id="condition_id",
-        )
-        """
-        _response = self._raw_client.api_conditions_retrieve(condition_id, request_options=request_options)
-        return _response.data
-
-    def api_conditions_create2(
-        self,
-        condition_id: str,
-        *,
-        name: str,
-        unique_organization_id: str,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        condition_id : str
-
-        name : str
-            Human-readable name for the condition
-
-        unique_organization_id : str
-            Organization identifier
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_conditions_create2(
-            condition_id="condition_id",
-            name="name",
-            unique_organization_id="unique_organization_id",
-        )
-        """
-        _response = self._raw_client.api_conditions_create2(
-            condition_id,
-            name=name,
-            unique_organization_id=unique_organization_id,
-            description=description,
-            filter_set_id=filter_set_id,
-            sampling_rate=sampling_rate,
-            time_step_minutes=time_step_minutes,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_conditions_update2(
-        self,
-        condition_id: str,
-        *,
-        unique_organization_id: str,
-        name: str,
-        condition_policy: typing.Dict[str, typing.Any],
-        id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionUpdate:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        condition_id : str
-
-        unique_organization_id : str
-            Organization identifier
-
-        name : str
-            Human-readable name for the condition
-
-        condition_policy : typing.Dict[str, typing.Any]
-            Complex condition rules and logic stored as JSON
-
-        id : typing.Optional[str]
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_conditions_update2(
-            condition_id="condition_id",
-            unique_organization_id="unique_organization_id",
-            name="name",
-            condition_policy={"key": "value"},
-        )
-        """
-        _response = self._raw_client.api_conditions_update2(
-            condition_id,
-            unique_organization_id=unique_organization_id,
-            name=name,
-            condition_policy=condition_policy,
-            id=id,
-            description=description,
-            filter_set_id=filter_set_id,
-            time_step_minutes=time_step_minutes,
-            sampling_rate=sampling_rate,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_conditions_destroy(
-        self, condition_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        REST API view for retrieving, updating, and deleting individual automation conditions.
-
-        This view handles:
-        - GET: Retrieve a specific automation condition by condition_id
-        - PUT/PATCH: Update an existing automation condition
-        - DELETE: Delete an automation condition
-
-        Superadmin: Can access any condition across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Lookup field: id (condition_id in URL)
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-
-        Parameters
-        ----------
-        condition_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_conditions_destroy(
-            condition_id="condition_id",
-        )
-        """
-        _response = self._raw_client.api_conditions_destroy(condition_id, request_options=request_options)
-        return _response.data
-
-    def api_conditions_partial_update2(
-        self,
-        condition_id: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        condition_policy: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        condition_id : str
-
-        id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-            Organization identifier
-
-        name : typing.Optional[str]
-            Human-readable name for the condition
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        condition_policy : typing.Optional[typing.Dict[str, typing.Any]]
-            Complex condition rules and logic stored as JSON
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_conditions_partial_update2(
-            condition_id="condition_id",
-        )
-        """
-        _response = self._raw_client.api_conditions_partial_update2(
-            condition_id,
-            id=id,
-            unique_organization_id=unique_organization_id,
-            name=name,
-            description=description,
-            condition_policy=condition_policy,
-            filter_set_id=filter_set_id,
-            time_step_minutes=time_step_minutes,
-            sampling_rate=sampling_rate,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
     def api_workflows_list(
         self,
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        type: typing.Optional[ApiWorkflowsListRequestType] = None,
+        trigger_event_type: typing.Optional[ApiWorkflowsListRequestTriggerEventType] = None,
+        search: typing.Optional[str] = None,
+        is_including_public_workflows: typing.Optional[bool] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
+    ) -> ApiWorkflowsListResponse:
         """
-        List and create workflows.
-
-        Each task in the ``tasks`` array may include an ``id`` field (string).
-        If omitted, the server assigns a UUID automatically before saving.
-
-        PUBLIC (Respan-managed, organization NULL) workflows join list responses
-        only when the caller opts in via ``is_including_public_workflows``.
-        Creating a public workflow requires a staff caller passing
-        ``organization_id: null`` (the DEV-9422 global-create path).
+        List one representative version per workflow family. The editable draft is returned when one exists; otherwise the latest committed version is returned. Public Respan-managed workflows are included only when requested.
 
         Parameters
         ----------
         page : typing.Optional[int]
-            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
+
+        type : typing.Optional[ApiWorkflowsListRequestType]
+
+        trigger_event_type : typing.Optional[ApiWorkflowsListRequestTriggerEventType]
+
+        search : typing.Optional[str]
+            Free-text search over workflow names.
+
+        is_including_public_workflows : typing.Optional[bool]
+            Include Respan-managed public workflows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PaginatedWorkflowListList
-
+        ApiWorkflowsListResponse
+            Paginated workflow families.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.workflows.api_workflows_list()
         """
-        _response = self._raw_client.api_workflows_list(page=page, page_size=page_size, request_options=request_options)
+        _response = self._raw_client.api_workflows_list(
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            type=type,
+            trigger_event_type=trigger_event_type,
+            search=search,
+            is_including_public_workflows=is_including_public_workflows,
+            request_options=request_options,
+        )
         return _response.data
 
     def create_workflow(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[CreateWorkflowRequestType] = OMIT,
+        trigger_event_type: typing.Optional[CreateWorkflowRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        tasks: typing.Optional[typing.Sequence[CreateWorkflowRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCreate:
+    ) -> CreateWorkflowResponse:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Create a new workflow family with an editable draft. Task IDs and sequential links are generated when omitted. `type` defaults to `automations`; deployment and read-only state are server controlled.
 
         Parameters
         ----------
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[CreateWorkflowRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[CreateWorkflowRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
+        tasks : typing.Optional[typing.Sequence[CreateWorkflowRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowCreate
-
+        CreateWorkflowResponse
+            Workflow draft created.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.workflows.create_workflow()
         """
         _response = self._raw_client.create_workflow(
-            id=id,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
             name=name,
             description=description,
             type=type,
             trigger_event_type=trigger_event_type,
             schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
             is_starred=is_starred,
-            resource_ids=resource_ids,
+            tasks=tasks,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def filter_workflows(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        type: typing.Optional[FilterWorkflowsRequestType] = None,
+        trigger_event_type: typing.Optional[FilterWorkflowsRequestTriggerEventType] = None,
+        search: typing.Optional[str] = None,
+        is_including_public_workflows: typing.Optional[bool] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FilterWorkflowsResponse:
+        """
+        List one representative version per workflow family using optional complex filters in the request body. An omitted body or omitted `filters` object applies only the query-string filters.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
+
+        type : typing.Optional[FilterWorkflowsRequestType]
+
+        trigger_event_type : typing.Optional[FilterWorkflowsRequestTriggerEventType]
+
+        search : typing.Optional[str]
+            Free-text search over workflow names.
+
+        is_including_public_workflows : typing.Optional[bool]
+            Include Respan-managed public workflows.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter parameters keyed by field name.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        FilterWorkflowsResponse
+            Paginated filtered workflow families.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.workflows.filter_workflows()
+        """
+        _response = self._raw_client.filter_workflows(
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            type=type,
+            trigger_event_type=trigger_event_type,
+            search=search,
+            is_including_public_workflows=is_including_public_workflows,
+            filters=filters,
             request_options=request_options,
         )
         return _response.data
@@ -780,54 +254,39 @@ class WorkflowsClient:
         self,
         workflow_id: str,
         *,
-        is_exporting: typing.Optional[bool] = None,
         is_including_secrets: typing.Optional[bool] = None,
+        is_exporting: typing.Optional[bool] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRetrieveResponse:
+    ) -> GetWorkflowResponse:
         """
-        Get, update, or delete a workflow.
-
-        Drafts-on-demand resolution:
-        - GET returns the draft if one exists, else the latest committed version
-          (404 when the family doesn't exist at all).
-        - PATCH edits the draft. When the family has no draft (committed-only),
-          PATCH returns 409 — clients must create a draft first via
-          POST /api/workflows/{workflow_id}/versions/.
-        - DELETE removes every version in the family.
-
-        Committing a draft is a separate action at
-        POST /api/workflows/{workflow_id}/commits/.
-
-        PUBLIC workflows resolve here by id on READS (toggle defaults on so by-id
-        reads stay toggle-free); WRITES scope to own rows only, so a public family
-        404s for non-staff instead of resolving into a mutation path. JWT writes
-        are additionally gated by ``check_object_permissions`` in ``get_object``.
+        Return the editable draft when one exists, otherwise the latest committed version. Set `is_exporting=true` for a portable, secret-sanitized export. Webhook secrets remain masked unless an authorized caller sets `is_including_secrets=true`.
 
         Parameters
         ----------
         workflow_id : str
-
-        is_exporting : typing.Optional[bool]
-            Set to true to get a portable export of the workflow. Default: false.
+            Logical workflow-family ID.
 
         is_including_secrets : typing.Optional[bool]
-            Set to true to reveal webhook secret values. Default: false.
+            Reveal webhook secret values when authorized.
+
+        is_exporting : typing.Optional[bool]
+            Return a portable export envelope.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowRetrieveResponse
-
+        GetWorkflowResponse
+            Workflow detail or portable export.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.workflows.get_workflow(
             workflow_id="workflow_id",
@@ -835,19 +294,20 @@ class WorkflowsClient:
         """
         _response = self._raw_client.get_workflow(
             workflow_id,
-            is_exporting=is_exporting,
             is_including_secrets=is_including_secrets,
+            is_exporting=is_exporting,
             request_options=request_options,
         )
         return _response.data
 
     def delete_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete all versions in the workflow family.
+        Delete every version in a workflow family.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -861,8 +321,8 @@ class WorkflowsClient:
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.workflows.delete_workflow(
             workflow_id="workflow_id",
@@ -873,265 +333,73 @@ class WorkflowsClient:
 
     def update_workflow(
         self,
-        workflow_id_: str,
+        workflow_id: str,
         *,
-        tasks: typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[UpdateWorkflowRequestType] = OMIT,
+        trigger_event_type: typing.Optional[UpdateWorkflowRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
+        tasks: typing.Optional[typing.Sequence[UpdateWorkflowRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowUpdate:
+    ) -> UpdateWorkflowResponse:
         """
-        Edit the workflow. Structural edits on committed-only families return 409.
+        Update a workflow family. `name`, `description`, and `is_starred` are family metadata and propagate to every version. Structural fields edit the current draft; committed-only families must create a new draft first.
 
         Parameters
         ----------
-        workflow_id_ : str
-
-        tasks : typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
+        workflow_id : str
+            Logical workflow-family ID.
 
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[UpdateWorkflowRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[UpdateWorkflowRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        updated_by : typing.Optional[int]
+        tasks : typing.Optional[typing.Sequence[UpdateWorkflowRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowUpdate
-
+        UpdateWorkflowResponse
+            Workflow updated.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.workflows.update_workflow(
-            workflow_id_="workflow_id",
+            workflow_id="workflow_id",
         )
         """
         _response = self._raw_client.update_workflow(
-            workflow_id_,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
+            workflow_id,
             name=name,
             description=description,
             type=type,
             trigger_event_type=trigger_event_type,
             schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
             is_starred=is_starred,
-            resource_ids=resource_ids,
-            updated_by=updated_by,
+            tasks=tasks,
             request_options=request_options,
         )
-        return _response.data
-
-    def api_workflows_commits_create(
-        self,
-        workflow_id: str,
-        *,
-        description: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowDetail:
-        """
-        Commit the current draft (flip ``is_read_only`` True in place).
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        description : typing.Optional[str]
-            Commit message stamped on the newly committed version.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_workflows_commits_create(
-            workflow_id="workflow_id",
-        )
-        """
-        _response = self._raw_client.api_workflows_commits_create(
-            workflow_id, description=description, request_options=request_options
-        )
-        return _response.data
-
-    def deploy_workflow(
-        self,
-        workflow_id: str,
-        *,
-        version: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowDeployResponse:
-        """
-        Deploy a committed workflow version. Sets is_enabled=True on the target version and False on all others in the family.
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        version : typing.Optional[int]
-            Version number to deploy. If omitted, deploys the latest committed version.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowDeployResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.deploy_workflow(
-            workflow_id="workflow_id",
-        )
-        """
-        _response = self._raw_client.deploy_workflow(workflow_id, version=version, request_options=request_options)
-        return _response.data
-
-    def undeploy_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Undeploy a workflow. Sets is_enabled=False on all versions in the family.
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.undeploy_workflow(
-            workflow_id="workflow_id",
-        )
-        """
-        _response = self._raw_client.undeploy_workflow(workflow_id, request_options=request_options)
-        return _response.data
-
-    def validate_workflow(
-        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> WorkflowValidationResponse:
-        """
-        Validate a workflow's configuration and fire preview delivery sends.
-
-        POST /api/workflows/<workflow_id>/validations/
-
-        Validates structure, per-task config, and upstream state references, then dispatches **real** preview notifications and webhooks so users can verify their delivery channels. Unresolved template variables render as the token {{placeholder}}. No aggregation runs; no logs are fetched.
-
-        Returns:
-            status, validation, task_results, is_all_passed
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowValidationResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.validate_workflow(
-            workflow_id="workflow_id",
-        )
-        """
-        _response = self._raw_client.validate_workflow(workflow_id, request_options=request_options)
         return _response.data
 
     def list_workflow_versions(
@@ -1140,214 +408,149 @@ class WorkflowsClient:
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
+    ) -> ListWorkflowVersionsResponse:
         """
-        List versions for a workflow family, or create a new draft.
-
-        GET  /api/workflows/{workflow_id}/versions/
-            List every version row (draft + committed history).
-
-        POST /api/workflows/{workflow_id}/versions/
-            Create a new editable draft. Pure CRUD — the client sends the
-            new row's content (name, tasks, description, etc.) and the
-            backend inserts it with ``is_read_only=False``. Nothing else
-            in the family is touched. Committing is a separate action at
-            POST /api/workflows/{workflow_id}/commits/.
+        List all draft and committed versions in a workflow family. An unknown family returns an empty page.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         page : typing.Optional[int]
-            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PaginatedWorkflowListList
-
+        ListWorkflowVersionsResponse
+            Paginated workflow versions.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.workflows.list_workflow_versions(
             workflow_id="workflow_id",
         )
         """
         _response = self._raw_client.list_workflow_versions(
-            workflow_id, page=page, page_size=page_size, request_options=request_options
+            workflow_id, page=page, page_size=page_size, sort_by=sort_by, request_options=request_options
         )
         return _response.data
 
     def create_workflow_version(
         self,
-        workflow_id_: str,
+        workflow_id: str,
         *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[CreateWorkflowVersionRequestType] = OMIT,
+        trigger_event_type: typing.Optional[CreateWorkflowVersionRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        tasks: typing.Optional[typing.Sequence[CreateWorkflowVersionRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowDetail:
+    ) -> CreateWorkflowVersionResponse:
         """
-        Create a new draft row from the client payload.
-
-        Pure CRUD: inserts one new row with ``is_read_only=False`` using
-        the content the client sends (``name``, ``tasks``, ``description``,
-        ``type``, ``trigger_event_type``, ``is_starred``). Does NOT clone
-        from other rows and does NOT touch other rows.
-
-        The FE owns the "draft dance" — when the user wants to edit a
-        committed workflow, the FE reads the current state locally and
-        sends it here as the new draft's content.
-
-        The view forces identity/scope fields (``workflow_id`` from the
-        URL, organization from the caller) so the client can't reparent
-        a row into another family or org.
+        Create a new editable draft from the submitted workflow content. The server assigns the next version and the family identity. This does not clone, commit, deploy, or modify any existing version.
 
         Parameters
         ----------
-        workflow_id_ : str
-
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
+        workflow_id : str
+            Logical workflow-family ID.
 
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[CreateWorkflowVersionRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[CreateWorkflowVersionRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
+        tasks : typing.Optional[typing.Sequence[CreateWorkflowVersionRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowDetail
-
+        CreateWorkflowVersionResponse
+            Editable draft created.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.workflows.create_workflow_version(
-            workflow_id_="workflow_id",
+            workflow_id="workflow_id",
         )
         """
         _response = self._raw_client.create_workflow_version(
-            workflow_id_,
-            id=id,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
+            workflow_id,
             name=name,
             description=description,
             type=type,
             trigger_event_type=trigger_event_type,
             schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
             is_starred=is_starred,
-            resource_ids=resource_ids,
+            tasks=tasks,
             request_options=request_options,
         )
         return _response.data
 
     def get_workflow_version(
         self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> WorkflowDetail:
+    ) -> GetWorkflowVersionResponse:
         """
-        Get or edit a specific workflow version.
-
-        GET /api/workflows/{workflow_id}/versions/{version}/
-        PATCH /api/workflows/{workflow_id}/versions/{version}/ (only if is_read_only=False)
-
-        PUBLIC workflow versions are readable by every tenant; PATCH scopes to own
-        rows only, so a public version 404s for non-staff instead of resolving
-        into a mutation path.
+        Retrieve one exact workflow version, including its current write-access metadata.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         version : int
+            Workflow version number.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowDetail
-
+        GetWorkflowVersionResponse
+            Workflow version.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.workflows.get_workflow_version(
             workflow_id="workflow_id",
@@ -1359,420 +562,130 @@ class WorkflowsClient:
 
     def update_workflow_version(
         self,
-        workflow_id_: str,
-        version_: int,
+        workflow_id: str,
+        version: int,
         *,
-        tasks: typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[UpdateWorkflowVersionRequestType] = OMIT,
+        trigger_event_type: typing.Optional[UpdateWorkflowVersionRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
+        tasks: typing.Optional[typing.Sequence[UpdateWorkflowVersionRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowUpdate:
+    ) -> UpdateWorkflowVersionResponse:
         """
-        Edit version — only allowed if is_read_only=False.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        version_ : int
-
-        tasks : typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.update_workflow_version(
-            workflow_id_="workflow_id",
-            version_=1,
-        )
-        """
-        _response = self._raw_client.update_workflow_version(
-            workflow_id_,
-            version_,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
-            name=name,
-            description=description,
-            type=type,
-            trigger_event_type=trigger_event_type,
-            schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
-            is_starred=is_starred,
-            resource_ids=resource_ids,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_workflows_versions_list_list(
-        self,
-        workflow_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
-        """
-        List versions for a workflow family, or create a new draft.
-
-        GET  /api/workflows/{workflow_id}/versions/
-            List every version row (draft + committed history).
-
-        POST /api/workflows/{workflow_id}/versions/
-            Create a new editable draft. Pure CRUD — the client sends the
-            new row's content (name, tasks, description, etc.) and the
-            backend inserts it with ``is_read_only=False``. Nothing else
-            in the family is touched. Committing is a separate action at
-            POST /api/workflows/{workflow_id}/commits/.
+        Update an editable workflow version. Committed read-only versions cannot be changed; create a new draft instead. Commit messages and read-only state are controlled by the commit endpoint.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedWorkflowListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_workflows_versions_list_list(
-            workflow_id="workflow_id",
-        )
-        """
-        _response = self._raw_client.api_workflows_versions_list_list(
-            workflow_id, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def api_workflows_versions_list_create(
-        self,
-        workflow_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowDetail:
-        """
-        Create a new draft row from the client payload.
-
-        Pure CRUD: inserts one new row with ``is_read_only=False`` using
-        the content the client sends (``name``, ``tasks``, ``description``,
-        ``type``, ``trigger_event_type``, ``is_starred``). Does NOT clone
-        from other rows and does NOT touch other rows.
-
-        The FE owns the "draft dance" — when the user wants to edit a
-        committed workflow, the FE reads the current state locally and
-        sends it here as the new draft's content.
-
-        The view forces identity/scope fields (``workflow_id`` from the
-        URL, organization from the caller) so the client can't reparent
-        a row into another family or org.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
+        version : int
+            Workflow version number.
 
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[UpdateWorkflowVersionRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[UpdateWorkflowVersionRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
+        tasks : typing.Optional[typing.Sequence[UpdateWorkflowVersionRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowDetail
-
+        UpdateWorkflowVersionResponse
+            Workflow version updated.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.workflows.api_workflows_versions_list_create(
-            workflow_id_="workflow_id",
+        client.workflows.update_workflow_version(
+            workflow_id="workflow_id",
+            version=1,
         )
         """
-        _response = self._raw_client.api_workflows_versions_list_create(
-            workflow_id_,
-            id=id,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
+        _response = self._raw_client.update_workflow_version(
+            workflow_id,
+            version,
             name=name,
             description=description,
             type=type,
             trigger_event_type=trigger_event_type,
             schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
             is_starred=is_starred,
-            resource_ids=resource_ids,
+            tasks=tasks,
             request_options=request_options,
         )
         return _response.data
 
-    def api_workflows_list_list(
+    def deploy_workflow(
         self,
+        workflow_id: str,
         *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        search: typing.Optional[str] = None,
-        sort_by: typing.Optional[str] = None,
-        trigger_event_type: typing.Optional[str] = None,
-        type: typing.Optional[str] = None,
+        version: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
+    ) -> DeployWorkflowResponse:
         """
-        List workflows with filtering support.
-
-        GET  /api/workflows/list/  — paginated list with filters_data
-        POST /api/workflows/list/  — POST-for-filtering (not creation)
+        Deploy one committed workflow version and disable any previously deployed version in the family. Omitting `version` deploys the latest committed version.
 
         Parameters
         ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
+        workflow_id : str
+            Logical workflow-family ID.
 
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        search : typing.Optional[str]
-            Free-text search over workflow name.
-
-        sort_by : typing.Optional[str]
-            Field to sort by, e.g. '-updated_at'.
-
-        trigger_event_type : typing.Optional[str]
-            Filter by trigger event type, e.g. 'eval_only'.
-
-        type : typing.Optional[str]
-            Workflow type filter (automations, monitors, evaluators, reports).
+        version : typing.Optional[int]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PaginatedWorkflowListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_workflows_list_list()
-        """
-        _response = self._raw_client.api_workflows_list_list(
-            page=page,
-            page_size=page_size,
-            search=search,
-            sort_by=sort_by,
-            trigger_event_type=trigger_event_type,
-            type=type,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def filter_workflows(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
-        """
-        List workflows with complex filtering via POST body.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        filters : typing.Optional[FilterParamDictPydantic]
-            Filter parameters keyed by field name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedWorkflowListList
-
+        DeployWorkflowResponse
+            Workflow version deployed.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.workflows.filter_workflows()
+        client.workflows.deploy_workflow(
+            workflow_id="workflow_id",
+        )
         """
-        _response = self._raw_client.filter_workflows(
-            page=page, page_size=page_size, filters=filters, request_options=request_options
-        )
+        _response = self._raw_client.deploy_workflow(workflow_id, version=version, request_options=request_options)
         return _response.data
 
-    def api_workflows_summary_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+    def undeploy_workflow(self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        GET/POST /api/workflows/summary/
-
-        Returns total count of workflows matching the supplied filters.
-        POST supports filtering via body (POST-for-filtering pattern).
+        Disable the deployed version in an existing workflow family. The operation is idempotent when the family has no active deployment.
 
         Parameters
         ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1785,105 +698,91 @@ class WorkflowsClient:
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.workflows.api_workflows_summary_retrieve()
+        client.workflows.undeploy_workflow(
+            workflow_id="workflow_id",
+        )
         """
-        _response = self._raw_client.api_workflows_summary_retrieve(request_options=request_options)
+        _response = self._raw_client.undeploy_workflow(workflow_id, request_options=request_options)
         return _response.data
 
-    def api_workflows_summary_filtered(
+    def validate_workflow(
+        self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> ValidateWorkflowResponse:
+        """
+        Validate the latest editable draft and send real preview notifications or webhooks for delivery tasks. No logs are fetched and no aggregation runs. Configuration failures are returned in the `200` validation envelope; a draft with no tasks succeeds with an empty `task_results` array.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ValidateWorkflowResponse
+            Workflow validation result.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.workflows.validate_workflow(
+            workflow_id="workflow_id",
+        )
+        """
+        _response = self._raw_client.validate_workflow(workflow_id, request_options=request_options)
+        return _response.data
+
+    def api_workflows_commits_create(
         self,
+        workflow_id: str,
         *,
-        filters: typing.Optional[FilterParamDictPydantic] = OMIT,
+        version_description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowSummaryResponse:
+    ) -> ApiWorkflowsCommitsCreateResponse:
         """
-        Total count of workflows matching the supplied filters.
+        Commit the current editable draft in place. Omitting `version_description` preserves its existing commit message; an explicit empty string clears it.
 
         Parameters
         ----------
-        filters : typing.Optional[FilterParamDictPydantic]
-            Filter parameters keyed by field name.
+        workflow_id : str
+            Logical workflow-family ID.
+
+        version_description : typing.Optional[str]
+            Commit message for this version.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowSummaryResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.workflows.api_workflows_summary_filtered()
-        """
-        _response = self._raw_client.api_workflows_summary_filtered(filters=filters, request_options=request_options)
-        return _response.data
-
-    def api_workflows_summary_update(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
+        ApiWorkflowsCommitsCreateResponse
+            Draft committed.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.workflows.api_workflows_summary_update()
-        """
-        _response = self._raw_client.api_workflows_summary_update(request_options=request_options)
-        return _response.data
-
-    def api_workflows_summary_partial_update(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+        client.workflows.api_workflows_commits_create(
+            workflow_id="workflow_id",
         )
-        client.workflows.api_workflows_summary_partial_update()
         """
-        _response = self._raw_client.api_workflows_summary_partial_update(request_options=request_options)
+        _response = self._raw_client.api_workflows_commits_create(
+            workflow_id, version_description=version_description, request_options=request_options
+        )
         return _response.data
 
 
@@ -1902,688 +801,47 @@ class AsyncWorkflowsClient:
         """
         return self._raw_client
 
-    async def api_conditions_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedAutomationConditionListList:
-        """
-        REST API view for listing and creating automation conditions.
-
-        This view handles:
-        - GET: List automation conditions with filtering and pagination
-        - POST: Create new automation conditions or filter existing ones
-
-        Superadmin: Can LIST all conditions across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-        Pagination: LogPaginator
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedAutomationConditionListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_conditions_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_conditions_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def api_conditions_create(
-        self,
-        *,
-        name: str,
-        condition_policy: typing.Dict[str, typing.Any],
-        id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionCreate:
-        """
-        Handle POST requests for both creation and filtering.
-
-        Determines whether the request is for creating a new condition
-        or filtering existing conditions based on the presence of
-        creation-specific fields.
-
-        Args:
-            request: HTTP request object
-
-        Returns:
-            Response: Either creation response or filtered list response
-
-        Parameters
-        ----------
-        name : str
-            Human-readable name for the condition
-
-        condition_policy : typing.Dict[str, typing.Any]
-            Complex condition rules and logic stored as JSON
-
-        id : typing.Optional[str]
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionCreate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_conditions_create(
-                name="name",
-                condition_policy={"key": "value"},
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_conditions_create(
-            name=name,
-            condition_policy=condition_policy,
-            id=id,
-            description=description,
-            filter_set_id=filter_set_id,
-            time_step_minutes=time_step_minutes,
-            sampling_rate=sampling_rate,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_conditions_update(
-        self,
-        *,
-        name: str,
-        unique_organization_id: str,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionList:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        name : str
-            Human-readable name for the condition
-
-        unique_organization_id : str
-            Organization identifier
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_conditions_update(
-                name="name",
-                unique_organization_id="unique_organization_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_conditions_update(
-            name=name,
-            unique_organization_id=unique_organization_id,
-            time_step_minutes=time_step_minutes,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_conditions_partial_update(
-        self,
-        *,
-        name: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionList:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        name : typing.Optional[str]
-            Human-readable name for the condition
-
-        unique_organization_id : typing.Optional[str]
-            Organization identifier
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_conditions_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_conditions_partial_update(
-            name=name,
-            unique_organization_id=unique_organization_id,
-            time_step_minutes=time_step_minutes,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_conditions_retrieve(
-        self, condition_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AutomationConditionDetail:
-        """
-        REST API view for retrieving, updating, and deleting individual automation conditions.
-
-        This view handles:
-        - GET: Retrieve a specific automation condition by condition_id
-        - PUT/PATCH: Update an existing automation condition
-        - DELETE: Delete an automation condition
-
-        Superadmin: Can access any condition across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Lookup field: id (condition_id in URL)
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-
-        Parameters
-        ----------
-        condition_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_conditions_retrieve(
-                condition_id="condition_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_conditions_retrieve(condition_id, request_options=request_options)
-        return _response.data
-
-    async def api_conditions_create2(
-        self,
-        condition_id: str,
-        *,
-        name: str,
-        unique_organization_id: str,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionDetail:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        condition_id : str
-
-        name : str
-            Human-readable name for the condition
-
-        unique_organization_id : str
-            Organization identifier
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_conditions_create2(
-                condition_id="condition_id",
-                name="name",
-                unique_organization_id="unique_organization_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_conditions_create2(
-            condition_id,
-            name=name,
-            unique_organization_id=unique_organization_id,
-            description=description,
-            filter_set_id=filter_set_id,
-            sampling_rate=sampling_rate,
-            time_step_minutes=time_step_minutes,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_conditions_update2(
-        self,
-        condition_id: str,
-        *,
-        unique_organization_id: str,
-        name: str,
-        condition_policy: typing.Dict[str, typing.Any],
-        id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionUpdate:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        condition_id : str
-
-        unique_organization_id : str
-            Organization identifier
-
-        name : str
-            Human-readable name for the condition
-
-        condition_policy : typing.Dict[str, typing.Any]
-            Complex condition rules and logic stored as JSON
-
-        id : typing.Optional[str]
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_conditions_update2(
-                condition_id="condition_id",
-                unique_organization_id="unique_organization_id",
-                name="name",
-                condition_policy={"key": "value"},
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_conditions_update2(
-            condition_id,
-            unique_organization_id=unique_organization_id,
-            name=name,
-            condition_policy=condition_policy,
-            id=id,
-            description=description,
-            filter_set_id=filter_set_id,
-            time_step_minutes=time_step_minutes,
-            sampling_rate=sampling_rate,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_conditions_destroy(
-        self, condition_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        REST API view for retrieving, updating, and deleting individual automation conditions.
-
-        This view handles:
-        - GET: Retrieve a specific automation condition by condition_id
-        - PUT/PATCH: Update an existing automation condition
-        - DELETE: Delete an automation condition
-
-        Superadmin: Can access any condition across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Lookup field: id (condition_id in URL)
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-
-        Parameters
-        ----------
-        condition_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_conditions_destroy(
-                condition_id="condition_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_conditions_destroy(condition_id, request_options=request_options)
-        return _response.data
-
-    async def api_conditions_partial_update2(
-        self,
-        condition_id: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        condition_policy: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AutomationConditionUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        condition_id : str
-
-        id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-            Organization identifier
-
-        name : typing.Optional[str]
-            Human-readable name for the condition
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        condition_policy : typing.Optional[typing.Dict[str, typing.Any]]
-            Complex condition rules and logic stored as JSON
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AutomationConditionUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_conditions_partial_update2(
-                condition_id="condition_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_conditions_partial_update2(
-            condition_id,
-            id=id,
-            unique_organization_id=unique_organization_id,
-            name=name,
-            description=description,
-            condition_policy=condition_policy,
-            filter_set_id=filter_set_id,
-            time_step_minutes=time_step_minutes,
-            sampling_rate=sampling_rate,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
     async def api_workflows_list(
         self,
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        type: typing.Optional[ApiWorkflowsListRequestType] = None,
+        trigger_event_type: typing.Optional[ApiWorkflowsListRequestTriggerEventType] = None,
+        search: typing.Optional[str] = None,
+        is_including_public_workflows: typing.Optional[bool] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
+    ) -> ApiWorkflowsListResponse:
         """
-        List and create workflows.
-
-        Each task in the ``tasks`` array may include an ``id`` field (string).
-        If omitted, the server assigns a UUID automatically before saving.
-
-        PUBLIC (Respan-managed, organization NULL) workflows join list responses
-        only when the caller opts in via ``is_including_public_workflows``.
-        Creating a public workflow requires a staff caller passing
-        ``organization_id: null`` (the DEV-9422 global-create path).
+        List one representative version per workflow family. The editable draft is returned when one exists; otherwise the latest committed version is returned. Public Respan-managed workflows are included only when requested.
 
         Parameters
         ----------
         page : typing.Optional[int]
-            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
+
+        type : typing.Optional[ApiWorkflowsListRequestType]
+
+        trigger_event_type : typing.Optional[ApiWorkflowsListRequestTriggerEventType]
+
+        search : typing.Optional[str]
+            Free-text search over workflow names.
+
+        is_including_public_workflows : typing.Optional[bool]
+            Include Respan-managed public workflows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PaginatedWorkflowListList
-
+        ApiWorkflowsListResponse
+            Paginated workflow families.
 
         Examples
         --------
@@ -2592,8 +850,8 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -2604,90 +862,58 @@ class AsyncWorkflowsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.api_workflows_list(
-            page=page, page_size=page_size, request_options=request_options
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            type=type,
+            trigger_event_type=trigger_event_type,
+            search=search,
+            is_including_public_workflows=is_including_public_workflows,
+            request_options=request_options,
         )
         return _response.data
 
     async def create_workflow(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[CreateWorkflowRequestType] = OMIT,
+        trigger_event_type: typing.Optional[CreateWorkflowRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        tasks: typing.Optional[typing.Sequence[CreateWorkflowRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowCreate:
+    ) -> CreateWorkflowResponse:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Create a new workflow family with an editable draft. Task IDs and sequential links are generated when omitted. `type` defaults to `automations`; deployment and read-only state are server controlled.
 
         Parameters
         ----------
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[CreateWorkflowRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[CreateWorkflowRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
+        tasks : typing.Optional[typing.Sequence[CreateWorkflowRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowCreate
-
+        CreateWorkflowResponse
+            Workflow draft created.
 
         Examples
         --------
@@ -2696,8 +922,8 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -2708,66 +934,62 @@ class AsyncWorkflowsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_workflow(
-            id=id,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
             name=name,
             description=description,
             type=type,
             trigger_event_type=trigger_event_type,
             schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
             is_starred=is_starred,
-            resource_ids=resource_ids,
+            tasks=tasks,
             request_options=request_options,
         )
         return _response.data
 
-    async def get_workflow(
+    async def filter_workflows(
         self,
-        workflow_id: str,
         *,
-        is_exporting: typing.Optional[bool] = None,
-        is_including_secrets: typing.Optional[bool] = None,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        type: typing.Optional[FilterWorkflowsRequestType] = None,
+        trigger_event_type: typing.Optional[FilterWorkflowsRequestTriggerEventType] = None,
+        search: typing.Optional[str] = None,
+        is_including_public_workflows: typing.Optional[bool] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowRetrieveResponse:
+    ) -> FilterWorkflowsResponse:
         """
-        Get, update, or delete a workflow.
-
-        Drafts-on-demand resolution:
-        - GET returns the draft if one exists, else the latest committed version
-          (404 when the family doesn't exist at all).
-        - PATCH edits the draft. When the family has no draft (committed-only),
-          PATCH returns 409 — clients must create a draft first via
-          POST /api/workflows/{workflow_id}/versions/.
-        - DELETE removes every version in the family.
-
-        Committing a draft is a separate action at
-        POST /api/workflows/{workflow_id}/commits/.
-
-        PUBLIC workflows resolve here by id on READS (toggle defaults on so by-id
-        reads stay toggle-free); WRITES scope to own rows only, so a public family
-        404s for non-staff instead of resolving into a mutation path. JWT writes
-        are additionally gated by ``check_object_permissions`` in ``get_object``.
+        List one representative version per workflow family using optional complex filters in the request body. An omitted body or omitted `filters` object applies only the query-string filters.
 
         Parameters
         ----------
-        workflow_id : str
+        page : typing.Optional[int]
 
-        is_exporting : typing.Optional[bool]
-            Set to true to get a portable export of the workflow. Default: false.
+        page_size : typing.Optional[int]
 
-        is_including_secrets : typing.Optional[bool]
-            Set to true to reveal webhook secret values. Default: false.
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
+
+        type : typing.Optional[FilterWorkflowsRequestType]
+
+        trigger_event_type : typing.Optional[FilterWorkflowsRequestTriggerEventType]
+
+        search : typing.Optional[str]
+            Free-text search over workflow names.
+
+        is_including_public_workflows : typing.Optional[bool]
+            Include Respan-managed public workflows.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter parameters keyed by field name.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowRetrieveResponse
-
+        FilterWorkflowsResponse
+            Paginated filtered workflow families.
 
         Examples
         --------
@@ -2776,8 +998,69 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.workflows.filter_workflows()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.filter_workflows(
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            type=type,
+            trigger_event_type=trigger_event_type,
+            search=search,
+            is_including_public_workflows=is_including_public_workflows,
+            filters=filters,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def get_workflow(
+        self,
+        workflow_id: str,
+        *,
+        is_including_secrets: typing.Optional[bool] = None,
+        is_exporting: typing.Optional[bool] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> GetWorkflowResponse:
+        """
+        Return the editable draft when one exists, otherwise the latest committed version. Set `is_exporting=true` for a portable, secret-sanitized export. Webhook secrets remain masked unless an authorized caller sets `is_including_secrets=true`.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        is_including_secrets : typing.Optional[bool]
+            Reveal webhook secret values when authorized.
+
+        is_exporting : typing.Optional[bool]
+            Return a portable export envelope.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetWorkflowResponse
+            Workflow detail or portable export.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -2791,8 +1074,8 @@ class AsyncWorkflowsClient:
         """
         _response = await self._raw_client.get_workflow(
             workflow_id,
-            is_exporting=is_exporting,
             is_including_secrets=is_including_secrets,
+            is_exporting=is_exporting,
             request_options=request_options,
         )
         return _response.data
@@ -2801,11 +1084,12 @@ class AsyncWorkflowsClient:
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete all versions in the workflow family.
+        Delete every version in a workflow family.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2821,8 +1105,8 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -2839,84 +1123,49 @@ class AsyncWorkflowsClient:
 
     async def update_workflow(
         self,
-        workflow_id_: str,
+        workflow_id: str,
         *,
-        tasks: typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[UpdateWorkflowRequestType] = OMIT,
+        trigger_event_type: typing.Optional[UpdateWorkflowRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
+        tasks: typing.Optional[typing.Sequence[UpdateWorkflowRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowUpdate:
+    ) -> UpdateWorkflowResponse:
         """
-        Edit the workflow. Structural edits on committed-only families return 409.
+        Update a workflow family. `name`, `description`, and `is_starred` are family metadata and propagate to every version. Structural fields edit the current draft; committed-only families must create a new draft first.
 
         Parameters
         ----------
-        workflow_id_ : str
-
-        tasks : typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
+        workflow_id : str
+            Logical workflow-family ID.
 
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[UpdateWorkflowRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[UpdateWorkflowRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        updated_by : typing.Optional[int]
+        tasks : typing.Optional[typing.Sequence[UpdateWorkflowRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowUpdate
-
+        UpdateWorkflowResponse
+            Workflow updated.
 
         Examples
         --------
@@ -2925,84 +1174,296 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
             await client.workflows.update_workflow(
-                workflow_id_="workflow_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.update_workflow(
-            workflow_id_,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
-            name=name,
-            description=description,
-            type=type,
-            trigger_event_type=trigger_event_type,
-            schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
-            is_starred=is_starred,
-            resource_ids=resource_ids,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_workflows_commits_create(
-        self,
-        workflow_id: str,
-        *,
-        description: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowDetail:
-        """
-        Commit the current draft (flip ``is_read_only`` True in place).
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        description : typing.Optional[str]
-            Commit message stamped on the newly committed version.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_workflows_commits_create(
                 workflow_id="workflow_id",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.api_workflows_commits_create(
-            workflow_id, description=description, request_options=request_options
+        _response = await self._raw_client.update_workflow(
+            workflow_id,
+            name=name,
+            description=description,
+            type=type,
+            trigger_event_type=trigger_event_type,
+            schedule_cron=schedule_cron,
+            is_starred=is_starred,
+            tasks=tasks,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def list_workflow_versions(
+        self,
+        workflow_id: str,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListWorkflowVersionsResponse:
+        """
+        List all draft and committed versions in a workflow family. An unknown family returns an empty page.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListWorkflowVersionsResponse
+            Paginated workflow versions.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.workflows.list_workflow_versions(
+                workflow_id="workflow_id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_workflow_versions(
+            workflow_id, page=page, page_size=page_size, sort_by=sort_by, request_options=request_options
+        )
+        return _response.data
+
+    async def create_workflow_version(
+        self,
+        workflow_id: str,
+        *,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[CreateWorkflowVersionRequestType] = OMIT,
+        trigger_event_type: typing.Optional[CreateWorkflowVersionRequestTriggerEventType] = OMIT,
+        schedule_cron: typing.Optional[str] = OMIT,
+        is_starred: typing.Optional[bool] = OMIT,
+        tasks: typing.Optional[typing.Sequence[CreateWorkflowVersionRequestTasksItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> CreateWorkflowVersionResponse:
+        """
+        Create a new editable draft from the submitted workflow content. The server assigns the next version and the family identity. This does not clone, commit, deploy, or modify any existing version.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        name : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[CreateWorkflowVersionRequestType]
+            Workflow category. Defaults to `automations`.
+
+        trigger_event_type : typing.Optional[CreateWorkflowVersionRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
+
+        schedule_cron : typing.Optional[str]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
+
+        is_starred : typing.Optional[bool]
+
+        tasks : typing.Optional[typing.Sequence[CreateWorkflowVersionRequestTasksItem]]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        CreateWorkflowVersionResponse
+            Editable draft created.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.workflows.create_workflow_version(
+                workflow_id="workflow_id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.create_workflow_version(
+            workflow_id,
+            name=name,
+            description=description,
+            type=type,
+            trigger_event_type=trigger_event_type,
+            schedule_cron=schedule_cron,
+            is_starred=is_starred,
+            tasks=tasks,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def get_workflow_version(
+        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> GetWorkflowVersionResponse:
+        """
+        Retrieve one exact workflow version, including its current write-access metadata.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        version : int
+            Workflow version number.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        GetWorkflowVersionResponse
+            Workflow version.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.workflows.get_workflow_version(
+                workflow_id="workflow_id",
+                version=1,
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.get_workflow_version(workflow_id, version, request_options=request_options)
+        return _response.data
+
+    async def update_workflow_version(
+        self,
+        workflow_id: str,
+        version: int,
+        *,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[UpdateWorkflowVersionRequestType] = OMIT,
+        trigger_event_type: typing.Optional[UpdateWorkflowVersionRequestTriggerEventType] = OMIT,
+        schedule_cron: typing.Optional[str] = OMIT,
+        is_starred: typing.Optional[bool] = OMIT,
+        tasks: typing.Optional[typing.Sequence[UpdateWorkflowVersionRequestTasksItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> UpdateWorkflowVersionResponse:
+        """
+        Update an editable workflow version. Committed read-only versions cannot be changed; create a new draft instead. Commit messages and read-only state are controlled by the commit endpoint.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        version : int
+            Workflow version number.
+
+        name : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[UpdateWorkflowVersionRequestType]
+            Workflow category. Defaults to `automations`.
+
+        trigger_event_type : typing.Optional[UpdateWorkflowVersionRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
+
+        schedule_cron : typing.Optional[str]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
+
+        is_starred : typing.Optional[bool]
+
+        tasks : typing.Optional[typing.Sequence[UpdateWorkflowVersionRequestTasksItem]]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        UpdateWorkflowVersionResponse
+            Workflow version updated.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.workflows.update_workflow_version(
+                workflow_id="workflow_id",
+                version=1,
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.update_workflow_version(
+            workflow_id,
+            version,
+            name=name,
+            description=description,
+            type=type,
+            trigger_event_type=trigger_event_type,
+            schedule_cron=schedule_cron,
+            is_starred=is_starred,
+            tasks=tasks,
+            request_options=request_options,
         )
         return _response.data
 
@@ -3012,24 +1473,24 @@ class AsyncWorkflowsClient:
         *,
         version: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowDeployResponse:
+    ) -> DeployWorkflowResponse:
         """
-        Deploy a committed workflow version. Sets is_enabled=True on the target version and False on all others in the family.
+        Deploy one committed workflow version and disable any previously deployed version in the family. Omitting `version` deploys the latest committed version.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         version : typing.Optional[int]
-            Version number to deploy. If omitted, deploys the latest committed version.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowDeployResponse
-
+        DeployWorkflowResponse
+            Workflow version deployed.
 
         Examples
         --------
@@ -3038,8 +1499,8 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -3060,11 +1521,12 @@ class AsyncWorkflowsClient:
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Undeploy a workflow. Sets is_enabled=False on all versions in the family.
+        Disable the deployed version in an existing workflow family. The operation is idempotent when the family has no active deployment.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -3080,8 +1542,8 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -3098,28 +1560,22 @@ class AsyncWorkflowsClient:
 
     async def validate_workflow(
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> WorkflowValidationResponse:
+    ) -> ValidateWorkflowResponse:
         """
-        Validate a workflow's configuration and fire preview delivery sends.
-
-        POST /api/workflows/<workflow_id>/validations/
-
-        Validates structure, per-task config, and upstream state references, then dispatches **real** preview notifications and webhooks so users can verify their delivery channels. Unresolved template variables render as the token {{placeholder}}. No aggregation runs; no logs are fetched.
-
-        Returns:
-            status, validation, task_results, is_all_passed
+        Validate the latest editable draft and send real preview notifications or webhooks for delivery tasks. No logs are fetched and no aggregation runs. Configuration failures are returned in the `200` validation envelope; a draft with no tasks succeeds with an empty `task_results` array.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        WorkflowValidationResponse
-
+        ValidateWorkflowResponse
+            Workflow validation result.
 
         Examples
         --------
@@ -3128,8 +1584,8 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -3144,44 +1600,31 @@ class AsyncWorkflowsClient:
         _response = await self._raw_client.validate_workflow(workflow_id, request_options=request_options)
         return _response.data
 
-    async def list_workflow_versions(
+    async def api_workflows_commits_create(
         self,
         workflow_id: str,
         *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
+        version_description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
+    ) -> ApiWorkflowsCommitsCreateResponse:
         """
-        List versions for a workflow family, or create a new draft.
-
-        GET  /api/workflows/{workflow_id}/versions/
-            List every version row (draft + committed history).
-
-        POST /api/workflows/{workflow_id}/versions/
-            Create a new editable draft. Pure CRUD — the client sends the
-            new row's content (name, tasks, description, etc.) and the
-            backend inserts it with ``is_read_only=False``. Nothing else
-            in the family is touched. Committing is a separate action at
-            POST /api/workflows/{workflow_id}/commits/.
+        Commit the current editable draft in place. Omitting `version_description` preserves its existing commit message; an explicit empty string clears it.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
+        version_description : typing.Optional[str]
+            Commit message for this version.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PaginatedWorkflowListList
-
+        ApiWorkflowsCommitsCreateResponse
+            Draft committed.
 
         Examples
         --------
@@ -3190,808 +1633,20 @@ class AsyncWorkflowsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
-            await client.workflows.list_workflow_versions(
+            await client.workflows.api_workflows_commits_create(
                 workflow_id="workflow_id",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_workflow_versions(
-            workflow_id, page=page, page_size=page_size, request_options=request_options
+        _response = await self._raw_client.api_workflows_commits_create(
+            workflow_id, version_description=version_description, request_options=request_options
         )
-        return _response.data
-
-    async def create_workflow_version(
-        self,
-        workflow_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowDetail:
-        """
-        Create a new draft row from the client payload.
-
-        Pure CRUD: inserts one new row with ``is_read_only=False`` using
-        the content the client sends (``name``, ``tasks``, ``description``,
-        ``type``, ``trigger_event_type``, ``is_starred``). Does NOT clone
-        from other rows and does NOT touch other rows.
-
-        The FE owns the "draft dance" — when the user wants to edit a
-        committed workflow, the FE reads the current state locally and
-        sends it here as the new draft's content.
-
-        The view forces identity/scope fields (``workflow_id`` from the
-        URL, organization from the caller) so the client can't reparent
-        a row into another family or org.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.create_workflow_version(
-                workflow_id_="workflow_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.create_workflow_version(
-            workflow_id_,
-            id=id,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
-            name=name,
-            description=description,
-            type=type,
-            trigger_event_type=trigger_event_type,
-            schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
-            is_starred=is_starred,
-            resource_ids=resource_ids,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def get_workflow_version(
-        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> WorkflowDetail:
-        """
-        Get or edit a specific workflow version.
-
-        GET /api/workflows/{workflow_id}/versions/{version}/
-        PATCH /api/workflows/{workflow_id}/versions/{version}/ (only if is_read_only=False)
-
-        PUBLIC workflow versions are readable by every tenant; PATCH scopes to own
-        rows only, so a public version 404s for non-staff instead of resolving
-        into a mutation path.
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        version : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.get_workflow_version(
-                workflow_id="workflow_id",
-                version=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_workflow_version(workflow_id, version, request_options=request_options)
-        return _response.data
-
-    async def update_workflow_version(
-        self,
-        workflow_id_: str,
-        version_: int,
-        *,
-        tasks: typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowUpdate:
-        """
-        Edit version — only allowed if is_read_only=False.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        version_ : int
-
-        tasks : typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.update_workflow_version(
-                workflow_id_="workflow_id",
-                version_=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.update_workflow_version(
-            workflow_id_,
-            version_,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
-            name=name,
-            description=description,
-            type=type,
-            trigger_event_type=trigger_event_type,
-            schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
-            is_starred=is_starred,
-            resource_ids=resource_ids,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_workflows_versions_list_list(
-        self,
-        workflow_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
-        """
-        List versions for a workflow family, or create a new draft.
-
-        GET  /api/workflows/{workflow_id}/versions/
-            List every version row (draft + committed history).
-
-        POST /api/workflows/{workflow_id}/versions/
-            Create a new editable draft. Pure CRUD — the client sends the
-            new row's content (name, tasks, description, etc.) and the
-            backend inserts it with ``is_read_only=False``. Nothing else
-            in the family is touched. Committing is a separate action at
-            POST /api/workflows/{workflow_id}/commits/.
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedWorkflowListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_workflows_versions_list_list(
-                workflow_id="workflow_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_workflows_versions_list_list(
-            workflow_id, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def api_workflows_versions_list_create(
-        self,
-        workflow_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowDetail:
-        """
-        Create a new draft row from the client payload.
-
-        Pure CRUD: inserts one new row with ``is_read_only=False`` using
-        the content the client sends (``name``, ``tasks``, ``description``,
-        ``type``, ``trigger_event_type``, ``is_starred``). Does NOT clone
-        from other rows and does NOT touch other rows.
-
-        The FE owns the "draft dance" — when the user wants to edit a
-        committed workflow, the FE reads the current state locally and
-        sends it here as the new draft's content.
-
-        The view forces identity/scope fields (``workflow_id`` from the
-        URL, organization from the caller) so the client can't reparent
-        a row into another family or org.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_workflows_versions_list_create(
-                workflow_id_="workflow_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_workflows_versions_list_create(
-            workflow_id_,
-            id=id,
-            tasks=tasks,
-            workflow_id=workflow_id,
-            version=version,
-            name=name,
-            description=description,
-            type=type,
-            trigger_event_type=trigger_event_type,
-            schedule_cron=schedule_cron,
-            has_async_steps=has_async_steps,
-            is_starred=is_starred,
-            resource_ids=resource_ids,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_workflows_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        search: typing.Optional[str] = None,
-        sort_by: typing.Optional[str] = None,
-        trigger_event_type: typing.Optional[str] = None,
-        type: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
-        """
-        List workflows with filtering support.
-
-        GET  /api/workflows/list/  — paginated list with filters_data
-        POST /api/workflows/list/  — POST-for-filtering (not creation)
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        search : typing.Optional[str]
-            Free-text search over workflow name.
-
-        sort_by : typing.Optional[str]
-            Field to sort by, e.g. '-updated_at'.
-
-        trigger_event_type : typing.Optional[str]
-            Filter by trigger event type, e.g. 'eval_only'.
-
-        type : typing.Optional[str]
-            Workflow type filter (automations, monitors, evaluators, reports).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedWorkflowListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_workflows_list_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_workflows_list_list(
-            page=page,
-            page_size=page_size,
-            search=search,
-            sort_by=sort_by,
-            trigger_event_type=trigger_event_type,
-            type=type,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def filter_workflows(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedWorkflowListList:
-        """
-        List workflows with complex filtering via POST body.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        filters : typing.Optional[FilterParamDictPydantic]
-            Filter parameters keyed by field name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedWorkflowListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.filter_workflows()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.filter_workflows(
-            page=page, page_size=page_size, filters=filters, request_options=request_options
-        )
-        return _response.data
-
-    async def api_workflows_summary_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        GET/POST /api/workflows/summary/
-
-        Returns total count of workflows matching the supplied filters.
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_workflows_summary_retrieve()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_workflows_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    async def api_workflows_summary_filtered(
-        self,
-        *,
-        filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> WorkflowSummaryResponse:
-        """
-        Total count of workflows matching the supplied filters.
-
-        Parameters
-        ----------
-        filters : typing.Optional[FilterParamDictPydantic]
-            Filter parameters keyed by field name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        WorkflowSummaryResponse
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_workflows_summary_filtered()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_workflows_summary_filtered(
-            filters=filters, request_options=request_options
-        )
-        return _response.data
-
-    async def api_workflows_summary_update(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_workflows_summary_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_workflows_summary_update(request_options=request_options)
-        return _response.data
-
-    async def api_workflows_summary_partial_update(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.workflows.api_workflows_summary_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_workflows_summary_partial_update(request_options=request_options)
         return _response.data

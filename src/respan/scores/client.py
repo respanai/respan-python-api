@@ -5,17 +5,17 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
-from ..types.paginated_public_log_score_list_list import PaginatedPublicLogScoreListList
-from ..types.public_ch_eval_result_list import PublicChEvalResultList
-from ..types.public_eval_result_create import PublicEvalResultCreate
-from ..types.public_eval_result_detail import PublicEvalResultDetail
-from ..types.public_eval_result_update import PublicEvalResultUpdate
-from ..types.public_log_score_create import PublicLogScoreCreate
-from ..types.public_log_score_detail import PublicLogScoreDetail
-from ..types.public_log_score_update import PublicLogScoreUpdate
-from ..types.status_c33enum import StatusC33Enum
-from ..types.type4e2enum import Type4E2Enum
 from .raw_client import AsyncRawScoresClient, RawScoresClient
+from .types.create_score_response import CreateScoreResponse
+from .types.create_span_score_response import CreateSpanScoreResponse
+from .types.filter_scores_response import FilterScoresResponse
+from .types.list_span_scores_response import ListSpanScoresResponse
+from .types.replace_score_response import ReplaceScoreResponse
+from .types.replace_span_score_response import ReplaceSpanScoreResponse
+from .types.retrieve_score_response import RetrieveScoreResponse
+from .types.retrieve_span_score_response import RetrieveSpanScoreResponse
+from .types.update_score_response import UpdateScoreResponse
+from .types.update_span_score_response import UpdateSpanScoreResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -36,6 +36,431 @@ class ScoresClient:
         """
         return self._raw_client
 
+    def create_score(
+        self,
+        *,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        log_id: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> CreateScoreResponse:
+        """
+        Create an evaluation score. Prefer the log-scoped route `POST /api/logs/{log_id}/scores/` when creating a score for a known log.
+
+        Parameters
+        ----------
+        evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
+
+        evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
+
+        log_id : typing.Optional[str]
+            Log/span ID. Required for general score creation when not using the log-scoped route.
+
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
+
+        prompt_id : typing.Optional[str]
+
+        prompt_version_number : typing.Optional[int]
+
+        dataset_id : typing.Optional[str]
+
+        automation_id : typing.Optional[str]
+
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        CreateScoreResponse
+            Created score.
+
+        Examples
+        --------
+        import datetime
+
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.scores.create_score(
+            evaluator_slug="response_quality",
+            log_id="log_abc123",
+            timestamp=datetime.datetime.fromisoformat(
+                "2026-04-10 12:00:00+00:00",
+            ),
+            numerical_value=4.5,
+        )
+        """
+        _response = self._raw_client.create_score(
+            evaluator_id=evaluator_id,
+            evaluator_slug=evaluator_slug,
+            log_id=log_id,
+            timestamp=timestamp,
+            environment=environment,
+            prompt_id=prompt_id,
+            prompt_version_number=prompt_version_number,
+            dataset_id=dataset_id,
+            automation_id=automation_id,
+            scorer=scorer,
+            numerical_value=numerical_value,
+            string_value=string_value,
+            boolean_value=boolean_value,
+            categorical_value=categorical_value,
+            json_value=json_value,
+            explanation=explanation,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def filter_scores(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FilterScoresResponse:
+        """
+        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        FilterScoresResponse
+            Paginated filtered list of scores.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.scores.filter_scores(
+            sort_by="-created_at",
+        )
+        """
+        _response = self._raw_client.filter_scores(
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
+        )
+        return _response.data
+
+    def retrieve_score(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> RetrieveScoreResponse:
+        """
+        Retrieve a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveScoreResponse
+            Score details.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.scores.retrieve_score(
+            id="id",
+        )
+        """
+        _response = self._raw_client.retrieve_score(id, request_options=request_options)
+        return _response.data
+
+    def replace_score(
+        self,
+        id: str,
+        *,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        log_id: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceScoreResponse:
+        """
+        Replace a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
+
+        evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
+
+        log_id : typing.Optional[str]
+            Log/span ID. Required for general score creation when not using the log-scoped route.
+
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
+
+        prompt_id : typing.Optional[str]
+
+        prompt_version_number : typing.Optional[int]
+
+        dataset_id : typing.Optional[str]
+
+        automation_id : typing.Optional[str]
+
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceScoreResponse
+            Updated score.
+
+        Examples
+        --------
+        import datetime
+
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.scores.replace_score(
+            id="id",
+            evaluator_slug="response_quality",
+            log_id="log_abc123",
+            timestamp=datetime.datetime.fromisoformat(
+                "2026-04-10 12:00:00+00:00",
+            ),
+            numerical_value=4.5,
+        )
+        """
+        _response = self._raw_client.replace_score(
+            id,
+            evaluator_id=evaluator_id,
+            evaluator_slug=evaluator_slug,
+            log_id=log_id,
+            timestamp=timestamp,
+            environment=environment,
+            prompt_id=prompt_id,
+            prompt_version_number=prompt_version_number,
+            dataset_id=dataset_id,
+            automation_id=automation_id,
+            scorer=scorer,
+            numerical_value=numerical_value,
+            string_value=string_value,
+            boolean_value=boolean_value,
+            categorical_value=categorical_value,
+            json_value=json_value,
+            explanation=explanation,
+            request_options=request_options,
+        )
+        return _response.data
+
+    def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Delete a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.scores.delete_score(
+            id="id",
+        )
+        """
+        _response = self._raw_client.delete_score(id, request_options=request_options)
+        return _response.data
+
+    def update_score(
+        self,
+        id: str,
+        *,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> UpdateScoreResponse:
+        """
+        Partially update a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        UpdateScoreResponse
+            Updated score.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.scores.update_score(
+            id="id",
+            numerical_value=4.8,
+            string_value="Updated assessment",
+        )
+        """
+        _response = self._raw_client.update_score(
+            id,
+            numerical_value=numerical_value,
+            string_value=string_value,
+            boolean_value=boolean_value,
+            categorical_value=categorical_value,
+            json_value=json_value,
+            request_options=request_options,
+        )
+        return _response.data
+
     def list_span_scores(
         self,
         log_id: str,
@@ -43,90 +468,36 @@ class ScoresClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicLogScoreListList:
+    ) -> ListSpanScoresResponse:
         """
-        Create and list scores for a specific log
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/ - List all scores for a log
-            POST /api/logs/{log_id}/scores/ - Create a new score for a log
-
-        Args (POST):
-            - evaluator_id (Optional): The ID of the Keywords AI evaluator to associate with
-            - evaluator_slug (Optional): The slug of a custom evaluator (required if evaluator_id not provided)
-            - numerical_value (Optional): The numerical score value
-            - string_value (Optional): The string score value
-            - boolean_value (Optional): The boolean score value
-            - categorical_value (Optional): The categorical score values (list of strings)
-
-        Returns (POST):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": null,
-                "dataset_id": null
-            }
-
-        Returns (GET):
-            {
-                "count": 2,
-                "next": null,
-                "previous": null,
-                "results": [
-                    {
-                        "id": "eval_result_unique_id_1",
-                        "created_at": "2024-01-15T10:30:00Z",
-                        "type": "llm",
-                        "environment": "test",
-                        "numerical_value": 4.5,
-                        "string_value": "Good quality",
-                        "boolean_value": true,
-                        "categorical_value": ["excellent"],
-                        "is_passed": false,
-                        "cost": 0.0,
-                        "evaluator_id": null,
-                        "evaluator_slug": "custom_evaluator",
-                        "log_id": "log_unique_id",
-                        "dataset_id": null
-                    }
-                ]
-            }
+        List all scores for a specific log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         page : typing.Optional[int]
-            A page number within the paginated result set.
+            Page number.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+            Number of results to return per page. Maximum 100.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PaginatedPublicLogScoreListList
-
+        ListSpanScoresResponse
+            Paginated list of scores for this log/span.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.scores.list_span_scores(
             log_id="log_id",
@@ -141,116 +512,42 @@ class ScoresClient:
         self,
         log_id: str,
         *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
         environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        public_log_score_create_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicLogScoreCreate:
+    ) -> CreateSpanScoreResponse:
         """
-        Create and list scores for a specific log
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/ - List all scores for a log
-            POST /api/logs/{log_id}/scores/ - Create a new score for a log
-
-        Args (POST):
-            - evaluator_id (Optional): The ID of the Keywords AI evaluator to associate with
-            - evaluator_slug (Optional): The slug of a custom evaluator (required if evaluator_id not provided)
-            - numerical_value (Optional): The numerical score value
-            - string_value (Optional): The string score value
-            - boolean_value (Optional): The boolean score value
-            - categorical_value (Optional): The categorical score values (list of strings)
-
-        Returns (POST):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": null,
-                "dataset_id": null
-            }
-
-        Returns (GET):
-            {
-                "count": 2,
-                "next": null,
-                "previous": null,
-                "results": [
-                    {
-                        "id": "eval_result_unique_id_1",
-                        "created_at": "2024-01-15T10:30:00Z",
-                        "type": "llm",
-                        "environment": "test",
-                        "numerical_value": 4.5,
-                        "string_value": "Good quality",
-                        "boolean_value": true,
-                        "categorical_value": ["excellent"],
-                        "is_passed": false,
-                        "cost": 0.0,
-                        "evaluator_id": null,
-                        "evaluator_slug": "custom_evaluator",
-                        "log_id": "log_unique_id",
-                        "dataset_id": null
-                    }
-                ]
-            }
+        Create a score for a specific log/span. The backend keeps one score per `(log, evaluator, scorer)` and updates the existing score if the same combination is submitted again.
 
         Parameters
         ----------
         log_id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
+            Log/span unique ID to manage scores for.
 
         evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
         evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
 
-        public_log_score_create_request_log_id : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
 
         prompt_id : typing.Optional[str]
 
@@ -258,130 +555,106 @@ class ScoresClient:
 
         dataset_id : typing.Optional[str]
 
-        status : typing.Optional[StatusC33Enum]
+        automation_id : typing.Optional[str]
 
-        error_message : typing.Optional[str]
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicLogScoreCreate
-
+        CreateSpanScoreResponse
+            Updated existing score for this log/evaluator/scorer.
 
         Examples
         --------
+        import datetime
+
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.scores.create_span_score(
             log_id="log_id",
-            organization=1,
+            evaluator_slug="response_quality",
+            timestamp=datetime.datetime.fromisoformat(
+                "2026-04-10 12:00:00+00:00",
+            ),
+            numerical_value=4.5,
         )
         """
         _response = self._raw_client.create_span_score(
             log_id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            type=type,
+            evaluator_id=evaluator_id,
+            evaluator_slug=evaluator_slug,
+            timestamp=timestamp,
             environment=environment,
+            prompt_id=prompt_id,
+            prompt_version_number=prompt_version_number,
+            dataset_id=dataset_id,
+            automation_id=automation_id,
+            scorer=scorer,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,
             categorical_value=categorical_value,
             json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            public_log_score_create_request_log_id=public_log_score_create_request_log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
+            explanation=explanation,
             request_options=request_options,
         )
         return _response.data
 
     def retrieve_span_score(
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicLogScoreDetail:
+    ) -> RetrieveSpanScoreResponse:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Retrieve a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
+            Score ID returned as `id` in score responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicLogScoreDetail
-
+        RetrieveSpanScoreResponse
+            Score details.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.scores.retrieve_span_score(
             log_id="log_id",
@@ -396,116 +669,45 @@ class ScoresClient:
         log_id: str,
         score_id: str,
         *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
         environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        public_log_score_detail_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicLogScoreDetail:
+    ) -> ReplaceSpanScoreResponse:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Replace a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        updated_by : typing.Optional[int]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
+            Score ID returned as `id` in score responses.
 
         evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
         evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
 
-        scorer : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
 
-        public_log_score_detail_request_log_id : typing.Optional[str]
+        environment : typing.Optional[str]
+            Score environment.
 
         prompt_id : typing.Optional[str]
 
@@ -513,56 +715,75 @@ class ScoresClient:
 
         dataset_id : typing.Optional[str]
 
-        status : typing.Optional[StatusC33Enum]
+        automation_id : typing.Optional[str]
 
-        error_message : typing.Optional[str]
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicLogScoreDetail
-
+        ReplaceSpanScoreResponse
+            Updated score.
 
         Examples
         --------
+        import datetime
+
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.scores.replace_span_score(
             log_id="log_id",
             score_id="score_id",
-            organization=1,
+            evaluator_slug="response_quality",
+            timestamp=datetime.datetime.fromisoformat(
+                "2026-04-10 12:00:00+00:00",
+            ),
+            numerical_value=4.5,
         )
         """
         _response = self._raw_client.replace_span_score(
             log_id,
             score_id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            updated_by=updated_by,
-            type=type,
+            evaluator_id=evaluator_id,
+            evaluator_slug=evaluator_slug,
+            timestamp=timestamp,
             environment=environment,
+            prompt_id=prompt_id,
+            prompt_version_number=prompt_version_number,
+            dataset_id=dataset_id,
+            automation_id=automation_id,
+            scorer=scorer,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,
             categorical_value=categorical_value,
             json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            public_log_score_detail_request_log_id=public_log_score_detail_request_log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
+            explanation=explanation,
             request_options=request_options,
         )
         return _response.data
@@ -571,60 +792,15 @@ class ScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Delete a score from a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
+            Score ID returned as `id` in score responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -638,8 +814,8 @@ class ScoresClient:
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.scores.delete_span_score(
             log_id="log_id",
@@ -654,703 +830,70 @@ class ScoresClient:
         log_id: str,
         score_id: str,
         *,
-        organization: typing.Optional[int] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        patched_public_log_score_update_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicLogScoreUpdate:
+    ) -> UpdateSpanScoreResponse:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Partially update a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
-
-        organization : typing.Optional[int]
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
+            Score ID returned as `id` in score responses.
 
         numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
 
         string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
 
         boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
 
         categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
 
         json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        patched_public_log_score_update_request_log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicLogScoreUpdate
-
+        UpdateSpanScoreResponse
+            Updated score.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.scores.update_span_score(
             log_id="log_id",
             score_id="score_id",
+            numerical_value=4.8,
+            string_value="Updated assessment",
         )
         """
         _response = self._raw_client.update_span_score(
             log_id,
             score_id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            type=type,
-            environment=environment,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,
             categorical_value=categorical_value,
             json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            patched_public_log_score_update_request_log_id=patched_public_log_score_update_request_log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def create_score(
-        self,
-        *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicEvalResultCreate:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        updated_by : typing.Optional[int]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicEvalResultCreate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.scores.create_score(
-            organization=1,
-        )
-        """
-        _response = self._raw_client.create_score(
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            updated_by=updated_by,
-            type=type,
-            environment=environment,
-            numerical_value=numerical_value,
-            string_value=string_value,
-            boolean_value=boolean_value,
-            categorical_value=categorical_value,
-            json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            log_id=log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def retrieve_score(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicEvalResultDetail:
-        """
-        Operates on the Postgres-based EvalResult models for update and detail point retrieval
-        Synced to clickhouse automatically via evaluation.signals
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicEvalResultDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.scores.retrieve_score(
-            id="id",
-        )
-        """
-        _response = self._raw_client.retrieve_score(id, request_options=request_options)
-        return _response.data
-
-    def replace_score(
-        self,
-        id: str,
-        *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicEvalResultDetail:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicEvalResultDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.scores.replace_score(
-            id="id",
-            organization=1,
-        )
-        """
-        _response = self._raw_client.replace_score(
-            id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            type=type,
-            environment=environment,
-            numerical_value=numerical_value,
-            string_value=string_value,
-            boolean_value=boolean_value,
-            categorical_value=categorical_value,
-            json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            log_id=log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Operates on the Postgres-based EvalResult models for update and detail point retrieval
-        Synced to clickhouse automatically via evaluation.signals
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.scores.delete_score(
-            id="id",
-        )
-        """
-        _response = self._raw_client.delete_score(id, request_options=request_options)
-        return _response.data
-
-    def update_score(
-        self,
-        id: str,
-        *,
-        organization: typing.Optional[int] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicEvalResultUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : str
-
-        organization : typing.Optional[int]
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicEvalResultUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.scores.update_score(
-            id="id",
-        )
-        """
-        _response = self._raw_client.update_score(
-            id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            type=type,
-            environment=environment,
-            numerical_value=numerical_value,
-            string_value=string_value,
-            boolean_value=boolean_value,
-            categorical_value=categorical_value,
-            json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            log_id=log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def filter_scores(
-        self,
-        *,
-        id: str,
-        created_at: dt.datetime,
-        type: str,
-        environment: str,
-        numerical_value: float,
-        string_value: str,
-        is_passed: bool,
-        cost: float,
-        evaluator_id: str,
-        log_id: str,
-        prompt_id: str,
-        prompt_version_number: int,
-        dataset_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicChEvalResultList:
-        """
-        Handle POST requests the same as GET for filtering.
-
-        Parameters
-        ----------
-        id : str
-
-        created_at : dt.datetime
-
-        type : str
-
-        environment : str
-
-        numerical_value : float
-
-        string_value : str
-
-        is_passed : bool
-
-        cost : float
-
-        evaluator_id : str
-
-        log_id : str
-
-        prompt_id : str
-
-        prompt_version_number : int
-
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicChEvalResultList
-
-
-        Examples
-        --------
-        import datetime
-
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.scores.filter_scores(
-            id="id",
-            created_at=datetime.datetime.fromisoformat(
-                "2024-01-15 09:30:00+00:00",
-            ),
-            type="type",
-            environment="environment",
-            numerical_value=1.1,
-            string_value="string_value",
-            is_passed=True,
-            cost=1.1,
-            evaluator_id="evaluator_id",
-            log_id="log_id",
-            prompt_id="prompt_id",
-            prompt_version_number=1,
-            dataset_id="dataset_id",
-        )
-        """
-        _response = self._raw_client.filter_scores(
-            id=id,
-            created_at=created_at,
-            type=type,
-            environment=environment,
-            numerical_value=numerical_value,
-            string_value=string_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            log_id=log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
             request_options=request_options,
         )
         return _response.data
@@ -1371,89 +914,164 @@ class AsyncScoresClient:
         """
         return self._raw_client
 
-    async def list_span_scores(
+    async def create_score(
         self,
-        log_id: str,
         *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        log_id: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedPublicLogScoreListList:
+    ) -> CreateScoreResponse:
         """
-        Create and list scores for a specific log
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/ - List all scores for a log
-            POST /api/logs/{log_id}/scores/ - Create a new score for a log
-
-        Args (POST):
-            - evaluator_id (Optional): The ID of the Keywords AI evaluator to associate with
-            - evaluator_slug (Optional): The slug of a custom evaluator (required if evaluator_id not provided)
-            - numerical_value (Optional): The numerical score value
-            - string_value (Optional): The string score value
-            - boolean_value (Optional): The boolean score value
-            - categorical_value (Optional): The categorical score values (list of strings)
-
-        Returns (POST):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": null,
-                "dataset_id": null
-            }
-
-        Returns (GET):
-            {
-                "count": 2,
-                "next": null,
-                "previous": null,
-                "results": [
-                    {
-                        "id": "eval_result_unique_id_1",
-                        "created_at": "2024-01-15T10:30:00Z",
-                        "type": "llm",
-                        "environment": "test",
-                        "numerical_value": 4.5,
-                        "string_value": "Good quality",
-                        "boolean_value": true,
-                        "categorical_value": ["excellent"],
-                        "is_passed": false,
-                        "cost": 0.0,
-                        "evaluator_id": null,
-                        "evaluator_slug": "custom_evaluator",
-                        "log_id": "log_unique_id",
-                        "dataset_id": null
-                    }
-                ]
-            }
+        Create an evaluation score. Prefer the log-scoped route `POST /api/logs/{log_id}/scores/` when creating a score for a known log.
 
         Parameters
         ----------
-        log_id : str
+        evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
-        page : typing.Optional[int]
-            A page number within the paginated result set.
+        evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
 
-        page_size : typing.Optional[int]
-            Number of results to return per page.
+        log_id : typing.Optional[str]
+            Log/span ID. Required for general score creation when not using the log-scoped route.
+
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
+
+        prompt_id : typing.Optional[str]
+
+        prompt_version_number : typing.Optional[int]
+
+        dataset_id : typing.Optional[str]
+
+        automation_id : typing.Optional[str]
+
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PaginatedPublicLogScoreListList
+        CreateScoreResponse
+            Created score.
 
+        Examples
+        --------
+        import asyncio
+        import datetime
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.scores.create_score(
+                evaluator_slug="response_quality",
+                log_id="log_abc123",
+                timestamp=datetime.datetime.fromisoformat(
+                    "2026-04-10 12:00:00+00:00",
+                ),
+                numerical_value=4.5,
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.create_score(
+            evaluator_id=evaluator_id,
+            evaluator_slug=evaluator_slug,
+            log_id=log_id,
+            timestamp=timestamp,
+            environment=environment,
+            prompt_id=prompt_id,
+            prompt_version_number=prompt_version_number,
+            dataset_id=dataset_id,
+            automation_id=automation_id,
+            scorer=scorer,
+            numerical_value=numerical_value,
+            string_value=string_value,
+            boolean_value=boolean_value,
+            categorical_value=categorical_value,
+            json_value=json_value,
+            explanation=explanation,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def filter_scores(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FilterScoresResponse:
+        """
+        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        FilterScoresResponse
+            Paginated filtered list of scores.
 
         Examples
         --------
@@ -1462,8 +1080,350 @@ class AsyncScoresClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.scores.filter_scores(
+                sort_by="-created_at",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.filter_scores(
+            page=page, page_size=page_size, sort_by=sort_by, filters=filters, request_options=request_options
+        )
+        return _response.data
+
+    async def retrieve_score(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> RetrieveScoreResponse:
+        """
+        Retrieve a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveScoreResponse
+            Score details.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.scores.retrieve_score(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.retrieve_score(id, request_options=request_options)
+        return _response.data
+
+    async def replace_score(
+        self,
+        id: str,
+        *,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        log_id: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ReplaceScoreResponse:
+        """
+        Replace a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
+
+        evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
+
+        log_id : typing.Optional[str]
+            Log/span ID. Required for general score creation when not using the log-scoped route.
+
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
+
+        prompt_id : typing.Optional[str]
+
+        prompt_version_number : typing.Optional[int]
+
+        dataset_id : typing.Optional[str]
+
+        automation_id : typing.Optional[str]
+
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ReplaceScoreResponse
+            Updated score.
+
+        Examples
+        --------
+        import asyncio
+        import datetime
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.scores.replace_score(
+                id="id",
+                evaluator_slug="response_quality",
+                log_id="log_abc123",
+                timestamp=datetime.datetime.fromisoformat(
+                    "2026-04-10 12:00:00+00:00",
+                ),
+                numerical_value=4.5,
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.replace_score(
+            id,
+            evaluator_id=evaluator_id,
+            evaluator_slug=evaluator_slug,
+            log_id=log_id,
+            timestamp=timestamp,
+            environment=environment,
+            prompt_id=prompt_id,
+            prompt_version_number=prompt_version_number,
+            dataset_id=dataset_id,
+            automation_id=automation_id,
+            scorer=scorer,
+            numerical_value=numerical_value,
+            string_value=string_value,
+            boolean_value=boolean_value,
+            categorical_value=categorical_value,
+            json_value=json_value,
+            explanation=explanation,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Delete a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.scores.delete_score(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.delete_score(id, request_options=request_options)
+        return _response.data
+
+    async def update_score(
+        self,
+        id: str,
+        *,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> UpdateScoreResponse:
+        """
+        Partially update a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        UpdateScoreResponse
+            Updated score.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.scores.update_score(
+                id="id",
+                numerical_value=4.8,
+                string_value="Updated assessment",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.update_score(
+            id,
+            numerical_value=numerical_value,
+            string_value=string_value,
+            boolean_value=boolean_value,
+            categorical_value=categorical_value,
+            json_value=json_value,
+            request_options=request_options,
+        )
+        return _response.data
+
+    async def list_span_scores(
+        self,
+        log_id: str,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> ListSpanScoresResponse:
+        """
+        List all scores for a specific log/span.
+
+        Parameters
+        ----------
+        log_id : str
+            Log/span unique ID to manage scores for.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ListSpanScoresResponse
+            Paginated list of scores for this log/span.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -1484,116 +1444,42 @@ class AsyncScoresClient:
         self,
         log_id: str,
         *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
         environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        public_log_score_create_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicLogScoreCreate:
+    ) -> CreateSpanScoreResponse:
         """
-        Create and list scores for a specific log
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/ - List all scores for a log
-            POST /api/logs/{log_id}/scores/ - Create a new score for a log
-
-        Args (POST):
-            - evaluator_id (Optional): The ID of the Keywords AI evaluator to associate with
-            - evaluator_slug (Optional): The slug of a custom evaluator (required if evaluator_id not provided)
-            - numerical_value (Optional): The numerical score value
-            - string_value (Optional): The string score value
-            - boolean_value (Optional): The boolean score value
-            - categorical_value (Optional): The categorical score values (list of strings)
-
-        Returns (POST):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": null,
-                "dataset_id": null
-            }
-
-        Returns (GET):
-            {
-                "count": 2,
-                "next": null,
-                "previous": null,
-                "results": [
-                    {
-                        "id": "eval_result_unique_id_1",
-                        "created_at": "2024-01-15T10:30:00Z",
-                        "type": "llm",
-                        "environment": "test",
-                        "numerical_value": 4.5,
-                        "string_value": "Good quality",
-                        "boolean_value": true,
-                        "categorical_value": ["excellent"],
-                        "is_passed": false,
-                        "cost": 0.0,
-                        "evaluator_id": null,
-                        "evaluator_slug": "custom_evaluator",
-                        "log_id": "log_unique_id",
-                        "dataset_id": null
-                    }
-                ]
-            }
+        Create a score for a specific log/span. The backend keeps one score per `(log, evaluator, scorer)` and updates the existing score if the same combination is submitted again.
 
         Parameters
         ----------
         log_id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
+            Log/span unique ID to manage scores for.
 
         evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
         evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
 
-        public_log_score_create_request_log_id : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
 
         prompt_id : typing.Optional[str]
 
@@ -1601,34 +1487,58 @@ class AsyncScoresClient:
 
         dataset_id : typing.Optional[str]
 
-        status : typing.Optional[StatusC33Enum]
+        automation_id : typing.Optional[str]
 
-        error_message : typing.Optional[str]
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicLogScoreCreate
-
+        CreateSpanScoreResponse
+            Updated existing score for this log/evaluator/scorer.
 
         Examples
         --------
         import asyncio
+        import datetime
 
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
             await client.scores.create_span_score(
                 log_id="log_id",
-                organization=1,
+                evaluator_slug="response_quality",
+                timestamp=datetime.datetime.fromisoformat(
+                    "2026-04-10 12:00:00+00:00",
+                ),
+                numerical_value=4.5,
             )
 
 
@@ -1636,95 +1546,46 @@ class AsyncScoresClient:
         """
         _response = await self._raw_client.create_span_score(
             log_id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            type=type,
+            evaluator_id=evaluator_id,
+            evaluator_slug=evaluator_slug,
+            timestamp=timestamp,
             environment=environment,
+            prompt_id=prompt_id,
+            prompt_version_number=prompt_version_number,
+            dataset_id=dataset_id,
+            automation_id=automation_id,
+            scorer=scorer,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,
             categorical_value=categorical_value,
             json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            public_log_score_create_request_log_id=public_log_score_create_request_log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
+            explanation=explanation,
             request_options=request_options,
         )
         return _response.data
 
     async def retrieve_span_score(
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicLogScoreDetail:
+    ) -> RetrieveSpanScoreResponse:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Retrieve a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
+            Score ID returned as `id` in score responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicLogScoreDetail
-
+        RetrieveSpanScoreResponse
+            Score details.
 
         Examples
         --------
@@ -1733,8 +1594,8 @@ class AsyncScoresClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -1755,116 +1616,45 @@ class AsyncScoresClient:
         log_id: str,
         score_id: str,
         *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
         environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        public_log_score_detail_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicLogScoreDetail:
+    ) -> ReplaceSpanScoreResponse:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Replace a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        updated_by : typing.Optional[int]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
+            Score ID returned as `id` in score responses.
 
         evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
         evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
 
-        scorer : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
 
-        public_log_score_detail_request_log_id : typing.Optional[str]
+        environment : typing.Optional[str]
+            Score environment.
 
         prompt_id : typing.Optional[str]
 
@@ -1872,27 +1662,47 @@ class AsyncScoresClient:
 
         dataset_id : typing.Optional[str]
 
-        status : typing.Optional[StatusC33Enum]
+        automation_id : typing.Optional[str]
 
-        error_message : typing.Optional[str]
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicLogScoreDetail
-
+        ReplaceSpanScoreResponse
+            Updated score.
 
         Examples
         --------
         import asyncio
+        import datetime
 
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -1900,7 +1710,11 @@ class AsyncScoresClient:
             await client.scores.replace_span_score(
                 log_id="log_id",
                 score_id="score_id",
-                organization=1,
+                evaluator_slug="response_quality",
+                timestamp=datetime.datetime.fromisoformat(
+                    "2026-04-10 12:00:00+00:00",
+                ),
+                numerical_value=4.5,
             )
 
 
@@ -1909,27 +1723,21 @@ class AsyncScoresClient:
         _response = await self._raw_client.replace_span_score(
             log_id,
             score_id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            updated_by=updated_by,
-            type=type,
+            evaluator_id=evaluator_id,
+            evaluator_slug=evaluator_slug,
+            timestamp=timestamp,
             environment=environment,
+            prompt_id=prompt_id,
+            prompt_version_number=prompt_version_number,
+            dataset_id=dataset_id,
+            automation_id=automation_id,
+            scorer=scorer,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,
             categorical_value=categorical_value,
             json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            public_log_score_detail_request_log_id=public_log_score_detail_request_log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
+            explanation=explanation,
             request_options=request_options,
         )
         return _response.data
@@ -1938,60 +1746,15 @@ class AsyncScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Delete a score from a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
+            Score ID returned as `id` in score responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2007,8 +1770,8 @@ class AsyncScoresClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -2029,131 +1792,46 @@ class AsyncScoresClient:
         log_id: str,
         score_id: str,
         *,
-        organization: typing.Optional[int] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        patched_public_log_score_update_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicLogScoreUpdate:
+    ) -> UpdateSpanScoreResponse:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Partially update a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
-
-        organization : typing.Optional[int]
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
+            Score ID returned as `id` in score responses.
 
         numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
 
         string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
 
         boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
 
         categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
 
         json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        patched_public_log_score_update_request_log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PublicLogScoreUpdate
-
+        UpdateSpanScoreResponse
+            Updated score.
 
         Examples
         --------
@@ -2162,8 +1840,8 @@ class AsyncScoresClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -2171,6 +1849,8 @@ class AsyncScoresClient:
             await client.scores.update_span_score(
                 log_id="log_id",
                 score_id="score_id",
+                numerical_value=4.8,
+                string_value="Updated assessment",
             )
 
 
@@ -2179,608 +1859,11 @@ class AsyncScoresClient:
         _response = await self._raw_client.update_span_score(
             log_id,
             score_id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            type=type,
-            environment=environment,
             numerical_value=numerical_value,
             string_value=string_value,
             boolean_value=boolean_value,
             categorical_value=categorical_value,
             json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            patched_public_log_score_update_request_log_id=patched_public_log_score_update_request_log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def create_score(
-        self,
-        *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicEvalResultCreate:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        updated_by : typing.Optional[int]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicEvalResultCreate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.scores.create_score(
-                organization=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.create_score(
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            updated_by=updated_by,
-            type=type,
-            environment=environment,
-            numerical_value=numerical_value,
-            string_value=string_value,
-            boolean_value=boolean_value,
-            categorical_value=categorical_value,
-            json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            log_id=log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def retrieve_score(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> PublicEvalResultDetail:
-        """
-        Operates on the Postgres-based EvalResult models for update and detail point retrieval
-        Synced to clickhouse automatically via evaluation.signals
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicEvalResultDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.scores.retrieve_score(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.retrieve_score(id, request_options=request_options)
-        return _response.data
-
-    async def replace_score(
-        self,
-        id: str,
-        *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicEvalResultDetail:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicEvalResultDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.scores.replace_score(
-                id="id",
-                organization=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.replace_score(
-            id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            type=type,
-            environment=environment,
-            numerical_value=numerical_value,
-            string_value=string_value,
-            boolean_value=boolean_value,
-            categorical_value=categorical_value,
-            json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            log_id=log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Operates on the Postgres-based EvalResult models for update and detail point retrieval
-        Synced to clickhouse automatically via evaluation.signals
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.scores.delete_score(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.delete_score(id, request_options=request_options)
-        return _response.data
-
-    async def update_score(
-        self,
-        id: str,
-        *,
-        organization: typing.Optional[int] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicEvalResultUpdate:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : str
-
-        organization : typing.Optional[int]
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicEvalResultUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.scores.update_score(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.update_score(
-            id,
-            organization=organization,
-            unique_organization_id=unique_organization_id,
-            type=type,
-            environment=environment,
-            numerical_value=numerical_value,
-            string_value=string_value,
-            boolean_value=boolean_value,
-            categorical_value=categorical_value,
-            json_value=json_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            evaluator_slug=evaluator_slug,
-            scorer=scorer,
-            log_id=log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
-            status=status,
-            error_message=error_message,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def filter_scores(
-        self,
-        *,
-        id: str,
-        created_at: dt.datetime,
-        type: str,
-        environment: str,
-        numerical_value: float,
-        string_value: str,
-        is_passed: bool,
-        cost: float,
-        evaluator_id: str,
-        log_id: str,
-        prompt_id: str,
-        prompt_version_number: int,
-        dataset_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicChEvalResultList:
-        """
-        Handle POST requests the same as GET for filtering.
-
-        Parameters
-        ----------
-        id : str
-
-        created_at : dt.datetime
-
-        type : str
-
-        environment : str
-
-        numerical_value : float
-
-        string_value : str
-
-        is_passed : bool
-
-        cost : float
-
-        evaluator_id : str
-
-        log_id : str
-
-        prompt_id : str
-
-        prompt_version_number : int
-
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicChEvalResultList
-
-
-        Examples
-        --------
-        import asyncio
-        import datetime
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.scores.filter_scores(
-                id="id",
-                created_at=datetime.datetime.fromisoformat(
-                    "2024-01-15 09:30:00+00:00",
-                ),
-                type="type",
-                environment="environment",
-                numerical_value=1.1,
-                string_value="string_value",
-                is_passed=True,
-                cost=1.1,
-                evaluator_id="evaluator_id",
-                log_id="log_id",
-                prompt_id="prompt_id",
-                prompt_version_number=1,
-                dataset_id="dataset_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.filter_scores(
-            id=id,
-            created_at=created_at,
-            type=type,
-            environment=environment,
-            numerical_value=numerical_value,
-            string_value=string_value,
-            is_passed=is_passed,
-            cost=cost,
-            evaluator_id=evaluator_id,
-            log_id=log_id,
-            prompt_id=prompt_id,
-            prompt_version_number=prompt_version_number,
-            dataset_id=dataset_id,
             request_options=request_options,
         )
         return _response.data

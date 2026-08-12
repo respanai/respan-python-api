@@ -6,49 +6,119 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .patched_prompt_version_update_request_thinking import PatchedPromptVersionUpdateRequestThinking
-    from .patched_prompt_version_update_request_tool_choice import PatchedPromptVersionUpdateRequestToolChoice
-    from .patched_public_prompt_commit_response_request_thinking import PatchedPublicPromptCommitResponseRequestThinking
-    from .patched_public_prompt_commit_response_request_tool_choice import (
-        PatchedPublicPromptCommitResponseRequestToolChoice,
+    from .api_response_format_presets_create_response import ApiResponseFormatPresetsCreateResponse
+    from .api_response_format_presets_list_response import ApiResponseFormatPresetsListResponse
+    from .api_response_format_presets_list_response_results_item import ApiResponseFormatPresetsListResponseResultsItem
+    from .api_response_format_presets_list_response_results_item_created_by import (
+        ApiResponseFormatPresetsListResponseResultsItemCreatedBy,
     )
-    from .patched_public_prompt_deployment_response_request_thinking import (
-        PatchedPublicPromptDeploymentResponseRequestThinking,
+    from .api_response_format_presets_list_response_results_item_created_by_id import (
+        ApiResponseFormatPresetsListResponseResultsItemCreatedById,
     )
-    from .patched_public_prompt_deployment_response_request_tool_choice import (
-        PatchedPublicPromptDeploymentResponseRequestToolChoice,
+    from .api_response_format_presets_partial_update_response import ApiResponseFormatPresetsPartialUpdateResponse
+    from .api_response_format_presets_retrieve_response import ApiResponseFormatPresetsRetrieveResponse
+    from .api_response_format_presets_retrieve_response_created_by import (
+        ApiResponseFormatPresetsRetrieveResponseCreatedBy,
     )
-    from .prompt_version_detail_request_thinking import PromptVersionDetailRequestThinking
-    from .prompt_version_detail_request_tool_choice import PromptVersionDetailRequestToolChoice
-    from .prompt_version_update_request_thinking import PromptVersionUpdateRequestThinking
-    from .prompt_version_update_request_tool_choice import PromptVersionUpdateRequestToolChoice
-    from .prompts_jwt_json_schema_generation_create_request_format import (
-        PromptsJwtJsonSchemaGenerationCreateRequestFormat,
+    from .api_response_format_presets_retrieve_response_created_by_id import (
+        ApiResponseFormatPresetsRetrieveResponseCreatedById,
     )
-    from .prompts_jwt_prompt_commit_generation_create_request_format import (
-        PromptsJwtPromptCommitGenerationCreateRequestFormat,
-    )
-    from .prompts_jwt_prompt_generation_create_request_format import PromptsJwtPromptGenerationCreateRequestFormat
-    from .prompts_jwt_prompt_optimization_create_request_format import PromptsJwtPromptOptimizationCreateRequestFormat
-    from .prompts_jwt_prompt_summary_generation_create_request_format import (
-        PromptsJwtPromptSummaryGenerationCreateRequestFormat,
-    )
+    from .commit_prompt_version_response import CommitPromptVersionResponse
+    from .commit_prompt_version_response_edited_by import CommitPromptVersionResponseEditedBy
+    from .create_prompt_response import CreatePromptResponse
+    from .create_prompt_response_current_version import CreatePromptResponseCurrentVersion
+    from .create_prompt_response_live_version import CreatePromptResponseLiveVersion
+    from .create_prompt_response_tags_item import CreatePromptResponseTagsItem
+    from .create_prompt_version_request_messages_item import CreatePromptVersionRequestMessagesItem
+    from .create_prompt_version_request_messages_item_content import CreatePromptVersionRequestMessagesItemContent
+    from .create_prompt_version_request_tool_choice import CreatePromptVersionRequestToolChoice
+    from .create_prompt_version_response import CreatePromptVersionResponse
+    from .create_prompt_version_response_edited_by import CreatePromptVersionResponseEditedBy
+    from .create_prompt_version_response_tool_choice import CreatePromptVersionResponseToolChoice
+    from .deploy_prompt_version_response import DeployPromptVersionResponse
+    from .deploy_prompt_version_response_edited_by import DeployPromptVersionResponseEditedBy
+    from .get_prompts_summary_with_filters_request_filters import GetPromptsSummaryWithFiltersRequestFilters
+    from .get_prompts_summary_with_filters_response import GetPromptsSummaryWithFiltersResponse
+    from .list_prompt_versions_response import ListPromptVersionsResponse
+    from .list_prompt_versions_response_results_item import ListPromptVersionsResponseResultsItem
+    from .list_prompt_versions_response_results_item_edited_by import ListPromptVersionsResponseResultsItemEditedBy
+    from .list_prompt_versions_response_results_item_tool_choice import ListPromptVersionsResponseResultsItemToolChoice
+    from .list_prompts_request_filters import ListPromptsRequestFilters
+    from .list_prompts_request_sort_by import ListPromptsRequestSortBy
+    from .list_prompts_response import ListPromptsResponse
+    from .list_prompts_response_results_item import ListPromptsResponseResultsItem
+    from .list_prompts_response_results_item_current_version import ListPromptsResponseResultsItemCurrentVersion
+    from .list_prompts_response_results_item_live_version import ListPromptsResponseResultsItemLiveVersion
+    from .list_prompts_response_results_item_tags_item import ListPromptsResponseResultsItemTagsItem
+    from .retrieve_prompt_response import RetrievePromptResponse
+    from .retrieve_prompt_response_current_version import RetrievePromptResponseCurrentVersion
+    from .retrieve_prompt_response_live_version import RetrievePromptResponseLiveVersion
+    from .retrieve_prompt_response_tags_item import RetrievePromptResponseTagsItem
+    from .retrieve_prompt_version_response import RetrievePromptVersionResponse
+    from .retrieve_prompt_version_response_edited_by import RetrievePromptVersionResponseEditedBy
+    from .retrieve_prompt_version_response_tool_choice import RetrievePromptVersionResponseToolChoice
+    from .update_prompt_response import UpdatePromptResponse
+    from .update_prompt_version_request_messages_item import UpdatePromptVersionRequestMessagesItem
+    from .update_prompt_version_request_messages_item_content import UpdatePromptVersionRequestMessagesItemContent
+    from .update_prompt_version_request_tool_choice import UpdatePromptVersionRequestToolChoice
+    from .update_prompt_version_response import UpdatePromptVersionResponse
+    from .update_prompt_version_response_edited_by import UpdatePromptVersionResponseEditedBy
+    from .update_prompt_version_response_messages_item import UpdatePromptVersionResponseMessagesItem
+    from .update_prompt_version_response_messages_item_content import UpdatePromptVersionResponseMessagesItemContent
+    from .update_prompt_version_response_tool_choice import UpdatePromptVersionResponseToolChoice
 _dynamic_imports: typing.Dict[str, str] = {
-    "PatchedPromptVersionUpdateRequestThinking": ".patched_prompt_version_update_request_thinking",
-    "PatchedPromptVersionUpdateRequestToolChoice": ".patched_prompt_version_update_request_tool_choice",
-    "PatchedPublicPromptCommitResponseRequestThinking": ".patched_public_prompt_commit_response_request_thinking",
-    "PatchedPublicPromptCommitResponseRequestToolChoice": ".patched_public_prompt_commit_response_request_tool_choice",
-    "PatchedPublicPromptDeploymentResponseRequestThinking": ".patched_public_prompt_deployment_response_request_thinking",
-    "PatchedPublicPromptDeploymentResponseRequestToolChoice": ".patched_public_prompt_deployment_response_request_tool_choice",
-    "PromptVersionDetailRequestThinking": ".prompt_version_detail_request_thinking",
-    "PromptVersionDetailRequestToolChoice": ".prompt_version_detail_request_tool_choice",
-    "PromptVersionUpdateRequestThinking": ".prompt_version_update_request_thinking",
-    "PromptVersionUpdateRequestToolChoice": ".prompt_version_update_request_tool_choice",
-    "PromptsJwtJsonSchemaGenerationCreateRequestFormat": ".prompts_jwt_json_schema_generation_create_request_format",
-    "PromptsJwtPromptCommitGenerationCreateRequestFormat": ".prompts_jwt_prompt_commit_generation_create_request_format",
-    "PromptsJwtPromptGenerationCreateRequestFormat": ".prompts_jwt_prompt_generation_create_request_format",
-    "PromptsJwtPromptOptimizationCreateRequestFormat": ".prompts_jwt_prompt_optimization_create_request_format",
-    "PromptsJwtPromptSummaryGenerationCreateRequestFormat": ".prompts_jwt_prompt_summary_generation_create_request_format",
+    "ApiResponseFormatPresetsCreateResponse": ".api_response_format_presets_create_response",
+    "ApiResponseFormatPresetsListResponse": ".api_response_format_presets_list_response",
+    "ApiResponseFormatPresetsListResponseResultsItem": ".api_response_format_presets_list_response_results_item",
+    "ApiResponseFormatPresetsListResponseResultsItemCreatedBy": ".api_response_format_presets_list_response_results_item_created_by",
+    "ApiResponseFormatPresetsListResponseResultsItemCreatedById": ".api_response_format_presets_list_response_results_item_created_by_id",
+    "ApiResponseFormatPresetsPartialUpdateResponse": ".api_response_format_presets_partial_update_response",
+    "ApiResponseFormatPresetsRetrieveResponse": ".api_response_format_presets_retrieve_response",
+    "ApiResponseFormatPresetsRetrieveResponseCreatedBy": ".api_response_format_presets_retrieve_response_created_by",
+    "ApiResponseFormatPresetsRetrieveResponseCreatedById": ".api_response_format_presets_retrieve_response_created_by_id",
+    "CommitPromptVersionResponse": ".commit_prompt_version_response",
+    "CommitPromptVersionResponseEditedBy": ".commit_prompt_version_response_edited_by",
+    "CreatePromptResponse": ".create_prompt_response",
+    "CreatePromptResponseCurrentVersion": ".create_prompt_response_current_version",
+    "CreatePromptResponseLiveVersion": ".create_prompt_response_live_version",
+    "CreatePromptResponseTagsItem": ".create_prompt_response_tags_item",
+    "CreatePromptVersionRequestMessagesItem": ".create_prompt_version_request_messages_item",
+    "CreatePromptVersionRequestMessagesItemContent": ".create_prompt_version_request_messages_item_content",
+    "CreatePromptVersionRequestToolChoice": ".create_prompt_version_request_tool_choice",
+    "CreatePromptVersionResponse": ".create_prompt_version_response",
+    "CreatePromptVersionResponseEditedBy": ".create_prompt_version_response_edited_by",
+    "CreatePromptVersionResponseToolChoice": ".create_prompt_version_response_tool_choice",
+    "DeployPromptVersionResponse": ".deploy_prompt_version_response",
+    "DeployPromptVersionResponseEditedBy": ".deploy_prompt_version_response_edited_by",
+    "GetPromptsSummaryWithFiltersRequestFilters": ".get_prompts_summary_with_filters_request_filters",
+    "GetPromptsSummaryWithFiltersResponse": ".get_prompts_summary_with_filters_response",
+    "ListPromptVersionsResponse": ".list_prompt_versions_response",
+    "ListPromptVersionsResponseResultsItem": ".list_prompt_versions_response_results_item",
+    "ListPromptVersionsResponseResultsItemEditedBy": ".list_prompt_versions_response_results_item_edited_by",
+    "ListPromptVersionsResponseResultsItemToolChoice": ".list_prompt_versions_response_results_item_tool_choice",
+    "ListPromptsRequestFilters": ".list_prompts_request_filters",
+    "ListPromptsRequestSortBy": ".list_prompts_request_sort_by",
+    "ListPromptsResponse": ".list_prompts_response",
+    "ListPromptsResponseResultsItem": ".list_prompts_response_results_item",
+    "ListPromptsResponseResultsItemCurrentVersion": ".list_prompts_response_results_item_current_version",
+    "ListPromptsResponseResultsItemLiveVersion": ".list_prompts_response_results_item_live_version",
+    "ListPromptsResponseResultsItemTagsItem": ".list_prompts_response_results_item_tags_item",
+    "RetrievePromptResponse": ".retrieve_prompt_response",
+    "RetrievePromptResponseCurrentVersion": ".retrieve_prompt_response_current_version",
+    "RetrievePromptResponseLiveVersion": ".retrieve_prompt_response_live_version",
+    "RetrievePromptResponseTagsItem": ".retrieve_prompt_response_tags_item",
+    "RetrievePromptVersionResponse": ".retrieve_prompt_version_response",
+    "RetrievePromptVersionResponseEditedBy": ".retrieve_prompt_version_response_edited_by",
+    "RetrievePromptVersionResponseToolChoice": ".retrieve_prompt_version_response_tool_choice",
+    "UpdatePromptResponse": ".update_prompt_response",
+    "UpdatePromptVersionRequestMessagesItem": ".update_prompt_version_request_messages_item",
+    "UpdatePromptVersionRequestMessagesItemContent": ".update_prompt_version_request_messages_item_content",
+    "UpdatePromptVersionRequestToolChoice": ".update_prompt_version_request_tool_choice",
+    "UpdatePromptVersionResponse": ".update_prompt_version_response",
+    "UpdatePromptVersionResponseEditedBy": ".update_prompt_version_response_edited_by",
+    "UpdatePromptVersionResponseMessagesItem": ".update_prompt_version_response_messages_item",
+    "UpdatePromptVersionResponseMessagesItemContent": ".update_prompt_version_response_messages_item_content",
+    "UpdatePromptVersionResponseToolChoice": ".update_prompt_version_response_tool_choice",
 }
 
 
@@ -74,19 +144,56 @@ def __dir__():
 
 
 __all__ = [
-    "PatchedPromptVersionUpdateRequestThinking",
-    "PatchedPromptVersionUpdateRequestToolChoice",
-    "PatchedPublicPromptCommitResponseRequestThinking",
-    "PatchedPublicPromptCommitResponseRequestToolChoice",
-    "PatchedPublicPromptDeploymentResponseRequestThinking",
-    "PatchedPublicPromptDeploymentResponseRequestToolChoice",
-    "PromptVersionDetailRequestThinking",
-    "PromptVersionDetailRequestToolChoice",
-    "PromptVersionUpdateRequestThinking",
-    "PromptVersionUpdateRequestToolChoice",
-    "PromptsJwtJsonSchemaGenerationCreateRequestFormat",
-    "PromptsJwtPromptCommitGenerationCreateRequestFormat",
-    "PromptsJwtPromptGenerationCreateRequestFormat",
-    "PromptsJwtPromptOptimizationCreateRequestFormat",
-    "PromptsJwtPromptSummaryGenerationCreateRequestFormat",
+    "ApiResponseFormatPresetsCreateResponse",
+    "ApiResponseFormatPresetsListResponse",
+    "ApiResponseFormatPresetsListResponseResultsItem",
+    "ApiResponseFormatPresetsListResponseResultsItemCreatedBy",
+    "ApiResponseFormatPresetsListResponseResultsItemCreatedById",
+    "ApiResponseFormatPresetsPartialUpdateResponse",
+    "ApiResponseFormatPresetsRetrieveResponse",
+    "ApiResponseFormatPresetsRetrieveResponseCreatedBy",
+    "ApiResponseFormatPresetsRetrieveResponseCreatedById",
+    "CommitPromptVersionResponse",
+    "CommitPromptVersionResponseEditedBy",
+    "CreatePromptResponse",
+    "CreatePromptResponseCurrentVersion",
+    "CreatePromptResponseLiveVersion",
+    "CreatePromptResponseTagsItem",
+    "CreatePromptVersionRequestMessagesItem",
+    "CreatePromptVersionRequestMessagesItemContent",
+    "CreatePromptVersionRequestToolChoice",
+    "CreatePromptVersionResponse",
+    "CreatePromptVersionResponseEditedBy",
+    "CreatePromptVersionResponseToolChoice",
+    "DeployPromptVersionResponse",
+    "DeployPromptVersionResponseEditedBy",
+    "GetPromptsSummaryWithFiltersRequestFilters",
+    "GetPromptsSummaryWithFiltersResponse",
+    "ListPromptVersionsResponse",
+    "ListPromptVersionsResponseResultsItem",
+    "ListPromptVersionsResponseResultsItemEditedBy",
+    "ListPromptVersionsResponseResultsItemToolChoice",
+    "ListPromptsRequestFilters",
+    "ListPromptsRequestSortBy",
+    "ListPromptsResponse",
+    "ListPromptsResponseResultsItem",
+    "ListPromptsResponseResultsItemCurrentVersion",
+    "ListPromptsResponseResultsItemLiveVersion",
+    "ListPromptsResponseResultsItemTagsItem",
+    "RetrievePromptResponse",
+    "RetrievePromptResponseCurrentVersion",
+    "RetrievePromptResponseLiveVersion",
+    "RetrievePromptResponseTagsItem",
+    "RetrievePromptVersionResponse",
+    "RetrievePromptVersionResponseEditedBy",
+    "RetrievePromptVersionResponseToolChoice",
+    "UpdatePromptResponse",
+    "UpdatePromptVersionRequestMessagesItem",
+    "UpdatePromptVersionRequestMessagesItemContent",
+    "UpdatePromptVersionRequestToolChoice",
+    "UpdatePromptVersionResponse",
+    "UpdatePromptVersionResponseEditedBy",
+    "UpdatePromptVersionResponseMessagesItem",
+    "UpdatePromptVersionResponseMessagesItemContent",
+    "UpdatePromptVersionResponseToolChoice",
 ]

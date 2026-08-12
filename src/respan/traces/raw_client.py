@@ -6,11 +6,32 @@ from json.decoder import JSONDecodeError
 
 from ..core.api_error import ApiError
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
+from ..core.datetime_utils import serialize_datetime
 from ..core.http_response import AsyncHttpResponse, HttpResponse
 from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
-from ..types.ch_trace_list import ChTraceList
+from ..core.serialization import convert_and_respect_annotation_metadata
+from ..errors.bad_request_error import BadRequestError
+from ..errors.content_too_large_error import ContentTooLargeError
+from ..errors.forbidden_error import ForbiddenError
+from ..errors.internal_server_error import InternalServerError
+from ..errors.not_found_error import NotFoundError
+from ..errors.too_many_requests_error import TooManyRequestsError
+from ..errors.unauthorized_error import UnauthorizedError
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
+from ..types.bulk_delete_response import BulkDeleteResponse
+from ..types.filters import Filters
+from ..types.trace_bulk_delete_filters import TraceBulkDeleteFilters
+from .types.create_trace_legacy_request import CreateTraceLegacyRequest
+from .types.create_trace_legacy_response import CreateTraceLegacyResponse
+from .types.create_trace_request_resource_spans_item import CreateTraceRequestResourceSpansItem
+from .types.create_trace_response import CreateTraceResponse
+from .types.delete_trace_response import DeleteTraceResponse
+from .types.list_traces_response import ListTracesResponse
+from .types.retrieve_public_trace_response import RetrievePublicTraceResponse
+from .types.retrieve_trace_response import RetrieveTraceResponse
+from .types.share_trace_response import ShareTraceResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -20,302 +41,66 @@ class RawTracesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def retrieve_public_trace(
-        self,
-        unique_organization_id: str,
-        trace_unique_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[None]:
-        """
-        Retrieve a single trace by trace_unique_id.
-
-        Public path (unique_organization_id in kwargs): checks ch_trace_metadata.is_public.
-        Authenticated path: gets org from auth context.
-
-        Parameters
-        ----------
-        unique_organization_id : str
-
-        trace_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/{jsonable_encoder(unique_organization_id)}/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def retrieve_trace(
-        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Retrieve a single trace by trace_unique_id.
-
-        Public path (unique_organization_id in kwargs): checks ch_trace_metadata.is_public.
-        Authenticated path: gets org from auth context.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def delete_trace(
-        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Delete a single trace by trace_unique_id.
-        Deletes from CHLogV3 (raw spans) and CHTraceAggregation.
-        Parses start_time/end_time from query params for CH ORDER BY key efficiency.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def share_trace(
-        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Toggle is_public on a trace via ch_trace_metadata upsert.
-
-        ReplacingMergeTree — INSERT with newer updated_at supersedes old row.
-        PK hit on (org_id, trace_unique_id).
-
-        Parameters
-        ----------
-        trace_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="PATCH",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def bulk_delete_traces(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/traces/bulk/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def list_traces(
         self,
         *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        metadata: typing.Optional[typing.Any] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ChTraceList]:
+    ) -> HttpResponse[ListTracesResponse]:
         """
-        Handle POST requests the same as GET for filtering.
+        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
 
         Parameters
         ----------
-        id : str
+        page : typing.Optional[int]
+            Page number.
 
-        trace_unique_id : str
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
 
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
 
         start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
 
         end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
 
-        duration : typing.Optional[float]
+        environment : typing.Optional[str]
+            Filter by environment.
 
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        metadata : typing.Optional[typing.Any]
-
-        trace_group_identifier : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        model : typing.Optional[str]
+        filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[ChTraceList]
-
+        HttpResponse[ListTracesResponse]
+            Paginated list of traces.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/traces/list/",
             method="POST",
-            json={
-                "id": id,
-                "trace_unique_id": trace_unique_id,
-                "root_span_unique_id": root_span_unique_id,
-                "unique_organization_id": unique_organization_id,
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "environment": environment,
-                "customer_identifier": customer_identifier,
-                "start_time": start_time,
-                "end_time": end_time,
-                "duration": duration,
-                "span_count": span_count,
-                "llm_call_count": llm_call_count,
-                "total_cost": total_cost,
-                "total_prompt_tokens": total_prompt_tokens,
-                "total_completion_tokens": total_completion_tokens,
-                "total_tokens": total_tokens,
-                "error_count": error_count,
-                "name": name,
-                "input": input,
-                "output": output,
-                "storage_object_key": storage_object_key,
-                "organization_name": organization_name,
-                "organization_id": organization_id,
-                "organization_key_id": organization_key_id,
-                "metadata": metadata,
-                "trace_group_identifier": trace_group_identifier,
-                "session_identifier": session_identifier,
-                "model": model,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=Filters, direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -326,69 +111,654 @@ class RawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ChTraceList,
+                    ListTracesResponse,
                     parse_obj_as(
-                        type_=ChTraceList,  # type: ignore
+                        type_=ListTracesResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def create_trace_legacy(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
+    def bulk_delete_traces(
+        self,
+        *,
+        filters: TraceBulkDeleteFilters,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[BulkDeleteResponse]:
         """
-        Process Vercel traces.
+        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
 
         Parameters
         ----------
+        filters : TraceBulkDeleteFilters
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[None]
+        HttpResponse[BulkDeleteResponse]
+            Traces were matched and submitted for asynchronous deletion.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/traces/bulk/",
+            method="POST",
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=TraceBulkDeleteFilters, direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkDeleteResponse,
+                    parse_obj_as(
+                        type_=BulkDeleteResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def retrieve_trace(
+        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[RetrieveTraceResponse]:
+        """
+        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RetrieveTraceResponse]
+            Trace detail with span tree.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveTraceResponse,
+                    parse_obj_as(
+                        type_=RetrieveTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[DeleteTraceResponse]:
+        """
+        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[DeleteTraceResponse]
+            Trace delete issued successfully.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="DELETE",
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    DeleteTraceResponse,
+                    parse_obj_as(
+                        type_=DeleteTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def share_trace(
+        self, trace_unique_id: str, *, is_public: bool, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[ShareTraceResponse]:
+        """
+        Set public-sharing metadata for a trace ID. This operation upserts the sharing record and returns `200` when `is_public` is supplied; it does not first verify that trace spans exist.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        is_public : bool
+            Set `true` to make the trace public, or `false` to revoke public access.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ShareTraceResponse]
+            Trace sharing state updated.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="PATCH",
+            json={
+                "is_public": is_public,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ShareTraceResponse,
+                    parse_obj_as(
+                        type_=ShareTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def retrieve_public_trace(
+        self,
+        unique_organization_id: str,
+        trace_unique_id: str,
+        *,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[RetrievePublicTraceResponse]:
+        """
+        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+
+        Parameters
+        ----------
+        unique_organization_id : str
+            Organization unique ID used in a public trace share link.
+
+        trace_unique_id : str
+            Unique trace identifier.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RetrievePublicTraceResponse]
+            Trace detail with span tree.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/{jsonable_encoder(unique_organization_id)}/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrievePublicTraceResponse,
+                    parse_obj_as(
+                        type_=RetrievePublicTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def create_trace_legacy(
+        self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[CreateTraceLegacyResponse]:
+        """
+        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
+
+        Parameters
+        ----------
+        request : CreateTraceLegacyRequest
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[CreateTraceLegacyResponse]
+            Trace spans processed successfully
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/v1/traces/ingest",
             method="POST",
+            json=convert_and_respect_annotation_metadata(
+                object_=request, annotation=CreateTraceLegacyRequest, direction="write"
+            ),
+            headers={
+                "content-type": "application/json",
+            },
             request_options=request_options,
+            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
+                _data = typing.cast(
+                    CreateTraceLegacyResponse,
+                    parse_obj_as(
+                        type_=CreateTraceLegacyResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def create_trace(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
+    def create_trace(
+        self,
+        *,
+        resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[CreateTraceResponse]:
         """
-        OTel Ingest v2 — passthrough endpoint.
+        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
 
-        Accepts OTLP/HTTP JSON (primary) or protobuf (fallback).
-        Promotes recognized Gen AI semantic conventions to typed columns.
-        Stores ALL remaining attributes in metadata — nothing is dropped.
+        For SDK setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
 
         Parameters
         ----------
+        resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
+            Array of resource spans. Each element represents spans from a single resource (service).
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[None]
+        HttpResponse[CreateTraceResponse]
+            Spans accepted.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/v2/traces",
             method="POST",
+            json={
+                "resourceSpans": convert_and_respect_annotation_metadata(
+                    object_=resource_spans,
+                    annotation=typing.Sequence[CreateTraceRequestResourceSpansItem],
+                    direction="write",
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
             request_options=request_options,
+            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
+                _data = typing.cast(
+                    CreateTraceResponse,
+                    parse_obj_as(
+                        type_=CreateTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -399,304 +769,66 @@ class AsyncRawTracesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def retrieve_public_trace(
-        self,
-        unique_organization_id: str,
-        trace_unique_id: str,
-        *,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[None]:
-        """
-        Retrieve a single trace by trace_unique_id.
-
-        Public path (unique_organization_id in kwargs): checks ch_trace_metadata.is_public.
-        Authenticated path: gets org from auth context.
-
-        Parameters
-        ----------
-        unique_organization_id : str
-
-        trace_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/{jsonable_encoder(unique_organization_id)}/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def retrieve_trace(
-        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Retrieve a single trace by trace_unique_id.
-
-        Public path (unique_organization_id in kwargs): checks ch_trace_metadata.is_public.
-        Authenticated path: gets org from auth context.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def delete_trace(
-        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Delete a single trace by trace_unique_id.
-        Deletes from CHLogV3 (raw spans) and CHTraceAggregation.
-        Parses start_time/end_time from query params for CH ORDER BY key efficiency.
-
-        Parameters
-        ----------
-        trace_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def share_trace(
-        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Toggle is_public on a trace via ch_trace_metadata upsert.
-
-        ReplacingMergeTree — INSERT with newer updated_at supersedes old row.
-        PK hit on (org_id, trace_unique_id).
-
-        Parameters
-        ----------
-        trace_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
-            method="PATCH",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def bulk_delete_traces(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/traces/bulk/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def list_traces(
         self,
         *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        metadata: typing.Optional[typing.Any] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ChTraceList]:
+    ) -> AsyncHttpResponse[ListTracesResponse]:
         """
-        Handle POST requests the same as GET for filtering.
+        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
 
         Parameters
         ----------
-        id : str
+        page : typing.Optional[int]
+            Page number.
 
-        trace_unique_id : str
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
 
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending. Common values include `-timestamp`, `-total_cost`, `-duration`, `-total_tokens`, and `-error_count`.
 
         start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
 
         end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
 
-        duration : typing.Optional[float]
+        environment : typing.Optional[str]
+            Filter by environment.
 
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        metadata : typing.Optional[typing.Any]
-
-        trace_group_identifier : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        model : typing.Optional[str]
+        filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[ChTraceList]
-
+        AsyncHttpResponse[ListTracesResponse]
+            Paginated list of traces.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/traces/list/",
             method="POST",
-            json={
-                "id": id,
-                "trace_unique_id": trace_unique_id,
-                "root_span_unique_id": root_span_unique_id,
-                "unique_organization_id": unique_organization_id,
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "environment": environment,
-                "customer_identifier": customer_identifier,
-                "start_time": start_time,
-                "end_time": end_time,
-                "duration": duration,
-                "span_count": span_count,
-                "llm_call_count": llm_call_count,
-                "total_cost": total_cost,
-                "total_prompt_tokens": total_prompt_tokens,
-                "total_completion_tokens": total_completion_tokens,
-                "total_tokens": total_tokens,
-                "error_count": error_count,
-                "name": name,
-                "input": input,
-                "output": output,
-                "storage_object_key": storage_object_key,
-                "organization_name": organization_name,
-                "organization_id": organization_id,
-                "organization_key_id": organization_key_id,
-                "metadata": metadata,
-                "trace_group_identifier": trace_group_identifier,
-                "session_identifier": session_identifier,
-                "model": model,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=Filters, direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -707,71 +839,654 @@ class AsyncRawTracesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ChTraceList,
+                    ListTracesResponse,
                     parse_obj_as(
-                        type_=ChTraceList,  # type: ignore
+                        type_=ListTracesResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def bulk_delete_traces(
+        self,
+        *,
+        filters: TraceBulkDeleteFilters,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[BulkDeleteResponse]:
+        """
+        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
+
+        Parameters
+        ----------
+        filters : TraceBulkDeleteFilters
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        environment : typing.Optional[str]
+            Filter by environment.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[BulkDeleteResponse]
+            Traces were matched and submitted for asynchronous deletion.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/traces/bulk/",
+            method="POST",
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=TraceBulkDeleteFilters, direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkDeleteResponse,
+                    parse_obj_as(
+                        type_=BulkDeleteResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def retrieve_trace(
+        self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[RetrieveTraceResponse]:
+        """
+        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[RetrieveTraceResponse]
+            Trace detail with span tree.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveTraceResponse,
+                    parse_obj_as(
+                        type_=RetrieveTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_trace(
+        self,
+        trace_unique_id: str,
+        *,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[DeleteTraceResponse]:
+        """
+        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601). Defaults to one hour before `end_time` when omitted.
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601). Defaults to now when omitted.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[DeleteTraceResponse]
+            Trace delete issued successfully.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="DELETE",
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    DeleteTraceResponse,
+                    parse_obj_as(
+                        type_=DeleteTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def share_trace(
+        self, trace_unique_id: str, *, is_public: bool, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[ShareTraceResponse]:
+        """
+        Set public-sharing metadata for a trace ID. This operation upserts the sharing record and returns `200` when `is_public` is supplied; it does not first verify that trace spans exist.
+
+        Parameters
+        ----------
+        trace_unique_id : str
+            Unique trace identifier.
+
+        is_public : bool
+            Set `true` to make the trace public, or `false` to revoke public access.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ShareTraceResponse]
+            Trace sharing state updated.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="PATCH",
+            json={
+                "is_public": is_public,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ShareTraceResponse,
+                    parse_obj_as(
+                        type_=ShareTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def retrieve_public_trace(
+        self,
+        unique_organization_id: str,
+        trace_unique_id: str,
+        *,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[RetrievePublicTraceResponse]:
+        """
+        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+
+        Parameters
+        ----------
+        unique_organization_id : str
+            Organization unique ID used in a public trace share link.
+
+        trace_unique_id : str
+            Unique trace identifier.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[RetrievePublicTraceResponse]
+            Trace detail with span tree.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/{jsonable_encoder(unique_organization_id)}/traces/{jsonable_encoder(trace_unique_id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrievePublicTraceResponse,
+                    parse_obj_as(
+                        type_=RetrievePublicTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def create_trace_legacy(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
+        self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[CreateTraceLegacyResponse]:
         """
-        Process Vercel traces.
+        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
 
         Parameters
         ----------
+        request : CreateTraceLegacyRequest
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[None]
+        AsyncHttpResponse[CreateTraceLegacyResponse]
+            Trace spans processed successfully
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/v1/traces/ingest",
             method="POST",
+            json=convert_and_respect_annotation_metadata(
+                object_=request, annotation=CreateTraceLegacyRequest, direction="write"
+            ),
+            headers={
+                "content-type": "application/json",
+            },
             request_options=request_options,
+            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
+                _data = typing.cast(
+                    CreateTraceLegacyResponse,
+                    parse_obj_as(
+                        type_=CreateTraceLegacyResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def create_trace(self, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[None]:
+    async def create_trace(
+        self,
+        *,
+        resource_spans: typing.Sequence[CreateTraceRequestResourceSpansItem],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[CreateTraceResponse]:
         """
-        OTel Ingest v2 — passthrough endpoint.
+        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
 
-        Accepts OTLP/HTTP JSON (primary) or protobuf (fallback).
-        Promotes recognized Gen AI semantic conventions to typed columns.
-        Stores ALL remaining attributes in metadata — nothing is dropped.
+        For SDK setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
 
         Parameters
         ----------
+        resource_spans : typing.Sequence[CreateTraceRequestResourceSpansItem]
+            Array of resource spans. Each element represents spans from a single resource (service).
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[None]
+        AsyncHttpResponse[CreateTraceResponse]
+            Spans accepted.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/v2/traces",
             method="POST",
+            json={
+                "resourceSpans": convert_and_respect_annotation_metadata(
+                    object_=resource_spans,
+                    annotation=typing.Sequence[CreateTraceRequestResourceSpansItem],
+                    direction="write",
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
             request_options=request_options,
+            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
+                _data = typing.cast(
+                    CreateTraceResponse,
+                    parse_obj_as(
+                        type_=CreateTraceResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

@@ -10,16 +10,19 @@ from ..core.http_response import AsyncHttpResponse, HttpResponse
 from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
-from ..types.paginated_public_log_score_list_list import PaginatedPublicLogScoreListList
-from ..types.public_ch_eval_result_list import PublicChEvalResultList
-from ..types.public_eval_result_create import PublicEvalResultCreate
-from ..types.public_eval_result_detail import PublicEvalResultDetail
-from ..types.public_eval_result_update import PublicEvalResultUpdate
-from ..types.public_log_score_create import PublicLogScoreCreate
-from ..types.public_log_score_detail import PublicLogScoreDetail
-from ..types.public_log_score_update import PublicLogScoreUpdate
-from ..types.status_c33enum import StatusC33Enum
-from ..types.type4e2enum import Type4E2Enum
+from ..errors.bad_request_error import BadRequestError
+from ..errors.not_found_error import NotFoundError
+from ..errors.unauthorized_error import UnauthorizedError
+from .types.create_score_response import CreateScoreResponse
+from .types.create_span_score_response import CreateSpanScoreResponse
+from .types.filter_scores_response import FilterScoresResponse
+from .types.list_span_scores_response import ListSpanScoresResponse
+from .types.replace_score_response import ReplaceScoreResponse
+from .types.replace_span_score_response import ReplaceSpanScoreResponse
+from .types.retrieve_score_response import RetrieveScoreResponse
+from .types.retrieve_span_score_response import RetrieveSpanScoreResponse
+from .types.update_score_response import UpdateScoreResponse
+from .types.update_span_score_response import UpdateSpanScoreResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -29,6 +32,611 @@ class RawScoresClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
+    def create_score(
+        self,
+        *,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        log_id: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[CreateScoreResponse]:
+        """
+        Create an evaluation score. Prefer the log-scoped route `POST /api/logs/{log_id}/scores/` when creating a score for a known log.
+
+        Parameters
+        ----------
+        evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
+
+        evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
+
+        log_id : typing.Optional[str]
+            Log/span ID. Required for general score creation when not using the log-scoped route.
+
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
+
+        prompt_id : typing.Optional[str]
+
+        prompt_version_number : typing.Optional[int]
+
+        dataset_id : typing.Optional[str]
+
+        automation_id : typing.Optional[str]
+
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[CreateScoreResponse]
+            Created score.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/scores/",
+            method="POST",
+            json={
+                "evaluator_id": evaluator_id,
+                "evaluator_slug": evaluator_slug,
+                "log_id": log_id,
+                "timestamp": timestamp,
+                "environment": environment,
+                "prompt_id": prompt_id,
+                "prompt_version_number": prompt_version_number,
+                "dataset_id": dataset_id,
+                "automation_id": automation_id,
+                "scorer": scorer,
+                "numerical_value": numerical_value,
+                "string_value": string_value,
+                "boolean_value": boolean_value,
+                "categorical_value": categorical_value,
+                "json_value": json_value,
+                "explanation": explanation,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    CreateScoreResponse,
+                    parse_obj_as(
+                        type_=CreateScoreResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def filter_scores(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[FilterScoresResponse]:
+        """
+        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[FilterScoresResponse]
+            Paginated filtered list of scores.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/scores/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FilterScoresResponse,
+                    parse_obj_as(
+                        type_=FilterScoresResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def retrieve_score(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[RetrieveScoreResponse]:
+        """
+        Retrieve a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RetrieveScoreResponse]
+            Score details.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/scores/{jsonable_encoder(id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveScoreResponse,
+                    parse_obj_as(
+                        type_=RetrieveScoreResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def replace_score(
+        self,
+        id: str,
+        *,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        log_id: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ReplaceScoreResponse]:
+        """
+        Replace a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
+
+        evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
+
+        log_id : typing.Optional[str]
+            Log/span ID. Required for general score creation when not using the log-scoped route.
+
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
+
+        prompt_id : typing.Optional[str]
+
+        prompt_version_number : typing.Optional[int]
+
+        dataset_id : typing.Optional[str]
+
+        automation_id : typing.Optional[str]
+
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ReplaceScoreResponse]
+            Updated score.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/scores/{jsonable_encoder(id)}/",
+            method="PUT",
+            json={
+                "evaluator_id": evaluator_id,
+                "evaluator_slug": evaluator_slug,
+                "log_id": log_id,
+                "timestamp": timestamp,
+                "environment": environment,
+                "prompt_id": prompt_id,
+                "prompt_version_number": prompt_version_number,
+                "dataset_id": dataset_id,
+                "automation_id": automation_id,
+                "scorer": scorer,
+                "numerical_value": numerical_value,
+                "string_value": string_value,
+                "boolean_value": boolean_value,
+                "categorical_value": categorical_value,
+                "json_value": json_value,
+                "explanation": explanation,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceScoreResponse,
+                    parse_obj_as(
+                        type_=ReplaceScoreResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
+        """
+        Delete a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[None]
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/scores/{jsonable_encoder(id)}/",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def update_score(
+        self,
+        id: str,
+        *,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[UpdateScoreResponse]:
+        """
+        Partially update a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[UpdateScoreResponse]
+            Updated score.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/scores/{jsonable_encoder(id)}/",
+            method="PATCH",
+            json={
+                "numerical_value": numerical_value,
+                "string_value": string_value,
+                "boolean_value": boolean_value,
+                "categorical_value": categorical_value,
+                "json_value": json_value,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UpdateScoreResponse,
+                    parse_obj_as(
+                        type_=UpdateScoreResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
     def list_span_scores(
         self,
         log_id: str,
@@ -36,82 +644,28 @@ class RawScoresClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedPublicLogScoreListList]:
+    ) -> HttpResponse[ListSpanScoresResponse]:
         """
-        Create and list scores for a specific log
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/ - List all scores for a log
-            POST /api/logs/{log_id}/scores/ - Create a new score for a log
-
-        Args (POST):
-            - evaluator_id (Optional): The ID of the Keywords AI evaluator to associate with
-            - evaluator_slug (Optional): The slug of a custom evaluator (required if evaluator_id not provided)
-            - numerical_value (Optional): The numerical score value
-            - string_value (Optional): The string score value
-            - boolean_value (Optional): The boolean score value
-            - categorical_value (Optional): The categorical score values (list of strings)
-
-        Returns (POST):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": null,
-                "dataset_id": null
-            }
-
-        Returns (GET):
-            {
-                "count": 2,
-                "next": null,
-                "previous": null,
-                "results": [
-                    {
-                        "id": "eval_result_unique_id_1",
-                        "created_at": "2024-01-15T10:30:00Z",
-                        "type": "llm",
-                        "environment": "test",
-                        "numerical_value": 4.5,
-                        "string_value": "Good quality",
-                        "boolean_value": true,
-                        "categorical_value": ["excellent"],
-                        "is_passed": false,
-                        "cost": 0.0,
-                        "evaluator_id": null,
-                        "evaluator_slug": "custom_evaluator",
-                        "log_id": "log_unique_id",
-                        "dataset_id": null
-                    }
-                ]
-            }
+        List all scores for a specific log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         page : typing.Optional[int]
-            A page number within the paginated result set.
+            Page number.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+            Number of results to return per page. Maximum 100.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PaginatedPublicLogScoreListList]
-
+        HttpResponse[ListSpanScoresResponse]
+            Paginated list of scores for this log/span.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/",
@@ -125,13 +679,35 @@ class RawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedPublicLogScoreListList,
+                    ListSpanScoresResponse,
                     parse_obj_as(
-                        type_=PaginatedPublicLogScoreListList,  # type: ignore
+                        type_=ListSpanScoresResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -141,116 +717,42 @@ class RawScoresClient:
         self,
         log_id: str,
         *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
         environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        public_log_score_create_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicLogScoreCreate]:
+    ) -> HttpResponse[CreateSpanScoreResponse]:
         """
-        Create and list scores for a specific log
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/ - List all scores for a log
-            POST /api/logs/{log_id}/scores/ - Create a new score for a log
-
-        Args (POST):
-            - evaluator_id (Optional): The ID of the Keywords AI evaluator to associate with
-            - evaluator_slug (Optional): The slug of a custom evaluator (required if evaluator_id not provided)
-            - numerical_value (Optional): The numerical score value
-            - string_value (Optional): The string score value
-            - boolean_value (Optional): The boolean score value
-            - categorical_value (Optional): The categorical score values (list of strings)
-
-        Returns (POST):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": null,
-                "dataset_id": null
-            }
-
-        Returns (GET):
-            {
-                "count": 2,
-                "next": null,
-                "previous": null,
-                "results": [
-                    {
-                        "id": "eval_result_unique_id_1",
-                        "created_at": "2024-01-15T10:30:00Z",
-                        "type": "llm",
-                        "environment": "test",
-                        "numerical_value": 4.5,
-                        "string_value": "Good quality",
-                        "boolean_value": true,
-                        "categorical_value": ["excellent"],
-                        "is_passed": false,
-                        "cost": 0.0,
-                        "evaluator_id": null,
-                        "evaluator_slug": "custom_evaluator",
-                        "log_id": "log_unique_id",
-                        "dataset_id": null
-                    }
-                ]
-            }
+        Create a score for a specific log/span. The backend keeps one score per `(log, evaluator, scorer)` and updates the existing score if the same combination is submitted again.
 
         Parameters
         ----------
         log_id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
+            Log/span unique ID to manage scores for.
 
         evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
         evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
 
-        public_log_score_create_request_log_id : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
 
         prompt_id : typing.Optional[str]
 
@@ -258,41 +760,56 @@ class RawScoresClient:
 
         dataset_id : typing.Optional[str]
 
-        status : typing.Optional[StatusC33Enum]
+        automation_id : typing.Optional[str]
 
-        error_message : typing.Optional[str]
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicLogScoreCreate]
-
+        HttpResponse[CreateSpanScoreResponse]
+            Updated existing score for this log/evaluator/scorer.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/",
             method="POST",
             json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "type": type,
+                "evaluator_id": evaluator_id,
+                "evaluator_slug": evaluator_slug,
+                "timestamp": timestamp,
                 "environment": environment,
+                "prompt_id": prompt_id,
+                "prompt_version_number": prompt_version_number,
+                "dataset_id": dataset_id,
+                "automation_id": automation_id,
+                "scorer": scorer,
                 "numerical_value": numerical_value,
                 "string_value": string_value,
                 "boolean_value": boolean_value,
                 "categorical_value": categorical_value,
                 "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "log_id": public_log_score_create_request_log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
+                "explanation": explanation,
             },
             headers={
                 "content-type": "application/json",
@@ -303,13 +820,46 @@ class RawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicLogScoreCreate,
+                    CreateSpanScoreResponse,
                     parse_obj_as(
-                        type_=PublicLogScoreCreate,  # type: ignore
+                        type_=CreateSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -317,70 +867,25 @@ class RawScoresClient:
 
     def retrieve_span_score(
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[PublicLogScoreDetail]:
+    ) -> HttpResponse[RetrieveSpanScoreResponse]:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Retrieve a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
+            Score ID returned as `id` in score responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicLogScoreDetail]
-
+        HttpResponse[RetrieveSpanScoreResponse]
+            Score details.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/{jsonable_encoder(score_id)}/",
@@ -390,13 +895,35 @@ class RawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicLogScoreDetail,
+                    RetrieveSpanScoreResponse,
                     parse_obj_as(
-                        type_=PublicLogScoreDetail,  # type: ignore
+                        type_=RetrieveSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -407,116 +934,45 @@ class RawScoresClient:
         log_id: str,
         score_id: str,
         *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
         environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        public_log_score_detail_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicLogScoreDetail]:
+    ) -> HttpResponse[ReplaceSpanScoreResponse]:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Replace a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        updated_by : typing.Optional[int]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
+            Score ID returned as `id` in score responses.
 
         evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
         evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
 
-        scorer : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
 
-        public_log_score_detail_request_log_id : typing.Optional[str]
+        environment : typing.Optional[str]
+            Score environment.
 
         prompt_id : typing.Optional[str]
 
@@ -524,43 +980,56 @@ class RawScoresClient:
 
         dataset_id : typing.Optional[str]
 
-        status : typing.Optional[StatusC33Enum]
+        automation_id : typing.Optional[str]
 
-        error_message : typing.Optional[str]
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicLogScoreDetail]
-
+        HttpResponse[ReplaceSpanScoreResponse]
+            Updated score.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/{jsonable_encoder(score_id)}/",
             method="PUT",
             json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "updated_by": updated_by,
-                "type": type,
+                "evaluator_id": evaluator_id,
+                "evaluator_slug": evaluator_slug,
+                "timestamp": timestamp,
                 "environment": environment,
+                "prompt_id": prompt_id,
+                "prompt_version_number": prompt_version_number,
+                "dataset_id": dataset_id,
+                "automation_id": automation_id,
+                "scorer": scorer,
                 "numerical_value": numerical_value,
                 "string_value": string_value,
                 "boolean_value": boolean_value,
                 "categorical_value": categorical_value,
                 "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": public_log_score_detail_request_log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
+                "explanation": explanation,
             },
             headers={
                 "content-type": "application/json",
@@ -571,13 +1040,46 @@ class RawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicLogScoreDetail,
+                    ReplaceSpanScoreResponse,
                     parse_obj_as(
-                        type_=PublicLogScoreDetail,  # type: ignore
+                        type_=ReplaceSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -587,60 +1089,15 @@ class RawScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Delete a score from a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
+            Score ID returned as `id` in score responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -657,6 +1114,28 @@ class RawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -667,156 +1146,56 @@ class RawScoresClient:
         log_id: str,
         score_id: str,
         *,
-        organization: typing.Optional[int] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        patched_public_log_score_update_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicLogScoreUpdate]:
+    ) -> HttpResponse[UpdateSpanScoreResponse]:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Partially update a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
-
-        organization : typing.Optional[int]
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
+            Score ID returned as `id` in score responses.
 
         numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
 
         string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
 
         boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
 
         categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
 
         json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        patched_public_log_score_update_request_log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicLogScoreUpdate]
-
+        HttpResponse[UpdateSpanScoreResponse]
+            Updated score.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/{jsonable_encoder(score_id)}/",
             method="PATCH",
             json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "type": type,
-                "environment": environment,
                 "numerical_value": numerical_value,
                 "string_value": string_value,
                 "boolean_value": boolean_value,
                 "categorical_value": categorical_value,
                 "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": patched_public_log_score_update_request_log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
             },
             headers={
                 "content-type": "application/json",
@@ -827,568 +1206,46 @@ class RawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicLogScoreUpdate,
+                    UpdateSpanScoreResponse,
                     parse_obj_as(
-                        type_=PublicLogScoreUpdate,  # type: ignore
+                        type_=UpdateSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def create_score(
-        self,
-        *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicEvalResultCreate]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        updated_by : typing.Optional[int]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicEvalResultCreate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/scores/",
-            method="POST",
-            json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "updated_by": updated_by,
-                "type": type,
-                "environment": environment,
-                "numerical_value": numerical_value,
-                "string_value": string_value,
-                "boolean_value": boolean_value,
-                "categorical_value": categorical_value,
-                "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicEvalResultCreate,
-                    parse_obj_as(
-                        type_=PublicEvalResultCreate,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def retrieve_score(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[PublicEvalResultDetail]:
-        """
-        Operates on the Postgres-based EvalResult models for update and detail point retrieval
-        Synced to clickhouse automatically via evaluation.signals
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicEvalResultDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/scores/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicEvalResultDetail,
-                    parse_obj_as(
-                        type_=PublicEvalResultDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def replace_score(
-        self,
-        id: str,
-        *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicEvalResultDetail]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicEvalResultDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/scores/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "type": type,
-                "environment": environment,
-                "numerical_value": numerical_value,
-                "string_value": string_value,
-                "boolean_value": boolean_value,
-                "categorical_value": categorical_value,
-                "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicEvalResultDetail,
-                    parse_obj_as(
-                        type_=PublicEvalResultDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
-        """
-        Operates on the Postgres-based EvalResult models for update and detail point retrieval
-        Synced to clickhouse automatically via evaluation.signals
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/scores/{jsonable_encoder(id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def update_score(
-        self,
-        id: str,
-        *,
-        organization: typing.Optional[int] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicEvalResultUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : str
-
-        organization : typing.Optional[int]
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicEvalResultUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/scores/{jsonable_encoder(id)}/",
-            method="PATCH",
-            json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "type": type,
-                "environment": environment,
-                "numerical_value": numerical_value,
-                "string_value": string_value,
-                "boolean_value": boolean_value,
-                "categorical_value": categorical_value,
-                "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicEvalResultUpdate,
-                    parse_obj_as(
-                        type_=PublicEvalResultUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def filter_scores(
-        self,
-        *,
-        id: str,
-        created_at: dt.datetime,
-        type: str,
-        environment: str,
-        numerical_value: float,
-        string_value: str,
-        is_passed: bool,
-        cost: float,
-        evaluator_id: str,
-        log_id: str,
-        prompt_id: str,
-        prompt_version_number: int,
-        dataset_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicChEvalResultList]:
-        """
-        Handle POST requests the same as GET for filtering.
-
-        Parameters
-        ----------
-        id : str
-
-        created_at : dt.datetime
-
-        type : str
-
-        environment : str
-
-        numerical_value : float
-
-        string_value : str
-
-        is_passed : bool
-
-        cost : float
-
-        evaluator_id : str
-
-        log_id : str
-
-        prompt_id : str
-
-        prompt_version_number : int
-
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicChEvalResultList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/scores/list/",
-            method="POST",
-            json={
-                "id": id,
-                "created_at": created_at,
-                "type": type,
-                "environment": environment,
-                "numerical_value": numerical_value,
-                "string_value": string_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "log_id": log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicChEvalResultList,
-                    parse_obj_as(
-                        type_=PublicChEvalResultList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1399,6 +1256,613 @@ class AsyncRawScoresClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
+    async def create_score(
+        self,
+        *,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        log_id: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[CreateScoreResponse]:
+        """
+        Create an evaluation score. Prefer the log-scoped route `POST /api/logs/{log_id}/scores/` when creating a score for a known log.
+
+        Parameters
+        ----------
+        evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
+
+        evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
+
+        log_id : typing.Optional[str]
+            Log/span ID. Required for general score creation when not using the log-scoped route.
+
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
+
+        prompt_id : typing.Optional[str]
+
+        prompt_version_number : typing.Optional[int]
+
+        dataset_id : typing.Optional[str]
+
+        automation_id : typing.Optional[str]
+
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[CreateScoreResponse]
+            Created score.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/scores/",
+            method="POST",
+            json={
+                "evaluator_id": evaluator_id,
+                "evaluator_slug": evaluator_slug,
+                "log_id": log_id,
+                "timestamp": timestamp,
+                "environment": environment,
+                "prompt_id": prompt_id,
+                "prompt_version_number": prompt_version_number,
+                "dataset_id": dataset_id,
+                "automation_id": automation_id,
+                "scorer": scorer,
+                "numerical_value": numerical_value,
+                "string_value": string_value,
+                "boolean_value": boolean_value,
+                "categorical_value": categorical_value,
+                "json_value": json_value,
+                "explanation": explanation,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    CreateScoreResponse,
+                    parse_obj_as(
+                        type_=CreateScoreResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def filter_scores(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[FilterScoresResponse]:
+        """
+        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[FilterScoresResponse]
+            Paginated filtered list of scores.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/scores/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FilterScoresResponse,
+                    parse_obj_as(
+                        type_=FilterScoresResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def retrieve_score(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[RetrieveScoreResponse]:
+        """
+        Retrieve a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[RetrieveScoreResponse]
+            Score details.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/scores/{jsonable_encoder(id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveScoreResponse,
+                    parse_obj_as(
+                        type_=RetrieveScoreResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def replace_score(
+        self,
+        id: str,
+        *,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        log_id: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ReplaceScoreResponse]:
+        """
+        Replace a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
+
+        evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
+
+        log_id : typing.Optional[str]
+            Log/span ID. Required for general score creation when not using the log-scoped route.
+
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
+
+        prompt_id : typing.Optional[str]
+
+        prompt_version_number : typing.Optional[int]
+
+        dataset_id : typing.Optional[str]
+
+        automation_id : typing.Optional[str]
+
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ReplaceScoreResponse]
+            Updated score.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/scores/{jsonable_encoder(id)}/",
+            method="PUT",
+            json={
+                "evaluator_id": evaluator_id,
+                "evaluator_slug": evaluator_slug,
+                "log_id": log_id,
+                "timestamp": timestamp,
+                "environment": environment,
+                "prompt_id": prompt_id,
+                "prompt_version_number": prompt_version_number,
+                "dataset_id": dataset_id,
+                "automation_id": automation_id,
+                "scorer": scorer,
+                "numerical_value": numerical_value,
+                "string_value": string_value,
+                "boolean_value": boolean_value,
+                "categorical_value": categorical_value,
+                "json_value": json_value,
+                "explanation": explanation,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceScoreResponse,
+                    parse_obj_as(
+                        type_=ReplaceScoreResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_score(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
+        """
+        Delete a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[None]
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/scores/{jsonable_encoder(id)}/",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def update_score(
+        self,
+        id: str,
+        *,
+        numerical_value: typing.Optional[float] = OMIT,
+        string_value: typing.Optional[str] = OMIT,
+        boolean_value: typing.Optional[bool] = OMIT,
+        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
+        json_value: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[UpdateScoreResponse]:
+        """
+        Partially update a score by score ID.
+
+        Parameters
+        ----------
+        id : str
+            Score ID returned as `id` in score responses.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[UpdateScoreResponse]
+            Updated score.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/scores/{jsonable_encoder(id)}/",
+            method="PATCH",
+            json={
+                "numerical_value": numerical_value,
+                "string_value": string_value,
+                "boolean_value": boolean_value,
+                "categorical_value": categorical_value,
+                "json_value": json_value,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UpdateScoreResponse,
+                    parse_obj_as(
+                        type_=UpdateScoreResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
     async def list_span_scores(
         self,
         log_id: str,
@@ -1406,82 +1870,28 @@ class AsyncRawScoresClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedPublicLogScoreListList]:
+    ) -> AsyncHttpResponse[ListSpanScoresResponse]:
         """
-        Create and list scores for a specific log
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/ - List all scores for a log
-            POST /api/logs/{log_id}/scores/ - Create a new score for a log
-
-        Args (POST):
-            - evaluator_id (Optional): The ID of the Keywords AI evaluator to associate with
-            - evaluator_slug (Optional): The slug of a custom evaluator (required if evaluator_id not provided)
-            - numerical_value (Optional): The numerical score value
-            - string_value (Optional): The string score value
-            - boolean_value (Optional): The boolean score value
-            - categorical_value (Optional): The categorical score values (list of strings)
-
-        Returns (POST):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": null,
-                "dataset_id": null
-            }
-
-        Returns (GET):
-            {
-                "count": 2,
-                "next": null,
-                "previous": null,
-                "results": [
-                    {
-                        "id": "eval_result_unique_id_1",
-                        "created_at": "2024-01-15T10:30:00Z",
-                        "type": "llm",
-                        "environment": "test",
-                        "numerical_value": 4.5,
-                        "string_value": "Good quality",
-                        "boolean_value": true,
-                        "categorical_value": ["excellent"],
-                        "is_passed": false,
-                        "cost": 0.0,
-                        "evaluator_id": null,
-                        "evaluator_slug": "custom_evaluator",
-                        "log_id": "log_unique_id",
-                        "dataset_id": null
-                    }
-                ]
-            }
+        List all scores for a specific log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         page : typing.Optional[int]
-            A page number within the paginated result set.
+            Page number.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+            Number of results to return per page. Maximum 100.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PaginatedPublicLogScoreListList]
-
+        AsyncHttpResponse[ListSpanScoresResponse]
+            Paginated list of scores for this log/span.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/",
@@ -1495,13 +1905,35 @@ class AsyncRawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedPublicLogScoreListList,
+                    ListSpanScoresResponse,
                     parse_obj_as(
-                        type_=PaginatedPublicLogScoreListList,  # type: ignore
+                        type_=ListSpanScoresResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1511,116 +1943,42 @@ class AsyncRawScoresClient:
         self,
         log_id: str,
         *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
         environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        public_log_score_create_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicLogScoreCreate]:
+    ) -> AsyncHttpResponse[CreateSpanScoreResponse]:
         """
-        Create and list scores for a specific log
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/ - List all scores for a log
-            POST /api/logs/{log_id}/scores/ - Create a new score for a log
-
-        Args (POST):
-            - evaluator_id (Optional): The ID of the Keywords AI evaluator to associate with
-            - evaluator_slug (Optional): The slug of a custom evaluator (required if evaluator_id not provided)
-            - numerical_value (Optional): The numerical score value
-            - string_value (Optional): The string score value
-            - boolean_value (Optional): The boolean score value
-            - categorical_value (Optional): The categorical score values (list of strings)
-
-        Returns (POST):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": null,
-                "dataset_id": null
-            }
-
-        Returns (GET):
-            {
-                "count": 2,
-                "next": null,
-                "previous": null,
-                "results": [
-                    {
-                        "id": "eval_result_unique_id_1",
-                        "created_at": "2024-01-15T10:30:00Z",
-                        "type": "llm",
-                        "environment": "test",
-                        "numerical_value": 4.5,
-                        "string_value": "Good quality",
-                        "boolean_value": true,
-                        "categorical_value": ["excellent"],
-                        "is_passed": false,
-                        "cost": 0.0,
-                        "evaluator_id": null,
-                        "evaluator_slug": "custom_evaluator",
-                        "log_id": "log_unique_id",
-                        "dataset_id": null
-                    }
-                ]
-            }
+        Create a score for a specific log/span. The backend keeps one score per `(log, evaluator, scorer)` and updates the existing score if the same combination is submitted again.
 
         Parameters
         ----------
         log_id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
+            Log/span unique ID to manage scores for.
 
         evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
         evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
 
-        public_log_score_create_request_log_id : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
+
+        environment : typing.Optional[str]
+            Score environment.
 
         prompt_id : typing.Optional[str]
 
@@ -1628,41 +1986,56 @@ class AsyncRawScoresClient:
 
         dataset_id : typing.Optional[str]
 
-        status : typing.Optional[StatusC33Enum]
+        automation_id : typing.Optional[str]
 
-        error_message : typing.Optional[str]
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicLogScoreCreate]
-
+        AsyncHttpResponse[CreateSpanScoreResponse]
+            Updated existing score for this log/evaluator/scorer.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/",
             method="POST",
             json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "type": type,
+                "evaluator_id": evaluator_id,
+                "evaluator_slug": evaluator_slug,
+                "timestamp": timestamp,
                 "environment": environment,
+                "prompt_id": prompt_id,
+                "prompt_version_number": prompt_version_number,
+                "dataset_id": dataset_id,
+                "automation_id": automation_id,
+                "scorer": scorer,
                 "numerical_value": numerical_value,
                 "string_value": string_value,
                 "boolean_value": boolean_value,
                 "categorical_value": categorical_value,
                 "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "log_id": public_log_score_create_request_log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
+                "explanation": explanation,
             },
             headers={
                 "content-type": "application/json",
@@ -1673,13 +2046,46 @@ class AsyncRawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicLogScoreCreate,
+                    CreateSpanScoreResponse,
                     parse_obj_as(
-                        type_=PublicLogScoreCreate,  # type: ignore
+                        type_=CreateSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1687,70 +2093,25 @@ class AsyncRawScoresClient:
 
     async def retrieve_span_score(
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[PublicLogScoreDetail]:
+    ) -> AsyncHttpResponse[RetrieveSpanScoreResponse]:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Retrieve a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
+            Score ID returned as `id` in score responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicLogScoreDetail]
-
+        AsyncHttpResponse[RetrieveSpanScoreResponse]
+            Score details.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/{jsonable_encoder(score_id)}/",
@@ -1760,13 +2121,35 @@ class AsyncRawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicLogScoreDetail,
+                    RetrieveSpanScoreResponse,
                     parse_obj_as(
-                        type_=PublicLogScoreDetail,  # type: ignore
+                        type_=RetrieveSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1777,116 +2160,45 @@ class AsyncRawScoresClient:
         log_id: str,
         score_id: str,
         *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
+        evaluator_id: typing.Optional[str] = OMIT,
+        evaluator_slug: typing.Optional[str] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
         environment: typing.Optional[str] = OMIT,
+        prompt_id: typing.Optional[str] = OMIT,
+        prompt_version_number: typing.Optional[int] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        automation_id: typing.Optional[str] = OMIT,
+        scorer: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        public_log_score_detail_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
+        explanation: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicLogScoreDetail]:
+    ) -> AsyncHttpResponse[ReplaceSpanScoreResponse]:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Replace a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        updated_by : typing.Optional[int]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
+            Score ID returned as `id` in score responses.
 
         evaluator_id : typing.Optional[str]
+            Evaluator ID. Provide either `evaluator_id` or `evaluator_slug`.
 
         evaluator_slug : typing.Optional[str]
+            Custom evaluator slug. Provide either `evaluator_id` or `evaluator_slug`.
 
-        scorer : typing.Optional[str]
+        timestamp : typing.Optional[dt.datetime]
+            Log timestamp. Supplying it can avoid an additional log lookup.
 
-        public_log_score_detail_request_log_id : typing.Optional[str]
+        environment : typing.Optional[str]
+            Score environment.
 
         prompt_id : typing.Optional[str]
 
@@ -1894,43 +2206,56 @@ class AsyncRawScoresClient:
 
         dataset_id : typing.Optional[str]
 
-        status : typing.Optional[StatusC33Enum]
+        automation_id : typing.Optional[str]
 
-        error_message : typing.Optional[str]
+        scorer : typing.Optional[str]
+            Optional score producer for general score creation. Log-scoped routes derive this from the authenticated user.
+
+        numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
+
+        string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
+
+        boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
+
+        categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
+
+        json_value : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
+
+        explanation : typing.Optional[str]
+            Optional explanation for the score.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicLogScoreDetail]
-
+        AsyncHttpResponse[ReplaceSpanScoreResponse]
+            Updated score.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/{jsonable_encoder(score_id)}/",
             method="PUT",
             json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "updated_by": updated_by,
-                "type": type,
+                "evaluator_id": evaluator_id,
+                "evaluator_slug": evaluator_slug,
+                "timestamp": timestamp,
                 "environment": environment,
+                "prompt_id": prompt_id,
+                "prompt_version_number": prompt_version_number,
+                "dataset_id": dataset_id,
+                "automation_id": automation_id,
+                "scorer": scorer,
                 "numerical_value": numerical_value,
                 "string_value": string_value,
                 "boolean_value": boolean_value,
                 "categorical_value": categorical_value,
                 "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": public_log_score_detail_request_log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
+                "explanation": explanation,
             },
             headers={
                 "content-type": "application/json",
@@ -1941,13 +2266,46 @@ class AsyncRawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicLogScoreDetail,
+                    ReplaceSpanScoreResponse,
                     parse_obj_as(
-                        type_=PublicLogScoreDetail,  # type: ignore
+                        type_=ReplaceSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1957,60 +2315,15 @@ class AsyncRawScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Delete a score from a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
+            Score ID returned as `id` in score responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2027,6 +2340,28 @@ class AsyncRawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2037,156 +2372,56 @@ class AsyncRawScoresClient:
         log_id: str,
         score_id: str,
         *,
-        organization: typing.Optional[int] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
         numerical_value: typing.Optional[float] = OMIT,
         string_value: typing.Optional[str] = OMIT,
         boolean_value: typing.Optional[bool] = OMIT,
         categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
         json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        patched_public_log_score_update_request_log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicLogScoreUpdate]:
+    ) -> AsyncHttpResponse[UpdateSpanScoreResponse]:
         """
-        Retrieve, update, and delete individual log scores
-
-        Endpoints:
-            GET /api/logs/{log_id}/scores/{score_id}/ - Retrieve a specific score
-            PATCH /api/logs/{log_id}/scores/{score_id}/ - Update a specific score
-            DELETE /api/logs/{log_id}/scores/{score_id}/ - Delete a specific score
-
-        Args (PATCH):
-            - numerical_value (Optional): Updated numerical score value
-            - string_value (Optional): Updated string score value
-            - boolean_value (Optional): Updated boolean score value
-            - categorical_value (Optional): Updated categorical score values (list of strings)
-
-        Returns (GET):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.5,
-                "string_value": "Good quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
-
-        Returns (PATCH):
-            {
-                "id": "eval_result_unique_id",
-                "created_at": "2024-01-15T10:30:00Z",
-                "type": "llm",
-                "environment": "test",
-                "numerical_value": 4.8,
-                "string_value": "Excellent quality",
-                "boolean_value": true,
-                "categorical_value": ["excellent"],
-                "is_passed": false,
-                "cost": 0.0,
-                "evaluator_id": null,
-                "evaluator_slug": "custom_evaluator",
-                "log_id": "log_unique_id",
-                "dataset_id": null
-            }
+        Partially update a specific score for a log/span.
 
         Parameters
         ----------
         log_id : str
+            Log/span unique ID to manage scores for.
 
         score_id : str
-
-        organization : typing.Optional[int]
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
+            Score ID returned as `id` in score responses.
 
         numerical_value : typing.Optional[float]
+            Numeric score value. Use for `numerical` and `percentage` evaluators.
 
         string_value : typing.Optional[str]
+            Text score value. Use for `text` and legacy `comment` evaluators.
 
         boolean_value : typing.Optional[bool]
+            Boolean score value. Use for `boolean` evaluators.
 
         categorical_value : typing.Optional[typing.Sequence[str]]
+            Categorical score values. Use for `single_select`, `multi_select`, and legacy `categorical` evaluators.
 
         json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        patched_public_log_score_update_request_log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
+            JSON score value encoded as a string. Use for `json` evaluators.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicLogScoreUpdate]
-
+        AsyncHttpResponse[UpdateSpanScoreResponse]
+            Updated score.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/logs/{jsonable_encoder(log_id)}/scores/{jsonable_encoder(score_id)}/",
             method="PATCH",
             json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "type": type,
-                "environment": environment,
                 "numerical_value": numerical_value,
                 "string_value": string_value,
                 "boolean_value": boolean_value,
                 "categorical_value": categorical_value,
                 "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": patched_public_log_score_update_request_log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
             },
             headers={
                 "content-type": "application/json",
@@ -2197,570 +2432,46 @@ class AsyncRawScoresClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicLogScoreUpdate,
+                    UpdateSpanScoreResponse,
                     parse_obj_as(
-                        type_=PublicLogScoreUpdate,  # type: ignore
+                        type_=UpdateSpanScoreResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def create_score(
-        self,
-        *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicEvalResultCreate]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        updated_by : typing.Optional[int]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicEvalResultCreate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/scores/",
-            method="POST",
-            json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "updated_by": updated_by,
-                "type": type,
-                "environment": environment,
-                "numerical_value": numerical_value,
-                "string_value": string_value,
-                "boolean_value": boolean_value,
-                "categorical_value": categorical_value,
-                "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicEvalResultCreate,
-                    parse_obj_as(
-                        type_=PublicEvalResultCreate,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def retrieve_score(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[PublicEvalResultDetail]:
-        """
-        Operates on the Postgres-based EvalResult models for update and detail point retrieval
-        Synced to clickhouse automatically via evaluation.signals
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicEvalResultDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/scores/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicEvalResultDetail,
-                    parse_obj_as(
-                        type_=PublicEvalResultDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def replace_score(
-        self,
-        id: str,
-        *,
-        organization: int,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicEvalResultDetail]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : str
-
-        organization : int
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicEvalResultDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/scores/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "type": type,
-                "environment": environment,
-                "numerical_value": numerical_value,
-                "string_value": string_value,
-                "boolean_value": boolean_value,
-                "categorical_value": categorical_value,
-                "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicEvalResultDetail,
-                    parse_obj_as(
-                        type_=PublicEvalResultDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def delete_score(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Operates on the Postgres-based EvalResult models for update and detail point retrieval
-        Synced to clickhouse automatically via evaluation.signals
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/scores/{jsonable_encoder(id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def update_score(
-        self,
-        id: str,
-        *,
-        organization: typing.Optional[int] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        type: typing.Optional[Type4E2Enum] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        numerical_value: typing.Optional[float] = OMIT,
-        string_value: typing.Optional[str] = OMIT,
-        boolean_value: typing.Optional[bool] = OMIT,
-        categorical_value: typing.Optional[typing.Sequence[str]] = OMIT,
-        json_value: typing.Optional[str] = OMIT,
-        is_passed: typing.Optional[bool] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        evaluator_id: typing.Optional[str] = OMIT,
-        evaluator_slug: typing.Optional[str] = OMIT,
-        scorer: typing.Optional[str] = OMIT,
-        log_id: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        status: typing.Optional[StatusC33Enum] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicEvalResultUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : str
-
-        organization : typing.Optional[int]
-
-        unique_organization_id : typing.Optional[str]
-
-        type : typing.Optional[Type4E2Enum]
-
-        environment : typing.Optional[str]
-
-        numerical_value : typing.Optional[float]
-
-        string_value : typing.Optional[str]
-
-        boolean_value : typing.Optional[bool]
-
-        categorical_value : typing.Optional[typing.Sequence[str]]
-
-        json_value : typing.Optional[str]
-
-        is_passed : typing.Optional[bool]
-
-        cost : typing.Optional[float]
-
-        evaluator_id : typing.Optional[str]
-
-        evaluator_slug : typing.Optional[str]
-
-        scorer : typing.Optional[str]
-
-        log_id : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        dataset_id : typing.Optional[str]
-
-        status : typing.Optional[StatusC33Enum]
-
-        error_message : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicEvalResultUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/scores/{jsonable_encoder(id)}/",
-            method="PATCH",
-            json={
-                "organization": organization,
-                "unique_organization_id": unique_organization_id,
-                "type": type,
-                "environment": environment,
-                "numerical_value": numerical_value,
-                "string_value": string_value,
-                "boolean_value": boolean_value,
-                "categorical_value": categorical_value,
-                "json_value": json_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "evaluator_slug": evaluator_slug,
-                "scorer": scorer,
-                "log_id": log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-                "status": status,
-                "error_message": error_message,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicEvalResultUpdate,
-                    parse_obj_as(
-                        type_=PublicEvalResultUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def filter_scores(
-        self,
-        *,
-        id: str,
-        created_at: dt.datetime,
-        type: str,
-        environment: str,
-        numerical_value: float,
-        string_value: str,
-        is_passed: bool,
-        cost: float,
-        evaluator_id: str,
-        log_id: str,
-        prompt_id: str,
-        prompt_version_number: int,
-        dataset_id: str,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicChEvalResultList]:
-        """
-        Handle POST requests the same as GET for filtering.
-
-        Parameters
-        ----------
-        id : str
-
-        created_at : dt.datetime
-
-        type : str
-
-        environment : str
-
-        numerical_value : float
-
-        string_value : str
-
-        is_passed : bool
-
-        cost : float
-
-        evaluator_id : str
-
-        log_id : str
-
-        prompt_id : str
-
-        prompt_version_number : int
-
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicChEvalResultList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/scores/list/",
-            method="POST",
-            json={
-                "id": id,
-                "created_at": created_at,
-                "type": type,
-                "environment": environment,
-                "numerical_value": numerical_value,
-                "string_value": string_value,
-                "is_passed": is_passed,
-                "cost": cost,
-                "evaluator_id": evaluator_id,
-                "log_id": log_id,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "dataset_id": dataset_id,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicChEvalResultList,
-                    parse_obj_as(
-                        type_=PublicChEvalResultList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

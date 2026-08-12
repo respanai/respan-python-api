@@ -7,18 +7,36 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
-        CreateChatCompletionRequestFormat,
+        CreateChatCompletionRequestCacheOptions,
+        CreateChatCompletionRequestMessagesItem,
+        CreateChatCompletionRequestMessagesItemContent,
+        CreateChatCompletionRequestMessagesItemRole,
+        CreateChatCompletionResponse,
+        CreateChatCompletionResponseChoicesItem,
+        CreateChatCompletionResponseChoicesItemMessage,
+        CreateChatCompletionResponseUsage,
+        CreateResponseRequestCacheOptions,
         CreateResponseRequestFormat,
         CreateResponseRequestInput,
         CreateResponseRequestRespanParams,
+        CreateResponseRequestRespanParamsCacheOptions,
         CreateResponseRequestRespanParamsCredentialOverrideValue,
         CreateResponseRequestXRespanRouteProvider,
     )
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreateChatCompletionRequestFormat": ".types",
+    "CreateChatCompletionRequestCacheOptions": ".types",
+    "CreateChatCompletionRequestMessagesItem": ".types",
+    "CreateChatCompletionRequestMessagesItemContent": ".types",
+    "CreateChatCompletionRequestMessagesItemRole": ".types",
+    "CreateChatCompletionResponse": ".types",
+    "CreateChatCompletionResponseChoicesItem": ".types",
+    "CreateChatCompletionResponseChoicesItemMessage": ".types",
+    "CreateChatCompletionResponseUsage": ".types",
+    "CreateResponseRequestCacheOptions": ".types",
     "CreateResponseRequestFormat": ".types",
     "CreateResponseRequestInput": ".types",
     "CreateResponseRequestRespanParams": ".types",
+    "CreateResponseRequestRespanParamsCacheOptions": ".types",
     "CreateResponseRequestRespanParamsCredentialOverrideValue": ".types",
     "CreateResponseRequestXRespanRouteProvider": ".types",
 }
@@ -46,10 +64,19 @@ def __dir__():
 
 
 __all__ = [
-    "CreateChatCompletionRequestFormat",
+    "CreateChatCompletionRequestCacheOptions",
+    "CreateChatCompletionRequestMessagesItem",
+    "CreateChatCompletionRequestMessagesItemContent",
+    "CreateChatCompletionRequestMessagesItemRole",
+    "CreateChatCompletionResponse",
+    "CreateChatCompletionResponseChoicesItem",
+    "CreateChatCompletionResponseChoicesItemMessage",
+    "CreateChatCompletionResponseUsage",
+    "CreateResponseRequestCacheOptions",
     "CreateResponseRequestFormat",
     "CreateResponseRequestInput",
     "CreateResponseRequestRespanParams",
+    "CreateResponseRequestRespanParamsCacheOptions",
     "CreateResponseRequestRespanParamsCredentialOverrideValue",
     "CreateResponseRequestXRespanRouteProvider",
 ]

@@ -10,9 +10,13 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
+from ..errors.failed_dependency_error import FailedDependencyError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
-from .types.create_chat_completion_request_format import CreateChatCompletionRequestFormat
+from .types.create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
+from .types.create_chat_completion_request_messages_item import CreateChatCompletionRequestMessagesItem
+from .types.create_chat_completion_response import CreateChatCompletionResponse
+from .types.create_response_request_cache_options import CreateResponseRequestCacheOptions
 from .types.create_response_request_format import CreateResponseRequestFormat
 from .types.create_response_request_input import CreateResponseRequestInput
 from .types.create_response_request_respan_params import CreateResponseRequestRespanParams
@@ -29,66 +33,324 @@ class RawGatewayClient:
     def create_chat_completion(
         self,
         *,
-        format: typing.Optional[CreateChatCompletionRequestFormat] = None,
+        messages: typing.Sequence[CreateChatCompletionRequestMessagesItem],
+        model: str,
+        data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
+        respan_beta: typing.Optional[str] = None,
+        stream: typing.Optional[bool] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_choice: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        frequency_penalty: typing.Optional[float] = OMIT,
+        max_tokens: typing.Optional[float] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        n: typing.Optional[float] = OMIT,
+        logprobs: typing.Optional[bool] = OMIT,
+        echo: typing.Optional[bool] = OMIT,
+        stop: typing.Optional[typing.Sequence[str]] = OMIT,
+        presence_penalty: typing.Optional[float] = OMIT,
+        logit_bias: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        parallel_tool_calls: typing.Optional[bool] = OMIT,
+        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
+        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        cache_enabled: typing.Optional[bool] = OMIT,
+        cache_ttl: typing.Optional[float] = OMIT,
+        cache_options: typing.Optional[CreateChatCompletionRequestCacheOptions] = OMIT,
+        prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        disable_log: typing.Optional[bool] = OMIT,
+        model_name_map: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        models: typing.Optional[typing.Sequence[str]] = OMIT,
+        exclude_providers: typing.Optional[typing.Sequence[str]] = OMIT,
+        exclude_models: typing.Optional[typing.Sequence[str]] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        custom_identifier: typing.Optional[str] = OMIT,
+        customer_identifier: typing.Optional[str] = OMIT,
+        customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_breakdown: typing.Optional[bool] = OMIT,
+        positive_feedback: typing.Optional[bool] = OMIT,
+        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        thread_identifier: typing.Optional[str] = OMIT,
+        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        retries: typing.Optional[int] = OMIT,
+        weight: typing.Optional[float] = OMIT,
+        span_name: typing.Optional[str] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[None]:
+    ) -> HttpResponse[CreateChatCompletionResponse]:
         """
-        Centralized respan_params initialization and backward-compat layer.
+        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
 
-        This mixin is the SINGLE initialization point for ``respan_params``.
-        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
-        that by the time the throttle runs, ``respan_params`` is a fully resolved
-        dict.  Downstream code (throttle, preprocessing, view handler) only
-        **enriches** the existing dict — they never need to create it.
+        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
+        1. **Top-level body fields** - add directly to the request body
+        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
+        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
 
-        Initialization order::
+        Merge order: top-level body fields > `respan_params` > header.
 
-            _initialize_respan_params()   ← legacy rename + header parse + metadata
-                ↓
-            super().initial()             ← throttle ENRICHES the existing dict
-                ↓
-            view handler                  ← billing, security strip, etc.
+        Legacy compatibility:
+        - `keywordsai_params` is still accepted and merged into `respan_params`
+        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
 
-        Responsibilities consolidated here (previously scattered across 4 callsites):
-        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
-        2. Parse X-Data-Respan-Params header  (base64 → dict)
-        3. Legacy body rename  (keywordsai_params → respan_params)
-        4. Form data handling  (JSON string → dict)
-        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
-        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
-        7. Add request_url_path from request.META['PATH_INFO']
-        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
-
-        Safe for protobuf endpoints: body adaptation is skipped when request.data
-        is not a dict; header adaptation always runs.
-
-        Usage::
-
-            class MyChatView(AdaptRespanParamsMixin, APIView):
-                ...
+        When using the OpenAI SDK, pass Respan parameters via `extra_body`.
 
         Parameters
         ----------
-        format : typing.Optional[CreateChatCompletionRequestFormat]
+        messages : typing.Sequence[CreateChatCompletionRequestMessagesItem]
+            Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
+
+        model : str
+            Model to use. See [Models](https://platform.respan.ai/platform/models) for available options.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
+        respan_beta : typing.Optional[str]
+            Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
+
+        stream : typing.Optional[bool]
+            Stream back partial progress token by token as server-sent events.
+
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools the model may call. Currently only functions are supported.
+
+        tool_choice : typing.Optional[typing.Dict[str, typing.Any]]
+            Controls tool selection. `"none"` = no tools, `"auto"` = model decides, or specify a tool object.
+
+        frequency_penalty : typing.Optional[float]
+            Penalizes tokens based on frequency in text so far (-2 to 2).
+
+        max_tokens : typing.Optional[float]
+            Maximum tokens to generate.
+
+        temperature : typing.Optional[float]
+            Sampling temperature (0-2). Higher = more random.
+
+        n : typing.Optional[float]
+            Number of completions to generate. Note: costs multiply with `n`.
+
+        logprobs : typing.Optional[bool]
+            Return log probabilities of output tokens.
+
+        echo : typing.Optional[bool]
+            Echo back the prompt in addition to the completion
+
+        stop : typing.Optional[typing.Sequence[str]]
+            Stop sequences where generation halts.
+
+        presence_penalty : typing.Optional[float]
+            Penalizes tokens already present in text (-2 to 2).
+
+        logit_bias : typing.Optional[typing.Dict[str, typing.Any]]
+            Used to modify the probability of tokens appearing in the response
+
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Output format. Set `{"type": "json_schema", "json_schema": {...}}` for structured output, or `{"type": "json_object"}` for JSON mode.
+
+        parallel_tool_calls : typing.Optional[bool]
+            Enable parallel function calling during tool use.
+
+        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
+            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
+
+        fallback_models : typing.Optional[typing.Sequence[str]]
+            Backup models (ranked by priority) if the primary model fails.
+
+        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
+            Per-customer LLM provider credentials. Keys are provider names, values are API keys.
+
+        credential_override : typing.Optional[typing.Dict[str, typing.Any]]
+            One-off credential overrides per provider. Overrides uploaded provider keys for this request only.
+
+        cache_enabled : typing.Optional[bool]
+            Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
+
+        cache_ttl : typing.Optional[float]
+            Cache time-to-live in seconds. Default: 30 days.
+
+        cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
+            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
+
+        prompt : typing.Optional[typing.Dict[str, typing.Any]]
+            Prompt template config. Properties: `prompt_id` (required), `variables` (template variables), `version` (number, or `"latest"` for draft), `echo` (return rendered prompt), `override` (use override_params), `override_params` (OpenAI params to override), `schema_version` (`1` = legacy, `2` = prompt config wins). See [Prompt management](/docs/documentation/features/prompt-management/advanced).
+
+        retry_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Retry config. Properties: `retry_enabled` (boolean, required), `num_retries` (number), `retry_after` (seconds to wait).
+
+        disable_log : typing.Optional[bool]
+            When `true`, omits input/output from the log. Metrics (tokens, cost, latency) are still recorded.
+
+        model_name_map : typing.Optional[typing.Dict[str, typing.Any]]
+            Azure deployment name mapping. Maps your custom Azure deployment names to standard model names.
+
+        models : typing.Optional[typing.Sequence[str]]
+            Model list for LLM router selection.
+
+        exclude_providers : typing.Optional[typing.Sequence[str]]
+            Providers to exclude from routing. All models under excluded providers are skipped.
+
+        exclude_models : typing.Optional[typing.Sequence[str]]
+            Specific models to exclude from routing.
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Custom key-value metadata attached to the span.
+
+        custom_identifier : typing.Optional[str]
+            Indexed custom tag for fast querying.
+
+        customer_identifier : typing.Optional[str]
+            End user identifier for analytics and budgets.
+
+        customer_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
+
+        request_breakdown : typing.Optional[bool]
+            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
+
+        positive_feedback : typing.Optional[bool]
+            User feedback. `true` = liked, `false` = disliked.
+
+        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Inline load balancing options. Each item can include `model`, `weight`, and optional `credentials`.
+
+        thread_identifier : typing.Optional[str]
+            Conversation thread ID. Spans with the same `thread_identifier` are grouped together.
+
+        properties : typing.Optional[typing.Dict[str, typing.Any]]
+            Typed metadata preserving native types (numbers, booleans, nested objects). Unlike `metadata` which coerces to strings.
+
+        retries : typing.Optional[int]
+            Number of retries on failure.
+
+        weight : typing.Optional[float]
+            Load balancing weight.
+
+        span_name : typing.Optional[str]
+            Custom span name for tracing.
+
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Namespaced container for all Respan parameters. Alternative to passing them at top level.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[None]
+        HttpResponse[CreateChatCompletionResponse]
+            Successful response for Create chat completion
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/chat/completions",
             method="POST",
-            params={
-                "format": format,
+            json={
+                "messages": convert_and_respect_annotation_metadata(
+                    object_=messages,
+                    annotation=typing.Sequence[CreateChatCompletionRequestMessagesItem],
+                    direction="write",
+                ),
+                "model": model,
+                "stream": stream,
+                "tools": tools,
+                "tool_choice": tool_choice,
+                "frequency_penalty": frequency_penalty,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "n": n,
+                "logprobs": logprobs,
+                "echo": echo,
+                "stop": stop,
+                "presence_penalty": presence_penalty,
+                "logit_bias": logit_bias,
+                "response_format": response_format,
+                "parallel_tool_calls": parallel_tool_calls,
+                "load_balance_group": load_balance_group,
+                "fallback_models": fallback_models,
+                "customer_credentials": customer_credentials,
+                "credential_override": credential_override,
+                "cache_enabled": cache_enabled,
+                "cache_ttl": cache_ttl,
+                "cache_options": convert_and_respect_annotation_metadata(
+                    object_=cache_options, annotation=CreateChatCompletionRequestCacheOptions, direction="write"
+                ),
+                "prompt": prompt,
+                "retry_params": retry_params,
+                "disable_log": disable_log,
+                "model_name_map": model_name_map,
+                "models": models,
+                "exclude_providers": exclude_providers,
+                "exclude_models": exclude_models,
+                "metadata": metadata,
+                "custom_identifier": custom_identifier,
+                "customer_identifier": customer_identifier,
+                "customer_params": customer_params,
+                "request_breakdown": request_breakdown,
+                "positive_feedback": positive_feedback,
+                "load_balance_models": load_balance_models,
+                "thread_identifier": thread_identifier,
+                "properties": properties,
+                "retries": retries,
+                "weight": weight,
+                "span_name": span_name,
+                "respan_params": respan_params,
+            },
+            headers={
+                "content-type": "application/json",
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
+                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
+                "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
             },
             request_options=request_options,
+            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
+                _data = typing.cast(
+                    CreateChatCompletionResponse,
+                    parse_obj_as(
+                        type_=CreateChatCompletionResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 424:
+                raise FailedDependencyError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -110,6 +372,10 @@ class RawGatewayClient:
         skills: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
         tools: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
         respan_params: typing.Optional[CreateResponseRequestRespanParams] = OMIT,
+        cache_enabled: typing.Optional[bool] = OMIT,
+        cache_ttl: typing.Optional[float] = OMIT,
+        cache_options: typing.Optional[CreateResponseRequestCacheOptions] = OMIT,
+        customer_identifier: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.Dict[str, typing.Any]]:
         """
@@ -155,6 +421,17 @@ class RawGatewayClient:
         respan_params : typing.Optional[CreateResponseRequestRespanParams]
             Respan metadata, prompt configuration, customer identifiers, provider credentials, and other gateway parameters. route_provider_override here cannot activate the Perplexity route.
 
+        cache_enabled : typing.Optional[bool]
+            Enable response caching for this request.
+
+        cache_ttl : typing.Optional[float]
+            Cache lifetime in seconds.
+
+        cache_options : typing.Optional[CreateResponseRequestCacheOptions]
+
+        customer_identifier : typing.Optional[str]
+            End-customer identifier used for logging and optional cache partitioning.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -185,6 +462,12 @@ class RawGatewayClient:
                 "respan_params": convert_and_respect_annotation_metadata(
                     object_=respan_params, annotation=CreateResponseRequestRespanParams, direction="write"
                 ),
+                "cache_enabled": cache_enabled,
+                "cache_ttl": cache_ttl,
+                "cache_options": convert_and_respect_annotation_metadata(
+                    object_=cache_options, annotation=CreateResponseRequestCacheOptions, direction="write"
+                ),
+                "customer_identifier": customer_identifier,
             },
             headers={
                 "content-type": "application/json",
@@ -249,66 +532,324 @@ class AsyncRawGatewayClient:
     async def create_chat_completion(
         self,
         *,
-        format: typing.Optional[CreateChatCompletionRequestFormat] = None,
+        messages: typing.Sequence[CreateChatCompletionRequestMessagesItem],
+        model: str,
+        data_respan_params: typing.Optional[str] = None,
+        respan_route_provider: typing.Optional[str] = None,
+        respan_beta: typing.Optional[str] = None,
+        stream: typing.Optional[bool] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_choice: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        frequency_penalty: typing.Optional[float] = OMIT,
+        max_tokens: typing.Optional[float] = OMIT,
+        temperature: typing.Optional[float] = OMIT,
+        n: typing.Optional[float] = OMIT,
+        logprobs: typing.Optional[bool] = OMIT,
+        echo: typing.Optional[bool] = OMIT,
+        stop: typing.Optional[typing.Sequence[str]] = OMIT,
+        presence_penalty: typing.Optional[float] = OMIT,
+        logit_bias: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        parallel_tool_calls: typing.Optional[bool] = OMIT,
+        load_balance_group: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        fallback_models: typing.Optional[typing.Sequence[str]] = OMIT,
+        customer_credentials: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        credential_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        cache_enabled: typing.Optional[bool] = OMIT,
+        cache_ttl: typing.Optional[float] = OMIT,
+        cache_options: typing.Optional[CreateChatCompletionRequestCacheOptions] = OMIT,
+        prompt: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        retry_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        disable_log: typing.Optional[bool] = OMIT,
+        model_name_map: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        models: typing.Optional[typing.Sequence[str]] = OMIT,
+        exclude_providers: typing.Optional[typing.Sequence[str]] = OMIT,
+        exclude_models: typing.Optional[typing.Sequence[str]] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        custom_identifier: typing.Optional[str] = OMIT,
+        customer_identifier: typing.Optional[str] = OMIT,
+        customer_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_breakdown: typing.Optional[bool] = OMIT,
+        positive_feedback: typing.Optional[bool] = OMIT,
+        load_balance_models: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        thread_identifier: typing.Optional[str] = OMIT,
+        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        retries: typing.Optional[int] = OMIT,
+        weight: typing.Optional[float] = OMIT,
+        span_name: typing.Optional[str] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[None]:
+    ) -> AsyncHttpResponse[CreateChatCompletionResponse]:
         """
-        Centralized respan_params initialization and backward-compat layer.
+        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
 
-        This mixin is the SINGLE initialization point for ``respan_params``.
-        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
-        that by the time the throttle runs, ``respan_params`` is a fully resolved
-        dict.  Downstream code (throttle, preprocessing, view handler) only
-        **enriches** the existing dict — they never need to create it.
+        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
+        1. **Top-level body fields** - add directly to the request body
+        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
+        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
 
-        Initialization order::
+        Merge order: top-level body fields > `respan_params` > header.
 
-            _initialize_respan_params()   ← legacy rename + header parse + metadata
-                ↓
-            super().initial()             ← throttle ENRICHES the existing dict
-                ↓
-            view handler                  ← billing, security strip, etc.
+        Legacy compatibility:
+        - `keywordsai_params` is still accepted and merged into `respan_params`
+        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
 
-        Responsibilities consolidated here (previously scattered across 4 callsites):
-        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
-        2. Parse X-Data-Respan-Params header  (base64 → dict)
-        3. Legacy body rename  (keywordsai_params → respan_params)
-        4. Form data handling  (JSON string → dict)
-        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
-        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
-        7. Add request_url_path from request.META['PATH_INFO']
-        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
-
-        Safe for protobuf endpoints: body adaptation is skipped when request.data
-        is not a dict; header adaptation always runs.
-
-        Usage::
-
-            class MyChatView(AdaptRespanParamsMixin, APIView):
-                ...
+        When using the OpenAI SDK, pass Respan parameters via `extra_body`.
 
         Parameters
         ----------
-        format : typing.Optional[CreateChatCompletionRequestFormat]
+        messages : typing.Sequence[CreateChatCompletionRequestMessagesItem]
+            Array of messages in the conversation. Each message has `role` (`system`, `user`, `assistant`, `tool`) and `content`.
+
+        model : str
+            Model to use. See [Models](https://platform.respan.ai/platform/models) for available options.
+
+        data_respan_params : typing.Optional[str]
+            Base64-encoded JSON object of Respan parameters. Legacy `X-Data-Keywordsai-Params` is still accepted.
+
+        respan_route_provider : typing.Optional[str]
+            Pin the request to a specific provider without changing the model slug. Example: `vertex_ai` routes a `claude-sonnet-4-5-20250929` request to Vertex AI Claude.
+
+        respan_beta : typing.Optional[str]
+            Comma-separated beta feature flags. Available: token-breakdown-2026-03-26, env-scoped-integrations-2026-03-28
+
+        stream : typing.Optional[bool]
+            Stream back partial progress token by token as server-sent events.
+
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools the model may call. Currently only functions are supported.
+
+        tool_choice : typing.Optional[typing.Dict[str, typing.Any]]
+            Controls tool selection. `"none"` = no tools, `"auto"` = model decides, or specify a tool object.
+
+        frequency_penalty : typing.Optional[float]
+            Penalizes tokens based on frequency in text so far (-2 to 2).
+
+        max_tokens : typing.Optional[float]
+            Maximum tokens to generate.
+
+        temperature : typing.Optional[float]
+            Sampling temperature (0-2). Higher = more random.
+
+        n : typing.Optional[float]
+            Number of completions to generate. Note: costs multiply with `n`.
+
+        logprobs : typing.Optional[bool]
+            Return log probabilities of output tokens.
+
+        echo : typing.Optional[bool]
+            Echo back the prompt in addition to the completion
+
+        stop : typing.Optional[typing.Sequence[str]]
+            Stop sequences where generation halts.
+
+        presence_penalty : typing.Optional[float]
+            Penalizes tokens already present in text (-2 to 2).
+
+        logit_bias : typing.Optional[typing.Dict[str, typing.Any]]
+            Used to modify the probability of tokens appearing in the response
+
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Output format. Set `{"type": "json_schema", "json_schema": {...}}` for structured output, or `{"type": "json_object"}` for JSON mode.
+
+        parallel_tool_calls : typing.Optional[bool]
+            Enable parallel function calling during tool use.
+
+        load_balance_group : typing.Optional[typing.Dict[str, typing.Any]]
+            Load balance group selection. Use `{"group_id": "..."}` to route through a configured group.
+
+        fallback_models : typing.Optional[typing.Sequence[str]]
+            Backup models (ranked by priority) if the primary model fails.
+
+        customer_credentials : typing.Optional[typing.Dict[str, typing.Any]]
+            Per-customer LLM provider credentials. Keys are provider names, values are API keys.
+
+        credential_override : typing.Optional[typing.Dict[str, typing.Any]]
+            One-off credential overrides per provider. Overrides uploaded provider keys for this request only.
+
+        cache_enabled : typing.Optional[bool]
+            Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
+
+        cache_ttl : typing.Optional[float]
+            Cache time-to-live in seconds. Default: 30 days.
+
+        cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
+            Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
+
+        prompt : typing.Optional[typing.Dict[str, typing.Any]]
+            Prompt template config. Properties: `prompt_id` (required), `variables` (template variables), `version` (number, or `"latest"` for draft), `echo` (return rendered prompt), `override` (use override_params), `override_params` (OpenAI params to override), `schema_version` (`1` = legacy, `2` = prompt config wins). See [Prompt management](/docs/documentation/features/prompt-management/advanced).
+
+        retry_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Retry config. Properties: `retry_enabled` (boolean, required), `num_retries` (number), `retry_after` (seconds to wait).
+
+        disable_log : typing.Optional[bool]
+            When `true`, omits input/output from the log. Metrics (tokens, cost, latency) are still recorded.
+
+        model_name_map : typing.Optional[typing.Dict[str, typing.Any]]
+            Azure deployment name mapping. Maps your custom Azure deployment names to standard model names.
+
+        models : typing.Optional[typing.Sequence[str]]
+            Model list for LLM router selection.
+
+        exclude_providers : typing.Optional[typing.Sequence[str]]
+            Providers to exclude from routing. All models under excluded providers are skipped.
+
+        exclude_models : typing.Optional[typing.Sequence[str]]
+            Specific models to exclude from routing.
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Custom key-value metadata attached to the span.
+
+        custom_identifier : typing.Optional[str]
+            Indexed custom tag for fast querying.
+
+        customer_identifier : typing.Optional[str]
+            End user identifier for analytics and budgets.
+
+        customer_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
+
+        request_breakdown : typing.Optional[bool]
+            Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
+
+        positive_feedback : typing.Optional[bool]
+            User feedback. `true` = liked, `false` = disliked.
+
+        load_balance_models : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Inline load balancing options. Each item can include `model`, `weight`, and optional `credentials`.
+
+        thread_identifier : typing.Optional[str]
+            Conversation thread ID. Spans with the same `thread_identifier` are grouped together.
+
+        properties : typing.Optional[typing.Dict[str, typing.Any]]
+            Typed metadata preserving native types (numbers, booleans, nested objects). Unlike `metadata` which coerces to strings.
+
+        retries : typing.Optional[int]
+            Number of retries on failure.
+
+        weight : typing.Optional[float]
+            Load balancing weight.
+
+        span_name : typing.Optional[str]
+            Custom span name for tracing.
+
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Namespaced container for all Respan parameters. Alternative to passing them at top level.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[None]
+        AsyncHttpResponse[CreateChatCompletionResponse]
+            Successful response for Create chat completion
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/chat/completions",
             method="POST",
-            params={
-                "format": format,
+            json={
+                "messages": convert_and_respect_annotation_metadata(
+                    object_=messages,
+                    annotation=typing.Sequence[CreateChatCompletionRequestMessagesItem],
+                    direction="write",
+                ),
+                "model": model,
+                "stream": stream,
+                "tools": tools,
+                "tool_choice": tool_choice,
+                "frequency_penalty": frequency_penalty,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "n": n,
+                "logprobs": logprobs,
+                "echo": echo,
+                "stop": stop,
+                "presence_penalty": presence_penalty,
+                "logit_bias": logit_bias,
+                "response_format": response_format,
+                "parallel_tool_calls": parallel_tool_calls,
+                "load_balance_group": load_balance_group,
+                "fallback_models": fallback_models,
+                "customer_credentials": customer_credentials,
+                "credential_override": credential_override,
+                "cache_enabled": cache_enabled,
+                "cache_ttl": cache_ttl,
+                "cache_options": convert_and_respect_annotation_metadata(
+                    object_=cache_options, annotation=CreateChatCompletionRequestCacheOptions, direction="write"
+                ),
+                "prompt": prompt,
+                "retry_params": retry_params,
+                "disable_log": disable_log,
+                "model_name_map": model_name_map,
+                "models": models,
+                "exclude_providers": exclude_providers,
+                "exclude_models": exclude_models,
+                "metadata": metadata,
+                "custom_identifier": custom_identifier,
+                "customer_identifier": customer_identifier,
+                "customer_params": customer_params,
+                "request_breakdown": request_breakdown,
+                "positive_feedback": positive_feedback,
+                "load_balance_models": load_balance_models,
+                "thread_identifier": thread_identifier,
+                "properties": properties,
+                "retries": retries,
+                "weight": weight,
+                "span_name": span_name,
+                "respan_params": respan_params,
+            },
+            headers={
+                "content-type": "application/json",
+                "X-Data-Respan-Params": str(data_respan_params) if data_respan_params is not None else None,
+                "X-Respan-Route-Provider": str(respan_route_provider) if respan_route_provider is not None else None,
+                "X-Respan-Beta": str(respan_beta) if respan_beta is not None else None,
             },
             request_options=request_options,
+            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
+                _data = typing.cast(
+                    CreateChatCompletionResponse,
+                    parse_obj_as(
+                        type_=CreateChatCompletionResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 424:
+                raise FailedDependencyError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -330,6 +871,10 @@ class AsyncRawGatewayClient:
         skills: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
         tools: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
         respan_params: typing.Optional[CreateResponseRequestRespanParams] = OMIT,
+        cache_enabled: typing.Optional[bool] = OMIT,
+        cache_ttl: typing.Optional[float] = OMIT,
+        cache_options: typing.Optional[CreateResponseRequestCacheOptions] = OMIT,
+        customer_identifier: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.Dict[str, typing.Any]]:
         """
@@ -375,6 +920,17 @@ class AsyncRawGatewayClient:
         respan_params : typing.Optional[CreateResponseRequestRespanParams]
             Respan metadata, prompt configuration, customer identifiers, provider credentials, and other gateway parameters. route_provider_override here cannot activate the Perplexity route.
 
+        cache_enabled : typing.Optional[bool]
+            Enable response caching for this request.
+
+        cache_ttl : typing.Optional[float]
+            Cache lifetime in seconds.
+
+        cache_options : typing.Optional[CreateResponseRequestCacheOptions]
+
+        customer_identifier : typing.Optional[str]
+            End-customer identifier used for logging and optional cache partitioning.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -405,6 +961,12 @@ class AsyncRawGatewayClient:
                 "respan_params": convert_and_respect_annotation_metadata(
                     object_=respan_params, annotation=CreateResponseRequestRespanParams, direction="write"
                 ),
+                "cache_enabled": cache_enabled,
+                "cache_ttl": cache_ttl,
+                "cache_options": convert_and_respect_annotation_metadata(
+                    object_=cache_options, annotation=CreateResponseRequestCacheOptions, direction="write"
+                ),
+                "customer_identifier": customer_identifier,
             },
             headers={
                 "content-type": "application/json",

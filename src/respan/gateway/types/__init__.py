@@ -6,19 +6,37 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .create_chat_completion_request_format import CreateChatCompletionRequestFormat
+    from .create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
+    from .create_chat_completion_request_messages_item import CreateChatCompletionRequestMessagesItem
+    from .create_chat_completion_request_messages_item_content import CreateChatCompletionRequestMessagesItemContent
+    from .create_chat_completion_request_messages_item_role import CreateChatCompletionRequestMessagesItemRole
+    from .create_chat_completion_response import CreateChatCompletionResponse
+    from .create_chat_completion_response_choices_item import CreateChatCompletionResponseChoicesItem
+    from .create_chat_completion_response_choices_item_message import CreateChatCompletionResponseChoicesItemMessage
+    from .create_chat_completion_response_usage import CreateChatCompletionResponseUsage
+    from .create_response_request_cache_options import CreateResponseRequestCacheOptions
     from .create_response_request_format import CreateResponseRequestFormat
     from .create_response_request_input import CreateResponseRequestInput
     from .create_response_request_respan_params import CreateResponseRequestRespanParams
+    from .create_response_request_respan_params_cache_options import CreateResponseRequestRespanParamsCacheOptions
     from .create_response_request_respan_params_credential_override_value import (
         CreateResponseRequestRespanParamsCredentialOverrideValue,
     )
     from .create_response_request_x_respan_route_provider import CreateResponseRequestXRespanRouteProvider
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreateChatCompletionRequestFormat": ".create_chat_completion_request_format",
+    "CreateChatCompletionRequestCacheOptions": ".create_chat_completion_request_cache_options",
+    "CreateChatCompletionRequestMessagesItem": ".create_chat_completion_request_messages_item",
+    "CreateChatCompletionRequestMessagesItemContent": ".create_chat_completion_request_messages_item_content",
+    "CreateChatCompletionRequestMessagesItemRole": ".create_chat_completion_request_messages_item_role",
+    "CreateChatCompletionResponse": ".create_chat_completion_response",
+    "CreateChatCompletionResponseChoicesItem": ".create_chat_completion_response_choices_item",
+    "CreateChatCompletionResponseChoicesItemMessage": ".create_chat_completion_response_choices_item_message",
+    "CreateChatCompletionResponseUsage": ".create_chat_completion_response_usage",
+    "CreateResponseRequestCacheOptions": ".create_response_request_cache_options",
     "CreateResponseRequestFormat": ".create_response_request_format",
     "CreateResponseRequestInput": ".create_response_request_input",
     "CreateResponseRequestRespanParams": ".create_response_request_respan_params",
+    "CreateResponseRequestRespanParamsCacheOptions": ".create_response_request_respan_params_cache_options",
     "CreateResponseRequestRespanParamsCredentialOverrideValue": ".create_response_request_respan_params_credential_override_value",
     "CreateResponseRequestXRespanRouteProvider": ".create_response_request_x_respan_route_provider",
 }
@@ -46,10 +64,19 @@ def __dir__():
 
 
 __all__ = [
-    "CreateChatCompletionRequestFormat",
+    "CreateChatCompletionRequestCacheOptions",
+    "CreateChatCompletionRequestMessagesItem",
+    "CreateChatCompletionRequestMessagesItemContent",
+    "CreateChatCompletionRequestMessagesItemRole",
+    "CreateChatCompletionResponse",
+    "CreateChatCompletionResponseChoicesItem",
+    "CreateChatCompletionResponseChoicesItemMessage",
+    "CreateChatCompletionResponseUsage",
+    "CreateResponseRequestCacheOptions",
     "CreateResponseRequestFormat",
     "CreateResponseRequestInput",
     "CreateResponseRequestRespanParams",
+    "CreateResponseRequestRespanParamsCacheOptions",
     "CreateResponseRequestRespanParamsCredentialOverrideValue",
     "CreateResponseRequestXRespanRouteProvider",
 ]

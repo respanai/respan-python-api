@@ -5,10 +5,11 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
-from ..types.organization_key import OrganizationKey
-from ..types.organization_key_update import OrganizationKeyUpdate
-from ..types.paginated_organization_key_read_list import PaginatedOrganizationKeyReadList
 from .raw_client import AsyncRawTemporaryApiKeysClient, RawTemporaryApiKeysClient
+from .types.create_api_key_response import CreateApiKeyResponse
+from .types.list_api_keys_response import ListApiKeysResponse
+from .types.retrieve_api_key_response import RetrieveApiKeyResponse
+from .types.update_api_key_response import UpdateApiKeyResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -29,226 +30,122 @@ class TemporaryApiKeysClient:
         """
         return self._raw_client
 
-    def list_api_keys(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedOrganizationKeyReadList:
+    def list_api_keys(self, *, request_options: typing.Optional[RequestOptions] = None) -> ListApiKeysResponse:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        List all API keys for your organization.
 
         Parameters
         ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PaginatedOrganizationKeyReadList
-
+        ListApiKeysResponse
+            Paginated API keys.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.temporary_api_keys.list_api_keys()
         """
-        _response = self._raw_client.list_api_keys(page=page, page_size=page_size, request_options=request_options)
+        _response = self._raw_client.list_api_keys(request_options=request_options)
         return _response.data
 
     def create_api_key(
         self,
         *,
-        project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        revoked: typing.Optional[bool] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
-        rate_limit: typing.Optional[float] = OMIT,
+        rate_limit: typing.Optional[int] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
-        is_temporary: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> OrganizationKey:
+    ) -> CreateApiKeyResponse:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Create a new API key.
 
         Parameters
         ----------
-        project : typing.Optional[str]
-
         name : typing.Optional[str]
-            A free-form name for the API key. Need not be unique. 50 characters max.
-
-        revoked : typing.Optional[bool]
-            If the API key is revoked, clients cannot use it anymore. (This cannot be undone.)
+            Key name.
 
         expiry_date : typing.Optional[dt.datetime]
-            Once API key expires, clients cannot use it anymore.
+            Expiry date (ISO 8601).
 
         max_usage : typing.Optional[int]
+            Max usage count. -1 = unlimited.
 
-        rate_limit : typing.Optional[float]
+        rate_limit : typing.Optional[int]
+            Calls per minute. Overridden by plan limit.
 
         spending_limit : typing.Optional[float]
+            Spending limit in USD for gateway usage.
 
         is_test : typing.Optional[bool]
-
-        is_temporary : typing.Optional[bool]
+            Test key (`true`) or production key (`false`).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        OrganizationKey
-
+        CreateApiKeyResponse
+            Created API key.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.temporary_api_keys.create_api_key()
         """
         _response = self._raw_client.create_api_key(
-            project=project,
             name=name,
-            revoked=revoked,
             expiry_date=expiry_date,
             max_usage=max_usage,
             rate_limit=rate_limit,
             spending_limit=spending_limit,
             is_test=is_test,
-            is_temporary=is_temporary,
             request_options=request_options,
         )
         return _response.data
 
     def retrieve_api_key(
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> OrganizationKeyUpdate:
+    ) -> RetrieveApiKeyResponse:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Retrieve an API key by ID.
 
         Parameters
         ----------
         id : str
+            The ID of the temporary API key to retrieve.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        OrganizationKeyUpdate
-
+        RetrieveApiKeyResponse
+            API key details.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.temporary_api_keys.retrieve_api_key(
             id="id",
@@ -259,39 +156,12 @@ class TemporaryApiKeysClient:
 
     def delete_api_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Delete an API key. This action is irreversible.
 
         Parameters
         ----------
         id : str
+            The ID of the temporary API key to delete.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -305,8 +175,8 @@ class TemporaryApiKeysClient:
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.temporary_api_keys.delete_api_key(
             id="id",
@@ -319,85 +189,49 @@ class TemporaryApiKeysClient:
         self,
         id: str,
         *,
-        project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        revoked: typing.Optional[bool] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
         rate_limit: typing.Optional[float] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
-        is_temporary: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> OrganizationKeyUpdate:
+    ) -> UpdateApiKeyResponse:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Update an API key's name, expiry, usage, rate, or spending limit.
 
         Parameters
         ----------
         id : str
-
-        project : typing.Optional[str]
+            The ID of the temporary API key to update.
 
         name : typing.Optional[str]
-            A free-form name for the API key. Need not be unique. 50 characters max.
-
-        revoked : typing.Optional[bool]
-            If the API key is revoked, clients cannot use it anymore. (This cannot be undone.)
+            Key name.
 
         expiry_date : typing.Optional[dt.datetime]
-            Once API key expires, clients cannot use it anymore.
+            Expiry date (ISO 8601).
 
         max_usage : typing.Optional[int]
+            Maximum use count. -1 means unlimited.
 
         rate_limit : typing.Optional[float]
 
         spending_limit : typing.Optional[float]
-
-        is_temporary : typing.Optional[bool]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        OrganizationKeyUpdate
-
+        UpdateApiKeyResponse
+            Updated API key.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.temporary_api_keys.update_api_key(
             id="id",
@@ -405,14 +239,11 @@ class TemporaryApiKeysClient:
         """
         _response = self._raw_client.update_api_key(
             id,
-            project=project,
             name=name,
-            revoked=revoked,
             expiry_date=expiry_date,
             max_usage=max_usage,
             rate_limit=rate_limit,
             spending_limit=spending_limit,
-            is_temporary=is_temporary,
             request_options=request_options,
         )
         return _response.data
@@ -433,59 +264,19 @@ class AsyncTemporaryApiKeysClient:
         """
         return self._raw_client
 
-    async def list_api_keys(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedOrganizationKeyReadList:
+    async def list_api_keys(self, *, request_options: typing.Optional[RequestOptions] = None) -> ListApiKeysResponse:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        List all API keys for your organization.
 
         Parameters
         ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        PaginatedOrganizationKeyReadList
-
+        ListApiKeysResponse
+            Paginated API keys.
 
         Examples
         --------
@@ -494,8 +285,8 @@ class AsyncTemporaryApiKeysClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -505,86 +296,50 @@ class AsyncTemporaryApiKeysClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.list_api_keys(
-            page=page, page_size=page_size, request_options=request_options
-        )
+        _response = await self._raw_client.list_api_keys(request_options=request_options)
         return _response.data
 
     async def create_api_key(
         self,
         *,
-        project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        revoked: typing.Optional[bool] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
-        rate_limit: typing.Optional[float] = OMIT,
+        rate_limit: typing.Optional[int] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
-        is_temporary: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> OrganizationKey:
+    ) -> CreateApiKeyResponse:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Create a new API key.
 
         Parameters
         ----------
-        project : typing.Optional[str]
-
         name : typing.Optional[str]
-            A free-form name for the API key. Need not be unique. 50 characters max.
-
-        revoked : typing.Optional[bool]
-            If the API key is revoked, clients cannot use it anymore. (This cannot be undone.)
+            Key name.
 
         expiry_date : typing.Optional[dt.datetime]
-            Once API key expires, clients cannot use it anymore.
+            Expiry date (ISO 8601).
 
         max_usage : typing.Optional[int]
+            Max usage count. -1 = unlimited.
 
-        rate_limit : typing.Optional[float]
+        rate_limit : typing.Optional[int]
+            Calls per minute. Overridden by plan limit.
 
         spending_limit : typing.Optional[float]
+            Spending limit in USD for gateway usage.
 
         is_test : typing.Optional[bool]
-
-        is_temporary : typing.Optional[bool]
+            Test key (`true`) or production key (`false`).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        OrganizationKey
-
+        CreateApiKeyResponse
+            Created API key.
 
         Examples
         --------
@@ -593,8 +348,8 @@ class AsyncTemporaryApiKeysClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -605,64 +360,34 @@ class AsyncTemporaryApiKeysClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_api_key(
-            project=project,
             name=name,
-            revoked=revoked,
             expiry_date=expiry_date,
             max_usage=max_usage,
             rate_limit=rate_limit,
             spending_limit=spending_limit,
             is_test=is_test,
-            is_temporary=is_temporary,
             request_options=request_options,
         )
         return _response.data
 
     async def retrieve_api_key(
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> OrganizationKeyUpdate:
+    ) -> RetrieveApiKeyResponse:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Retrieve an API key by ID.
 
         Parameters
         ----------
         id : str
+            The ID of the temporary API key to retrieve.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        OrganizationKeyUpdate
-
+        RetrieveApiKeyResponse
+            API key details.
 
         Examples
         --------
@@ -671,8 +396,8 @@ class AsyncTemporaryApiKeysClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -689,39 +414,12 @@ class AsyncTemporaryApiKeysClient:
 
     async def delete_api_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Delete an API key. This action is irreversible.
 
         Parameters
         ----------
         id : str
+            The ID of the temporary API key to delete.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -737,8 +435,8 @@ class AsyncTemporaryApiKeysClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -757,77 +455,41 @@ class AsyncTemporaryApiKeysClient:
         self,
         id: str,
         *,
-        project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        revoked: typing.Optional[bool] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
         rate_limit: typing.Optional[float] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
-        is_temporary: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> OrganizationKeyUpdate:
+    ) -> UpdateApiKeyResponse:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Update an API key's name, expiry, usage, rate, or spending limit.
 
         Parameters
         ----------
         id : str
-
-        project : typing.Optional[str]
+            The ID of the temporary API key to update.
 
         name : typing.Optional[str]
-            A free-form name for the API key. Need not be unique. 50 characters max.
-
-        revoked : typing.Optional[bool]
-            If the API key is revoked, clients cannot use it anymore. (This cannot be undone.)
+            Key name.
 
         expiry_date : typing.Optional[dt.datetime]
-            Once API key expires, clients cannot use it anymore.
+            Expiry date (ISO 8601).
 
         max_usage : typing.Optional[int]
+            Maximum use count. -1 means unlimited.
 
         rate_limit : typing.Optional[float]
 
         spending_limit : typing.Optional[float]
-
-        is_temporary : typing.Optional[bool]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        OrganizationKeyUpdate
-
+        UpdateApiKeyResponse
+            Updated API key.
 
         Examples
         --------
@@ -836,8 +498,8 @@ class AsyncTemporaryApiKeysClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -851,14 +513,11 @@ class AsyncTemporaryApiKeysClient:
         """
         _response = await self._raw_client.update_api_key(
             id,
-            project=project,
             name=name,
-            revoked=revoked,
             expiry_date=expiry_date,
             max_usage=max_usage,
             rate_limit=rate_limit,
             spending_limit=spending_limit,
-            is_temporary=is_temporary,
             request_options=request_options,
         )
         return _response.data

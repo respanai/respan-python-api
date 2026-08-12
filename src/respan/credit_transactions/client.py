@@ -5,10 +5,10 @@ import typing
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.pagination import AsyncPager, SyncPager
 from ..core.request_options import RequestOptions
-from ..types.credit_transaction_detail import CreditTransactionDetail
-from ..types.credit_transaction_list import CreditTransactionList
-from ..types.paginated_credit_transaction_list_list import PaginatedCreditTransactionListList
 from .raw_client import AsyncRawCreditTransactionsClient, RawCreditTransactionsClient
+from .types.list_credit_transactions_response import ListCreditTransactionsResponse
+from .types.list_credit_transactions_response_results_item import ListCreditTransactionsResponseResultsItem
+from .types.retrieve_credit_transaction_response import RetrieveCreditTransactionResponse
 
 
 class CreditTransactionsClient:
@@ -26,100 +26,39 @@ class CreditTransactionsClient:
         """
         return self._raw_client
 
-    def retrieve_credit_transaction(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> CreditTransactionDetail:
-        """
-        GET /api/credit-transactions/<id>/
-        Retrieve a single credit transaction by ID
-
-        Args:
-            - id (str): The transaction ID (primary key)
-
-        Response:
-            - Full credit transaction details
-            - Excludes 'usage' transactions (users shouldn't access these directly)
-
-        Permissions:
-            - Regular users: Can view their own org's transactions
-            - Superadmin: Can view any transaction
-
-        NOTE: CLICKHOUSE-ONLY STRATEGY - Queries ClickHouse directly instead of PostgreSQL
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        CreditTransactionDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.credit_transactions.retrieve_credit_transaction(
-            id="id",
-        )
-        """
-        _response = self._raw_client.retrieve_credit_transaction(id, request_options=request_options)
-        return _response.data
-
     def list_credit_transactions(
         self,
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> SyncPager[CreditTransactionList, PaginatedCreditTransactionListList]:
+    ) -> SyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
         """
-        GET /api/credit-transactions/list/
-        POST /api/credit-transactions/list/ (POST-for-Filtering)
-        List credit transactions with optional filtering
-
-        This is the primary endpoint for listing transactions.
-        Supports both GET (simple list) and POST (filtered list) operations.
-
-        Permissions:
-            - Regular users: Can view their own org's transactions
-            - Superadmin: Can view all transactions (with org filter via query params)
-
-        Query params (superadmin only):
-            - org: Organization UUID to filter by
-
-        NOTE: CLICKHOUSE-ONLY STRATEGY - Queries ClickHouse directly instead of PostgreSQL
+        List credit transactions with pagination.
 
         Parameters
         ----------
         page : typing.Optional[int]
-            A page number within the paginated result set.
+            Page number for pagination.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+            Number of items per page. Maximum is 1000.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        SyncPager[CreditTransactionList, PaginatedCreditTransactionListList]
-
+        SyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]
+            Paginated list of transactions.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         response = client.credit_transactions.list_credit_transactions()
         for item in response:
@@ -131,6 +70,40 @@ class CreditTransactionsClient:
         return self._raw_client.list_credit_transactions(
             page=page, page_size=page_size, request_options=request_options
         )
+
+    def retrieve_credit_transaction(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> RetrieveCreditTransactionResponse:
+        """
+        Retrieve details of a specific credit transaction.
+
+        Parameters
+        ----------
+        id : str
+            The unique identifier of the transaction to retrieve (e.g., ct_1a2b3c4d5e6f7g8h)
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveCreditTransactionResponse
+            Transaction details.
+
+        Examples
+        --------
+        from respan import RespanClient
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.credit_transactions.retrieve_credit_transaction(
+            id="id",
+        )
+        """
+        _response = self._raw_client.retrieve_credit_transaction(id, request_options=request_options)
+        return _response.data
 
 
 class AsyncCreditTransactionsClient:
@@ -148,100 +121,31 @@ class AsyncCreditTransactionsClient:
         """
         return self._raw_client
 
-    async def retrieve_credit_transaction(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> CreditTransactionDetail:
-        """
-        GET /api/credit-transactions/<id>/
-        Retrieve a single credit transaction by ID
-
-        Args:
-            - id (str): The transaction ID (primary key)
-
-        Response:
-            - Full credit transaction details
-            - Excludes 'usage' transactions (users shouldn't access these directly)
-
-        Permissions:
-            - Regular users: Can view their own org's transactions
-            - Superadmin: Can view any transaction
-
-        NOTE: CLICKHOUSE-ONLY STRATEGY - Queries ClickHouse directly instead of PostgreSQL
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        CreditTransactionDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.credit_transactions.retrieve_credit_transaction(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.retrieve_credit_transaction(id, request_options=request_options)
-        return _response.data
-
     async def list_credit_transactions(
         self,
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncPager[CreditTransactionList, PaginatedCreditTransactionListList]:
+    ) -> AsyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
         """
-        GET /api/credit-transactions/list/
-        POST /api/credit-transactions/list/ (POST-for-Filtering)
-        List credit transactions with optional filtering
-
-        This is the primary endpoint for listing transactions.
-        Supports both GET (simple list) and POST (filtered list) operations.
-
-        Permissions:
-            - Regular users: Can view their own org's transactions
-            - Superadmin: Can view all transactions (with org filter via query params)
-
-        Query params (superadmin only):
-            - org: Organization UUID to filter by
-
-        NOTE: CLICKHOUSE-ONLY STRATEGY - Queries ClickHouse directly instead of PostgreSQL
+        List credit transactions with pagination.
 
         Parameters
         ----------
         page : typing.Optional[int]
-            A page number within the paginated result set.
+            Page number for pagination.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+            Number of items per page. Maximum is 1000.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncPager[CreditTransactionList, PaginatedCreditTransactionListList]
-
+        AsyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]
+            Paginated list of transactions.
 
         Examples
         --------
@@ -250,8 +154,8 @@ class AsyncCreditTransactionsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -270,3 +174,45 @@ class AsyncCreditTransactionsClient:
         return await self._raw_client.list_credit_transactions(
             page=page, page_size=page_size, request_options=request_options
         )
+
+    async def retrieve_credit_transaction(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> RetrieveCreditTransactionResponse:
+        """
+        Retrieve details of a specific credit transaction.
+
+        Parameters
+        ----------
+        id : str
+            The unique identifier of the transaction to retrieve (e.g., ct_1a2b3c4d5e6f7g8h)
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        RetrieveCreditTransactionResponse
+            Transaction details.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.credit_transactions.retrieve_credit_transaction(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.retrieve_credit_transaction(id, request_options=request_options)
+        return _response.data

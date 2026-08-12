@@ -6,11 +6,39 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .create_embeddings_request_format import CreateEmbeddingsRequestFormat
-    from .text_to_speech_request_format import TextToSpeechRequestFormat
+    from .create_embeddings_request_encoding_format import CreateEmbeddingsRequestEncodingFormat
+    from .create_embeddings_request_model import CreateEmbeddingsRequestModel
+    from .create_embeddings_response import CreateEmbeddingsResponse
+    from .create_embeddings_response_data_item import CreateEmbeddingsResponseDataItem
+    from .create_embeddings_response_usage import CreateEmbeddingsResponseUsage
+    from .retrieve_assemblyai_transcript_response import RetrieveAssemblyaiTranscriptResponse
+    from .retrieve_assemblyai_transcript_response_status import RetrieveAssemblyaiTranscriptResponseStatus
+    from .retrieve_assemblyai_transcript_response_words_item import RetrieveAssemblyaiTranscriptResponseWordsItem
+    from .speech_to_text_request_model import SpeechToTextRequestModel
+    from .speech_to_text_request_response_format import SpeechToTextRequestResponseFormat
+    from .speech_to_text_request_timestamp_granularities_item import SpeechToTextRequestTimestampGranularitiesItem
+    from .speech_to_text_response import SpeechToTextResponse
+    from .speech_to_text_response_words_item import SpeechToTextResponseWordsItem
+    from .text_to_speech_request_model import TextToSpeechRequestModel
+    from .text_to_speech_request_response_format import TextToSpeechRequestResponseFormat
+    from .text_to_speech_request_voice import TextToSpeechRequestVoice
 _dynamic_imports: typing.Dict[str, str] = {
-    "CreateEmbeddingsRequestFormat": ".create_embeddings_request_format",
-    "TextToSpeechRequestFormat": ".text_to_speech_request_format",
+    "CreateEmbeddingsRequestEncodingFormat": ".create_embeddings_request_encoding_format",
+    "CreateEmbeddingsRequestModel": ".create_embeddings_request_model",
+    "CreateEmbeddingsResponse": ".create_embeddings_response",
+    "CreateEmbeddingsResponseDataItem": ".create_embeddings_response_data_item",
+    "CreateEmbeddingsResponseUsage": ".create_embeddings_response_usage",
+    "RetrieveAssemblyaiTranscriptResponse": ".retrieve_assemblyai_transcript_response",
+    "RetrieveAssemblyaiTranscriptResponseStatus": ".retrieve_assemblyai_transcript_response_status",
+    "RetrieveAssemblyaiTranscriptResponseWordsItem": ".retrieve_assemblyai_transcript_response_words_item",
+    "SpeechToTextRequestModel": ".speech_to_text_request_model",
+    "SpeechToTextRequestResponseFormat": ".speech_to_text_request_response_format",
+    "SpeechToTextRequestTimestampGranularitiesItem": ".speech_to_text_request_timestamp_granularities_item",
+    "SpeechToTextResponse": ".speech_to_text_response",
+    "SpeechToTextResponseWordsItem": ".speech_to_text_response_words_item",
+    "TextToSpeechRequestModel": ".text_to_speech_request_model",
+    "TextToSpeechRequestResponseFormat": ".text_to_speech_request_response_format",
+    "TextToSpeechRequestVoice": ".text_to_speech_request_voice",
 }
 
 
@@ -35,4 +63,21 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["CreateEmbeddingsRequestFormat", "TextToSpeechRequestFormat"]
+__all__ = [
+    "CreateEmbeddingsRequestEncodingFormat",
+    "CreateEmbeddingsRequestModel",
+    "CreateEmbeddingsResponse",
+    "CreateEmbeddingsResponseDataItem",
+    "CreateEmbeddingsResponseUsage",
+    "RetrieveAssemblyaiTranscriptResponse",
+    "RetrieveAssemblyaiTranscriptResponseStatus",
+    "RetrieveAssemblyaiTranscriptResponseWordsItem",
+    "SpeechToTextRequestModel",
+    "SpeechToTextRequestResponseFormat",
+    "SpeechToTextRequestTimestampGranularitiesItem",
+    "SpeechToTextResponse",
+    "SpeechToTextResponseWordsItem",
+    "TextToSpeechRequestModel",
+    "TextToSpeechRequestResponseFormat",
+    "TextToSpeechRequestVoice",
+]

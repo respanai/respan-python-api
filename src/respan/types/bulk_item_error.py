@@ -7,8 +7,19 @@ from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
 class BulkItemError(UniversalBaseModel):
-    index: int
-    error: str
+    """
+    An item that failed during a bulk operation. `index` is zero-based and identifies the corresponding item in the request array.
+    """
+
+    index: int = pydantic.Field()
+    """
+    Zero-based index of the failed item in the submitted array.
+    """
+
+    error: str = pydantic.Field()
+    """
+    Error message for the failed item.
+    """
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

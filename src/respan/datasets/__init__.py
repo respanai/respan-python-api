@@ -2,3 +2,171 @@
 
 # isort: skip_file
 
+import typing
+from importlib import import_module
+
+if typing.TYPE_CHECKING:
+    from .types import (
+        CreateDatasetLogResponse,
+        CreateDatasetRequestGranularity,
+        CreateDatasetRequestInitialLogFiltersValue,
+        CreateDatasetResponse,
+        CreateDatasetResponseGranularity,
+        CreateDatasetResponseInitialLogFiltersValue,
+        CreateDatasetResponseStatus,
+        ImportDatasetLogsRequestFiltersValue,
+        ImportDatasetLogsResponse,
+        ListDatasetEvalRunsResponse,
+        ListDatasetEvalRunsResponseCurrentFiltersValue,
+        ListDatasetEvalRunsResponseResultsItem,
+        ListDatasetLogsRequestExportFormat,
+        ListDatasetLogsRequestFiltersValue,
+        ListDatasetLogsResponse,
+        ListDatasetLogsResponseCount,
+        ListDatasetLogsResponseCountCurrentFiltersValue,
+        ListDatasetLogsResponseCountResultsItem,
+        ListDatasetLogsResponseCountResultsItemAnnotationCompletedBy,
+        ListDatasetLogsResponseMessage,
+        ListDatasetsRequestFiltersValue,
+        ListDatasetsResponse,
+        ListDatasetsResponseCurrentFiltersValue,
+        ListDatasetsResponseResultsItem,
+        ListDatasetsResponseResultsItemGranularity,
+        ListDatasetsResponseResultsItemTagsItem,
+        ListDatasetsResponseResultsItemUpdatedBy,
+        RemoveDatasetLogsRequestFiltersValue,
+        RemoveDatasetLogsResponse,
+        ReplaceDatasetLogResponse,
+        RetrieveDatasetLogResponse,
+        RetrieveDatasetResponse,
+        RetrieveDatasetResponseGranularity,
+        RetrieveDatasetResponseInitialLogFilters,
+        RetrieveDatasetResponseInitialLogFiltersStatusCode,
+        RunEvalOnDatasetResponse,
+        RunEvalOnDatasetResponseCreatedTasksItem,
+        SummarizeDatasetLogsFilteredRequestFiltersValue,
+        SummarizeDatasetLogsFilteredResponse,
+        SummarizeDatasetLogsFilteredResponseScoresValue,
+        UpdateDatasetLogResponse,
+        UpdateDatasetResponse,
+        UpdateDatasetResponseGranularity,
+        UpdateDatasetResponseInitialLogFilters,
+        UpdateDatasetResponseInitialLogFiltersStatusCode,
+    )
+_dynamic_imports: typing.Dict[str, str] = {
+    "CreateDatasetLogResponse": ".types",
+    "CreateDatasetRequestGranularity": ".types",
+    "CreateDatasetRequestInitialLogFiltersValue": ".types",
+    "CreateDatasetResponse": ".types",
+    "CreateDatasetResponseGranularity": ".types",
+    "CreateDatasetResponseInitialLogFiltersValue": ".types",
+    "CreateDatasetResponseStatus": ".types",
+    "ImportDatasetLogsRequestFiltersValue": ".types",
+    "ImportDatasetLogsResponse": ".types",
+    "ListDatasetEvalRunsResponse": ".types",
+    "ListDatasetEvalRunsResponseCurrentFiltersValue": ".types",
+    "ListDatasetEvalRunsResponseResultsItem": ".types",
+    "ListDatasetLogsRequestExportFormat": ".types",
+    "ListDatasetLogsRequestFiltersValue": ".types",
+    "ListDatasetLogsResponse": ".types",
+    "ListDatasetLogsResponseCount": ".types",
+    "ListDatasetLogsResponseCountCurrentFiltersValue": ".types",
+    "ListDatasetLogsResponseCountResultsItem": ".types",
+    "ListDatasetLogsResponseCountResultsItemAnnotationCompletedBy": ".types",
+    "ListDatasetLogsResponseMessage": ".types",
+    "ListDatasetsRequestFiltersValue": ".types",
+    "ListDatasetsResponse": ".types",
+    "ListDatasetsResponseCurrentFiltersValue": ".types",
+    "ListDatasetsResponseResultsItem": ".types",
+    "ListDatasetsResponseResultsItemGranularity": ".types",
+    "ListDatasetsResponseResultsItemTagsItem": ".types",
+    "ListDatasetsResponseResultsItemUpdatedBy": ".types",
+    "RemoveDatasetLogsRequestFiltersValue": ".types",
+    "RemoveDatasetLogsResponse": ".types",
+    "ReplaceDatasetLogResponse": ".types",
+    "RetrieveDatasetLogResponse": ".types",
+    "RetrieveDatasetResponse": ".types",
+    "RetrieveDatasetResponseGranularity": ".types",
+    "RetrieveDatasetResponseInitialLogFilters": ".types",
+    "RetrieveDatasetResponseInitialLogFiltersStatusCode": ".types",
+    "RunEvalOnDatasetResponse": ".types",
+    "RunEvalOnDatasetResponseCreatedTasksItem": ".types",
+    "SummarizeDatasetLogsFilteredRequestFiltersValue": ".types",
+    "SummarizeDatasetLogsFilteredResponse": ".types",
+    "SummarizeDatasetLogsFilteredResponseScoresValue": ".types",
+    "UpdateDatasetLogResponse": ".types",
+    "UpdateDatasetResponse": ".types",
+    "UpdateDatasetResponseGranularity": ".types",
+    "UpdateDatasetResponseInitialLogFilters": ".types",
+    "UpdateDatasetResponseInitialLogFiltersStatusCode": ".types",
+}
+
+
+def __getattr__(attr_name: str) -> typing.Any:
+    module_name = _dynamic_imports.get(attr_name)
+    if module_name is None:
+        raise AttributeError(f"No {attr_name} found in _dynamic_imports for module name -> {__name__}")
+    try:
+        module = import_module(module_name, __package__)
+        if module_name == f".{attr_name}":
+            return module
+        else:
+            return getattr(module, attr_name)
+    except ImportError as e:
+        raise ImportError(f"Failed to import {attr_name} from {module_name}: {e}") from e
+    except AttributeError as e:
+        raise AttributeError(f"Failed to get {attr_name} from {module_name}: {e}") from e
+
+
+def __dir__():
+    lazy_attrs = list(_dynamic_imports.keys())
+    return sorted(lazy_attrs)
+
+
+__all__ = [
+    "CreateDatasetLogResponse",
+    "CreateDatasetRequestGranularity",
+    "CreateDatasetRequestInitialLogFiltersValue",
+    "CreateDatasetResponse",
+    "CreateDatasetResponseGranularity",
+    "CreateDatasetResponseInitialLogFiltersValue",
+    "CreateDatasetResponseStatus",
+    "ImportDatasetLogsRequestFiltersValue",
+    "ImportDatasetLogsResponse",
+    "ListDatasetEvalRunsResponse",
+    "ListDatasetEvalRunsResponseCurrentFiltersValue",
+    "ListDatasetEvalRunsResponseResultsItem",
+    "ListDatasetLogsRequestExportFormat",
+    "ListDatasetLogsRequestFiltersValue",
+    "ListDatasetLogsResponse",
+    "ListDatasetLogsResponseCount",
+    "ListDatasetLogsResponseCountCurrentFiltersValue",
+    "ListDatasetLogsResponseCountResultsItem",
+    "ListDatasetLogsResponseCountResultsItemAnnotationCompletedBy",
+    "ListDatasetLogsResponseMessage",
+    "ListDatasetsRequestFiltersValue",
+    "ListDatasetsResponse",
+    "ListDatasetsResponseCurrentFiltersValue",
+    "ListDatasetsResponseResultsItem",
+    "ListDatasetsResponseResultsItemGranularity",
+    "ListDatasetsResponseResultsItemTagsItem",
+    "ListDatasetsResponseResultsItemUpdatedBy",
+    "RemoveDatasetLogsRequestFiltersValue",
+    "RemoveDatasetLogsResponse",
+    "ReplaceDatasetLogResponse",
+    "RetrieveDatasetLogResponse",
+    "RetrieveDatasetResponse",
+    "RetrieveDatasetResponseGranularity",
+    "RetrieveDatasetResponseInitialLogFilters",
+    "RetrieveDatasetResponseInitialLogFiltersStatusCode",
+    "RunEvalOnDatasetResponse",
+    "RunEvalOnDatasetResponseCreatedTasksItem",
+    "SummarizeDatasetLogsFilteredRequestFiltersValue",
+    "SummarizeDatasetLogsFilteredResponse",
+    "SummarizeDatasetLogsFilteredResponseScoresValue",
+    "UpdateDatasetLogResponse",
+    "UpdateDatasetResponse",
+    "UpdateDatasetResponseGranularity",
+    "UpdateDatasetResponseInitialLogFilters",
+    "UpdateDatasetResponseInitialLogFiltersStatusCode",
+]

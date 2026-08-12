@@ -10,26 +10,39 @@ from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
+from ..errors.bad_request_error import BadRequestError
 from ..errors.conflict_error import ConflictError
-from ..types.automation_condition_create import AutomationConditionCreate
-from ..types.automation_condition_detail import AutomationConditionDetail
-from ..types.automation_condition_list import AutomationConditionList
-from ..types.automation_condition_update import AutomationConditionUpdate
-from ..types.filter_param_dict_pydantic import FilterParamDictPydantic
-from ..types.paginated_automation_condition_list_list import PaginatedAutomationConditionListList
-from ..types.paginated_workflow_list_list import PaginatedWorkflowListList
-from ..types.patched_workflow_update_request_tasks_item import PatchedWorkflowUpdateRequestTasksItem
-from ..types.patched_workflow_update_request_trigger_event_type import PatchedWorkflowUpdateRequestTriggerEventType
-from ..types.workflow_create import WorkflowCreate
-from ..types.workflow_create_request_tasks_item import WorkflowCreateRequestTasksItem
-from ..types.workflow_create_request_trigger_event_type import WorkflowCreateRequestTriggerEventType
-from ..types.workflow_deploy_response import WorkflowDeployResponse
-from ..types.workflow_detail import WorkflowDetail
-from ..types.workflow_retrieve_response import WorkflowRetrieveResponse
-from ..types.workflow_summary_response import WorkflowSummaryResponse
-from ..types.workflow_update import WorkflowUpdate
-from ..types.workflow_validation_response import WorkflowValidationResponse
-from ..types.workflow_version_type_enum import WorkflowVersionTypeEnum
+from ..errors.forbidden_error import ForbiddenError
+from ..errors.not_found_error import NotFoundError
+from ..errors.unauthorized_error import UnauthorizedError
+from .types.api_workflows_commits_create_response import ApiWorkflowsCommitsCreateResponse
+from .types.api_workflows_list_request_trigger_event_type import ApiWorkflowsListRequestTriggerEventType
+from .types.api_workflows_list_request_type import ApiWorkflowsListRequestType
+from .types.api_workflows_list_response import ApiWorkflowsListResponse
+from .types.create_workflow_request_tasks_item import CreateWorkflowRequestTasksItem
+from .types.create_workflow_request_trigger_event_type import CreateWorkflowRequestTriggerEventType
+from .types.create_workflow_request_type import CreateWorkflowRequestType
+from .types.create_workflow_response import CreateWorkflowResponse
+from .types.create_workflow_version_request_tasks_item import CreateWorkflowVersionRequestTasksItem
+from .types.create_workflow_version_request_trigger_event_type import CreateWorkflowVersionRequestTriggerEventType
+from .types.create_workflow_version_request_type import CreateWorkflowVersionRequestType
+from .types.create_workflow_version_response import CreateWorkflowVersionResponse
+from .types.deploy_workflow_response import DeployWorkflowResponse
+from .types.filter_workflows_request_trigger_event_type import FilterWorkflowsRequestTriggerEventType
+from .types.filter_workflows_request_type import FilterWorkflowsRequestType
+from .types.filter_workflows_response import FilterWorkflowsResponse
+from .types.get_workflow_response import GetWorkflowResponse
+from .types.get_workflow_version_response import GetWorkflowVersionResponse
+from .types.list_workflow_versions_response import ListWorkflowVersionsResponse
+from .types.update_workflow_request_tasks_item import UpdateWorkflowRequestTasksItem
+from .types.update_workflow_request_trigger_event_type import UpdateWorkflowRequestTriggerEventType
+from .types.update_workflow_request_type import UpdateWorkflowRequestType
+from .types.update_workflow_response import UpdateWorkflowResponse
+from .types.update_workflow_version_request_tasks_item import UpdateWorkflowVersionRequestTasksItem
+from .types.update_workflow_version_request_trigger_event_type import UpdateWorkflowVersionRequestTriggerEventType
+from .types.update_workflow_version_request_type import UpdateWorkflowVersionRequestType
+from .types.update_workflow_version_response import UpdateWorkflowVersionResponse
+from .types.validate_workflow_response import ValidateWorkflowResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -39,674 +52,47 @@ class RawWorkflowsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def api_conditions_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedAutomationConditionListList]:
-        """
-        REST API view for listing and creating automation conditions.
-
-        This view handles:
-        - GET: List automation conditions with filtering and pagination
-        - POST: Create new automation conditions or filter existing ones
-
-        Superadmin: Can LIST all conditions across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-        Pagination: LogPaginator
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedAutomationConditionListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/conditions/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedAutomationConditionListList,
-                    parse_obj_as(
-                        type_=PaginatedAutomationConditionListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_conditions_create(
-        self,
-        *,
-        name: str,
-        condition_policy: typing.Dict[str, typing.Any],
-        id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AutomationConditionCreate]:
-        """
-        Handle POST requests for both creation and filtering.
-
-        Determines whether the request is for creating a new condition
-        or filtering existing conditions based on the presence of
-        creation-specific fields.
-
-        Args:
-            request: HTTP request object
-
-        Returns:
-            Response: Either creation response or filtered list response
-
-        Parameters
-        ----------
-        name : str
-            Human-readable name for the condition
-
-        condition_policy : typing.Dict[str, typing.Any]
-            Complex condition rules and logic stored as JSON
-
-        id : typing.Optional[str]
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[AutomationConditionCreate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/conditions/",
-            method="POST",
-            json={
-                "id": id,
-                "name": name,
-                "description": description,
-                "condition_policy": condition_policy,
-                "filter_set_id": filter_set_id,
-                "time_step_minutes": time_step_minutes,
-                "sampling_rate": sampling_rate,
-                "updated_by": updated_by,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionCreate,
-                    parse_obj_as(
-                        type_=AutomationConditionCreate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_conditions_update(
-        self,
-        *,
-        name: str,
-        unique_organization_id: str,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AutomationConditionList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        name : str
-            Human-readable name for the condition
-
-        unique_organization_id : str
-            Organization identifier
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[AutomationConditionList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/conditions/",
-            method="PUT",
-            json={
-                "name": name,
-                "unique_organization_id": unique_organization_id,
-                "time_step_minutes": time_step_minutes,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionList,
-                    parse_obj_as(
-                        type_=AutomationConditionList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_conditions_partial_update(
-        self,
-        *,
-        name: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AutomationConditionList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        name : typing.Optional[str]
-            Human-readable name for the condition
-
-        unique_organization_id : typing.Optional[str]
-            Organization identifier
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[AutomationConditionList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/conditions/",
-            method="PATCH",
-            json={
-                "name": name,
-                "unique_organization_id": unique_organization_id,
-                "time_step_minutes": time_step_minutes,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionList,
-                    parse_obj_as(
-                        type_=AutomationConditionList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_conditions_retrieve(
-        self, condition_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[AutomationConditionDetail]:
-        """
-        REST API view for retrieving, updating, and deleting individual automation conditions.
-
-        This view handles:
-        - GET: Retrieve a specific automation condition by condition_id
-        - PUT/PATCH: Update an existing automation condition
-        - DELETE: Delete an automation condition
-
-        Superadmin: Can access any condition across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Lookup field: id (condition_id in URL)
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-
-        Parameters
-        ----------
-        condition_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[AutomationConditionDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionDetail,
-                    parse_obj_as(
-                        type_=AutomationConditionDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_conditions_create2(
-        self,
-        condition_id: str,
-        *,
-        name: str,
-        unique_organization_id: str,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AutomationConditionDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        condition_id : str
-
-        name : str
-            Human-readable name for the condition
-
-        unique_organization_id : str
-            Organization identifier
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[AutomationConditionDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="POST",
-            json={
-                "name": name,
-                "description": description,
-                "unique_organization_id": unique_organization_id,
-                "filter_set_id": filter_set_id,
-                "sampling_rate": sampling_rate,
-                "time_step_minutes": time_step_minutes,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionDetail,
-                    parse_obj_as(
-                        type_=AutomationConditionDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_conditions_update2(
-        self,
-        condition_id: str,
-        *,
-        unique_organization_id: str,
-        name: str,
-        condition_policy: typing.Dict[str, typing.Any],
-        id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AutomationConditionUpdate]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        condition_id : str
-
-        unique_organization_id : str
-            Organization identifier
-
-        name : str
-            Human-readable name for the condition
-
-        condition_policy : typing.Dict[str, typing.Any]
-            Complex condition rules and logic stored as JSON
-
-        id : typing.Optional[str]
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[AutomationConditionUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="PUT",
-            json={
-                "id": id,
-                "unique_organization_id": unique_organization_id,
-                "name": name,
-                "description": description,
-                "condition_policy": condition_policy,
-                "filter_set_id": filter_set_id,
-                "time_step_minutes": time_step_minutes,
-                "sampling_rate": sampling_rate,
-                "updated_by": updated_by,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionUpdate,
-                    parse_obj_as(
-                        type_=AutomationConditionUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_conditions_destroy(
-        self, condition_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        REST API view for retrieving, updating, and deleting individual automation conditions.
-
-        This view handles:
-        - GET: Retrieve a specific automation condition by condition_id
-        - PUT/PATCH: Update an existing automation condition
-        - DELETE: Delete an automation condition
-
-        Superadmin: Can access any condition across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Lookup field: id (condition_id in URL)
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-
-        Parameters
-        ----------
-        condition_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_conditions_partial_update2(
-        self,
-        condition_id: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        condition_policy: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[AutomationConditionUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        condition_id : str
-
-        id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-            Organization identifier
-
-        name : typing.Optional[str]
-            Human-readable name for the condition
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        condition_policy : typing.Optional[typing.Dict[str, typing.Any]]
-            Complex condition rules and logic stored as JSON
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[AutomationConditionUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="PATCH",
-            json={
-                "id": id,
-                "unique_organization_id": unique_organization_id,
-                "name": name,
-                "description": description,
-                "condition_policy": condition_policy,
-                "filter_set_id": filter_set_id,
-                "time_step_minutes": time_step_minutes,
-                "sampling_rate": sampling_rate,
-                "updated_by": updated_by,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionUpdate,
-                    parse_obj_as(
-                        type_=AutomationConditionUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def api_workflows_list(
         self,
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        type: typing.Optional[ApiWorkflowsListRequestType] = None,
+        trigger_event_type: typing.Optional[ApiWorkflowsListRequestTriggerEventType] = None,
+        search: typing.Optional[str] = None,
+        is_including_public_workflows: typing.Optional[bool] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedWorkflowListList]:
+    ) -> HttpResponse[ApiWorkflowsListResponse]:
         """
-        List and create workflows.
-
-        Each task in the ``tasks`` array may include an ``id`` field (string).
-        If omitted, the server assigns a UUID automatically before saving.
-
-        PUBLIC (Respan-managed, organization NULL) workflows join list responses
-        only when the caller opts in via ``is_including_public_workflows``.
-        Creating a public workflow requires a staff caller passing
-        ``organization_id: null`` (the DEV-9422 global-create path).
+        List one representative version per workflow family. The editable draft is returned when one exists; otherwise the latest committed version is returned. Public Respan-managed workflows are included only when requested.
 
         Parameters
         ----------
         page : typing.Optional[int]
-            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
+
+        type : typing.Optional[ApiWorkflowsListRequestType]
+
+        trigger_event_type : typing.Optional[ApiWorkflowsListRequestTriggerEventType]
+
+        search : typing.Optional[str]
+            Free-text search over workflow names.
+
+        is_including_public_workflows : typing.Optional[bool]
+            Include Respan-managed public workflows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PaginatedWorkflowListList]
-
+        HttpResponse[ApiWorkflowsListResponse]
+            Paginated workflow families.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/workflows/",
@@ -714,19 +100,35 @@ class RawWorkflowsClient:
             params={
                 "page": page,
                 "page_size": page_size,
+                "sort_by": sort_by,
+                "type": type,
+                "trigger_event_type": trigger_event_type,
+                "search": search,
+                "is_including_public_workflows": is_including_public_workflows,
             },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedWorkflowListList,
+                    ApiWorkflowsListResponse,
                     parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
+                        type_=ApiWorkflowsListResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -735,104 +137,58 @@ class RawWorkflowsClient:
     def create_workflow(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[CreateWorkflowRequestType] = OMIT,
+        trigger_event_type: typing.Optional[CreateWorkflowRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        tasks: typing.Optional[typing.Sequence[CreateWorkflowRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WorkflowCreate]:
+    ) -> HttpResponse[CreateWorkflowResponse]:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Create a new workflow family with an editable draft. Task IDs and sequential links are generated when omitted. `type` defaults to `automations`; deployment and read-only state are server controlled.
 
         Parameters
         ----------
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[CreateWorkflowRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[CreateWorkflowRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
+        tasks : typing.Optional[typing.Sequence[CreateWorkflowRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[WorkflowCreate]
-
+        HttpResponse[CreateWorkflowResponse]
+            Workflow draft created.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/workflows/",
             method="POST",
             json={
-                "id": id,
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[WorkflowCreateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
                 "name": name,
                 "description": description,
                 "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type, annotation=WorkflowCreateRequestTriggerEventType, direction="write"
-                ),
+                "trigger_event_type": trigger_event_type,
                 "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
                 "is_starred": is_starred,
-                "resource_ids": resource_ids,
+                "tasks": convert_and_respect_annotation_metadata(
+                    object_=tasks, annotation=typing.Sequence[CreateWorkflowRequestTasksItem], direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -843,13 +199,139 @@ class RawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowCreate,
+                    CreateWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowCreate,  # type: ignore
+                        type_=CreateWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def filter_workflows(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        type: typing.Optional[FilterWorkflowsRequestType] = None,
+        trigger_event_type: typing.Optional[FilterWorkflowsRequestTriggerEventType] = None,
+        search: typing.Optional[str] = None,
+        is_including_public_workflows: typing.Optional[bool] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[FilterWorkflowsResponse]:
+        """
+        List one representative version per workflow family using optional complex filters in the request body. An omitted body or omitted `filters` object applies only the query-string filters.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
+
+        type : typing.Optional[FilterWorkflowsRequestType]
+
+        trigger_event_type : typing.Optional[FilterWorkflowsRequestTriggerEventType]
+
+        search : typing.Optional[str]
+            Free-text search over workflow names.
+
+        is_including_public_workflows : typing.Optional[bool]
+            Include Respan-managed public workflows.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter parameters keyed by field name.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[FilterWorkflowsResponse]
+            Paginated filtered workflow families.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/workflows/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "type": type,
+                "trigger_event_type": trigger_event_type,
+                "search": search,
+                "is_including_public_workflows": is_including_public_workflows,
+            },
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FilterWorkflowsResponse,
+                    parse_obj_as(
+                        type_=FilterWorkflowsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -859,66 +341,73 @@ class RawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        is_exporting: typing.Optional[bool] = None,
         is_including_secrets: typing.Optional[bool] = None,
+        is_exporting: typing.Optional[bool] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WorkflowRetrieveResponse]:
+    ) -> HttpResponse[GetWorkflowResponse]:
         """
-        Get, update, or delete a workflow.
-
-        Drafts-on-demand resolution:
-        - GET returns the draft if one exists, else the latest committed version
-          (404 when the family doesn't exist at all).
-        - PATCH edits the draft. When the family has no draft (committed-only),
-          PATCH returns 409 — clients must create a draft first via
-          POST /api/workflows/{workflow_id}/versions/.
-        - DELETE removes every version in the family.
-
-        Committing a draft is a separate action at
-        POST /api/workflows/{workflow_id}/commits/.
-
-        PUBLIC workflows resolve here by id on READS (toggle defaults on so by-id
-        reads stay toggle-free); WRITES scope to own rows only, so a public family
-        404s for non-staff instead of resolving into a mutation path. JWT writes
-        are additionally gated by ``check_object_permissions`` in ``get_object``.
+        Return the editable draft when one exists, otherwise the latest committed version. Set `is_exporting=true` for a portable, secret-sanitized export. Webhook secrets remain masked unless an authorized caller sets `is_including_secrets=true`.
 
         Parameters
         ----------
         workflow_id : str
-
-        is_exporting : typing.Optional[bool]
-            Set to true to get a portable export of the workflow. Default: false.
+            Logical workflow-family ID.
 
         is_including_secrets : typing.Optional[bool]
-            Set to true to reveal webhook secret values. Default: false.
+            Reveal webhook secret values when authorized.
+
+        is_exporting : typing.Optional[bool]
+            Return a portable export envelope.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[WorkflowRetrieveResponse]
-
+        HttpResponse[GetWorkflowResponse]
+            Workflow detail or portable export.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/",
             method="GET",
             params={
-                "is_exporting": is_exporting,
                 "is_including_secrets": is_including_secrets,
+                "is_exporting": is_exporting,
             },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowRetrieveResponse,
+                    GetWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowRetrieveResponse,  # type: ignore
+                        type_=GetWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -928,11 +417,12 @@ class RawWorkflowsClient:
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        Delete all versions in the workflow family.
+        Delete every version in a workflow family.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -949,6 +439,28 @@ class RawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -956,107 +468,63 @@ class RawWorkflowsClient:
 
     def update_workflow(
         self,
-        workflow_id_: str,
+        workflow_id: str,
         *,
-        tasks: typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[UpdateWorkflowRequestType] = OMIT,
+        trigger_event_type: typing.Optional[UpdateWorkflowRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
+        tasks: typing.Optional[typing.Sequence[UpdateWorkflowRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WorkflowUpdate]:
+    ) -> HttpResponse[UpdateWorkflowResponse]:
         """
-        Edit the workflow. Structural edits on committed-only families return 409.
+        Update a workflow family. `name`, `description`, and `is_starred` are family metadata and propagate to every version. Structural fields edit the current draft; committed-only families must create a new draft first.
 
         Parameters
         ----------
-        workflow_id_ : str
-
-        tasks : typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
+        workflow_id : str
+            Logical workflow-family ID.
 
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[UpdateWorkflowRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[UpdateWorkflowRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        updated_by : typing.Optional[int]
+        tasks : typing.Optional[typing.Sequence[UpdateWorkflowRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[WorkflowUpdate]
-
+        HttpResponse[UpdateWorkflowResponse]
+            Workflow updated.
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id_)}/",
+            f"api/workflows/{jsonable_encoder(workflow_id)}/",
             method="PATCH",
             json={
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[PatchedWorkflowUpdateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
                 "name": name,
                 "description": description,
                 "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type,
-                    annotation=PatchedWorkflowUpdateRequestTriggerEventType,
-                    direction="write",
-                ),
+                "trigger_event_type": trigger_event_type,
                 "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
                 "is_starred": is_starred,
-                "resource_ids": resource_ids,
-                "updated_by": updated_by,
+                "tasks": convert_and_respect_annotation_metadata(
+                    object_=tasks, annotation=typing.Sequence[UpdateWorkflowRequestTasksItem], direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -1067,48 +535,189 @@ class RawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowUpdate,
+                    UpdateWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowUpdate,  # type: ignore
+                        type_=UpdateWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def api_workflows_commits_create(
+    def list_workflow_versions(
         self,
         workflow_id: str,
         *,
-        description: typing.Optional[str] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WorkflowDetail]:
+    ) -> HttpResponse[ListWorkflowVersionsResponse]:
         """
-        Commit the current draft (flip ``is_read_only`` True in place).
+        List all draft and committed versions in a workflow family. An unknown family returns an empty page.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
-        description : typing.Optional[str]
-            Commit message stamped on the newly committed version.
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[WorkflowDetail]
-
+        HttpResponse[ListWorkflowVersionsResponse]
+            Paginated workflow versions.
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id)}/commits/",
+            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListWorkflowVersionsResponse,
+                    parse_obj_as(
+                        type_=ListWorkflowVersionsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def create_workflow_version(
+        self,
+        workflow_id: str,
+        *,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[CreateWorkflowVersionRequestType] = OMIT,
+        trigger_event_type: typing.Optional[CreateWorkflowVersionRequestTriggerEventType] = OMIT,
+        schedule_cron: typing.Optional[str] = OMIT,
+        is_starred: typing.Optional[bool] = OMIT,
+        tasks: typing.Optional[typing.Sequence[CreateWorkflowVersionRequestTasksItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[CreateWorkflowVersionResponse]:
+        """
+        Create a new editable draft from the submitted workflow content. The server assigns the next version and the family identity. This does not clone, commit, deploy, or modify any existing version.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        name : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[CreateWorkflowVersionRequestType]
+            Workflow category. Defaults to `automations`.
+
+        trigger_event_type : typing.Optional[CreateWorkflowVersionRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
+
+        schedule_cron : typing.Optional[str]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
+
+        is_starred : typing.Optional[bool]
+
+        tasks : typing.Optional[typing.Sequence[CreateWorkflowVersionRequestTasksItem]]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[CreateWorkflowVersionResponse]
+            Editable draft created.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/",
             method="POST",
             json={
+                "name": name,
                 "description": description,
+                "type": type,
+                "trigger_event_type": trigger_event_type,
+                "schedule_cron": schedule_cron,
+                "is_starred": is_starred,
+                "tasks": convert_and_respect_annotation_metadata(
+                    object_=tasks, annotation=typing.Sequence[CreateWorkflowVersionRequestTasksItem], direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -1119,15 +728,230 @@ class RawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowDetail,
+                    CreateWorkflowVersionResponse,
                     parse_obj_as(
-                        type_=WorkflowDetail,  # type: ignore
+                        type_=CreateWorkflowVersionResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 409:
-                raise ConflictError(
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def get_workflow_version(
+        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[GetWorkflowVersionResponse]:
+        """
+        Retrieve one exact workflow version, including its current write-access metadata.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        version : int
+            Workflow version number.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[GetWorkflowVersionResponse]
+            Workflow version.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/{jsonable_encoder(version)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetWorkflowVersionResponse,
+                    parse_obj_as(
+                        type_=GetWorkflowVersionResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def update_workflow_version(
+        self,
+        workflow_id: str,
+        version: int,
+        *,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[UpdateWorkflowVersionRequestType] = OMIT,
+        trigger_event_type: typing.Optional[UpdateWorkflowVersionRequestTriggerEventType] = OMIT,
+        schedule_cron: typing.Optional[str] = OMIT,
+        is_starred: typing.Optional[bool] = OMIT,
+        tasks: typing.Optional[typing.Sequence[UpdateWorkflowVersionRequestTasksItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[UpdateWorkflowVersionResponse]:
+        """
+        Update an editable workflow version. Committed read-only versions cannot be changed; create a new draft instead. Commit messages and read-only state are controlled by the commit endpoint.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        version : int
+            Workflow version number.
+
+        name : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[UpdateWorkflowVersionRequestType]
+            Workflow category. Defaults to `automations`.
+
+        trigger_event_type : typing.Optional[UpdateWorkflowVersionRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
+
+        schedule_cron : typing.Optional[str]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
+
+        is_starred : typing.Optional[bool]
+
+        tasks : typing.Optional[typing.Sequence[UpdateWorkflowVersionRequestTasksItem]]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[UpdateWorkflowVersionResponse]
+            Workflow version updated.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/{jsonable_encoder(version)}/",
+            method="PATCH",
+            json={
+                "name": name,
+                "description": description,
+                "type": type,
+                "trigger_event_type": trigger_event_type,
+                "schedule_cron": schedule_cron,
+                "is_starred": is_starred,
+                "tasks": convert_and_respect_annotation_metadata(
+                    object_=tasks, annotation=typing.Sequence[UpdateWorkflowVersionRequestTasksItem], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UpdateWorkflowVersionResponse,
+                    parse_obj_as(
+                        type_=UpdateWorkflowVersionResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1148,24 +972,24 @@ class RawWorkflowsClient:
         *,
         version: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WorkflowDeployResponse]:
+    ) -> HttpResponse[DeployWorkflowResponse]:
         """
-        Deploy a committed workflow version. Sets is_enabled=True on the target version and False on all others in the family.
+        Deploy one committed workflow version and disable any previously deployed version in the family. Omitting `version` deploys the latest committed version.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         version : typing.Optional[int]
-            Version number to deploy. If omitted, deploys the latest committed version.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[WorkflowDeployResponse]
-
+        HttpResponse[DeployWorkflowResponse]
+            Workflow version deployed.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/deployments/",
@@ -1182,13 +1006,46 @@ class RawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowDeployResponse,
+                    DeployWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowDeployResponse,  # type: ignore
+                        type_=DeployWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1198,11 +1055,12 @@ class RawWorkflowsClient:
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        Undeploy a workflow. Sets is_enabled=False on all versions in the family.
+        Disable the deployed version in an existing workflow family. The operation is idempotent when the family has no active deployment.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1219,6 +1077,28 @@ class RawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1226,28 +1106,22 @@ class RawWorkflowsClient:
 
     def validate_workflow(
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[WorkflowValidationResponse]:
+    ) -> HttpResponse[ValidateWorkflowResponse]:
         """
-        Validate a workflow's configuration and fire preview delivery sends.
-
-        POST /api/workflows/<workflow_id>/validations/
-
-        Validates structure, per-task config, and upstream state references, then dispatches **real** preview notifications and webhooks so users can verify their delivery channels. Unresolved template variables render as the token {{placeholder}}. No aggregation runs; no logs are fetched.
-
-        Returns:
-            status, validation, task_results, is_all_passed
+        Validate the latest editable draft and send real preview notifications or webhooks for delivery tasks. No logs are fetched and no aggregation runs. Configuration failures are returned in the `200` validation envelope; a draft with no tasks succeeds with an empty `task_results` array.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[WorkflowValidationResponse]
-
+        HttpResponse[ValidateWorkflowResponse]
+            Workflow validation result.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/validations/",
@@ -1257,195 +1131,71 @@ class RawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowValidationResponse,
+                    ValidateWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowValidationResponse,  # type: ignore
+                        type_=ValidateWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def list_workflow_versions(
+    def api_workflows_commits_create(
         self,
         workflow_id: str,
         *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
+        version_description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedWorkflowListList]:
+    ) -> HttpResponse[ApiWorkflowsCommitsCreateResponse]:
         """
-        List versions for a workflow family, or create a new draft.
-
-        GET  /api/workflows/{workflow_id}/versions/
-            List every version row (draft + committed history).
-
-        POST /api/workflows/{workflow_id}/versions/
-            Create a new editable draft. Pure CRUD — the client sends the
-            new row's content (name, tasks, description, etc.) and the
-            backend inserts it with ``is_read_only=False``. Nothing else
-            in the family is touched. Committing is a separate action at
-            POST /api/workflows/{workflow_id}/commits/.
+        Commit the current editable draft in place. Omitting `version_description` preserves its existing commit message; an explicit empty string clears it.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
+        version_description : typing.Optional[str]
+            Commit message for this version.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PaginatedWorkflowListList]
-
+        HttpResponse[ApiWorkflowsCommitsCreateResponse]
+            Draft committed.
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedWorkflowListList,
-                    parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def create_workflow_version(
-        self,
-        workflow_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WorkflowDetail]:
-        """
-        Create a new draft row from the client payload.
-
-        Pure CRUD: inserts one new row with ``is_read_only=False`` using
-        the content the client sends (``name``, ``tasks``, ``description``,
-        ``type``, ``trigger_event_type``, ``is_starred``). Does NOT clone
-        from other rows and does NOT touch other rows.
-
-        The FE owns the "draft dance" — when the user wants to edit a
-        committed workflow, the FE reads the current state locally and
-        sends it here as the new draft's content.
-
-        The view forces identity/scope fields (``workflow_id`` from the
-        URL, organization from the caller) so the client can't reparent
-        a row into another family or org.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[WorkflowDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id_)}/versions/",
+            f"api/workflows/{jsonable_encoder(workflow_id)}/commits/",
             method="POST",
             json={
-                "id": id,
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[WorkflowCreateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
-                "name": name,
-                "description": description,
-                "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type, annotation=WorkflowCreateRequestTriggerEventType, direction="write"
-                ),
-                "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
-                "is_starred": is_starred,
-                "resource_ids": resource_ids,
+                "version_description": version_description,
             },
             headers={
                 "content-type": "application/json",
@@ -1456,667 +1206,57 @@ class RawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowDetail,
+                    ApiWorkflowsCommitsCreateResponse,
                     parse_obj_as(
-                        type_=WorkflowDetail,  # type: ignore
+                        type_=ApiWorkflowsCommitsCreateResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def get_workflow_version(
-        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[WorkflowDetail]:
-        """
-        Get or edit a specific workflow version.
-
-        GET /api/workflows/{workflow_id}/versions/{version}/
-        PATCH /api/workflows/{workflow_id}/versions/{version}/ (only if is_read_only=False)
-
-        PUBLIC workflow versions are readable by every tenant; PATCH scopes to own
-        rows only, so a public version 404s for non-staff instead of resolving
-        into a mutation path.
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        version : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[WorkflowDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/{jsonable_encoder(version)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    WorkflowDetail,
-                    parse_obj_as(
-                        type_=WorkflowDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def update_workflow_version(
-        self,
-        workflow_id_: str,
-        version_: int,
-        *,
-        tasks: typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WorkflowUpdate]:
-        """
-        Edit version — only allowed if is_read_only=False.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        version_ : int
-
-        tasks : typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[WorkflowUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id_)}/versions/{jsonable_encoder(version_)}/",
-            method="PATCH",
-            json={
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[PatchedWorkflowUpdateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
-                "name": name,
-                "description": description,
-                "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type,
-                    annotation=PatchedWorkflowUpdateRequestTriggerEventType,
-                    direction="write",
-                ),
-                "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
-                "is_starred": is_starred,
-                "resource_ids": resource_ids,
-                "updated_by": updated_by,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    WorkflowUpdate,
-                    parse_obj_as(
-                        type_=WorkflowUpdate,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_workflows_versions_list_list(
-        self,
-        workflow_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedWorkflowListList]:
-        """
-        List versions for a workflow family, or create a new draft.
-
-        GET  /api/workflows/{workflow_id}/versions/
-            List every version row (draft + committed history).
-
-        POST /api/workflows/{workflow_id}/versions/
-            Create a new editable draft. Pure CRUD — the client sends the
-            new row's content (name, tasks, description, etc.) and the
-            backend inserts it with ``is_read_only=False``. Nothing else
-            in the family is touched. Committing is a separate action at
-            POST /api/workflows/{workflow_id}/commits/.
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedWorkflowListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedWorkflowListList,
-                    parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_workflows_versions_list_create(
-        self,
-        workflow_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WorkflowDetail]:
-        """
-        Create a new draft row from the client payload.
-
-        Pure CRUD: inserts one new row with ``is_read_only=False`` using
-        the content the client sends (``name``, ``tasks``, ``description``,
-        ``type``, ``trigger_event_type``, ``is_starred``). Does NOT clone
-        from other rows and does NOT touch other rows.
-
-        The FE owns the "draft dance" — when the user wants to edit a
-        committed workflow, the FE reads the current state locally and
-        sends it here as the new draft's content.
-
-        The view forces identity/scope fields (``workflow_id`` from the
-        URL, organization from the caller) so the client can't reparent
-        a row into another family or org.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[WorkflowDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id_)}/versions/list/",
-            method="POST",
-            json={
-                "id": id,
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[WorkflowCreateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
-                "name": name,
-                "description": description,
-                "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type, annotation=WorkflowCreateRequestTriggerEventType, direction="write"
-                ),
-                "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
-                "is_starred": is_starred,
-                "resource_ids": resource_ids,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    WorkflowDetail,
-                    parse_obj_as(
-                        type_=WorkflowDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_workflows_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        search: typing.Optional[str] = None,
-        sort_by: typing.Optional[str] = None,
-        trigger_event_type: typing.Optional[str] = None,
-        type: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedWorkflowListList]:
-        """
-        List workflows with filtering support.
-
-        GET  /api/workflows/list/  — paginated list with filters_data
-        POST /api/workflows/list/  — POST-for-filtering (not creation)
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        search : typing.Optional[str]
-            Free-text search over workflow name.
-
-        sort_by : typing.Optional[str]
-            Field to sort by, e.g. '-updated_at'.
-
-        trigger_event_type : typing.Optional[str]
-            Filter by trigger event type, e.g. 'eval_only'.
-
-        type : typing.Optional[str]
-            Workflow type filter (automations, monitors, evaluators, reports).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedWorkflowListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/workflows/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "search": search,
-                "sort_by": sort_by,
-                "trigger_event_type": trigger_event_type,
-                "type": type,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedWorkflowListList,
-                    parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def filter_workflows(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedWorkflowListList]:
-        """
-        List workflows with complex filtering via POST body.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        filters : typing.Optional[FilterParamDictPydantic]
-            Filter parameters keyed by field name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedWorkflowListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/workflows/list/",
-            method="POST",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            json={
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedWorkflowListList,
-                    parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_workflows_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        GET/POST /api/workflows/summary/
-
-        Returns total count of workflows matching the supplied filters.
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/workflows/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_workflows_summary_filtered(
-        self,
-        *,
-        filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[WorkflowSummaryResponse]:
-        """
-        Total count of workflows matching the supplied filters.
-
-        Parameters
-        ----------
-        filters : typing.Optional[FilterParamDictPydantic]
-            Filter parameters keyed by field name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[WorkflowSummaryResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/workflows/summary/",
-            method="POST",
-            json={
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    WorkflowSummaryResponse,
-                    parse_obj_as(
-                        type_=WorkflowSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_workflows_summary_update(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/workflows/summary/",
-            method="PUT",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_workflows_summary_partial_update(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/workflows/summary/",
-            method="PATCH",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2127,674 +1267,47 @@ class AsyncRawWorkflowsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def api_conditions_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedAutomationConditionListList]:
-        """
-        REST API view for listing and creating automation conditions.
-
-        This view handles:
-        - GET: List automation conditions with filtering and pagination
-        - POST: Create new automation conditions or filter existing ones
-
-        Superadmin: Can LIST all conditions across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-        Pagination: LogPaginator
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedAutomationConditionListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/conditions/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedAutomationConditionListList,
-                    parse_obj_as(
-                        type_=PaginatedAutomationConditionListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_conditions_create(
-        self,
-        *,
-        name: str,
-        condition_policy: typing.Dict[str, typing.Any],
-        id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AutomationConditionCreate]:
-        """
-        Handle POST requests for both creation and filtering.
-
-        Determines whether the request is for creating a new condition
-        or filtering existing conditions based on the presence of
-        creation-specific fields.
-
-        Args:
-            request: HTTP request object
-
-        Returns:
-            Response: Either creation response or filtered list response
-
-        Parameters
-        ----------
-        name : str
-            Human-readable name for the condition
-
-        condition_policy : typing.Dict[str, typing.Any]
-            Complex condition rules and logic stored as JSON
-
-        id : typing.Optional[str]
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[AutomationConditionCreate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/conditions/",
-            method="POST",
-            json={
-                "id": id,
-                "name": name,
-                "description": description,
-                "condition_policy": condition_policy,
-                "filter_set_id": filter_set_id,
-                "time_step_minutes": time_step_minutes,
-                "sampling_rate": sampling_rate,
-                "updated_by": updated_by,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionCreate,
-                    parse_obj_as(
-                        type_=AutomationConditionCreate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_conditions_update(
-        self,
-        *,
-        name: str,
-        unique_organization_id: str,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AutomationConditionList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        name : str
-            Human-readable name for the condition
-
-        unique_organization_id : str
-            Organization identifier
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[AutomationConditionList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/conditions/",
-            method="PUT",
-            json={
-                "name": name,
-                "unique_organization_id": unique_organization_id,
-                "time_step_minutes": time_step_minutes,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionList,
-                    parse_obj_as(
-                        type_=AutomationConditionList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_conditions_partial_update(
-        self,
-        *,
-        name: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AutomationConditionList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        name : typing.Optional[str]
-            Human-readable name for the condition
-
-        unique_organization_id : typing.Optional[str]
-            Organization identifier
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[AutomationConditionList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/conditions/",
-            method="PATCH",
-            json={
-                "name": name,
-                "unique_organization_id": unique_organization_id,
-                "time_step_minutes": time_step_minutes,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionList,
-                    parse_obj_as(
-                        type_=AutomationConditionList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_conditions_retrieve(
-        self, condition_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[AutomationConditionDetail]:
-        """
-        REST API view for retrieving, updating, and deleting individual automation conditions.
-
-        This view handles:
-        - GET: Retrieve a specific automation condition by condition_id
-        - PUT/PATCH: Update an existing automation condition
-        - DELETE: Delete an automation condition
-
-        Superadmin: Can access any condition across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Lookup field: id (condition_id in URL)
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-
-        Parameters
-        ----------
-        condition_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[AutomationConditionDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionDetail,
-                    parse_obj_as(
-                        type_=AutomationConditionDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_conditions_create2(
-        self,
-        condition_id: str,
-        *,
-        name: str,
-        unique_organization_id: str,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AutomationConditionDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        condition_id : str
-
-        name : str
-            Human-readable name for the condition
-
-        unique_organization_id : str
-            Organization identifier
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[AutomationConditionDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="POST",
-            json={
-                "name": name,
-                "description": description,
-                "unique_organization_id": unique_organization_id,
-                "filter_set_id": filter_set_id,
-                "sampling_rate": sampling_rate,
-                "time_step_minutes": time_step_minutes,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionDetail,
-                    parse_obj_as(
-                        type_=AutomationConditionDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_conditions_update2(
-        self,
-        condition_id: str,
-        *,
-        unique_organization_id: str,
-        name: str,
-        condition_policy: typing.Dict[str, typing.Any],
-        id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AutomationConditionUpdate]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        condition_id : str
-
-        unique_organization_id : str
-            Organization identifier
-
-        name : str
-            Human-readable name for the condition
-
-        condition_policy : typing.Dict[str, typing.Any]
-            Complex condition rules and logic stored as JSON
-
-        id : typing.Optional[str]
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[AutomationConditionUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="PUT",
-            json={
-                "id": id,
-                "unique_organization_id": unique_organization_id,
-                "name": name,
-                "description": description,
-                "condition_policy": condition_policy,
-                "filter_set_id": filter_set_id,
-                "time_step_minutes": time_step_minutes,
-                "sampling_rate": sampling_rate,
-                "updated_by": updated_by,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionUpdate,
-                    parse_obj_as(
-                        type_=AutomationConditionUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_conditions_destroy(
-        self, condition_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        REST API view for retrieving, updating, and deleting individual automation conditions.
-
-        This view handles:
-        - GET: Retrieve a specific automation condition by condition_id
-        - PUT/PATCH: Update an existing automation condition
-        - DELETE: Delete an automation condition
-
-        Superadmin: Can access any condition across all organizations.
-        Regular users: Can only access conditions in their organization.
-
-        Lookup field: id (condition_id in URL)
-        Authentication: JWT token or API Key
-        Permissions: Automatic via JWTAndAPIKeyAuthenticationViewMixin
-
-        Parameters
-        ----------
-        condition_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_conditions_partial_update2(
-        self,
-        condition_id: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        condition_policy: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        filter_set_id: typing.Optional[str] = OMIT,
-        time_step_minutes: typing.Optional[int] = OMIT,
-        sampling_rate: typing.Optional[float] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[AutomationConditionUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        condition_id : str
-
-        id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-            Organization identifier
-
-        name : typing.Optional[str]
-            Human-readable name for the condition
-
-        description : typing.Optional[str]
-            Description of what this condition does
-
-        condition_policy : typing.Optional[typing.Dict[str, typing.Any]]
-            Complex condition rules and logic stored as JSON
-
-        filter_set_id : typing.Optional[str]
-            Filter set identifier for log filtering
-
-        time_step_minutes : typing.Optional[int]
-            Time window in minutes for aggregation type conditions
-
-        sampling_rate : typing.Optional[float]
-            Sampling rate for single log conditions (0.0 to 1.0)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[AutomationConditionUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/conditions/{jsonable_encoder(condition_id)}/",
-            method="PATCH",
-            json={
-                "id": id,
-                "unique_organization_id": unique_organization_id,
-                "name": name,
-                "description": description,
-                "condition_policy": condition_policy,
-                "filter_set_id": filter_set_id,
-                "time_step_minutes": time_step_minutes,
-                "sampling_rate": sampling_rate,
-                "updated_by": updated_by,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    AutomationConditionUpdate,
-                    parse_obj_as(
-                        type_=AutomationConditionUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def api_workflows_list(
         self,
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        type: typing.Optional[ApiWorkflowsListRequestType] = None,
+        trigger_event_type: typing.Optional[ApiWorkflowsListRequestTriggerEventType] = None,
+        search: typing.Optional[str] = None,
+        is_including_public_workflows: typing.Optional[bool] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedWorkflowListList]:
+    ) -> AsyncHttpResponse[ApiWorkflowsListResponse]:
         """
-        List and create workflows.
-
-        Each task in the ``tasks`` array may include an ``id`` field (string).
-        If omitted, the server assigns a UUID automatically before saving.
-
-        PUBLIC (Respan-managed, organization NULL) workflows join list responses
-        only when the caller opts in via ``is_including_public_workflows``.
-        Creating a public workflow requires a staff caller passing
-        ``organization_id: null`` (the DEV-9422 global-create path).
+        List one representative version per workflow family. The editable draft is returned when one exists; otherwise the latest committed version is returned. Public Respan-managed workflows are included only when requested.
 
         Parameters
         ----------
         page : typing.Optional[int]
-            A page number within the paginated result set.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
+
+        type : typing.Optional[ApiWorkflowsListRequestType]
+
+        trigger_event_type : typing.Optional[ApiWorkflowsListRequestTriggerEventType]
+
+        search : typing.Optional[str]
+            Free-text search over workflow names.
+
+        is_including_public_workflows : typing.Optional[bool]
+            Include Respan-managed public workflows.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PaginatedWorkflowListList]
-
+        AsyncHttpResponse[ApiWorkflowsListResponse]
+            Paginated workflow families.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/workflows/",
@@ -2802,19 +1315,35 @@ class AsyncRawWorkflowsClient:
             params={
                 "page": page,
                 "page_size": page_size,
+                "sort_by": sort_by,
+                "type": type,
+                "trigger_event_type": trigger_event_type,
+                "search": search,
+                "is_including_public_workflows": is_including_public_workflows,
             },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedWorkflowListList,
+                    ApiWorkflowsListResponse,
                     parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
+                        type_=ApiWorkflowsListResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2823,104 +1352,58 @@ class AsyncRawWorkflowsClient:
     async def create_workflow(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[CreateWorkflowRequestType] = OMIT,
+        trigger_event_type: typing.Optional[CreateWorkflowRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        tasks: typing.Optional[typing.Sequence[CreateWorkflowRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WorkflowCreate]:
+    ) -> AsyncHttpResponse[CreateWorkflowResponse]:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Create a new workflow family with an editable draft. Task IDs and sequential links are generated when omitted. `type` defaults to `automations`; deployment and read-only state are server controlled.
 
         Parameters
         ----------
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[CreateWorkflowRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[CreateWorkflowRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
+        tasks : typing.Optional[typing.Sequence[CreateWorkflowRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[WorkflowCreate]
-
+        AsyncHttpResponse[CreateWorkflowResponse]
+            Workflow draft created.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/workflows/",
             method="POST",
             json={
-                "id": id,
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[WorkflowCreateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
                 "name": name,
                 "description": description,
                 "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type, annotation=WorkflowCreateRequestTriggerEventType, direction="write"
-                ),
+                "trigger_event_type": trigger_event_type,
                 "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
                 "is_starred": is_starred,
-                "resource_ids": resource_ids,
+                "tasks": convert_and_respect_annotation_metadata(
+                    object_=tasks, annotation=typing.Sequence[CreateWorkflowRequestTasksItem], direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -2931,13 +1414,139 @@ class AsyncRawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowCreate,
+                    CreateWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowCreate,  # type: ignore
+                        type_=CreateWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def filter_workflows(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        type: typing.Optional[FilterWorkflowsRequestType] = None,
+        trigger_event_type: typing.Optional[FilterWorkflowsRequestTriggerEventType] = None,
+        search: typing.Optional[str] = None,
+        is_including_public_workflows: typing.Optional[bool] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[FilterWorkflowsResponse]:
+        """
+        List one representative version per workflow family using optional complex filters in the request body. An omitted body or omitted `filters` object applies only the query-string filters.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
+
+        type : typing.Optional[FilterWorkflowsRequestType]
+
+        trigger_event_type : typing.Optional[FilterWorkflowsRequestTriggerEventType]
+
+        search : typing.Optional[str]
+            Free-text search over workflow names.
+
+        is_including_public_workflows : typing.Optional[bool]
+            Include Respan-managed public workflows.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter parameters keyed by field name.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[FilterWorkflowsResponse]
+            Paginated filtered workflow families.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/workflows/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "type": type,
+                "trigger_event_type": trigger_event_type,
+                "search": search,
+                "is_including_public_workflows": is_including_public_workflows,
+            },
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FilterWorkflowsResponse,
+                    parse_obj_as(
+                        type_=FilterWorkflowsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2947,66 +1556,73 @@ class AsyncRawWorkflowsClient:
         self,
         workflow_id: str,
         *,
-        is_exporting: typing.Optional[bool] = None,
         is_including_secrets: typing.Optional[bool] = None,
+        is_exporting: typing.Optional[bool] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WorkflowRetrieveResponse]:
+    ) -> AsyncHttpResponse[GetWorkflowResponse]:
         """
-        Get, update, or delete a workflow.
-
-        Drafts-on-demand resolution:
-        - GET returns the draft if one exists, else the latest committed version
-          (404 when the family doesn't exist at all).
-        - PATCH edits the draft. When the family has no draft (committed-only),
-          PATCH returns 409 — clients must create a draft first via
-          POST /api/workflows/{workflow_id}/versions/.
-        - DELETE removes every version in the family.
-
-        Committing a draft is a separate action at
-        POST /api/workflows/{workflow_id}/commits/.
-
-        PUBLIC workflows resolve here by id on READS (toggle defaults on so by-id
-        reads stay toggle-free); WRITES scope to own rows only, so a public family
-        404s for non-staff instead of resolving into a mutation path. JWT writes
-        are additionally gated by ``check_object_permissions`` in ``get_object``.
+        Return the editable draft when one exists, otherwise the latest committed version. Set `is_exporting=true` for a portable, secret-sanitized export. Webhook secrets remain masked unless an authorized caller sets `is_including_secrets=true`.
 
         Parameters
         ----------
         workflow_id : str
-
-        is_exporting : typing.Optional[bool]
-            Set to true to get a portable export of the workflow. Default: false.
+            Logical workflow-family ID.
 
         is_including_secrets : typing.Optional[bool]
-            Set to true to reveal webhook secret values. Default: false.
+            Reveal webhook secret values when authorized.
+
+        is_exporting : typing.Optional[bool]
+            Return a portable export envelope.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[WorkflowRetrieveResponse]
-
+        AsyncHttpResponse[GetWorkflowResponse]
+            Workflow detail or portable export.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/",
             method="GET",
             params={
-                "is_exporting": is_exporting,
                 "is_including_secrets": is_including_secrets,
+                "is_exporting": is_exporting,
             },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowRetrieveResponse,
+                    GetWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowRetrieveResponse,  # type: ignore
+                        type_=GetWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -3016,11 +1632,12 @@ class AsyncRawWorkflowsClient:
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Delete all versions in the workflow family.
+        Delete every version in a workflow family.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -3037,6 +1654,28 @@ class AsyncRawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -3044,107 +1683,63 @@ class AsyncRawWorkflowsClient:
 
     async def update_workflow(
         self,
-        workflow_id_: str,
+        workflow_id: str,
         *,
-        tasks: typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
         name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType] = OMIT,
+        type: typing.Optional[UpdateWorkflowRequestType] = OMIT,
+        trigger_event_type: typing.Optional[UpdateWorkflowRequestTriggerEventType] = OMIT,
         schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
         is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
+        tasks: typing.Optional[typing.Sequence[UpdateWorkflowRequestTasksItem]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WorkflowUpdate]:
+    ) -> AsyncHttpResponse[UpdateWorkflowResponse]:
         """
-        Edit the workflow. Structural edits on committed-only families return 409.
+        Update a workflow family. `name`, `description`, and `is_starred` are family metadata and propagate to every version. Structural fields edit the current draft; committed-only families must create a new draft first.
 
         Parameters
         ----------
-        workflow_id_ : str
-
-        tasks : typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
+        workflow_id : str
+            Logical workflow-family ID.
 
         name : typing.Optional[str]
 
         description : typing.Optional[str]
 
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
+        type : typing.Optional[UpdateWorkflowRequestType]
+            Workflow category. Defaults to `automations`.
 
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
+        trigger_event_type : typing.Optional[UpdateWorkflowRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
 
         schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
 
         is_starred : typing.Optional[bool]
 
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        updated_by : typing.Optional[int]
+        tasks : typing.Optional[typing.Sequence[UpdateWorkflowRequestTasksItem]]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[WorkflowUpdate]
-
+        AsyncHttpResponse[UpdateWorkflowResponse]
+            Workflow updated.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id_)}/",
+            f"api/workflows/{jsonable_encoder(workflow_id)}/",
             method="PATCH",
             json={
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[PatchedWorkflowUpdateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
                 "name": name,
                 "description": description,
                 "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type,
-                    annotation=PatchedWorkflowUpdateRequestTriggerEventType,
-                    direction="write",
-                ),
+                "trigger_event_type": trigger_event_type,
                 "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
                 "is_starred": is_starred,
-                "resource_ids": resource_ids,
-                "updated_by": updated_by,
+                "tasks": convert_and_respect_annotation_metadata(
+                    object_=tasks, annotation=typing.Sequence[UpdateWorkflowRequestTasksItem], direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -3155,48 +1750,189 @@ class AsyncRawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowUpdate,
+                    UpdateWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowUpdate,  # type: ignore
+                        type_=UpdateWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def api_workflows_commits_create(
+    async def list_workflow_versions(
         self,
         workflow_id: str,
         *,
-        description: typing.Optional[str] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WorkflowDetail]:
+    ) -> AsyncHttpResponse[ListWorkflowVersionsResponse]:
         """
-        Commit the current draft (flip ``is_read_only`` True in place).
+        List all draft and committed versions in a workflow family. An unknown family returns an empty page.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
-        description : typing.Optional[str]
-            Commit message stamped on the newly committed version.
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        sort_by : typing.Optional[str]
+            Sort field, for example `-updated_at`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[WorkflowDetail]
-
+        AsyncHttpResponse[ListWorkflowVersionsResponse]
+            Paginated workflow versions.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id)}/commits/",
+            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListWorkflowVersionsResponse,
+                    parse_obj_as(
+                        type_=ListWorkflowVersionsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def create_workflow_version(
+        self,
+        workflow_id: str,
+        *,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[CreateWorkflowVersionRequestType] = OMIT,
+        trigger_event_type: typing.Optional[CreateWorkflowVersionRequestTriggerEventType] = OMIT,
+        schedule_cron: typing.Optional[str] = OMIT,
+        is_starred: typing.Optional[bool] = OMIT,
+        tasks: typing.Optional[typing.Sequence[CreateWorkflowVersionRequestTasksItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[CreateWorkflowVersionResponse]:
+        """
+        Create a new editable draft from the submitted workflow content. The server assigns the next version and the family identity. This does not clone, commit, deploy, or modify any existing version.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        name : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[CreateWorkflowVersionRequestType]
+            Workflow category. Defaults to `automations`.
+
+        trigger_event_type : typing.Optional[CreateWorkflowVersionRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
+
+        schedule_cron : typing.Optional[str]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
+
+        is_starred : typing.Optional[bool]
+
+        tasks : typing.Optional[typing.Sequence[CreateWorkflowVersionRequestTasksItem]]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[CreateWorkflowVersionResponse]
+            Editable draft created.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/",
             method="POST",
             json={
+                "name": name,
                 "description": description,
+                "type": type,
+                "trigger_event_type": trigger_event_type,
+                "schedule_cron": schedule_cron,
+                "is_starred": is_starred,
+                "tasks": convert_and_respect_annotation_metadata(
+                    object_=tasks, annotation=typing.Sequence[CreateWorkflowVersionRequestTasksItem], direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -3207,15 +1943,230 @@ class AsyncRawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowDetail,
+                    CreateWorkflowVersionResponse,
                     parse_obj_as(
-                        type_=WorkflowDetail,  # type: ignore
+                        type_=CreateWorkflowVersionResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 409:
-                raise ConflictError(
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def get_workflow_version(
+        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[GetWorkflowVersionResponse]:
+        """
+        Retrieve one exact workflow version, including its current write-access metadata.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        version : int
+            Workflow version number.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[GetWorkflowVersionResponse]
+            Workflow version.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/{jsonable_encoder(version)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetWorkflowVersionResponse,
+                    parse_obj_as(
+                        type_=GetWorkflowVersionResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def update_workflow_version(
+        self,
+        workflow_id: str,
+        version: int,
+        *,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        type: typing.Optional[UpdateWorkflowVersionRequestType] = OMIT,
+        trigger_event_type: typing.Optional[UpdateWorkflowVersionRequestTriggerEventType] = OMIT,
+        schedule_cron: typing.Optional[str] = OMIT,
+        is_starred: typing.Optional[bool] = OMIT,
+        tasks: typing.Optional[typing.Sequence[UpdateWorkflowVersionRequestTasksItem]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[UpdateWorkflowVersionResponse]:
+        """
+        Update an editable workflow version. Committed read-only versions cannot be changed; create a new draft instead. Commit messages and read-only state are controlled by the commit endpoint.
+
+        Parameters
+        ----------
+        workflow_id : str
+            Logical workflow-family ID.
+
+        version : int
+            Workflow version number.
+
+        name : typing.Optional[str]
+
+        description : typing.Optional[str]
+
+        type : typing.Optional[UpdateWorkflowVersionRequestType]
+            Workflow category. Defaults to `automations`.
+
+        trigger_event_type : typing.Optional[UpdateWorkflowVersionRequestTriggerEventType]
+            Event that triggers the workflow. Use `scheduled` with `schedule_cron`.
+
+        schedule_cron : typing.Optional[str]
+            UTC five-field cron expression. Required when `trigger_event_type` is `scheduled`, forbidden for other trigger types, and limited to a minimum five-minute cadence. Timezone prefixes such as `TZ` and `CRON_TZ` are not supported.
+
+        is_starred : typing.Optional[bool]
+
+        tasks : typing.Optional[typing.Sequence[UpdateWorkflowVersionRequestTasksItem]]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[UpdateWorkflowVersionResponse]
+            Workflow version updated.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/{jsonable_encoder(version)}/",
+            method="PATCH",
+            json={
+                "name": name,
+                "description": description,
+                "type": type,
+                "trigger_event_type": trigger_event_type,
+                "schedule_cron": schedule_cron,
+                "is_starred": is_starred,
+                "tasks": convert_and_respect_annotation_metadata(
+                    object_=tasks, annotation=typing.Sequence[UpdateWorkflowVersionRequestTasksItem], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UpdateWorkflowVersionResponse,
+                    parse_obj_as(
+                        type_=UpdateWorkflowVersionResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -3236,24 +2187,24 @@ class AsyncRawWorkflowsClient:
         *,
         version: typing.Optional[int] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WorkflowDeployResponse]:
+    ) -> AsyncHttpResponse[DeployWorkflowResponse]:
         """
-        Deploy a committed workflow version. Sets is_enabled=True on the target version and False on all others in the family.
+        Deploy one committed workflow version and disable any previously deployed version in the family. Omitting `version` deploys the latest committed version.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         version : typing.Optional[int]
-            Version number to deploy. If omitted, deploys the latest committed version.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[WorkflowDeployResponse]
-
+        AsyncHttpResponse[DeployWorkflowResponse]
+            Workflow version deployed.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/deployments/",
@@ -3270,13 +2221,46 @@ class AsyncRawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowDeployResponse,
+                    DeployWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowDeployResponse,  # type: ignore
+                        type_=DeployWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -3286,11 +2270,12 @@ class AsyncRawWorkflowsClient:
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Undeploy a workflow. Sets is_enabled=False on all versions in the family.
+        Disable the deployed version in an existing workflow family. The operation is idempotent when the family has no active deployment.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -3307,6 +2292,28 @@ class AsyncRawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -3314,28 +2321,22 @@ class AsyncRawWorkflowsClient:
 
     async def validate_workflow(
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[WorkflowValidationResponse]:
+    ) -> AsyncHttpResponse[ValidateWorkflowResponse]:
         """
-        Validate a workflow's configuration and fire preview delivery sends.
-
-        POST /api/workflows/<workflow_id>/validations/
-
-        Validates structure, per-task config, and upstream state references, then dispatches **real** preview notifications and webhooks so users can verify their delivery channels. Unresolved template variables render as the token {{placeholder}}. No aggregation runs; no logs are fetched.
-
-        Returns:
-            status, validation, task_results, is_all_passed
+        Validate the latest editable draft and send real preview notifications or webhooks for delivery tasks. No logs are fetched and no aggregation runs. Configuration failures are returned in the `200` validation envelope; a draft with no tasks succeeds with an empty `task_results` array.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[WorkflowValidationResponse]
-
+        AsyncHttpResponse[ValidateWorkflowResponse]
+            Workflow validation result.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/workflows/{jsonable_encoder(workflow_id)}/validations/",
@@ -3345,195 +2346,71 @@ class AsyncRawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowValidationResponse,
+                    ValidateWorkflowResponse,
                     parse_obj_as(
-                        type_=WorkflowValidationResponse,  # type: ignore
+                        type_=ValidateWorkflowResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def list_workflow_versions(
+    async def api_workflows_commits_create(
         self,
         workflow_id: str,
         *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
+        version_description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedWorkflowListList]:
+    ) -> AsyncHttpResponse[ApiWorkflowsCommitsCreateResponse]:
         """
-        List versions for a workflow family, or create a new draft.
-
-        GET  /api/workflows/{workflow_id}/versions/
-            List every version row (draft + committed history).
-
-        POST /api/workflows/{workflow_id}/versions/
-            Create a new editable draft. Pure CRUD — the client sends the
-            new row's content (name, tasks, description, etc.) and the
-            backend inserts it with ``is_read_only=False``. Nothing else
-            in the family is touched. Committing is a separate action at
-            POST /api/workflows/{workflow_id}/commits/.
+        Commit the current editable draft in place. Omitting `version_description` preserves its existing commit message; an explicit empty string clears it.
 
         Parameters
         ----------
         workflow_id : str
+            Logical workflow-family ID.
 
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
+        version_description : typing.Optional[str]
+            Commit message for this version.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PaginatedWorkflowListList]
-
+        AsyncHttpResponse[ApiWorkflowsCommitsCreateResponse]
+            Draft committed.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedWorkflowListList,
-                    parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def create_workflow_version(
-        self,
-        workflow_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WorkflowDetail]:
-        """
-        Create a new draft row from the client payload.
-
-        Pure CRUD: inserts one new row with ``is_read_only=False`` using
-        the content the client sends (``name``, ``tasks``, ``description``,
-        ``type``, ``trigger_event_type``, ``is_starred``). Does NOT clone
-        from other rows and does NOT touch other rows.
-
-        The FE owns the "draft dance" — when the user wants to edit a
-        committed workflow, the FE reads the current state locally and
-        sends it here as the new draft's content.
-
-        The view forces identity/scope fields (``workflow_id`` from the
-        URL, organization from the caller) so the client can't reparent
-        a row into another family or org.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[WorkflowDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id_)}/versions/",
+            f"api/workflows/{jsonable_encoder(workflow_id)}/commits/",
             method="POST",
             json={
-                "id": id,
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[WorkflowCreateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
-                "name": name,
-                "description": description,
-                "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type, annotation=WorkflowCreateRequestTriggerEventType, direction="write"
-                ),
-                "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
-                "is_starred": is_starred,
-                "resource_ids": resource_ids,
+                "version_description": version_description,
             },
             headers={
                 "content-type": "application/json",
@@ -3544,667 +2421,57 @@ class AsyncRawWorkflowsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    WorkflowDetail,
+                    ApiWorkflowsCommitsCreateResponse,
                     parse_obj_as(
-                        type_=WorkflowDetail,  # type: ignore
+                        type_=ApiWorkflowsCommitsCreateResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def get_workflow_version(
-        self, workflow_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[WorkflowDetail]:
-        """
-        Get or edit a specific workflow version.
-
-        GET /api/workflows/{workflow_id}/versions/{version}/
-        PATCH /api/workflows/{workflow_id}/versions/{version}/ (only if is_read_only=False)
-
-        PUBLIC workflow versions are readable by every tenant; PATCH scopes to own
-        rows only, so a public version 404s for non-staff instead of resolving
-        into a mutation path.
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        version : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[WorkflowDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/{jsonable_encoder(version)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    WorkflowDetail,
-                    parse_obj_as(
-                        type_=WorkflowDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def update_workflow_version(
-        self,
-        workflow_id_: str,
-        version_: int,
-        *,
-        tasks: typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WorkflowUpdate]:
-        """
-        Edit version — only allowed if is_read_only=False.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        version_ : int
-
-        tasks : typing.Optional[typing.Sequence[PatchedWorkflowUpdateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[PatchedWorkflowUpdateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[WorkflowUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id_)}/versions/{jsonable_encoder(version_)}/",
-            method="PATCH",
-            json={
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[PatchedWorkflowUpdateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
-                "name": name,
-                "description": description,
-                "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type,
-                    annotation=PatchedWorkflowUpdateRequestTriggerEventType,
-                    direction="write",
-                ),
-                "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
-                "is_starred": is_starred,
-                "resource_ids": resource_ids,
-                "updated_by": updated_by,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    WorkflowUpdate,
-                    parse_obj_as(
-                        type_=WorkflowUpdate,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_workflows_versions_list_list(
-        self,
-        workflow_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedWorkflowListList]:
-        """
-        List versions for a workflow family, or create a new draft.
-
-        GET  /api/workflows/{workflow_id}/versions/
-            List every version row (draft + committed history).
-
-        POST /api/workflows/{workflow_id}/versions/
-            Create a new editable draft. Pure CRUD — the client sends the
-            new row's content (name, tasks, description, etc.) and the
-            backend inserts it with ``is_read_only=False``. Nothing else
-            in the family is touched. Committing is a separate action at
-            POST /api/workflows/{workflow_id}/commits/.
-
-        Parameters
-        ----------
-        workflow_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedWorkflowListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id)}/versions/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedWorkflowListList,
-                    parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_workflows_versions_list_create(
-        self,
-        workflow_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        tasks: typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]] = OMIT,
-        workflow_id: typing.Optional[str] = OMIT,
-        version: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[WorkflowVersionTypeEnum] = OMIT,
-        trigger_event_type: typing.Optional[WorkflowCreateRequestTriggerEventType] = OMIT,
-        schedule_cron: typing.Optional[str] = OMIT,
-        has_async_steps: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WorkflowDetail]:
-        """
-        Create a new draft row from the client payload.
-
-        Pure CRUD: inserts one new row with ``is_read_only=False`` using
-        the content the client sends (``name``, ``tasks``, ``description``,
-        ``type``, ``trigger_event_type``, ``is_starred``). Does NOT clone
-        from other rows and does NOT touch other rows.
-
-        The FE owns the "draft dance" — when the user wants to edit a
-        committed workflow, the FE reads the current state locally and
-        sends it here as the new draft's content.
-
-        The view forces identity/scope fields (``workflow_id`` from the
-        URL, organization from the caller) so the client can't reparent
-        a row into another family or org.
-
-        Parameters
-        ----------
-        workflow_id_ : str
-
-        id : typing.Optional[str]
-
-        tasks : typing.Optional[typing.Sequence[WorkflowCreateRequestTasksItem]]
-
-        workflow_id : typing.Optional[str]
-            Logical workflow family key shared across versions
-
-        version : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[WorkflowVersionTypeEnum]
-            Kind of workflow: automation, monitor, or evaluator
-
-            * `automations` - Automation
-            * `monitors` - Monitor
-            * `evaluators` - Evaluator
-            * `reports` - Report
-            * `exports` - Export
-            * `ingests` - Ingest
-
-        trigger_event_type : typing.Optional[WorkflowCreateRequestTriggerEventType]
-            Event type that triggers this workflow when used as an event responder
-
-            * `request_log` - LOG_INGESTED
-            * `trace_completed` - TRACE_COMPLETED
-            * `customer_budget_limit_reached` - BUDGET_EXCEEDED
-            * `credit_low_balance_threshold_reached` - CREDIT_LOW
-            * `spend_cap_warning_threshold_reached` - SPEND_CAP_WARNING
-            * `limit_policy_soft_triggered` - LIMIT_POLICY_SOFT_TRIGGERED
-            * `limit_policy_hard_triggered` - LIMIT_POLICY_HARD_TRIGGERED
-            * `on_eval_result_ingested` - EVAL_COMPLETED
-            * `custom_event` - CUSTOM_EVENT
-            * `eval_only` - EVAL_ONLY
-            * `scheduled` - SCHEDULED
-
-        schedule_cron : typing.Optional[str]
-            UTC cron schedule (5-field). Populated when trigger_event_type='scheduled'.
-
-        has_async_steps : typing.Optional[bool]
-
-        is_starred : typing.Optional[bool]
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced in workflow (for reverse lookup)
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[WorkflowDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/workflows/{jsonable_encoder(workflow_id_)}/versions/list/",
-            method="POST",
-            json={
-                "id": id,
-                "tasks": convert_and_respect_annotation_metadata(
-                    object_=tasks, annotation=typing.Sequence[WorkflowCreateRequestTasksItem], direction="write"
-                ),
-                "workflow_id": workflow_id,
-                "version": version,
-                "name": name,
-                "description": description,
-                "type": type,
-                "trigger_event_type": convert_and_respect_annotation_metadata(
-                    object_=trigger_event_type, annotation=WorkflowCreateRequestTriggerEventType, direction="write"
-                ),
-                "schedule_cron": schedule_cron,
-                "has_async_steps": has_async_steps,
-                "is_starred": is_starred,
-                "resource_ids": resource_ids,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    WorkflowDetail,
-                    parse_obj_as(
-                        type_=WorkflowDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_workflows_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        search: typing.Optional[str] = None,
-        sort_by: typing.Optional[str] = None,
-        trigger_event_type: typing.Optional[str] = None,
-        type: typing.Optional[str] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedWorkflowListList]:
-        """
-        List workflows with filtering support.
-
-        GET  /api/workflows/list/  — paginated list with filters_data
-        POST /api/workflows/list/  — POST-for-filtering (not creation)
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        search : typing.Optional[str]
-            Free-text search over workflow name.
-
-        sort_by : typing.Optional[str]
-            Field to sort by, e.g. '-updated_at'.
-
-        trigger_event_type : typing.Optional[str]
-            Filter by trigger event type, e.g. 'eval_only'.
-
-        type : typing.Optional[str]
-            Workflow type filter (automations, monitors, evaluators, reports).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedWorkflowListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/workflows/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-                "search": search,
-                "sort_by": sort_by,
-                "trigger_event_type": trigger_event_type,
-                "type": type,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedWorkflowListList,
-                    parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def filter_workflows(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedWorkflowListList]:
-        """
-        List workflows with complex filtering via POST body.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        filters : typing.Optional[FilterParamDictPydantic]
-            Filter parameters keyed by field name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedWorkflowListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/workflows/list/",
-            method="POST",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            json={
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedWorkflowListList,
-                    parse_obj_as(
-                        type_=PaginatedWorkflowListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_workflows_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        GET/POST /api/workflows/summary/
-
-        Returns total count of workflows matching the supplied filters.
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/workflows/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_workflows_summary_filtered(
-        self,
-        *,
-        filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[WorkflowSummaryResponse]:
-        """
-        Total count of workflows matching the supplied filters.
-
-        Parameters
-        ----------
-        filters : typing.Optional[FilterParamDictPydantic]
-            Filter parameters keyed by field name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[WorkflowSummaryResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/workflows/summary/",
-            method="POST",
-            json={
-                "filters": convert_and_respect_annotation_metadata(
-                    object_=filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    WorkflowSummaryResponse,
-                    parse_obj_as(
-                        type_=WorkflowSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_workflows_summary_update(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/workflows/summary/",
-            method="PUT",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_workflows_summary_partial_update(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/workflows/summary/",
-            method="PATCH",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

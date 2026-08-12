@@ -2,3 +2,111 @@
 
 # isort: skip_file
 
+import typing
+from importlib import import_module
+
+if typing.TYPE_CHECKING:
+    from .types import (
+        CreateScoreResponse,
+        CreateScoreResponseType,
+        CreateSpanScoreResponse,
+        CreateSpanScoreResponseType,
+        FilterScoresResponse,
+        FilterScoresResponseResultsItem,
+        FilterScoresResponseResultsItemType,
+        ListSpanScoresResponse,
+        ListSpanScoresResponseResultsItem,
+        ListSpanScoresResponseResultsItemType,
+        ReplaceScoreResponse,
+        ReplaceScoreResponseInputs,
+        ReplaceScoreResponseType,
+        ReplaceSpanScoreResponse,
+        ReplaceSpanScoreResponseType,
+        RetrieveScoreResponse,
+        RetrieveScoreResponseInputs,
+        RetrieveScoreResponseType,
+        RetrieveSpanScoreResponse,
+        RetrieveSpanScoreResponseType,
+        UpdateScoreResponse,
+        UpdateScoreResponseInputs,
+        UpdateScoreResponseType,
+        UpdateSpanScoreResponse,
+        UpdateSpanScoreResponseType,
+    )
+_dynamic_imports: typing.Dict[str, str] = {
+    "CreateScoreResponse": ".types",
+    "CreateScoreResponseType": ".types",
+    "CreateSpanScoreResponse": ".types",
+    "CreateSpanScoreResponseType": ".types",
+    "FilterScoresResponse": ".types",
+    "FilterScoresResponseResultsItem": ".types",
+    "FilterScoresResponseResultsItemType": ".types",
+    "ListSpanScoresResponse": ".types",
+    "ListSpanScoresResponseResultsItem": ".types",
+    "ListSpanScoresResponseResultsItemType": ".types",
+    "ReplaceScoreResponse": ".types",
+    "ReplaceScoreResponseInputs": ".types",
+    "ReplaceScoreResponseType": ".types",
+    "ReplaceSpanScoreResponse": ".types",
+    "ReplaceSpanScoreResponseType": ".types",
+    "RetrieveScoreResponse": ".types",
+    "RetrieveScoreResponseInputs": ".types",
+    "RetrieveScoreResponseType": ".types",
+    "RetrieveSpanScoreResponse": ".types",
+    "RetrieveSpanScoreResponseType": ".types",
+    "UpdateScoreResponse": ".types",
+    "UpdateScoreResponseInputs": ".types",
+    "UpdateScoreResponseType": ".types",
+    "UpdateSpanScoreResponse": ".types",
+    "UpdateSpanScoreResponseType": ".types",
+}
+
+
+def __getattr__(attr_name: str) -> typing.Any:
+    module_name = _dynamic_imports.get(attr_name)
+    if module_name is None:
+        raise AttributeError(f"No {attr_name} found in _dynamic_imports for module name -> {__name__}")
+    try:
+        module = import_module(module_name, __package__)
+        if module_name == f".{attr_name}":
+            return module
+        else:
+            return getattr(module, attr_name)
+    except ImportError as e:
+        raise ImportError(f"Failed to import {attr_name} from {module_name}: {e}") from e
+    except AttributeError as e:
+        raise AttributeError(f"Failed to get {attr_name} from {module_name}: {e}") from e
+
+
+def __dir__():
+    lazy_attrs = list(_dynamic_imports.keys())
+    return sorted(lazy_attrs)
+
+
+__all__ = [
+    "CreateScoreResponse",
+    "CreateScoreResponseType",
+    "CreateSpanScoreResponse",
+    "CreateSpanScoreResponseType",
+    "FilterScoresResponse",
+    "FilterScoresResponseResultsItem",
+    "FilterScoresResponseResultsItemType",
+    "ListSpanScoresResponse",
+    "ListSpanScoresResponseResultsItem",
+    "ListSpanScoresResponseResultsItemType",
+    "ReplaceScoreResponse",
+    "ReplaceScoreResponseInputs",
+    "ReplaceScoreResponseType",
+    "ReplaceSpanScoreResponse",
+    "ReplaceSpanScoreResponseType",
+    "RetrieveScoreResponse",
+    "RetrieveScoreResponseInputs",
+    "RetrieveScoreResponseType",
+    "RetrieveSpanScoreResponse",
+    "RetrieveSpanScoreResponseType",
+    "UpdateScoreResponse",
+    "UpdateScoreResponseInputs",
+    "UpdateScoreResponseType",
+    "UpdateSpanScoreResponse",
+    "UpdateSpanScoreResponseType",
+]

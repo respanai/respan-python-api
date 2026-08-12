@@ -2,3 +2,126 @@
 
 # isort: skip_file
 
+import typing
+from importlib import import_module
+
+if typing.TYPE_CHECKING:
+    from .types import (
+        CreateTestsetRequestColumnDefinitionsItem,
+        CreateTestsetRequestColumnDefinitionsItemType,
+        CreateTestsetResponse,
+        CreateTestsetResponseColumnDefinitionsItem,
+        CreateTestsetResponseColumnDefinitionsItemType,
+        CreateTestsetRowsRequestTestsetRowsItem,
+        CreateTestsetRowsResponseItem,
+        GetFilteredTestsetsSummaryResponse,
+        ListTestsetRowsResponse,
+        ListTestsetRowsResponseResultsItem,
+        ListTestsetsResponse,
+        ListTestsetsResponseResultsItem,
+        ListTestsetsResponseResultsItemColumnDefinitionsItem,
+        ListTestsetsResponseResultsItemColumnDefinitionsItemType,
+        ReplaceTestsetRequestColumnDefinitionsItem,
+        ReplaceTestsetRequestColumnDefinitionsItemType,
+        ReplaceTestsetResponse,
+        ReplaceTestsetResponseColumnDefinitionsItem,
+        ReplaceTestsetResponseColumnDefinitionsItemType,
+        ReplaceTestsetRowResponse,
+        RetrieveTestsetResponse,
+        RetrieveTestsetResponseColumnDefinitionsItem,
+        RetrieveTestsetResponseColumnDefinitionsItemType,
+        RetrieveTestsetRowResponse,
+        UpdateTestsetRequestColumnDefinitionsItem,
+        UpdateTestsetRequestColumnDefinitionsItemType,
+        UpdateTestsetResponse,
+        UpdateTestsetResponseColumnDefinitionsItem,
+        UpdateTestsetResponseColumnDefinitionsItemType,
+        UpdateTestsetRowResponse,
+    )
+_dynamic_imports: typing.Dict[str, str] = {
+    "CreateTestsetRequestColumnDefinitionsItem": ".types",
+    "CreateTestsetRequestColumnDefinitionsItemType": ".types",
+    "CreateTestsetResponse": ".types",
+    "CreateTestsetResponseColumnDefinitionsItem": ".types",
+    "CreateTestsetResponseColumnDefinitionsItemType": ".types",
+    "CreateTestsetRowsRequestTestsetRowsItem": ".types",
+    "CreateTestsetRowsResponseItem": ".types",
+    "GetFilteredTestsetsSummaryResponse": ".types",
+    "ListTestsetRowsResponse": ".types",
+    "ListTestsetRowsResponseResultsItem": ".types",
+    "ListTestsetsResponse": ".types",
+    "ListTestsetsResponseResultsItem": ".types",
+    "ListTestsetsResponseResultsItemColumnDefinitionsItem": ".types",
+    "ListTestsetsResponseResultsItemColumnDefinitionsItemType": ".types",
+    "ReplaceTestsetRequestColumnDefinitionsItem": ".types",
+    "ReplaceTestsetRequestColumnDefinitionsItemType": ".types",
+    "ReplaceTestsetResponse": ".types",
+    "ReplaceTestsetResponseColumnDefinitionsItem": ".types",
+    "ReplaceTestsetResponseColumnDefinitionsItemType": ".types",
+    "ReplaceTestsetRowResponse": ".types",
+    "RetrieveTestsetResponse": ".types",
+    "RetrieveTestsetResponseColumnDefinitionsItem": ".types",
+    "RetrieveTestsetResponseColumnDefinitionsItemType": ".types",
+    "RetrieveTestsetRowResponse": ".types",
+    "UpdateTestsetRequestColumnDefinitionsItem": ".types",
+    "UpdateTestsetRequestColumnDefinitionsItemType": ".types",
+    "UpdateTestsetResponse": ".types",
+    "UpdateTestsetResponseColumnDefinitionsItem": ".types",
+    "UpdateTestsetResponseColumnDefinitionsItemType": ".types",
+    "UpdateTestsetRowResponse": ".types",
+}
+
+
+def __getattr__(attr_name: str) -> typing.Any:
+    module_name = _dynamic_imports.get(attr_name)
+    if module_name is None:
+        raise AttributeError(f"No {attr_name} found in _dynamic_imports for module name -> {__name__}")
+    try:
+        module = import_module(module_name, __package__)
+        if module_name == f".{attr_name}":
+            return module
+        else:
+            return getattr(module, attr_name)
+    except ImportError as e:
+        raise ImportError(f"Failed to import {attr_name} from {module_name}: {e}") from e
+    except AttributeError as e:
+        raise AttributeError(f"Failed to get {attr_name} from {module_name}: {e}") from e
+
+
+def __dir__():
+    lazy_attrs = list(_dynamic_imports.keys())
+    return sorted(lazy_attrs)
+
+
+__all__ = [
+    "CreateTestsetRequestColumnDefinitionsItem",
+    "CreateTestsetRequestColumnDefinitionsItemType",
+    "CreateTestsetResponse",
+    "CreateTestsetResponseColumnDefinitionsItem",
+    "CreateTestsetResponseColumnDefinitionsItemType",
+    "CreateTestsetRowsRequestTestsetRowsItem",
+    "CreateTestsetRowsResponseItem",
+    "GetFilteredTestsetsSummaryResponse",
+    "ListTestsetRowsResponse",
+    "ListTestsetRowsResponseResultsItem",
+    "ListTestsetsResponse",
+    "ListTestsetsResponseResultsItem",
+    "ListTestsetsResponseResultsItemColumnDefinitionsItem",
+    "ListTestsetsResponseResultsItemColumnDefinitionsItemType",
+    "ReplaceTestsetRequestColumnDefinitionsItem",
+    "ReplaceTestsetRequestColumnDefinitionsItemType",
+    "ReplaceTestsetResponse",
+    "ReplaceTestsetResponseColumnDefinitionsItem",
+    "ReplaceTestsetResponseColumnDefinitionsItemType",
+    "ReplaceTestsetRowResponse",
+    "RetrieveTestsetResponse",
+    "RetrieveTestsetResponseColumnDefinitionsItem",
+    "RetrieveTestsetResponseColumnDefinitionsItemType",
+    "RetrieveTestsetRowResponse",
+    "UpdateTestsetRequestColumnDefinitionsItem",
+    "UpdateTestsetRequestColumnDefinitionsItemType",
+    "UpdateTestsetResponse",
+    "UpdateTestsetResponseColumnDefinitionsItem",
+    "UpdateTestsetResponseColumnDefinitionsItemType",
+    "UpdateTestsetRowResponse",
+]

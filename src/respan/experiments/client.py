@@ -4,28 +4,26 @@ import datetime as dt
 import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
+from ..core.pagination import AsyncPager, SyncPager
 from ..core.request_options import RequestOptions
-from ..types.ch_dataset_trace_detail import ChDatasetTraceDetail
-from ..types.ch_dataset_trace_list import ChDatasetTraceList
-from ..types.dataset_llm_run_status_enum import DatasetLlmRunStatusEnum
-from ..types.experiment_base import ExperimentBase
-from ..types.experiment_detail import ExperimentDetail
-from ..types.experiment_summary_response import ExperimentSummaryResponse
-from ..types.experiment_v2 import ExperimentV2
-from ..types.experiment_v2create import ExperimentV2Create
-from ..types.experiment_v2list import ExperimentV2List
-from ..types.experiment_v2summary_response import ExperimentV2SummaryResponse
-from ..types.experiment_v2update import ExperimentV2Update
-from ..types.paginated_ch_dataset_trace_list_list import PaginatedChDatasetTraceListList
-from ..types.paginated_experiment_base_list import PaginatedExperimentBaseList
-from ..types.paginated_experiment_v2list_list import PaginatedExperimentV2ListList
-from ..types.paginated_testset_sheet_list_list import PaginatedTestsetSheetListList
-from ..types.public_experiment_update import PublicExperimentUpdate
-from ..types.public_testset_sheet_detail import PublicTestsetSheetDetail
-from ..types.testset_row import TestsetRow
-from ..types.testset_sheet import TestsetSheet
-from ..types.testset_sheet_list import TestsetSheetList
 from .raw_client import AsyncRawExperimentsClient, RawExperimentsClient
+from .types.create_experiment_request_workflow_item import CreateExperimentRequestWorkflowItem
+from .types.create_experiment_response import CreateExperimentResponse
+from .types.filter_experiment_score_histogram_response import FilterExperimentScoreHistogramResponse
+from .types.filter_experiment_spans_summary_response import FilterExperimentSpansSummaryResponse
+from .types.filter_experiments_summary_response import FilterExperimentsSummaryResponse
+from .types.list_experiment_spans_request_detail import ListExperimentSpansRequestDetail
+from .types.list_experiment_spans_response import ListExperimentSpansResponse
+from .types.list_experiment_spans_response_results_item import ListExperimentSpansResponseResultsItem
+from .types.list_experiments_response import ListExperimentsResponse
+from .types.list_experiments_response_results_item import ListExperimentsResponseResultsItem
+from .types.replace_experiment_request_workflow_item import ReplaceExperimentRequestWorkflowItem
+from .types.replace_experiment_response import ReplaceExperimentResponse
+from .types.retrieve_experiment_response import RetrieveExperimentResponse
+from .types.retrieve_experiment_span_response import RetrieveExperimentSpanResponse
+from .types.update_experiment_request_workflow_item import UpdateExperimentRequestWorkflowItem
+from .types.update_experiment_response import UpdateExperimentResponse
+from .types.update_experiment_span_response import UpdateExperimentSpanResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -46,2931 +44,251 @@ class ExperimentsClient:
         """
         return self._raw_client
 
-    def api_experiments_columns_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            columns: List[ExperimentColumnType]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_columns_create(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_experiments_columns_create(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_experiments_columns_destroy(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            columns: List[str] (list of column ids)
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_columns_destroy(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_experiments_columns_destroy(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_experiments_columns_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            columns: List[ExperimentColumnType]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_columns_partial_update(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_experiments_columns_partial_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    def api_experiments_rows_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            rows: List[{"input": Dict[str, Any]}]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_rows_create(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_experiments_rows_create(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_experiments_rows_destroy(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            rows: list[str] (list of row ids)
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_rows_destroy(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_experiments_rows_destroy(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_experiments_rows_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            rows: List[{"id": str, "input": Dict[str, Any]}]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_rows_partial_update(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_experiments_rows_partial_update(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_experiments_run_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_run_create(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_experiments_run_create(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_experiments_run_evals_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            evaluator_slugs: List[str]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_run_evals_create(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_experiments_run_evals_create(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_experiments_retrieve(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentDetail:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_retrieve(
-            id="id",
-        )
-        """
-        _response = self._raw_client.api_experiments_retrieve(id, request_options=request_options)
-        return _response.data
-
-    def api_experiments_update(
-        self,
-        id_: str,
-        *,
-        name: str,
-        organization: int,
-        id: typing.Optional[str] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        columns: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        rows: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        test_id: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        variables: typing.Optional[typing.Sequence[str]] = OMIT,
-        variable_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentDetail:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        id_ : str
-
-        name : str
-
-        organization : int
-
-        id : typing.Optional[str]
-
-        column_count : typing.Optional[int]
-
-        columns : typing.Optional[typing.Sequence[typing.Any]]
-
-        created_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        rows : typing.Optional[typing.Sequence[typing.Any]]
-
-        status : typing.Optional[str]
-
-        test_id : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        variables : typing.Optional[typing.Sequence[str]]
-
-        variable_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        project : typing.Optional[str]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_update(
-            id_="id",
-            name="name",
-            organization=1,
-        )
-        """
-        _response = self._raw_client.api_experiments_update(
-            id_,
-            name=name,
-            organization=organization,
-            id=id,
-            column_count=column_count,
-            columns=columns,
-            created_at=created_at,
-            row_count=row_count,
-            rows=rows,
-            status=status,
-            test_id=test_id,
-            updated_at=updated_at,
-            variables=variables,
-            variable_definitions=variable_definitions,
-            starred=starred,
-            project=project,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_experiments_destroy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_destroy(
-            id="id",
-        )
-        """
-        _response = self._raw_client.api_experiments_destroy(id, request_options=request_options)
-        return _response.data
-
-    def api_experiments_partial_update(
-        self,
-        id: str,
-        *,
-        patched_public_experiment_update_request_id: typing.Optional[str] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        test_id: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        variables: typing.Optional[typing.Sequence[str]] = OMIT,
-        variable_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        created_by: typing.Optional[int] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicExperimentUpdate:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        id : str
-
-        patched_public_experiment_update_request_id : typing.Optional[str]
-
-        column_count : typing.Optional[int]
-
-        created_at : typing.Optional[dt.datetime]
-
-        name : typing.Optional[str]
-
-        row_count : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        test_id : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        variables : typing.Optional[typing.Sequence[str]]
-
-        variable_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        created_by : typing.Optional[int]
-
-        organization : typing.Optional[int]
-
-        project : typing.Optional[str]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicExperimentUpdate
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_partial_update(
-            id="id",
-        )
-        """
-        _response = self._raw_client.api_experiments_partial_update(
-            id,
-            patched_public_experiment_update_request_id=patched_public_experiment_update_request_id,
-            column_count=column_count,
-            created_at=created_at,
-            name=name,
-            row_count=row_count,
-            status=status,
-            test_id=test_id,
-            updated_at=updated_at,
-            variables=variables,
-            variable_definitions=variable_definitions,
-            starred=starred,
-            created_by=created_by,
-            organization=organization,
-            project=project,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_experiments_create_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedExperimentBaseList:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedExperimentBaseList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_create_list()
-        """
-        _response = self._raw_client.api_experiments_create_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def api_experiments_create_create(
-        self,
-        *,
-        name: str,
-        organization: int,
-        id: typing.Optional[str] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        columns: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        rows: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        test_id: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        variables: typing.Optional[typing.Sequence[str]] = OMIT,
-        variable_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentDetail:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        name : str
-
-        organization : int
-
-        id : typing.Optional[str]
-
-        column_count : typing.Optional[int]
-
-        columns : typing.Optional[typing.Sequence[typing.Any]]
-
-        created_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        rows : typing.Optional[typing.Sequence[typing.Any]]
-
-        status : typing.Optional[str]
-
-        test_id : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        variables : typing.Optional[typing.Sequence[str]]
-
-        variable_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        project : typing.Optional[str]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_create_create(
-            name="name",
-            organization=1,
-        )
-        """
-        _response = self._raw_client.api_experiments_create_create(
-            name=name,
-            organization=organization,
-            id=id,
-            column_count=column_count,
-            columns=columns,
-            created_at=created_at,
-            row_count=row_count,
-            rows=rows,
-            status=status,
-            test_id=test_id,
-            updated_at=updated_at,
-            variables=variables,
-            variable_definitions=variable_definitions,
-            starred=starred,
-            project=project,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_experiments_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedExperimentBaseList:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedExperimentBaseList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_list_list()
-        """
-        _response = self._raw_client.api_experiments_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def api_experiments_list_create(
-        self,
-        *,
-        name: str,
-        created_by: int,
-        organization: int,
-        id: typing.Optional[str] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        test_id: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        variables: typing.Optional[typing.Sequence[str]] = OMIT,
-        variable_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentBase:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        name : str
-
-        created_by : int
-
-        organization : int
-
-        id : typing.Optional[str]
-
-        project : typing.Optional[str]
-
-        column_count : typing.Optional[int]
-
-        created_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        test_id : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        variables : typing.Optional[typing.Sequence[str]]
-
-        variable_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentBase
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_list_create(
-            name="name",
-            created_by=1,
-            organization=1,
-        )
-        """
-        _response = self._raw_client.api_experiments_list_create(
-            name=name,
-            created_by=created_by,
-            organization=organization,
-            id=id,
-            project=project,
-            column_count=column_count,
-            created_at=created_at,
-            row_count=row_count,
-            status=status,
-            test_id=test_id,
-            updated_at=updated_at,
-            variables=variables,
-            variable_definitions=variable_definitions,
-            starred=starred,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_experiments_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentSummaryResponse:
-        """
-        GET/POST /api/experiments/summary/
-
-        Get summary statistics for experiments.
-
-        Returns:
-            {
-                "total_count": 42
-            }
-
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentSummaryResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_summary_retrieve()
-        """
-        _response = self._raw_client.api_experiments_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    def api_experiments_summary_create(
-        self, *, total_count: int, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentSummaryResponse:
-        """
-        GET/POST /api/experiments/summary/
-
-        Get summary statistics for experiments.
-
-        Returns:
-            {
-                "total_count": 42
-            }
-
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        total_count : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentSummaryResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_experiments_summary_create(
-            total_count=1,
-        )
-        """
-        _response = self._raw_client.api_experiments_summary_create(
-            total_count=total_count, request_options=request_options
-        )
-        return _response.data
-
-    def api_testsets_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedTestsetSheetListList:
-        """
-        Mixin that provides automatic organization injection and cross-org write protection.
-
-        This mixin handles ALL organization-related write behavior:
-        - CREATE: Injects organization (user's org for JWT, target org for API key superadmin)
-        - UPDATE/DELETE: Allows same-org writes; cross-org JWT writes require the
-          caller's scope-aware ``is_superadmin()`` (active staff write scope). API
-          key superadmin can write anywhere.
-
-        This is DATA SANITIZATION, not permission. Permission classes handle authentication
-        and authorization (can they write at all?). This mixin handles where they write to.
-
-        Inherits from:
-        - JWTAuthUtils: is_jwt_auth(), is_jwt_token_format()
-        - PermissionUtils: is_read_operation(), is_write_operation(), is_same_org()
-        - OrgScopeMixin: is_superadmin(), get_organization(), inject_*_organization()
-
-        Behavior:
-            - post(): Calls inject_target_organization() for CREATE operations
-            - patch()/put(): Calls inject_user_organization() for UPDATE operations
-            - perform_update(): Allows cross-org UPDATE for JWT auth only with active staff write scope
-            - perform_destroy(): Allows cross-org DELETE for JWT auth only with active staff write scope
-
-        Usage:
-            class MyView(OrganizationInjectionMixin, JWTAndAPIKeyAuthenticationViewMixin, ListCreateAPIView):
-                # All org injection and cross-org protection automatic!
-                pass
-
-        Note: SuperAdminMixin inherits from this mixin, so views using SuperAdminMixin
-        automatically get these safe defaults.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedTestsetSheetListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_list()
-        """
-        _response = self._raw_client.api_testsets_list(page=page, page_size=page_size, request_options=request_options)
-        return _response.data
-
-    def api_testsets_update(
-        self,
-        *,
-        name: str,
-        organization: int,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        created_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheetList:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        name : str
-
-        organization : int
-
-        testset_unique_id : typing.Optional[str]
-
-        project : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        created_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheetList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_update(
-            name="name",
-            organization=1,
-        )
-        """
-        _response = self._raw_client.api_testsets_update(
-            name=name,
-            organization=organization,
-            testset_unique_id=testset_unique_id,
-            project=project,
-            created_at=created_at,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            created_by=created_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_testsets_partial_update(
-        self,
-        *,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        created_by: typing.Optional[int] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheetList:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        testset_unique_id : typing.Optional[str]
-
-        project : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        created_by : typing.Optional[int]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheetList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_partial_update()
-        """
-        _response = self._raw_client.api_testsets_partial_update(
-            testset_unique_id=testset_unique_id,
-            project=project,
-            created_at=created_at,
-            name=name,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            created_by=created_by,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_testsets_retrieve(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> TestsetSheet:
-        """
-        Mixin that provides automatic organization injection and cross-org write protection.
-
-        This mixin handles ALL organization-related write behavior:
-        - CREATE: Injects organization (user's org for JWT, target org for API key superadmin)
-        - UPDATE/DELETE: Allows same-org writes; cross-org JWT writes require the
-          caller's scope-aware ``is_superadmin()`` (active staff write scope). API
-          key superadmin can write anywhere.
-
-        This is DATA SANITIZATION, not permission. Permission classes handle authentication
-        and authorization (can they write at all?). This mixin handles where they write to.
-
-        Inherits from:
-        - JWTAuthUtils: is_jwt_auth(), is_jwt_token_format()
-        - PermissionUtils: is_read_operation(), is_write_operation(), is_same_org()
-        - OrgScopeMixin: is_superadmin(), get_organization(), inject_*_organization()
-
-        Behavior:
-            - post(): Calls inject_target_organization() for CREATE operations
-            - patch()/put(): Calls inject_user_organization() for UPDATE operations
-            - perform_update(): Allows cross-org UPDATE for JWT auth only with active staff write scope
-            - perform_destroy(): Allows cross-org DELETE for JWT auth only with active staff write scope
-
-        Usage:
-            class MyView(OrganizationInjectionMixin, JWTAndAPIKeyAuthenticationViewMixin, ListCreateAPIView):
-                # All org injection and cross-org protection automatic!
-                pass
-
-        Note: SuperAdminMixin inherits from this mixin, so views using SuperAdminMixin
-        automatically get these safe defaults.
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheet
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_retrieve(
-            id="id",
-        )
-        """
-        _response = self._raw_client.api_testsets_retrieve(id, request_options=request_options)
-        return _response.data
-
-    def api_testsets_create2(
-        self,
-        id: str,
-        *,
-        name: str,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheet:
-        """
-        Default POST handler with automatic organization injection.
-
-        For CREATE operations:
-        - Superadmins can specify organization_id in request body (API key only)
-        - Regular users always use their own organization
-
-        Override this method for:
-        - POST-for-filtering pattern (delegate to self.get())
-        - Custom pre-create validation
-
-        Note: ``inject_target_organization`` is a DEPRECATED ``request.data``-mutating
-        shim kept for backward-compat during the DEV-9410 migration. The blessed
-        path stamps org via ``get_create_save_kwargs`` → ``perform_create`` → a
-        ``read_only`` serializer field. The shim (and these overrides' reliance on
-        it) is removed in C18 (DEV-9430) once every view's org field is read_only.
-
-        Parameters
-        ----------
-        id : str
-
-        name : str
-
-        testset_unique_id : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheet
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_create2(
-            id="id",
-            name="name",
-        )
-        """
-        _response = self._raw_client.api_testsets_create2(
-            id,
-            name=name,
-            testset_unique_id=testset_unique_id,
-            created_at=created_at,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_testsets_update2(
-        self,
-        id: str,
-        *,
-        name: str,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheet:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        id : str
-
-        name : str
-
-        testset_unique_id : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheet
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_update2(
-            id="id",
-            name="name",
-        )
-        """
-        _response = self._raw_client.api_testsets_update2(
-            id,
-            name=name,
-            testset_unique_id=testset_unique_id,
-            created_at=created_at,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_testsets_destroy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Mixin that provides automatic organization injection and cross-org write protection.
-
-        This mixin handles ALL organization-related write behavior:
-        - CREATE: Injects organization (user's org for JWT, target org for API key superadmin)
-        - UPDATE/DELETE: Allows same-org writes; cross-org JWT writes require the
-          caller's scope-aware ``is_superadmin()`` (active staff write scope). API
-          key superadmin can write anywhere.
-
-        This is DATA SANITIZATION, not permission. Permission classes handle authentication
-        and authorization (can they write at all?). This mixin handles where they write to.
-
-        Inherits from:
-        - JWTAuthUtils: is_jwt_auth(), is_jwt_token_format()
-        - PermissionUtils: is_read_operation(), is_write_operation(), is_same_org()
-        - OrgScopeMixin: is_superadmin(), get_organization(), inject_*_organization()
-
-        Behavior:
-            - post(): Calls inject_target_organization() for CREATE operations
-            - patch()/put(): Calls inject_user_organization() for UPDATE operations
-            - perform_update(): Allows cross-org UPDATE for JWT auth only with active staff write scope
-            - perform_destroy(): Allows cross-org DELETE for JWT auth only with active staff write scope
-
-        Usage:
-            class MyView(OrganizationInjectionMixin, JWTAndAPIKeyAuthenticationViewMixin, ListCreateAPIView):
-                # All org injection and cross-org protection automatic!
-                pass
-
-        Note: SuperAdminMixin inherits from this mixin, so views using SuperAdminMixin
-        automatically get these safe defaults.
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_destroy(
-            id="id",
-        )
-        """
-        _response = self._raw_client.api_testsets_destroy(id, request_options=request_options)
-        return _response.data
-
-    def api_testsets_partial_update2(
-        self,
-        id: str,
-        *,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheet:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        id : str
-
-        testset_unique_id : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheet
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_partial_update2(
-            id="id",
-        )
-        """
-        _response = self._raw_client.api_testsets_partial_update2(
-            id,
-            testset_unique_id=testset_unique_id,
-            created_at=created_at,
-            name=name,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_testsets_create3(
-        self,
-        testset_id: str,
-        *,
-        name: str,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicTestsetSheetDetail:
-        """
-        Default POST handler with automatic organization injection.
-
-        For CREATE operations:
-        - Superadmins can specify organization_id in request body (API key only)
-        - Regular users always use their own organization
-
-        Override this method for:
-        - POST-for-filtering pattern (delegate to self.get())
-        - Custom pre-create validation
-
-        Note: ``inject_target_organization`` is a DEPRECATED ``request.data``-mutating
-        shim kept for backward-compat during the DEV-9410 migration. The blessed
-        path stamps org via ``get_create_save_kwargs`` → ``perform_create`` → a
-        ``read_only`` serializer field. The shim (and these overrides' reliance on
-        it) is removed in C18 (DEV-9430) once every view's org field is read_only.
-
-        Parameters
-        ----------
-        testset_id : str
-
-        name : str
-
-        testset_unique_id : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicTestsetSheetDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_create3(
-            testset_id="testset_id",
-            name="name",
-        )
-        """
-        _response = self._raw_client.api_testsets_create3(
-            testset_id,
-            name=name,
-            testset_unique_id=testset_unique_id,
-            description=description,
-            column_definitions=column_definitions,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_testsets_rows_retrieve2(
-        self, testset_sheet_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> TestsetRow:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetRow
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_rows_retrieve2(
-            testset_sheet_id="testset_sheet_id",
-        )
-        """
-        _response = self._raw_client.api_testsets_rows_retrieve2(testset_sheet_id, request_options=request_options)
-        return _response.data
-
-    def api_testsets_rows_create2(
-        self,
-        testset_sheet_id: str,
-        *,
-        testset_sheet: str,
-        row_index: typing.Optional[float] = OMIT,
-        height: typing.Optional[int] = OMIT,
-        row_data: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetRow:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        testset_sheet : str
-
-        row_index : typing.Optional[float]
-
-        height : typing.Optional[int]
-
-        row_data : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetRow
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_rows_create2(
-            testset_sheet_id="testset_sheet_id",
-            testset_sheet="testset_sheet",
-        )
-        """
-        _response = self._raw_client.api_testsets_rows_create2(
-            testset_sheet_id,
-            testset_sheet=testset_sheet,
-            row_index=row_index,
-            height=height,
-            row_data=row_data,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_testsets_rows_destroy3(
-        self, testset_sheet_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_rows_destroy3(
-            testset_sheet_id="testset_sheet_id",
-        )
-        """
-        _response = self._raw_client.api_testsets_rows_destroy3(testset_sheet_id, request_options=request_options)
-        return _response.data
-
-    def api_testsets_rows_partial_update2(
-        self,
-        testset_sheet_id: str,
-        *,
-        row_index: typing.Optional[float] = OMIT,
-        height: typing.Optional[int] = OMIT,
-        row_data: typing.Optional[typing.Any] = OMIT,
-        testset_sheet: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetRow:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        row_index : typing.Optional[float]
-
-        height : typing.Optional[int]
-
-        row_data : typing.Optional[typing.Any]
-
-        testset_sheet : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetRow
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_rows_partial_update2(
-            testset_sheet_id="testset_sheet_id",
-        )
-        """
-        _response = self._raw_client.api_testsets_rows_partial_update2(
-            testset_sheet_id,
-            row_index=row_index,
-            height=height,
-            row_data=row_data,
-            testset_sheet=testset_sheet,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_testsets_rows_reorder_create(
-        self, testset_sheet_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_rows_reorder_create(
-            testset_sheet_id="testset_sheet_id",
-        )
-        """
-        _response = self._raw_client.api_testsets_rows_reorder_create(testset_sheet_id, request_options=request_options)
-        return _response.data
-
-    def api_testsets_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedTestsetSheetListList:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedTestsetSheetListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_list_list()
-        """
-        _response = self._raw_client.api_testsets_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def api_testsets_summary_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        GET/POST /api/testsets/summary/
-        GET/POST /lab/testset-sheets/summary/
-
-        Get summary statistics for testsets.
-
-        Returns:
-            {
-                "total_count": 42
-            }
-
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_summary_retrieve()
-        """
-        _response = self._raw_client.api_testsets_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    def api_testsets_summary_update(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_summary_update()
-        """
-        _response = self._raw_client.api_testsets_summary_update(request_options=request_options)
-        return _response.data
-
-    def api_testsets_summary_partial_update(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_testsets_summary_partial_update()
-        """
-        _response = self._raw_client.api_testsets_summary_partial_update(request_options=request_options)
-        return _response.data
-
-    def api_v2experiments_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedExperimentV2ListList:
-        """
-        GET: List experiments
-        POST: Create and run an experiment workflow execution.
-
-        **Design Philosophy:**
-        Dataset Log → [Arbitrary Workflow Tasks] → Run Eval Steps → Scores for Comparison
-
-        - Workflow tasks can be arbitrary (any combination, end with whatever)
-        - `evaluator_ids` field specifies which evaluators produce scores (preferred)
-        - `evaluator_slugs` is a deprecated alias for `evaluator_ids` (backward compat)
-        - Workflow step type `eval` is canonical; legacy `evaluator` is still accepted on input
-        - Multiple evaluators can run for comprehensive comparison (e.g., quality, safety, cost)
-
-        This endpoint processes a dataset through a sequence of workflow tasks and generates
-        traces for experiment tracking.
-
-        **Request Body:**
-        ```json
-        {
-            "dataset_id": "dataset-123",
-            "workflow": [
-                {
-                    "type": "prompt",
-                    "config": {
-                        "prompt_id": "my-prompt-slug"
-                    }
-                },
-                {
-                    "type": "completion",
-                    "config": {
-                        "model": "gpt-4",
-                        "temperature": 0.7,
-                        "max_tokens": 1000,
-                        "top_p": 1.0,
-                        "frequency_penalty": 0,
-                        "presence_penalty": 0
-                    }
-                }
-            ],
-            "evaluator_ids": ["abc123-evaluator-uuid", "def456-evaluator-uuid"],
-            "experiment_id": "exp-run-456",
-            "name": "My Experiment",
-            "description": "Testing GPT-4 with my prompt",
-            "span_workflow_name": "My Experiment",
-            "enable_tracing": true
-        }
-        ```
-
-        **Response:**
-        ```json
-        {
-            "task_id": "celery-task-id",
-            "task_tracker_id": "tracker-id",
-            "status": "pending",
-            "message": "Workflow execution task started",
-            "experiment_id": "exp-run-456"
-        }
-        ```
-
-        **Workflow Types & Configurations:**
-
-        **Key Fields:**
-        - `workflow`: Array of workflow tasks (can be any combination)
-        - `evaluator_ids`: Array of evaluator IDs (optional) - runs after workflow tasks complete; omit or pass `[]` to produce outputs with no scores
-        - `evaluator_slugs`: Deprecated alias for `evaluator_ids` (still accepted)
-
-        **Example Configurations:**
-        - workflow: `[prompt, completion]` + evaluator_ids: `["abc123"]` ✓
-        - workflow: `[completion]` + evaluator_ids: `["abc123", "def456"]` ✓
-        - workflow: `[]` + evaluator_ids: `["abc123"]` ✗ (workflow is required)
-        - workflow: `[prompt, completion]` + evaluator_ids: `[]` ✓ (runs the workflow, produces outputs with no scores)
-
-        1. **Prompt Workflow** (`type: "prompt"`):
-           - Variables are dynamically filled from dataset entries (don't pass in config)
-           - Config fields:
-             - `prompt_id`: Prompt identifier (required)
-           - Input: Dataset entry fields (mapped to prompt variables)
-           - Output: Rendered messages array
-
-        2. **Completion Workflow** (`type: "completion"`):
-           - Uses LLM configuration fields (temperature, max_tokens, etc.)
-           - Messages come from previous workflow step or dataset input field
-           - Config fields (all optional):
-             - `model`: Model identifier (e.g., "gpt-4", "claude-3-opus")
-             - `temperature`: Sampling temperature (0-2)
-             - `max_tokens`: Maximum completion tokens
-             - `top_p`: Nucleus sampling parameter
-             - `frequency_penalty`: Frequency penalty (-2 to 2)
-             - `presence_penalty`: Presence penalty (-2 to 2)
-             - `stop`: Stop sequences (string or array)
-             - `n`: Number of completions to generate
-             - `stream`: Enable streaming (not recommended for experiments)
-             - `response_format`: Response format (e.g., {"type": "json_object"})
-             - `tools`: Function calling tools array
-             - `tool_choice`: Tool choice strategy
-             - `reasoning_effort`: Reasoning effort for o1 models
-           - Input: Messages array (from "input" field in unified log format)
-           - Output: Response message object (stored in "output" field)
-
-        3. **Eval Workflow** (`type: "eval"`):
-           - Runs an evaluator on the unified log format (can be in workflow or via evaluator_slugs)
-           - Produces scores for experiment comparison
-           - Config fields:
-             - `evaluator_slug`: Evaluator identifier (required)
-           - Input: Unified log format with input/output/metrics/metadata
-           - Output: Evaluation result with score
-
-        **Note:** Eval steps can be in workflow OR specified via `evaluator_slugs` field (recommended).
-        The `evaluator_slugs` field at experiment level ensures all specified evaluators run after workflow tasks complete.
-
-        4. **Condition Workflow** (`type: "condition"`):
-           - Evaluates condition policies (future implementation)
-           - Config fields: TBD
-
-        5. **Duplicate Workflow** (`type: "duplicate"`):
-           - Passes through dataset entry's input/output as-is (no LLM inference)
-           - Useful for batch evaluation on existing production data
-           - Config fields (all optional):
-             - `name`: Display name for the workflow span
-           - Input: Dataset entry's input field
-           - Output: Dataset entry's output field (unchanged)
-           - Evaluators then run on this duplicated data
-
-        **Authentication:**
-        - Supports both JWT (internal) and API Key (public) authentication
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedExperimentV2ListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_list()
-        """
-        _response = self._raw_client.api_v2experiments_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
     def create_experiment(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow: typing.Optional[typing.Any] = OMIT,
+        dataset_id: str,
+        workflow: typing.Sequence[CreateExperimentRequestWorkflowItem],
+        evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_slugs: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_workflow_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        experiment_id: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        enable_tracing: typing.Optional[bool] = OMIT,
         batch_size: typing.Optional[int] = OMIT,
         concurrency: typing.Optional[int] = OMIT,
-        enable_tracing: typing.Optional[bool] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
+        generation_method: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2Create:
+    ) -> CreateExperimentResponse:
         """
-        Create an experiment. Two equally-supported modes, distinguished
-        by the payload shape:
-
-        1. **Draft mode** — client sends just ``name`` (plus optional
-           description). Row lands in ``status=draft`` and stays there
-           until the client fills in the rest via PATCH and triggers
-           execution via ``POST /api/v2/experiments/{id}/runs/``.
-
-        2. **Create-and-run mode** — client sends ``dataset`` + a
-           non-empty ``workflow`` (plus evaluators, config, etc.). After
-           the row is created we dispatch the Celery workflow task
-           directly, matching the pattern in
-           ``dataset/views.py::DatasetsView.post()``. Dispatch failures
-           leave the row with ``status=failed`` (via
-           ``dispatch_experiment_run``), so the client can re-run in
-           place; the failure is also reflected in the HTTP response.
-
-        Body mutations inline per convention (no helper methods):
-
-        - ``created_by`` injected from ``request.user``. Organization fields
-          are injected automatically by ``SuperAdminMixin.post()`` via
-          ``inject_target_organization``.
-        - Alias/default transforms (experiment_id → id, dataset_id →
-          dataset, default id + name) live in
-          ``ExperimentV2CreateSerializer`` per serializer conventions.
+        Create an experiment and start asynchronous workflow execution over a dataset.
 
         Parameters
         ----------
-        id : typing.Optional[str]
+        dataset_id : str
+            Dataset ID to process.
 
-        name : typing.Optional[str]
+        workflow : typing.Sequence[CreateExperimentRequestWorkflowItem]
+            Workflow tasks to run for each dataset row.
 
-        description : typing.Optional[str]
-
-        dataset : typing.Optional[str]
-
-        workflow : typing.Optional[typing.Any]
+        evaluator_ids : typing.Optional[typing.Sequence[str]]
+            Preferred evaluator identifiers for scoring. Mutually exclusive with `evaluator_workflow_ids`.
 
         evaluator_slugs : typing.Optional[typing.Sequence[str]]
-            List of evaluators to run for producing scores for comparison
+            Backward-compatible alias for `evaluator_ids`. If both are provided, `evaluator_ids` takes precedence.
 
         evaluator_workflow_ids : typing.Optional[typing.Sequence[str]]
-            List of WorkflowVersion IDs (eval_only) defining evaluator pipelines. Mutually exclusive with evaluator_slugs.
+            WorkflowVersion IDs configured for eval-only scoring. Mutually exclusive with evaluator IDs/slugs.
 
-        batch_size : typing.Optional[int]
+        experiment_id : typing.Optional[str]
+            Optional client-provided experiment ID. The backend generates one when omitted.
 
-        concurrency : typing.Optional[int]
+        name : typing.Optional[str]
+            Experiment name.
+
+        description : typing.Optional[str]
+            Experiment description.
+
+        span_workflow_name : typing.Optional[str]
+            Root workflow span name.
 
         enable_tracing : typing.Optional[bool]
+            Whether to create trace logs.
 
-        organization : typing.Optional[int]
+        batch_size : typing.Optional[int]
+            Batch size for processing.
 
-        project : typing.Optional[str]
+        concurrency : typing.Optional[int]
+            Number of concurrent workers.
 
-        unique_organization_id : typing.Optional[str]
+        generation_method : typing.Optional[str]
+            Optional evaluation generation method override.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2Create
-
+        CreateExperimentResponse
+            Created experiment.
 
         Examples
         --------
         from respan import RespanClient
+        from respan.experiments import CreateExperimentRequestWorkflowItem
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.experiments.create_experiment()
+        client.experiments.create_experiment(
+            dataset_id="ds_abc123",
+            workflow=[
+                CreateExperimentRequestWorkflowItem(
+                    type="completion",
+                    config={
+                        "model": "gpt-4o-mini",
+                        "temperature": 0.2,
+                        "max_tokens": 256,
+                    },
+                )
+            ],
+            evaluator_ids=["eval_quality"],
+            name="gpt-4o-mini quality run",
+            concurrency=15,
+        )
         """
         _response = self._raw_client.create_experiment(
-            id=id,
-            name=name,
-            description=description,
-            dataset=dataset,
+            dataset_id=dataset_id,
             workflow=workflow,
+            evaluator_ids=evaluator_ids,
             evaluator_slugs=evaluator_slugs,
             evaluator_workflow_ids=evaluator_workflow_ids,
+            experiment_id=experiment_id,
+            name=name,
+            description=description,
+            span_workflow_name=span_workflow_name,
+            enable_tracing=enable_tracing,
             batch_size=batch_size,
             concurrency=concurrency,
-            enable_tracing=enable_tracing,
-            organization=organization,
-            project=project,
-            unique_organization_id=unique_organization_id,
+            generation_method=generation_method,
             request_options=request_options,
         )
         return _response.data
 
-    def api_v2experiments_update(
+    def list_experiments(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
+    ) -> SyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        List experiments using POST-for-filtering.
 
         Parameters
         ----------
-        id : typing.Optional[str]
+        page : typing.Optional[int]
+            Page number.
 
-        name : typing.Optional[str]
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
 
-        dataset : typing.Optional[str]
+        sort_by : typing.Optional[str]
+            Field to sort by. Defaults to `-created_at`.
 
-        workflow_count : typing.Optional[int]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2List
-
+        SyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]
+            Paginated filtered list of experiments.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.experiments.api_v2experiments_update()
+        response = client.experiments.list_experiments(
+            sort_by="-created_at",
+        )
+        for item in response:
+            yield item
+        # alternatively, you can paginate page-by-page
+        for page in response.iter_pages():
+            yield page
         """
-        _response = self._raw_client.api_v2experiments_update(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
+        return self._raw_client.list_experiments(
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            filters=filters,
+            is_exporting=is_exporting,
             request_options=request_options,
         )
-        return _response.data
 
-    def api_v2experiments_partial_update(
+    def filter_experiments_summary(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
+    ) -> FilterExperimentsSummaryResponse:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Return the number of experiments matching a POST filter payload.
 
         Parameters
         ----------
-        id : typing.Optional[str]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
-        name : typing.Optional[str]
-
-        dataset : typing.Optional[str]
-
-        workflow_count : typing.Optional[int]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2List
-
+        FilterExperimentsSummaryResponse
+            Experiment summary.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.experiments.api_v2experiments_partial_update()
+        client.experiments.filter_experiments_summary()
         """
-        _response = self._raw_client.api_v2experiments_partial_update(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
-            request_options=request_options,
+        _response = self._raw_client.filter_experiments_summary(
+            filters=filters, is_exporting=is_exporting, request_options=request_options
         )
         return _response.data
 
     def retrieve_experiment(
         self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2:
+    ) -> RetrieveExperimentResponse:
         """
-        RUD: Retrieve, Update, Delete single experiment.
-
-        GET /evaluations/experiments/<id>/
-        PATCH /evaluations/experiments/<id>/   — edit the definition (dataset,
-            workflow, evaluators, config). Blocked while a run is in flight
-            so the in-flight run can trust its dispatched definition.
-            Trigger execution via POST /runs/, not PATCH.
-        DELETE /evaluations/experiments/<id>/
+        Retrieve an experiment by ID, including workflow and scoring configuration.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2
-
+        RetrieveExperimentResponse
+            Experiment details.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.experiments.retrieve_experiment(
             experiment_id="experiment_id",
@@ -2979,224 +297,134 @@ class ExperimentsClient:
         _response = self._raw_client.retrieve_experiment(experiment_id, request_options=request_options)
         return _response.data
 
-    def api_v2experiments_create2(
-        self,
-        experiment_id: str,
-        *,
-        project: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        workflow: typing.Optional[typing.Any] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        evaluator_slugs: typing.Optional[typing.Sequence[str]] = OMIT,
-        evaluator_workflow_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        batch_size: typing.Optional[int] = OMIT,
-        concurrency: typing.Optional[int] = OMIT,
-        enable_tracing: typing.Optional[bool] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        metadata: typing.Optional[typing.Any] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        task_tracker: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        project : typing.Optional[str]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        workflow : typing.Optional[typing.Any]
-
-        workflow_count : typing.Optional[int]
-
-        evaluator_slugs : typing.Optional[typing.Sequence[str]]
-            List of evaluators to run for producing scores for comparison
-
-        evaluator_workflow_ids : typing.Optional[typing.Sequence[str]]
-            List of WorkflowVersion IDs (eval_only) defining evaluator pipelines. Mutually exclusive with evaluator_slugs.
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced (evaluators, prompts) for reverse lookup on deletion
-
-        batch_size : typing.Optional[int]
-
-        concurrency : typing.Optional[int]
-
-        enable_tracing : typing.Optional[bool]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        metadata : typing.Optional[typing.Any]
-
-        is_starred : typing.Optional[bool]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        dataset : typing.Optional[str]
-
-        task_tracker : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_create2(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_create2(
-            experiment_id,
-            project=project,
-            name=name,
-            description=description,
-            workflow=workflow,
-            workflow_count=workflow_count,
-            evaluator_slugs=evaluator_slugs,
-            evaluator_workflow_ids=evaluator_workflow_ids,
-            resource_ids=resource_ids,
-            batch_size=batch_size,
-            concurrency=concurrency,
-            enable_tracing=enable_tracing,
-            status=status,
-            progress=progress,
-            metadata=metadata,
-            is_starred=is_starred,
-            started_at=started_at,
-            completed_at=completed_at,
-            dataset=dataset,
-            task_tracker=task_tracker,
-            request_options=request_options,
-        )
-        return _response.data
-
     def replace_experiment(
         self,
         experiment_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow: typing.Optional[typing.Any] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        workflow: typing.Optional[typing.Sequence[ReplaceExperimentRequestWorkflowItem]] = OMIT,
+        evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_slugs: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_workflow_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        replace_experiment_request_experiment_id: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        enable_tracing: typing.Optional[bool] = OMIT,
         batch_size: typing.Optional[int] = OMIT,
         concurrency: typing.Optional[int] = OMIT,
-        enable_tracing: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        generation_method: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2Update:
+    ) -> ReplaceExperimentResponse:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        Replace editable fields for an experiment.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
-        name : typing.Optional[str]
+        dataset_id : typing.Optional[str]
+            Dataset ID to process.
 
-        description : typing.Optional[str]
+        workflow : typing.Optional[typing.Sequence[ReplaceExperimentRequestWorkflowItem]]
+            Workflow tasks to run for each dataset row.
 
-        dataset : typing.Optional[str]
-
-        workflow : typing.Optional[typing.Any]
+        evaluator_ids : typing.Optional[typing.Sequence[str]]
+            Preferred evaluator identifiers for scoring. Mutually exclusive with `evaluator_workflow_ids`.
 
         evaluator_slugs : typing.Optional[typing.Sequence[str]]
-            List of evaluators to run for producing scores for comparison
+            Backward-compatible alias for `evaluator_ids`. If both are provided, `evaluator_ids` takes precedence.
 
         evaluator_workflow_ids : typing.Optional[typing.Sequence[str]]
-            List of WorkflowVersion IDs (eval_only) defining evaluator pipelines. Mutually exclusive with evaluator_slugs.
+            WorkflowVersion IDs configured for eval-only scoring. Mutually exclusive with evaluator IDs/slugs.
 
-        batch_size : typing.Optional[int]
+        replace_experiment_request_experiment_id : typing.Optional[str]
+            Optional client-provided experiment ID. The backend generates one when omitted.
 
-        concurrency : typing.Optional[int]
+        name : typing.Optional[str]
+            Experiment name.
+
+        description : typing.Optional[str]
+            Experiment description.
+
+        span_workflow_name : typing.Optional[str]
+            Root workflow span name.
 
         enable_tracing : typing.Optional[bool]
+            Whether to create trace logs.
 
-        is_starred : typing.Optional[bool]
+        batch_size : typing.Optional[int]
+            Batch size for processing.
+
+        concurrency : typing.Optional[int]
+            Number of concurrent workers.
+
+        generation_method : typing.Optional[str]
+            Optional evaluation generation method override.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2Update
-
+        ReplaceExperimentResponse
+            Updated experiment.
 
         Examples
         --------
         from respan import RespanClient
+        from respan.experiments import ReplaceExperimentRequestWorkflowItem
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.experiments.replace_experiment(
             experiment_id="experiment_id",
+            dataset_id="ds_abc123",
+            workflow=[
+                ReplaceExperimentRequestWorkflowItem(
+                    type="completion",
+                    config={
+                        "model": "gpt-4o-mini",
+                        "temperature": 0.2,
+                        "max_tokens": 256,
+                    },
+                )
+            ],
+            evaluator_ids=["eval_quality"],
+            name="gpt-4o-mini quality run",
+            concurrency=15,
         )
         """
         _response = self._raw_client.replace_experiment(
             experiment_id,
-            name=name,
-            description=description,
-            dataset=dataset,
+            dataset_id=dataset_id,
             workflow=workflow,
+            evaluator_ids=evaluator_ids,
             evaluator_slugs=evaluator_slugs,
             evaluator_workflow_ids=evaluator_workflow_ids,
+            replace_experiment_request_experiment_id=replace_experiment_request_experiment_id,
+            name=name,
+            description=description,
+            span_workflow_name=span_workflow_name,
+            enable_tracing=enable_tracing,
             batch_size=batch_size,
             concurrency=concurrency,
-            enable_tracing=enable_tracing,
-            is_starred=is_starred,
+            generation_method=generation_method,
             request_options=request_options,
         )
         return _response.data
 
     def delete_experiment(self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        RUD: Retrieve, Update, Delete single experiment.
-
-        GET /evaluations/experiments/<id>/
-        PATCH /evaluations/experiments/<id>/   — edit the definition (dataset,
-            workflow, evaluators, config). Blocked while a run is in flight
-            so the in-flight run can trust its dispatched definition.
-            Trigger execution via POST /runs/, not PATCH.
-        DELETE /evaluations/experiments/<id>/
+        Delete an experiment by ID.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -3210,8 +438,8 @@ class ExperimentsClient:
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.experiments.delete_experiment(
             experiment_id="experiment_id",
@@ -3224,286 +452,241 @@ class ExperimentsClient:
         self,
         experiment_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow: typing.Optional[typing.Any] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        workflow: typing.Optional[typing.Sequence[UpdateExperimentRequestWorkflowItem]] = OMIT,
+        evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_slugs: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_workflow_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        update_experiment_request_experiment_id: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        enable_tracing: typing.Optional[bool] = OMIT,
         batch_size: typing.Optional[int] = OMIT,
         concurrency: typing.Optional[int] = OMIT,
-        enable_tracing: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        generation_method: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2Update:
+    ) -> UpdateExperimentResponse:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Partially update editable fields for an experiment.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
-        name : typing.Optional[str]
+        dataset_id : typing.Optional[str]
+            Dataset ID to process.
 
-        description : typing.Optional[str]
+        workflow : typing.Optional[typing.Sequence[UpdateExperimentRequestWorkflowItem]]
+            Workflow tasks to run for each dataset row.
 
-        dataset : typing.Optional[str]
-
-        workflow : typing.Optional[typing.Any]
+        evaluator_ids : typing.Optional[typing.Sequence[str]]
+            Preferred evaluator identifiers for scoring. Mutually exclusive with `evaluator_workflow_ids`.
 
         evaluator_slugs : typing.Optional[typing.Sequence[str]]
-            List of evaluators to run for producing scores for comparison
+            Backward-compatible alias for `evaluator_ids`. If both are provided, `evaluator_ids` takes precedence.
 
         evaluator_workflow_ids : typing.Optional[typing.Sequence[str]]
-            List of WorkflowVersion IDs (eval_only) defining evaluator pipelines. Mutually exclusive with evaluator_slugs.
+            WorkflowVersion IDs configured for eval-only scoring. Mutually exclusive with evaluator IDs/slugs.
 
-        batch_size : typing.Optional[int]
+        update_experiment_request_experiment_id : typing.Optional[str]
+            Optional client-provided experiment ID. The backend generates one when omitted.
 
-        concurrency : typing.Optional[int]
+        name : typing.Optional[str]
+            Experiment name.
+
+        description : typing.Optional[str]
+            Experiment description.
+
+        span_workflow_name : typing.Optional[str]
+            Root workflow span name.
 
         enable_tracing : typing.Optional[bool]
+            Whether to create trace logs.
 
-        is_starred : typing.Optional[bool]
+        batch_size : typing.Optional[int]
+            Batch size for processing.
+
+        concurrency : typing.Optional[int]
+            Number of concurrent workers.
+
+        generation_method : typing.Optional[str]
+            Optional evaluation generation method override.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2Update
-
+        UpdateExperimentResponse
+            Updated experiment.
 
         Examples
         --------
         from respan import RespanClient
+        from respan.experiments import UpdateExperimentRequestWorkflowItem
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.experiments.update_experiment(
             experiment_id="experiment_id",
+            dataset_id="ds_abc123",
+            workflow=[
+                UpdateExperimentRequestWorkflowItem(
+                    type="completion",
+                    config={
+                        "model": "gpt-4o-mini",
+                        "temperature": 0.2,
+                        "max_tokens": 256,
+                    },
+                )
+            ],
+            evaluator_ids=["eval_quality"],
+            name="gpt-4o-mini quality run",
+            concurrency=15,
         )
         """
         _response = self._raw_client.update_experiment(
             experiment_id,
-            name=name,
-            description=description,
-            dataset=dataset,
+            dataset_id=dataset_id,
             workflow=workflow,
+            evaluator_ids=evaluator_ids,
             evaluator_slugs=evaluator_slugs,
             evaluator_workflow_ids=evaluator_workflow_ids,
+            update_experiment_request_experiment_id=update_experiment_request_experiment_id,
+            name=name,
+            description=description,
+            span_workflow_name=span_workflow_name,
+            enable_tracing=enable_tracing,
             batch_size=batch_size,
             concurrency=concurrency,
-            enable_tracing=enable_tracing,
-            is_starred=is_starred,
+            generation_method=generation_method,
             request_options=request_options,
         )
         return _response.data
 
-    def api_v2experiments_histogram_retrieve(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    def list_experiment_spans(
+        self,
+        experiment_id: str,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        detail: typing.Optional[ListExperimentSpansRequestDetail] = None,
+        preview_length: typing.Optional[int] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> SyncPager[ListExperimentSpansResponseResultsItem, ListExperimentSpansResponse]:
         """
-        Delegate GET to list() for consistency with dashboard views.
+        List experiment traces using POST-for-filtering. Supports status, cost, comparison key, timestamp, metadata, and score filters.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        start_time : typing.Optional[dt.datetime]
+            Filter results at or after this timestamp.
+
+        end_time : typing.Optional[dt.datetime]
+            Filter results before this timestamp.
+
+        detail : typing.Optional[ListExperimentSpansRequestDetail]
+            Set to `1` or `true` to include span tree details in list responses.
+
+        preview_length : typing.Optional[int]
+            Truncate `input`, `expected_output`, and `output` to this many characters. Omitted, non-positive, or unparseable values return full text; ignored when `detail` is set.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        None
+        SyncPager[ListExperimentSpansResponseResultsItem, ListExperimentSpansResponse]
+            Paginated filtered list of experiment traces.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.experiments.api_v2experiments_histogram_retrieve(
+        response = client.experiments.list_experiment_spans(
             experiment_id="experiment_id",
+            sort_by="-start_time",
         )
+        for item in response:
+            yield item
+        # alternatively, you can paginate page-by-page
+        for page in response.iter_pages():
+            yield page
         """
-        _response = self._raw_client.api_v2experiments_histogram_retrieve(
-            experiment_id, request_options=request_options
+        return self._raw_client.list_experiment_spans(
+            experiment_id,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            start_time=start_time,
+            end_time=end_time,
+            detail=detail,
+            preview_length=preview_length,
+            filters=filters,
+            is_exporting=is_exporting,
+            request_options=request_options,
         )
-        return _response.data
-
-    def filter_experiment_score_histogram(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Delegate POST to list() for consistency with dashboard views.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.filter_experiment_score_histogram(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.filter_experiment_score_histogram(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_v2experiments_histogram_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_histogram_update(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_histogram_update(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_v2experiments_histogram_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_histogram_partial_update(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_histogram_partial_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
 
     def retrieve_experiment_span(
         self, experiment_id: str, log_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ChDatasetTraceDetail:
+    ) -> RetrieveExperimentSpanResponse:
         """
-        Retrieve single experiment trace with full span tree, or submit workflow result.
-
-        GET /evaluations/experiments/<experiment_id>/logs/<trace_unique_id>/
-        Returns:
-        - Trace-level aggregated metrics (cost, tokens, duration, etc.)
-        - Full hierarchical span tree with all children
-        - Enriched with storage (input/output) for API key authentication
-        - Complete scores (LLM evaluator + human annotation) with evaluator metadata
-
-        PATCH /evaluations/experiments/<experiment_id>/logs/<trace_unique_id>/
-        Body: {"input": {...}, "output": {...}, "metrics": {...}, "metadata": {...}}
-        Purpose: Submit wait-task workflow result via resume mechanism
-        - Uses get_full_object_by_unique_id for cached retrieval (performance optimized)
-        - Supports both JWT and API key authentication
-        - Partial updates with existing data merging
-        - Creates workflow spans in unified format with proper trace hierarchy
-        - Triggers evaluators if specified in experiment configuration
-        - Input/output can be any JSON type (dict, list, string, number, boolean)
-
-        Note: The URL parameter is called 'log_id' but it should be the trace_unique_id.
-        This returns a full TRACE (aggregated) with span tree, not a single log/span.
-        The 'id' field in the list endpoint exposes trace_unique_id for use in detail/PATCH operations.
-
-        Uses SpanTreeSerializerContextMixin to automatically handle:
-        - Span tree inclusion (always enabled for detail view)
-        - Storage enrichment based on authentication type (JWT vs API key)
-        - Dynamic serializer configuration
-
-        Uses DataEnrichmentMixin to enrich scores with:
-        - Human annotation scores from Postgres EvalResult
-        - Evaluator metadata (name, slug, score_value_type)
-        - All score types (numerical, boolean, string, categorical, json)
+        Retrieve one experiment trace with its full span tree and enriched evaluator scores.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
         log_id : str
+            Trace ID returned as `id` in experiment trace list responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ChDatasetTraceDetail
-
+        RetrieveExperimentSpanResponse
+            Experiment trace details.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.experiments.retrieve_experiment_span(
             experiment_id="experiment_id",
@@ -3513,1652 +696,178 @@ class ExperimentsClient:
         _response = self._raw_client.retrieve_experiment_span(experiment_id, log_id, request_options=request_options)
         return _response.data
 
-    def api_v2experiments_logs_create(
-        self,
-        experiment_id: str,
-        log_id: str,
-        *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceDetail:
-        """
-        Default POST handler with automatic organization injection.
-
-        For CREATE operations:
-        - Superadmins can specify organization_id in request body (API key only)
-        - Regular users always use their own organization
-
-        Override this method for:
-        - POST-for-filtering pattern (delegate to self.get())
-        - Custom pre-create validation
-
-        Note: ``inject_target_organization`` is a DEPRECATED ``request.data``-mutating
-        shim kept for backward-compat during the DEV-9410 migration. The blessed
-        path stamps org via ``get_create_save_kwargs`` → ``perform_create`` → a
-        ``read_only`` serializer field. The shim (and these overrides' reliance on
-        it) is removed in C18 (DEV-9430) once every view's org field is read_only.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        log_id : str
-
-        id : str
-
-        trace_unique_id : str
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_logs_create(
-            experiment_id="experiment_id",
-            log_id="log_id",
-            id="id",
-            trace_unique_id="trace_unique_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_logs_create(
-            experiment_id,
-            log_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_v2experiments_logs_update(
-        self,
-        experiment_id: str,
-        log_id: str,
-        *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceDetail:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        log_id : str
-
-        id : str
-
-        trace_unique_id : str
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceDetail
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_logs_update(
-            experiment_id="experiment_id",
-            log_id="log_id",
-            id="id",
-            trace_unique_id="trace_unique_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_logs_update(
-            experiment_id,
-            log_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
     def update_experiment_span(
         self,
         experiment_id: str,
         log_id: str,
         *,
-        id: typing.Optional[str] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
+        input: typing.Any,
+        output: typing.Any,
+        metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceDetail:
+    ) -> UpdateExperimentSpanResponse:
         """
-        Update experiment trace with customer-provided data.
-
-        Customer uploads the same format they see in the list endpoint:
-        {
-            "id": "551ba4023fc646b4859993a31665bff2",
-            "input": "[{"role": "system", "content": "you are a helpful...",
-            "output": "{"message": "Workflow result...",
-            "name": "updated_experiment_trace",
-            ... any other fields they want to update
-        }
-
-        PATCH workflow:
-        1. Get trace_unique_id from URL (same as 'id' in list endpoint)
-        2. Retrieve existing object using cached get_full_object_by_unique_id
-        3. Update fields provided by customer
-        4. Re-insert updated object
-        5. Return updated trace in same format as GET endpoint
-
-        Response: Updated trace in same format as GET/list endpoints
+        Submit results for a paused `wait` workflow trace. The backend resumes the workflow and then runs the configured evaluators.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
         log_id : str
+            Trace ID returned as `id` in experiment trace list responses.
 
-        id : typing.Optional[str]
+        input : typing.Any
 
-        trace_unique_id : typing.Optional[str]
+        output : typing.Any
 
-        root_span_unique_id : typing.Optional[str]
+        metrics : typing.Optional[typing.Dict[str, typing.Any]]
+            Numeric metrics such as cost, latency, and token counts.
 
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional metadata to attach to the trace.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ChDatasetTraceDetail
-
+        UpdateExperimentSpanResponse
+            Trace resumed.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.experiments.update_experiment_span(
             experiment_id="experiment_id",
             log_id="log_id",
+            input="What is AI?",
+            output="AI stands for Artificial Intelligence.",
+            metadata={"source": "external_runner"},
         )
         """
         _response = self._raw_client.update_experiment_span(
             experiment_id,
             log_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
             input=input,
             output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
+            metrics=metrics,
+            metadata=metadata,
             request_options=request_options,
-        )
-        return _response.data
-
-    def api_v2experiments_logs_list_list(
-        self,
-        experiment_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedChDatasetTraceListList:
-        """
-        List experiment traces (root spans) using optimized CTE-based aggregation.
-
-        GET/POST /evaluations/experiments/<experiment_id>/logs/
-
-        Query params:
-        - page: Page number
-        - page_size: Page size (default 100)
-        - sort_by: Sort field (e.g., "-cost", "-start_time", "name")
-        - start_time: Filter start time
-        - end_time: Filter end time
-        - detail: Include span tree (1 or True)
-        - export: Set to 1 or True to export results to CSV/Excel
-
-        POST body (optional):
-        - filters: Advanced filter payload for complex filtering (including comparison_key filters)
-
-        Uses ExperimentTracesQueryBuilder for optimized querying:
-        1. Filter by experiment_id + org first (reduces rows 99.9%)
-        2. Aggregate into traces (GROUP BY trace_unique_id)
-        3. Join with root spans for details
-        4. Apply final filters and sort
-
-        Uses SpanTreeSerializerContextMixin to automatically handle:
-        - Span tree inclusion based on ?detail=1
-        - Storage enrichment based on authentication type (JWT vs API key)
-        - Dynamic serializer configuration
-
-        Uses ExportingMixin to handle:
-        - CSV/Excel export functionality via ?export=1
-        - Async export processing with email notifications
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedChDatasetTraceListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_logs_list_list(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_logs_list_list(
-            experiment_id, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def list_experiment_spans(
-        self,
-        experiment_id: str,
-        *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceList:
-        """
-        Handle POST requests the same as GET for filtering.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        id : str
-
-        trace_unique_id : str
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.list_experiment_spans(
-            experiment_id="experiment_id",
-            id="id",
-            trace_unique_id="trace_unique_id",
-        )
-        """
-        _response = self._raw_client.list_experiment_spans(
-            experiment_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_v2experiments_logs_list_update(
-        self,
-        experiment_id: str,
-        *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceList:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        id : str
-
-        trace_unique_id : str
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_logs_list_update(
-            experiment_id="experiment_id",
-            id="id",
-            trace_unique_id="trace_unique_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_logs_list_update(
-            experiment_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_v2experiments_logs_list_partial_update(
-        self,
-        experiment_id: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceList:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        id : typing.Optional[str]
-
-        trace_unique_id : typing.Optional[str]
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_logs_list_partial_update(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_logs_list_partial_update(
-            experiment_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_v2experiments_logs_summary_retrieve(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Handle GET requests for summary.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_logs_summary_retrieve(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_logs_summary_retrieve(
-            experiment_id, request_options=request_options
         )
         return _response.data
 
     def filter_experiment_spans_summary(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+        self,
+        experiment_id: str,
+        *,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FilterExperimentSpansSummaryResponse:
         """
-        Handle POST requests for filtering (same as GET).
+        Get aggregate workflow metrics and evaluator score summaries for traces matching a POST filter payload.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
+
+        start_time : typing.Optional[dt.datetime]
+            Filter results at or after this timestamp.
+
+        end_time : typing.Optional[dt.datetime]
+            Filter results before this timestamp.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        None
+        FilterExperimentSpansSummaryResponse
+            Experiment trace summary.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.experiments.filter_experiment_spans_summary(
             experiment_id="experiment_id",
         )
         """
-        _response = self._raw_client.filter_experiment_spans_summary(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_v2experiments_logs_summary_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_logs_summary_update(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_logs_summary_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    def api_v2experiments_logs_summary_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_logs_summary_partial_update(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_logs_summary_partial_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    def api_v2experiments_runs_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_runs_create(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_runs_create(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_v2experiments_runs_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_runs_update(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_runs_update(experiment_id, request_options=request_options)
-        return _response.data
-
-    def api_v2experiments_runs_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_runs_partial_update(
-            experiment_id="experiment_id",
-        )
-        """
-        _response = self._raw_client.api_v2experiments_runs_partial_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    def api_v2experiments_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedExperimentV2ListList:
-        """
-        GET: List experiments with filters
-        POST: List experiments with filters (same as GET, but accepts filter payload in body)
-
-        Special endpoint for filtered listing. The main endpoint `/experiments/`
-        handles GET (list) + POST (create) operations.
-
-        **Authentication:**
-        - Supports both JWT (internal) and API Key (public) authentication
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedExperimentV2ListList
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_list_list()
-        """
-        _response = self._raw_client.api_v2experiments_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    def list_experiments(
-        self,
-        *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
-        """
-        POST method for filtered listing (same as GET).
-
-        Parameters
-        ----------
-        id : typing.Optional[str]
-
-        name : typing.Optional[str]
-
-        dataset : typing.Optional[str]
-
-        workflow_count : typing.Optional[int]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2List
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.list_experiments()
-        """
-        _response = self._raw_client.list_experiments(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
+        _response = self._raw_client.filter_experiment_spans_summary(
+            experiment_id,
+            start_time=start_time,
+            end_time=end_time,
+            filters=filters,
+            is_exporting=is_exporting,
             request_options=request_options,
         )
         return _response.data
 
-    def api_v2experiments_list_update(
+    def filter_experiment_score_histogram(
         self,
+        experiment_id: str,
         *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        evaluator_id: str,
+        bins: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
+    ) -> FilterExperimentScoreHistogramResponse:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        Compute histogram aggregation for experiment evaluation scores. The backend reads `evaluator_id` and `bins` from query parameters; it does not consume a request body.
 
         Parameters
         ----------
-        id : typing.Optional[str]
+        experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
-        name : typing.Optional[str]
+        evaluator_id : str
+            Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
 
-        dataset : typing.Optional[str]
-
-        workflow_count : typing.Optional[int]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
+        bins : typing.Optional[int]
+            Number of histogram bins for numerical scores. Maximum 50.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2List
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_list_update()
-        """
-        _response = self._raw_client.api_v2experiments_list_update(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_v2experiments_list_partial_update(
-        self,
-        *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : typing.Optional[str]
-
-        name : typing.Optional[str]
-
-        dataset : typing.Optional[str]
-
-        workflow_count : typing.Optional[int]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2List
-
+        FilterExperimentScoreHistogramResponse
+            Experiment score histogram.
 
         Examples
         --------
         from respan import RespanClient
 
         client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.experiments.api_v2experiments_list_partial_update()
-        """
-        _response = self._raw_client.api_v2experiments_list_partial_update(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
-            request_options=request_options,
-        )
-        return _response.data
-
-    def api_v2experiments_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2SummaryResponse:
-        """
-        GET/POST /api/v2/experiments/summary/
-
-        Get summary statistics for experiments.
-
-        Returns:
-            {
-                "total_count": 10
-            }
-
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2SummaryResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_summary_retrieve()
-        """
-        _response = self._raw_client.api_v2experiments_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    def filter_experiments_summary(
-        self, *, total_count: int, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2SummaryResponse:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        total_count : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2SummaryResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.filter_experiments_summary(
-            total_count=1,
+        client.experiments.filter_experiment_score_histogram(
+            experiment_id="experiment_id",
+            evaluator_id="eval_456",
         )
         """
-        _response = self._raw_client.filter_experiments_summary(
-            total_count=total_count, request_options=request_options
-        )
-        return _response.data
-
-    def api_v2experiments_summary_update(
-        self, *, total_count: int, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2SummaryResponse:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        total_count : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2SummaryResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_summary_update(
-            total_count=1,
-        )
-        """
-        _response = self._raw_client.api_v2experiments_summary_update(
-            total_count=total_count, request_options=request_options
-        )
-        return _response.data
-
-    def api_v2experiments_summary_partial_update(
-        self, *, total_count: typing.Optional[int] = OMIT, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2SummaryResponse:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        total_count : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2SummaryResponse
-
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-        client.experiments.api_v2experiments_summary_partial_update()
-        """
-        _response = self._raw_client.api_v2experiments_summary_partial_update(
-            total_count=total_count, request_options=request_options
+        _response = self._raw_client.filter_experiment_score_histogram(
+            experiment_id, evaluator_id=evaluator_id, bins=bins, request_options=request_options
         )
         return _response.data
 
@@ -5178,3118 +887,165 @@ class AsyncExperimentsClient:
         """
         return self._raw_client
 
-    async def api_experiments_columns_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            columns: List[ExperimentColumnType]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_columns_create(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_columns_create(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_experiments_columns_destroy(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            columns: List[str] (list of column ids)
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_columns_destroy(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_columns_destroy(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_experiments_columns_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            columns: List[ExperimentColumnType]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_columns_partial_update(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_columns_partial_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_experiments_rows_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            rows: List[{"input": Dict[str, Any]}]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_rows_create(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_rows_create(experiment_id, request_options=request_options)
-        return _response.data
-
-    async def api_experiments_rows_destroy(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            rows: list[str] (list of row ids)
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_rows_destroy(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_rows_destroy(experiment_id, request_options=request_options)
-        return _response.data
-
-    async def api_experiments_rows_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            rows: List[{"id": str, "input": Dict[str, Any]}]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_rows_partial_update(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_rows_partial_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_experiments_run_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_run_create(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_run_create(experiment_id, request_options=request_options)
-        return _response.data
-
-    async def api_experiments_run_evals_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Args:
-            evaluator_slugs: List[str]
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_run_evals_create(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_run_evals_create(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_experiments_retrieve(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentDetail:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_retrieve(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_retrieve(id, request_options=request_options)
-        return _response.data
-
-    async def api_experiments_update(
-        self,
-        id_: str,
-        *,
-        name: str,
-        organization: int,
-        id: typing.Optional[str] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        columns: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        rows: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        test_id: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        variables: typing.Optional[typing.Sequence[str]] = OMIT,
-        variable_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentDetail:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        id_ : str
-
-        name : str
-
-        organization : int
-
-        id : typing.Optional[str]
-
-        column_count : typing.Optional[int]
-
-        columns : typing.Optional[typing.Sequence[typing.Any]]
-
-        created_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        rows : typing.Optional[typing.Sequence[typing.Any]]
-
-        status : typing.Optional[str]
-
-        test_id : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        variables : typing.Optional[typing.Sequence[str]]
-
-        variable_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        project : typing.Optional[str]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_update(
-                id_="id",
-                name="name",
-                organization=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_update(
-            id_,
-            name=name,
-            organization=organization,
-            id=id,
-            column_count=column_count,
-            columns=columns,
-            created_at=created_at,
-            row_count=row_count,
-            rows=rows,
-            status=status,
-            test_id=test_id,
-            updated_at=updated_at,
-            variables=variables,
-            variable_definitions=variable_definitions,
-            starred=starred,
-            project=project,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_experiments_destroy(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_destroy(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_destroy(id, request_options=request_options)
-        return _response.data
-
-    async def api_experiments_partial_update(
-        self,
-        id: str,
-        *,
-        patched_public_experiment_update_request_id: typing.Optional[str] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        test_id: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        variables: typing.Optional[typing.Sequence[str]] = OMIT,
-        variable_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        created_by: typing.Optional[int] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicExperimentUpdate:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        id : str
-
-        patched_public_experiment_update_request_id : typing.Optional[str]
-
-        column_count : typing.Optional[int]
-
-        created_at : typing.Optional[dt.datetime]
-
-        name : typing.Optional[str]
-
-        row_count : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        test_id : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        variables : typing.Optional[typing.Sequence[str]]
-
-        variable_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        created_by : typing.Optional[int]
-
-        organization : typing.Optional[int]
-
-        project : typing.Optional[str]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicExperimentUpdate
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_partial_update(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_partial_update(
-            id,
-            patched_public_experiment_update_request_id=patched_public_experiment_update_request_id,
-            column_count=column_count,
-            created_at=created_at,
-            name=name,
-            row_count=row_count,
-            status=status,
-            test_id=test_id,
-            updated_at=updated_at,
-            variables=variables,
-            variable_definitions=variable_definitions,
-            starred=starred,
-            created_by=created_by,
-            organization=organization,
-            project=project,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_experiments_create_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedExperimentBaseList:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedExperimentBaseList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_create_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_create_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def api_experiments_create_create(
-        self,
-        *,
-        name: str,
-        organization: int,
-        id: typing.Optional[str] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        columns: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        rows: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        test_id: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        variables: typing.Optional[typing.Sequence[str]] = OMIT,
-        variable_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentDetail:
-        """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
-
-        Parameters
-        ----------
-        name : str
-
-        organization : int
-
-        id : typing.Optional[str]
-
-        column_count : typing.Optional[int]
-
-        columns : typing.Optional[typing.Sequence[typing.Any]]
-
-        created_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        rows : typing.Optional[typing.Sequence[typing.Any]]
-
-        status : typing.Optional[str]
-
-        test_id : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        variables : typing.Optional[typing.Sequence[str]]
-
-        variable_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        project : typing.Optional[str]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_create_create(
-                name="name",
-                organization=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_create_create(
-            name=name,
-            organization=organization,
-            id=id,
-            column_count=column_count,
-            columns=columns,
-            created_at=created_at,
-            row_count=row_count,
-            rows=rows,
-            status=status,
-            test_id=test_id,
-            updated_at=updated_at,
-            variables=variables,
-            variable_definitions=variable_definitions,
-            starred=starred,
-            project=project,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_experiments_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedExperimentBaseList:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedExperimentBaseList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_list_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def api_experiments_list_create(
-        self,
-        *,
-        name: str,
-        created_by: int,
-        organization: int,
-        id: typing.Optional[str] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        test_id: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        variables: typing.Optional[typing.Sequence[str]] = OMIT,
-        variable_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        updated_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentBase:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        name : str
-
-        created_by : int
-
-        organization : int
-
-        id : typing.Optional[str]
-
-        project : typing.Optional[str]
-
-        column_count : typing.Optional[int]
-
-        created_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        test_id : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        variables : typing.Optional[typing.Sequence[str]]
-
-        variable_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        updated_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentBase
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_list_create(
-                name="name",
-                created_by=1,
-                organization=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_list_create(
-            name=name,
-            created_by=created_by,
-            organization=organization,
-            id=id,
-            project=project,
-            column_count=column_count,
-            created_at=created_at,
-            row_count=row_count,
-            status=status,
-            test_id=test_id,
-            updated_at=updated_at,
-            variables=variables,
-            variable_definitions=variable_definitions,
-            starred=starred,
-            updated_by=updated_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_experiments_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentSummaryResponse:
-        """
-        GET/POST /api/experiments/summary/
-
-        Get summary statistics for experiments.
-
-        Returns:
-            {
-                "total_count": 42
-            }
-
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentSummaryResponse
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_summary_retrieve()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    async def api_experiments_summary_create(
-        self, *, total_count: int, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentSummaryResponse:
-        """
-        GET/POST /api/experiments/summary/
-
-        Get summary statistics for experiments.
-
-        Returns:
-            {
-                "total_count": 42
-            }
-
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        total_count : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentSummaryResponse
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_experiments_summary_create(
-                total_count=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_experiments_summary_create(
-            total_count=total_count, request_options=request_options
-        )
-        return _response.data
-
-    async def api_testsets_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedTestsetSheetListList:
-        """
-        Mixin that provides automatic organization injection and cross-org write protection.
-
-        This mixin handles ALL organization-related write behavior:
-        - CREATE: Injects organization (user's org for JWT, target org for API key superadmin)
-        - UPDATE/DELETE: Allows same-org writes; cross-org JWT writes require the
-          caller's scope-aware ``is_superadmin()`` (active staff write scope). API
-          key superadmin can write anywhere.
-
-        This is DATA SANITIZATION, not permission. Permission classes handle authentication
-        and authorization (can they write at all?). This mixin handles where they write to.
-
-        Inherits from:
-        - JWTAuthUtils: is_jwt_auth(), is_jwt_token_format()
-        - PermissionUtils: is_read_operation(), is_write_operation(), is_same_org()
-        - OrgScopeMixin: is_superadmin(), get_organization(), inject_*_organization()
-
-        Behavior:
-            - post(): Calls inject_target_organization() for CREATE operations
-            - patch()/put(): Calls inject_user_organization() for UPDATE operations
-            - perform_update(): Allows cross-org UPDATE for JWT auth only with active staff write scope
-            - perform_destroy(): Allows cross-org DELETE for JWT auth only with active staff write scope
-
-        Usage:
-            class MyView(OrganizationInjectionMixin, JWTAndAPIKeyAuthenticationViewMixin, ListCreateAPIView):
-                # All org injection and cross-org protection automatic!
-                pass
-
-        Note: SuperAdminMixin inherits from this mixin, so views using SuperAdminMixin
-        automatically get these safe defaults.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedTestsetSheetListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def api_testsets_update(
-        self,
-        *,
-        name: str,
-        organization: int,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        created_by: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheetList:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        name : str
-
-        organization : int
-
-        testset_unique_id : typing.Optional[str]
-
-        project : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        created_by : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheetList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_update(
-                name="name",
-                organization=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_update(
-            name=name,
-            organization=organization,
-            testset_unique_id=testset_unique_id,
-            project=project,
-            created_at=created_at,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            created_by=created_by,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_testsets_partial_update(
-        self,
-        *,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        created_by: typing.Optional[int] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheetList:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        testset_unique_id : typing.Optional[str]
-
-        project : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        created_by : typing.Optional[int]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheetList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_partial_update(
-            testset_unique_id=testset_unique_id,
-            project=project,
-            created_at=created_at,
-            name=name,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            created_by=created_by,
-            organization=organization,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_testsets_retrieve(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> TestsetSheet:
-        """
-        Mixin that provides automatic organization injection and cross-org write protection.
-
-        This mixin handles ALL organization-related write behavior:
-        - CREATE: Injects organization (user's org for JWT, target org for API key superadmin)
-        - UPDATE/DELETE: Allows same-org writes; cross-org JWT writes require the
-          caller's scope-aware ``is_superadmin()`` (active staff write scope). API
-          key superadmin can write anywhere.
-
-        This is DATA SANITIZATION, not permission. Permission classes handle authentication
-        and authorization (can they write at all?). This mixin handles where they write to.
-
-        Inherits from:
-        - JWTAuthUtils: is_jwt_auth(), is_jwt_token_format()
-        - PermissionUtils: is_read_operation(), is_write_operation(), is_same_org()
-        - OrgScopeMixin: is_superadmin(), get_organization(), inject_*_organization()
-
-        Behavior:
-            - post(): Calls inject_target_organization() for CREATE operations
-            - patch()/put(): Calls inject_user_organization() for UPDATE operations
-            - perform_update(): Allows cross-org UPDATE for JWT auth only with active staff write scope
-            - perform_destroy(): Allows cross-org DELETE for JWT auth only with active staff write scope
-
-        Usage:
-            class MyView(OrganizationInjectionMixin, JWTAndAPIKeyAuthenticationViewMixin, ListCreateAPIView):
-                # All org injection and cross-org protection automatic!
-                pass
-
-        Note: SuperAdminMixin inherits from this mixin, so views using SuperAdminMixin
-        automatically get these safe defaults.
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheet
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_retrieve(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_retrieve(id, request_options=request_options)
-        return _response.data
-
-    async def api_testsets_create2(
-        self,
-        id: str,
-        *,
-        name: str,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheet:
-        """
-        Default POST handler with automatic organization injection.
-
-        For CREATE operations:
-        - Superadmins can specify organization_id in request body (API key only)
-        - Regular users always use their own organization
-
-        Override this method for:
-        - POST-for-filtering pattern (delegate to self.get())
-        - Custom pre-create validation
-
-        Note: ``inject_target_organization`` is a DEPRECATED ``request.data``-mutating
-        shim kept for backward-compat during the DEV-9410 migration. The blessed
-        path stamps org via ``get_create_save_kwargs`` → ``perform_create`` → a
-        ``read_only`` serializer field. The shim (and these overrides' reliance on
-        it) is removed in C18 (DEV-9430) once every view's org field is read_only.
-
-        Parameters
-        ----------
-        id : str
-
-        name : str
-
-        testset_unique_id : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheet
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_create2(
-                id="id",
-                name="name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_create2(
-            id,
-            name=name,
-            testset_unique_id=testset_unique_id,
-            created_at=created_at,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_testsets_update2(
-        self,
-        id: str,
-        *,
-        name: str,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheet:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        id : str
-
-        name : str
-
-        testset_unique_id : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheet
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_update2(
-                id="id",
-                name="name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_update2(
-            id,
-            name=name,
-            testset_unique_id=testset_unique_id,
-            created_at=created_at,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_testsets_destroy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Mixin that provides automatic organization injection and cross-org write protection.
-
-        This mixin handles ALL organization-related write behavior:
-        - CREATE: Injects organization (user's org for JWT, target org for API key superadmin)
-        - UPDATE/DELETE: Allows same-org writes; cross-org JWT writes require the
-          caller's scope-aware ``is_superadmin()`` (active staff write scope). API
-          key superadmin can write anywhere.
-
-        This is DATA SANITIZATION, not permission. Permission classes handle authentication
-        and authorization (can they write at all?). This mixin handles where they write to.
-
-        Inherits from:
-        - JWTAuthUtils: is_jwt_auth(), is_jwt_token_format()
-        - PermissionUtils: is_read_operation(), is_write_operation(), is_same_org()
-        - OrgScopeMixin: is_superadmin(), get_organization(), inject_*_organization()
-
-        Behavior:
-            - post(): Calls inject_target_organization() for CREATE operations
-            - patch()/put(): Calls inject_user_organization() for UPDATE operations
-            - perform_update(): Allows cross-org UPDATE for JWT auth only with active staff write scope
-            - perform_destroy(): Allows cross-org DELETE for JWT auth only with active staff write scope
-
-        Usage:
-            class MyView(OrganizationInjectionMixin, JWTAndAPIKeyAuthenticationViewMixin, ListCreateAPIView):
-                # All org injection and cross-org protection automatic!
-                pass
-
-        Note: SuperAdminMixin inherits from this mixin, so views using SuperAdminMixin
-        automatically get these safe defaults.
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_destroy(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_destroy(id, request_options=request_options)
-        return _response.data
-
-    async def api_testsets_partial_update2(
-        self,
-        id: str,
-        *,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        created_at: typing.Optional[dt.datetime] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        row_count: typing.Optional[int] = OMIT,
-        column_count: typing.Optional[int] = OMIT,
-        max_insertions_before_rebalance: typing.Optional[int] = OMIT,
-        used_row_indexes: typing.Optional[typing.Sequence[float]] = OMIT,
-        current_max_row_index: typing.Optional[float] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetSheet:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        id : str
-
-        testset_unique_id : typing.Optional[str]
-
-        created_at : typing.Optional[dt.datetime]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        row_count : typing.Optional[int]
-
-        column_count : typing.Optional[int]
-
-        max_insertions_before_rebalance : typing.Optional[int]
-
-        used_row_indexes : typing.Optional[typing.Sequence[float]]
-
-        current_max_row_index : typing.Optional[float]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetSheet
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_partial_update2(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_partial_update2(
-            id,
-            testset_unique_id=testset_unique_id,
-            created_at=created_at,
-            name=name,
-            description=description,
-            updated_at=updated_at,
-            row_count=row_count,
-            column_count=column_count,
-            max_insertions_before_rebalance=max_insertions_before_rebalance,
-            used_row_indexes=used_row_indexes,
-            current_max_row_index=current_max_row_index,
-            column_definitions=column_definitions,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_testsets_create3(
-        self,
-        testset_id: str,
-        *,
-        name: str,
-        testset_unique_id: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        column_definitions: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        tags: typing.Optional[typing.Sequence[str]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PublicTestsetSheetDetail:
-        """
-        Default POST handler with automatic organization injection.
-
-        For CREATE operations:
-        - Superadmins can specify organization_id in request body (API key only)
-        - Regular users always use their own organization
-
-        Override this method for:
-        - POST-for-filtering pattern (delegate to self.get())
-        - Custom pre-create validation
-
-        Note: ``inject_target_organization`` is a DEPRECATED ``request.data``-mutating
-        shim kept for backward-compat during the DEV-9410 migration. The blessed
-        path stamps org via ``get_create_save_kwargs`` → ``perform_create`` → a
-        ``read_only`` serializer field. The shim (and these overrides' reliance on
-        it) is removed in C18 (DEV-9430) once every view's org field is read_only.
-
-        Parameters
-        ----------
-        testset_id : str
-
-        name : str
-
-        testset_unique_id : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        column_definitions : typing.Optional[typing.Sequence[typing.Any]]
-
-        starred : typing.Optional[bool]
-
-        tags : typing.Optional[typing.Sequence[str]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PublicTestsetSheetDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_create3(
-                testset_id="testset_id",
-                name="name",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_create3(
-            testset_id,
-            name=name,
-            testset_unique_id=testset_unique_id,
-            description=description,
-            column_definitions=column_definitions,
-            starred=starred,
-            tags=tags,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_testsets_rows_retrieve2(
-        self, testset_sheet_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> TestsetRow:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetRow
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_rows_retrieve2(
-                testset_sheet_id="testset_sheet_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_rows_retrieve2(
-            testset_sheet_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_testsets_rows_create2(
-        self,
-        testset_sheet_id: str,
-        *,
-        testset_sheet: str,
-        row_index: typing.Optional[float] = OMIT,
-        height: typing.Optional[int] = OMIT,
-        row_data: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetRow:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        testset_sheet : str
-
-        row_index : typing.Optional[float]
-
-        height : typing.Optional[int]
-
-        row_data : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetRow
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_rows_create2(
-                testset_sheet_id="testset_sheet_id",
-                testset_sheet="testset_sheet",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_rows_create2(
-            testset_sheet_id,
-            testset_sheet=testset_sheet,
-            row_index=row_index,
-            height=height,
-            row_data=row_data,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_testsets_rows_destroy3(
-        self, testset_sheet_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_rows_destroy3(
-                testset_sheet_id="testset_sheet_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_rows_destroy3(testset_sheet_id, request_options=request_options)
-        return _response.data
-
-    async def api_testsets_rows_partial_update2(
-        self,
-        testset_sheet_id: str,
-        *,
-        row_index: typing.Optional[float] = OMIT,
-        height: typing.Optional[int] = OMIT,
-        row_data: typing.Optional[typing.Any] = OMIT,
-        testset_sheet: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> TestsetRow:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        row_index : typing.Optional[float]
-
-        height : typing.Optional[int]
-
-        row_data : typing.Optional[typing.Any]
-
-        testset_sheet : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        TestsetRow
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_rows_partial_update2(
-                testset_sheet_id="testset_sheet_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_rows_partial_update2(
-            testset_sheet_id,
-            row_index=row_index,
-            height=height,
-            row_data=row_data,
-            testset_sheet=testset_sheet,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_testsets_rows_reorder_create(
-        self, testset_sheet_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        testset_sheet_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_rows_reorder_create(
-                testset_sheet_id="testset_sheet_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_rows_reorder_create(
-            testset_sheet_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_testsets_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedTestsetSheetListList:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedTestsetSheetListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_list_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def api_testsets_summary_retrieve(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        GET/POST /api/testsets/summary/
-        GET/POST /lab/testset-sheets/summary/
-
-        Get summary statistics for testsets.
-
-        Returns:
-            {
-                "total_count": 42
-            }
-
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_summary_retrieve()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    async def api_testsets_summary_update(self, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_summary_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_summary_update(request_options=request_options)
-        return _response.data
-
-    async def api_testsets_summary_partial_update(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_testsets_summary_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_testsets_summary_partial_update(request_options=request_options)
-        return _response.data
-
-    async def api_v2experiments_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedExperimentV2ListList:
-        """
-        GET: List experiments
-        POST: Create and run an experiment workflow execution.
-
-        **Design Philosophy:**
-        Dataset Log → [Arbitrary Workflow Tasks] → Run Eval Steps → Scores for Comparison
-
-        - Workflow tasks can be arbitrary (any combination, end with whatever)
-        - `evaluator_ids` field specifies which evaluators produce scores (preferred)
-        - `evaluator_slugs` is a deprecated alias for `evaluator_ids` (backward compat)
-        - Workflow step type `eval` is canonical; legacy `evaluator` is still accepted on input
-        - Multiple evaluators can run for comprehensive comparison (e.g., quality, safety, cost)
-
-        This endpoint processes a dataset through a sequence of workflow tasks and generates
-        traces for experiment tracking.
-
-        **Request Body:**
-        ```json
-        {
-            "dataset_id": "dataset-123",
-            "workflow": [
-                {
-                    "type": "prompt",
-                    "config": {
-                        "prompt_id": "my-prompt-slug"
-                    }
-                },
-                {
-                    "type": "completion",
-                    "config": {
-                        "model": "gpt-4",
-                        "temperature": 0.7,
-                        "max_tokens": 1000,
-                        "top_p": 1.0,
-                        "frequency_penalty": 0,
-                        "presence_penalty": 0
-                    }
-                }
-            ],
-            "evaluator_ids": ["abc123-evaluator-uuid", "def456-evaluator-uuid"],
-            "experiment_id": "exp-run-456",
-            "name": "My Experiment",
-            "description": "Testing GPT-4 with my prompt",
-            "span_workflow_name": "My Experiment",
-            "enable_tracing": true
-        }
-        ```
-
-        **Response:**
-        ```json
-        {
-            "task_id": "celery-task-id",
-            "task_tracker_id": "tracker-id",
-            "status": "pending",
-            "message": "Workflow execution task started",
-            "experiment_id": "exp-run-456"
-        }
-        ```
-
-        **Workflow Types & Configurations:**
-
-        **Key Fields:**
-        - `workflow`: Array of workflow tasks (can be any combination)
-        - `evaluator_ids`: Array of evaluator IDs (optional) - runs after workflow tasks complete; omit or pass `[]` to produce outputs with no scores
-        - `evaluator_slugs`: Deprecated alias for `evaluator_ids` (still accepted)
-
-        **Example Configurations:**
-        - workflow: `[prompt, completion]` + evaluator_ids: `["abc123"]` ✓
-        - workflow: `[completion]` + evaluator_ids: `["abc123", "def456"]` ✓
-        - workflow: `[]` + evaluator_ids: `["abc123"]` ✗ (workflow is required)
-        - workflow: `[prompt, completion]` + evaluator_ids: `[]` ✓ (runs the workflow, produces outputs with no scores)
-
-        1. **Prompt Workflow** (`type: "prompt"`):
-           - Variables are dynamically filled from dataset entries (don't pass in config)
-           - Config fields:
-             - `prompt_id`: Prompt identifier (required)
-           - Input: Dataset entry fields (mapped to prompt variables)
-           - Output: Rendered messages array
-
-        2. **Completion Workflow** (`type: "completion"`):
-           - Uses LLM configuration fields (temperature, max_tokens, etc.)
-           - Messages come from previous workflow step or dataset input field
-           - Config fields (all optional):
-             - `model`: Model identifier (e.g., "gpt-4", "claude-3-opus")
-             - `temperature`: Sampling temperature (0-2)
-             - `max_tokens`: Maximum completion tokens
-             - `top_p`: Nucleus sampling parameter
-             - `frequency_penalty`: Frequency penalty (-2 to 2)
-             - `presence_penalty`: Presence penalty (-2 to 2)
-             - `stop`: Stop sequences (string or array)
-             - `n`: Number of completions to generate
-             - `stream`: Enable streaming (not recommended for experiments)
-             - `response_format`: Response format (e.g., {"type": "json_object"})
-             - `tools`: Function calling tools array
-             - `tool_choice`: Tool choice strategy
-             - `reasoning_effort`: Reasoning effort for o1 models
-           - Input: Messages array (from "input" field in unified log format)
-           - Output: Response message object (stored in "output" field)
-
-        3. **Eval Workflow** (`type: "eval"`):
-           - Runs an evaluator on the unified log format (can be in workflow or via evaluator_slugs)
-           - Produces scores for experiment comparison
-           - Config fields:
-             - `evaluator_slug`: Evaluator identifier (required)
-           - Input: Unified log format with input/output/metrics/metadata
-           - Output: Evaluation result with score
-
-        **Note:** Eval steps can be in workflow OR specified via `evaluator_slugs` field (recommended).
-        The `evaluator_slugs` field at experiment level ensures all specified evaluators run after workflow tasks complete.
-
-        4. **Condition Workflow** (`type: "condition"`):
-           - Evaluates condition policies (future implementation)
-           - Config fields: TBD
-
-        5. **Duplicate Workflow** (`type: "duplicate"`):
-           - Passes through dataset entry's input/output as-is (no LLM inference)
-           - Useful for batch evaluation on existing production data
-           - Config fields (all optional):
-             - `name`: Display name for the workflow span
-           - Input: Dataset entry's input field
-           - Output: Dataset entry's output field (unchanged)
-           - Evaluators then run on this duplicated data
-
-        **Authentication:**
-        - Supports both JWT (internal) and API Key (public) authentication
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedExperimentV2ListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
     async def create_experiment(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow: typing.Optional[typing.Any] = OMIT,
+        dataset_id: str,
+        workflow: typing.Sequence[CreateExperimentRequestWorkflowItem],
+        evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_slugs: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_workflow_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        experiment_id: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        enable_tracing: typing.Optional[bool] = OMIT,
         batch_size: typing.Optional[int] = OMIT,
         concurrency: typing.Optional[int] = OMIT,
-        enable_tracing: typing.Optional[bool] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
+        generation_method: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2Create:
+    ) -> CreateExperimentResponse:
         """
-        Create an experiment. Two equally-supported modes, distinguished
-        by the payload shape:
-
-        1. **Draft mode** — client sends just ``name`` (plus optional
-           description). Row lands in ``status=draft`` and stays there
-           until the client fills in the rest via PATCH and triggers
-           execution via ``POST /api/v2/experiments/{id}/runs/``.
-
-        2. **Create-and-run mode** — client sends ``dataset`` + a
-           non-empty ``workflow`` (plus evaluators, config, etc.). After
-           the row is created we dispatch the Celery workflow task
-           directly, matching the pattern in
-           ``dataset/views.py::DatasetsView.post()``. Dispatch failures
-           leave the row with ``status=failed`` (via
-           ``dispatch_experiment_run``), so the client can re-run in
-           place; the failure is also reflected in the HTTP response.
-
-        Body mutations inline per convention (no helper methods):
-
-        - ``created_by`` injected from ``request.user``. Organization fields
-          are injected automatically by ``SuperAdminMixin.post()`` via
-          ``inject_target_organization``.
-        - Alias/default transforms (experiment_id → id, dataset_id →
-          dataset, default id + name) live in
-          ``ExperimentV2CreateSerializer`` per serializer conventions.
+        Create an experiment and start asynchronous workflow execution over a dataset.
 
         Parameters
         ----------
-        id : typing.Optional[str]
+        dataset_id : str
+            Dataset ID to process.
 
-        name : typing.Optional[str]
+        workflow : typing.Sequence[CreateExperimentRequestWorkflowItem]
+            Workflow tasks to run for each dataset row.
 
-        description : typing.Optional[str]
-
-        dataset : typing.Optional[str]
-
-        workflow : typing.Optional[typing.Any]
+        evaluator_ids : typing.Optional[typing.Sequence[str]]
+            Preferred evaluator identifiers for scoring. Mutually exclusive with `evaluator_workflow_ids`.
 
         evaluator_slugs : typing.Optional[typing.Sequence[str]]
-            List of evaluators to run for producing scores for comparison
+            Backward-compatible alias for `evaluator_ids`. If both are provided, `evaluator_ids` takes precedence.
 
         evaluator_workflow_ids : typing.Optional[typing.Sequence[str]]
-            List of WorkflowVersion IDs (eval_only) defining evaluator pipelines. Mutually exclusive with evaluator_slugs.
+            WorkflowVersion IDs configured for eval-only scoring. Mutually exclusive with evaluator IDs/slugs.
 
-        batch_size : typing.Optional[int]
+        experiment_id : typing.Optional[str]
+            Optional client-provided experiment ID. The backend generates one when omitted.
 
-        concurrency : typing.Optional[int]
+        name : typing.Optional[str]
+            Experiment name.
+
+        description : typing.Optional[str]
+            Experiment description.
+
+        span_workflow_name : typing.Optional[str]
+            Root workflow span name.
 
         enable_tracing : typing.Optional[bool]
+            Whether to create trace logs.
 
-        organization : typing.Optional[int]
+        batch_size : typing.Optional[int]
+            Batch size for processing.
 
-        project : typing.Optional[str]
+        concurrency : typing.Optional[int]
+            Number of concurrent workers.
 
-        unique_organization_id : typing.Optional[str]
+        generation_method : typing.Optional[str]
+            Optional evaluation generation method override.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2Create
-
+        CreateExperimentResponse
+            Created experiment.
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
+        from respan.experiments import CreateExperimentRequestWorkflowItem
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
-            await client.experiments.create_experiment()
+            await client.experiments.create_experiment(
+                dataset_id="ds_abc123",
+                workflow=[
+                    CreateExperimentRequestWorkflowItem(
+                        type="completion",
+                        config={
+                            "model": "gpt-4o-mini",
+                            "temperature": 0.2,
+                            "max_tokens": 256,
+                        },
+                    )
+                ],
+                evaluator_ids=["eval_quality"],
+                name="gpt-4o-mini quality run",
+                concurrency=15,
+            )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.create_experiment(
-            id=id,
-            name=name,
-            description=description,
-            dataset=dataset,
+            dataset_id=dataset_id,
             workflow=workflow,
+            evaluator_ids=evaluator_ids,
             evaluator_slugs=evaluator_slugs,
             evaluator_workflow_ids=evaluator_workflow_ids,
+            experiment_id=experiment_id,
+            name=name,
+            description=description,
+            span_workflow_name=span_workflow_name,
+            enable_tracing=enable_tracing,
             batch_size=batch_size,
             concurrency=concurrency,
-            enable_tracing=enable_tracing,
-            organization=organization,
-            project=project,
-            unique_organization_id=unique_organization_id,
+            generation_method=generation_method,
             request_options=request_options,
         )
         return _response.data
 
-    async def api_v2experiments_update(
+    async def list_experiments(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
+    ) -> AsyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        List experiments using POST-for-filtering.
 
         Parameters
         ----------
-        id : typing.Optional[str]
+        page : typing.Optional[int]
+            Page number.
 
-        name : typing.Optional[str]
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
 
-        dataset : typing.Optional[str]
+        sort_by : typing.Optional[str]
+            Field to sort by. Defaults to `-created_at`.
 
-        workflow_count : typing.Optional[int]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2List
-
+        AsyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]
+            Paginated filtered list of experiments.
 
         Examples
         --------
@@ -8298,83 +1054,59 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
-            await client.experiments.api_v2experiments_update()
+            response = await client.experiments.list_experiments(
+                sort_by="-created_at",
+            )
+            async for item in response:
+                yield item
+
+            # alternatively, you can paginate page-by-page
+            async for page in response.iter_pages():
+                yield page
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.api_v2experiments_update(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
+        return await self._raw_client.list_experiments(
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            filters=filters,
+            is_exporting=is_exporting,
             request_options=request_options,
         )
-        return _response.data
 
-    async def api_v2experiments_partial_update(
+    async def filter_experiments_summary(
         self,
         *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
+    ) -> FilterExperimentsSummaryResponse:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Return the number of experiments matching a POST filter payload.
 
         Parameters
         ----------
-        id : typing.Optional[str]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
-        name : typing.Optional[str]
-
-        dataset : typing.Optional[str]
-
-        workflow_count : typing.Optional[int]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2List
-
+        FilterExperimentsSummaryResponse
+            Experiment summary.
 
         Examples
         --------
@@ -8383,56 +1115,40 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
-            await client.experiments.api_v2experiments_partial_update()
+            await client.experiments.filter_experiments_summary()
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.api_v2experiments_partial_update(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
-            request_options=request_options,
+        _response = await self._raw_client.filter_experiments_summary(
+            filters=filters, is_exporting=is_exporting, request_options=request_options
         )
         return _response.data
 
     async def retrieve_experiment(
         self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2:
+    ) -> RetrieveExperimentResponse:
         """
-        RUD: Retrieve, Update, Delete single experiment.
-
-        GET /evaluations/experiments/<id>/
-        PATCH /evaluations/experiments/<id>/   — edit the definition (dataset,
-            workflow, evaluators, config). Blocked while a run is in flight
-            so the in-flight run can trust its dispatched definition.
-            Trigger execution via POST /runs/, not PATCH.
-        DELETE /evaluations/experiments/<id>/
+        Retrieve an experiment by ID, including workflow and scoring configuration.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2
-
+        RetrieveExperimentResponse
+            Experiment details.
 
         Examples
         --------
@@ -8441,8 +1157,8 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -8457,205 +1173,110 @@ class AsyncExperimentsClient:
         _response = await self._raw_client.retrieve_experiment(experiment_id, request_options=request_options)
         return _response.data
 
-    async def api_v2experiments_create2(
-        self,
-        experiment_id: str,
-        *,
-        project: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        workflow: typing.Optional[typing.Any] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        evaluator_slugs: typing.Optional[typing.Sequence[str]] = OMIT,
-        evaluator_workflow_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        resource_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        batch_size: typing.Optional[int] = OMIT,
-        concurrency: typing.Optional[int] = OMIT,
-        enable_tracing: typing.Optional[bool] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        metadata: typing.Optional[typing.Any] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        task_tracker: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        project : typing.Optional[str]
-
-        name : typing.Optional[str]
-
-        description : typing.Optional[str]
-
-        workflow : typing.Optional[typing.Any]
-
-        workflow_count : typing.Optional[int]
-
-        evaluator_slugs : typing.Optional[typing.Sequence[str]]
-            List of evaluators to run for producing scores for comparison
-
-        evaluator_workflow_ids : typing.Optional[typing.Sequence[str]]
-            List of WorkflowVersion IDs (eval_only) defining evaluator pipelines. Mutually exclusive with evaluator_slugs.
-
-        resource_ids : typing.Optional[typing.Sequence[str]]
-            All resource IDs referenced (evaluators, prompts) for reverse lookup on deletion
-
-        batch_size : typing.Optional[int]
-
-        concurrency : typing.Optional[int]
-
-        enable_tracing : typing.Optional[bool]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        metadata : typing.Optional[typing.Any]
-
-        is_starred : typing.Optional[bool]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        dataset : typing.Optional[str]
-
-        task_tracker : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_create2(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_create2(
-            experiment_id,
-            project=project,
-            name=name,
-            description=description,
-            workflow=workflow,
-            workflow_count=workflow_count,
-            evaluator_slugs=evaluator_slugs,
-            evaluator_workflow_ids=evaluator_workflow_ids,
-            resource_ids=resource_ids,
-            batch_size=batch_size,
-            concurrency=concurrency,
-            enable_tracing=enable_tracing,
-            status=status,
-            progress=progress,
-            metadata=metadata,
-            is_starred=is_starred,
-            started_at=started_at,
-            completed_at=completed_at,
-            dataset=dataset,
-            task_tracker=task_tracker,
-            request_options=request_options,
-        )
-        return _response.data
-
     async def replace_experiment(
         self,
         experiment_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow: typing.Optional[typing.Any] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        workflow: typing.Optional[typing.Sequence[ReplaceExperimentRequestWorkflowItem]] = OMIT,
+        evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_slugs: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_workflow_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        replace_experiment_request_experiment_id: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        enable_tracing: typing.Optional[bool] = OMIT,
         batch_size: typing.Optional[int] = OMIT,
         concurrency: typing.Optional[int] = OMIT,
-        enable_tracing: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        generation_method: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2Update:
+    ) -> ReplaceExperimentResponse:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        Replace editable fields for an experiment.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
-        name : typing.Optional[str]
+        dataset_id : typing.Optional[str]
+            Dataset ID to process.
 
-        description : typing.Optional[str]
+        workflow : typing.Optional[typing.Sequence[ReplaceExperimentRequestWorkflowItem]]
+            Workflow tasks to run for each dataset row.
 
-        dataset : typing.Optional[str]
-
-        workflow : typing.Optional[typing.Any]
+        evaluator_ids : typing.Optional[typing.Sequence[str]]
+            Preferred evaluator identifiers for scoring. Mutually exclusive with `evaluator_workflow_ids`.
 
         evaluator_slugs : typing.Optional[typing.Sequence[str]]
-            List of evaluators to run for producing scores for comparison
+            Backward-compatible alias for `evaluator_ids`. If both are provided, `evaluator_ids` takes precedence.
 
         evaluator_workflow_ids : typing.Optional[typing.Sequence[str]]
-            List of WorkflowVersion IDs (eval_only) defining evaluator pipelines. Mutually exclusive with evaluator_slugs.
+            WorkflowVersion IDs configured for eval-only scoring. Mutually exclusive with evaluator IDs/slugs.
 
-        batch_size : typing.Optional[int]
+        replace_experiment_request_experiment_id : typing.Optional[str]
+            Optional client-provided experiment ID. The backend generates one when omitted.
 
-        concurrency : typing.Optional[int]
+        name : typing.Optional[str]
+            Experiment name.
+
+        description : typing.Optional[str]
+            Experiment description.
+
+        span_workflow_name : typing.Optional[str]
+            Root workflow span name.
 
         enable_tracing : typing.Optional[bool]
+            Whether to create trace logs.
 
-        is_starred : typing.Optional[bool]
+        batch_size : typing.Optional[int]
+            Batch size for processing.
+
+        concurrency : typing.Optional[int]
+            Number of concurrent workers.
+
+        generation_method : typing.Optional[str]
+            Optional evaluation generation method override.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2Update
-
+        ReplaceExperimentResponse
+            Updated experiment.
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
+        from respan.experiments import ReplaceExperimentRequestWorkflowItem
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
             await client.experiments.replace_experiment(
                 experiment_id="experiment_id",
+                dataset_id="ds_abc123",
+                workflow=[
+                    ReplaceExperimentRequestWorkflowItem(
+                        type="completion",
+                        config={
+                            "model": "gpt-4o-mini",
+                            "temperature": 0.2,
+                            "max_tokens": 256,
+                        },
+                    )
+                ],
+                evaluator_ids=["eval_quality"],
+                name="gpt-4o-mini quality run",
+                concurrency=15,
             )
 
 
@@ -8663,16 +1284,19 @@ class AsyncExperimentsClient:
         """
         _response = await self._raw_client.replace_experiment(
             experiment_id,
-            name=name,
-            description=description,
-            dataset=dataset,
+            dataset_id=dataset_id,
             workflow=workflow,
+            evaluator_ids=evaluator_ids,
             evaluator_slugs=evaluator_slugs,
             evaluator_workflow_ids=evaluator_workflow_ids,
+            replace_experiment_request_experiment_id=replace_experiment_request_experiment_id,
+            name=name,
+            description=description,
+            span_workflow_name=span_workflow_name,
+            enable_tracing=enable_tracing,
             batch_size=batch_size,
             concurrency=concurrency,
-            enable_tracing=enable_tracing,
-            is_starred=is_starred,
+            generation_method=generation_method,
             request_options=request_options,
         )
         return _response.data
@@ -8681,18 +1305,12 @@ class AsyncExperimentsClient:
         self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        RUD: Retrieve, Update, Delete single experiment.
-
-        GET /evaluations/experiments/<id>/
-        PATCH /evaluations/experiments/<id>/   — edit the definition (dataset,
-            workflow, evaluators, config). Blocked while a run is in flight
-            so the in-flight run can trust its dispatched definition.
-            Trigger execution via POST /runs/, not PATCH.
-        DELETE /evaluations/experiments/<id>/
+        Delete an experiment by ID.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -8708,8 +1326,8 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -8728,74 +1346,106 @@ class AsyncExperimentsClient:
         self,
         experiment_id: str,
         *,
-        name: typing.Optional[str] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow: typing.Optional[typing.Any] = OMIT,
+        dataset_id: typing.Optional[str] = OMIT,
+        workflow: typing.Optional[typing.Sequence[UpdateExperimentRequestWorkflowItem]] = OMIT,
+        evaluator_ids: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_slugs: typing.Optional[typing.Sequence[str]] = OMIT,
         evaluator_workflow_ids: typing.Optional[typing.Sequence[str]] = OMIT,
+        update_experiment_request_experiment_id: typing.Optional[str] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        enable_tracing: typing.Optional[bool] = OMIT,
         batch_size: typing.Optional[int] = OMIT,
         concurrency: typing.Optional[int] = OMIT,
-        enable_tracing: typing.Optional[bool] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        generation_method: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2Update:
+    ) -> UpdateExperimentResponse:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Partially update editable fields for an experiment.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
-        name : typing.Optional[str]
+        dataset_id : typing.Optional[str]
+            Dataset ID to process.
 
-        description : typing.Optional[str]
+        workflow : typing.Optional[typing.Sequence[UpdateExperimentRequestWorkflowItem]]
+            Workflow tasks to run for each dataset row.
 
-        dataset : typing.Optional[str]
-
-        workflow : typing.Optional[typing.Any]
+        evaluator_ids : typing.Optional[typing.Sequence[str]]
+            Preferred evaluator identifiers for scoring. Mutually exclusive with `evaluator_workflow_ids`.
 
         evaluator_slugs : typing.Optional[typing.Sequence[str]]
-            List of evaluators to run for producing scores for comparison
+            Backward-compatible alias for `evaluator_ids`. If both are provided, `evaluator_ids` takes precedence.
 
         evaluator_workflow_ids : typing.Optional[typing.Sequence[str]]
-            List of WorkflowVersion IDs (eval_only) defining evaluator pipelines. Mutually exclusive with evaluator_slugs.
+            WorkflowVersion IDs configured for eval-only scoring. Mutually exclusive with evaluator IDs/slugs.
 
-        batch_size : typing.Optional[int]
+        update_experiment_request_experiment_id : typing.Optional[str]
+            Optional client-provided experiment ID. The backend generates one when omitted.
 
-        concurrency : typing.Optional[int]
+        name : typing.Optional[str]
+            Experiment name.
+
+        description : typing.Optional[str]
+            Experiment description.
+
+        span_workflow_name : typing.Optional[str]
+            Root workflow span name.
 
         enable_tracing : typing.Optional[bool]
+            Whether to create trace logs.
 
-        is_starred : typing.Optional[bool]
+        batch_size : typing.Optional[int]
+            Batch size for processing.
+
+        concurrency : typing.Optional[int]
+            Number of concurrent workers.
+
+        generation_method : typing.Optional[str]
+            Optional evaluation generation method override.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2Update
-
+        UpdateExperimentResponse
+            Updated experiment.
 
         Examples
         --------
         import asyncio
 
         from respan import AsyncRespanClient
+        from respan.experiments import UpdateExperimentRequestWorkflowItem
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
             await client.experiments.update_experiment(
                 experiment_id="experiment_id",
+                dataset_id="ds_abc123",
+                workflow=[
+                    UpdateExperimentRequestWorkflowItem(
+                        type="completion",
+                        config={
+                            "model": "gpt-4o-mini",
+                            "temperature": 0.2,
+                            "max_tokens": 256,
+                        },
+                    )
+                ],
+                evaluator_ids=["eval_quality"],
+                name="gpt-4o-mini quality run",
+                concurrency=15,
             )
 
 
@@ -8803,36 +1453,80 @@ class AsyncExperimentsClient:
         """
         _response = await self._raw_client.update_experiment(
             experiment_id,
-            name=name,
-            description=description,
-            dataset=dataset,
+            dataset_id=dataset_id,
             workflow=workflow,
+            evaluator_ids=evaluator_ids,
             evaluator_slugs=evaluator_slugs,
             evaluator_workflow_ids=evaluator_workflow_ids,
+            update_experiment_request_experiment_id=update_experiment_request_experiment_id,
+            name=name,
+            description=description,
+            span_workflow_name=span_workflow_name,
+            enable_tracing=enable_tracing,
             batch_size=batch_size,
             concurrency=concurrency,
-            enable_tracing=enable_tracing,
-            is_starred=is_starred,
+            generation_method=generation_method,
             request_options=request_options,
         )
         return _response.data
 
-    async def api_v2experiments_histogram_retrieve(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+    async def list_experiment_spans(
+        self,
+        experiment_id: str,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        detail: typing.Optional[ListExperimentSpansRequestDetail] = None,
+        preview_length: typing.Optional[int] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncPager[ListExperimentSpansResponseResultsItem, ListExperimentSpansResponse]:
         """
-        Delegate GET to list() for consistency with dashboard views.
+        List experiment traces using POST-for-filtering. Supports status, cost, comparison key, timestamp, metadata, and score filters.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
+
+        start_time : typing.Optional[dt.datetime]
+            Filter results at or after this timestamp.
+
+        end_time : typing.Optional[dt.datetime]
+            Filter results before this timestamp.
+
+        detail : typing.Optional[ListExperimentSpansRequestDetail]
+            Set to `1` or `true` to include span tree details in list responses.
+
+        preview_length : typing.Optional[int]
+            Truncate `input`, `expected_output`, and `output` to this many characters. Omitted, non-positive, or unparseable values return full text; ignored when `detail` is set.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        None
+        AsyncPager[ListExperimentSpansResponseResultsItem, ListExperimentSpansResponse]
+            Paginated filtered list of experiment traces.
 
         Examples
         --------
@@ -8841,209 +1535,61 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
-            await client.experiments.api_v2experiments_histogram_retrieve(
+            response = await client.experiments.list_experiment_spans(
                 experiment_id="experiment_id",
+                sort_by="-start_time",
             )
+            async for item in response:
+                yield item
+
+            # alternatively, you can paginate page-by-page
+            async for page in response.iter_pages():
+                yield page
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.api_v2experiments_histogram_retrieve(
-            experiment_id, request_options=request_options
+        return await self._raw_client.list_experiment_spans(
+            experiment_id,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            start_time=start_time,
+            end_time=end_time,
+            detail=detail,
+            preview_length=preview_length,
+            filters=filters,
+            is_exporting=is_exporting,
+            request_options=request_options,
         )
-        return _response.data
-
-    async def filter_experiment_score_histogram(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Delegate POST to list() for consistency with dashboard views.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.filter_experiment_score_histogram(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.filter_experiment_score_histogram(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_v2experiments_histogram_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_histogram_update(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_histogram_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_v2experiments_histogram_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_histogram_partial_update(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_histogram_partial_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
 
     async def retrieve_experiment_span(
         self, experiment_id: str, log_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ChDatasetTraceDetail:
+    ) -> RetrieveExperimentSpanResponse:
         """
-        Retrieve single experiment trace with full span tree, or submit workflow result.
-
-        GET /evaluations/experiments/<experiment_id>/logs/<trace_unique_id>/
-        Returns:
-        - Trace-level aggregated metrics (cost, tokens, duration, etc.)
-        - Full hierarchical span tree with all children
-        - Enriched with storage (input/output) for API key authentication
-        - Complete scores (LLM evaluator + human annotation) with evaluator metadata
-
-        PATCH /evaluations/experiments/<experiment_id>/logs/<trace_unique_id>/
-        Body: {"input": {...}, "output": {...}, "metrics": {...}, "metadata": {...}}
-        Purpose: Submit wait-task workflow result via resume mechanism
-        - Uses get_full_object_by_unique_id for cached retrieval (performance optimized)
-        - Supports both JWT and API key authentication
-        - Partial updates with existing data merging
-        - Creates workflow spans in unified format with proper trace hierarchy
-        - Triggers evaluators if specified in experiment configuration
-        - Input/output can be any JSON type (dict, list, string, number, boolean)
-
-        Note: The URL parameter is called 'log_id' but it should be the trace_unique_id.
-        This returns a full TRACE (aggregated) with span tree, not a single log/span.
-        The 'id' field in the list endpoint exposes trace_unique_id for use in detail/PATCH operations.
-
-        Uses SpanTreeSerializerContextMixin to automatically handle:
-        - Span tree inclusion (always enabled for detail view)
-        - Storage enrichment based on authentication type (JWT vs API key)
-        - Dynamic serializer configuration
-
-        Uses DataEnrichmentMixin to enrich scores with:
-        - Human annotation scores from Postgres EvalResult
-        - Evaluator metadata (name, slug, score_value_type)
-        - All score types (numerical, boolean, string, categorical, json)
+        Retrieve one experiment trace with its full span tree and enriched evaluator scores.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
         log_id : str
+            Trace ID returned as `id` in experiment trace list responses.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ChDatasetTraceDetail
-
+        RetrieveExperimentSpanResponse
+            Experiment trace details.
 
         Examples
         --------
@@ -9052,8 +1598,8 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -9071,447 +1617,45 @@ class AsyncExperimentsClient:
         )
         return _response.data
 
-    async def api_v2experiments_logs_create(
-        self,
-        experiment_id: str,
-        log_id: str,
-        *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceDetail:
-        """
-        Default POST handler with automatic organization injection.
-
-        For CREATE operations:
-        - Superadmins can specify organization_id in request body (API key only)
-        - Regular users always use their own organization
-
-        Override this method for:
-        - POST-for-filtering pattern (delegate to self.get())
-        - Custom pre-create validation
-
-        Note: ``inject_target_organization`` is a DEPRECATED ``request.data``-mutating
-        shim kept for backward-compat during the DEV-9410 migration. The blessed
-        path stamps org via ``get_create_save_kwargs`` → ``perform_create`` → a
-        ``read_only`` serializer field. The shim (and these overrides' reliance on
-        it) is removed in C18 (DEV-9430) once every view's org field is read_only.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        log_id : str
-
-        id : str
-
-        trace_unique_id : str
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_logs_create(
-                experiment_id="experiment_id",
-                log_id="log_id",
-                id="id",
-                trace_unique_id="trace_unique_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_logs_create(
-            experiment_id,
-            log_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_v2experiments_logs_update(
-        self,
-        experiment_id: str,
-        log_id: str,
-        *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceDetail:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        log_id : str
-
-        id : str
-
-        trace_unique_id : str
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceDetail
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_logs_update(
-                experiment_id="experiment_id",
-                log_id="log_id",
-                id="id",
-                trace_unique_id="trace_unique_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_logs_update(
-            experiment_id,
-            log_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
     async def update_experiment_span(
         self,
         experiment_id: str,
         log_id: str,
         *,
-        id: typing.Optional[str] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
+        input: typing.Any,
+        output: typing.Any,
+        metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceDetail:
+    ) -> UpdateExperimentSpanResponse:
         """
-        Update experiment trace with customer-provided data.
-
-        Customer uploads the same format they see in the list endpoint:
-        {
-            "id": "551ba4023fc646b4859993a31665bff2",
-            "input": "[{"role": "system", "content": "you are a helpful...",
-            "output": "{"message": "Workflow result...",
-            "name": "updated_experiment_trace",
-            ... any other fields they want to update
-        }
-
-        PATCH workflow:
-        1. Get trace_unique_id from URL (same as 'id' in list endpoint)
-        2. Retrieve existing object using cached get_full_object_by_unique_id
-        3. Update fields provided by customer
-        4. Re-insert updated object
-        5. Return updated trace in same format as GET endpoint
-
-        Response: Updated trace in same format as GET/list endpoints
+        Submit results for a paused `wait` workflow trace. The backend resumes the workflow and then runs the configured evaluators.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
         log_id : str
+            Trace ID returned as `id` in experiment trace list responses.
 
-        id : typing.Optional[str]
+        input : typing.Any
 
-        trace_unique_id : typing.Optional[str]
+        output : typing.Any
 
-        root_span_unique_id : typing.Optional[str]
+        metrics : typing.Optional[typing.Dict[str, typing.Any]]
+            Numeric metrics such as cost, latency, and token counts.
 
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional metadata to attach to the trace.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ChDatasetTraceDetail
-
+        UpdateExperimentSpanResponse
+            Trace resumed.
 
         Examples
         --------
@@ -9520,8 +1664,8 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -9529,6 +1673,9 @@ class AsyncExperimentsClient:
             await client.experiments.update_experiment_span(
                 experiment_id="experiment_id",
                 log_id="log_id",
+                input="What is AI?",
+                output="AI stands for Artificial Intelligence.",
+                metadata={"source": "external_runner"},
             )
 
 
@@ -9537,630 +1684,51 @@ class AsyncExperimentsClient:
         _response = await self._raw_client.update_experiment_span(
             experiment_id,
             log_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
             input=input,
             output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
+            metrics=metrics,
+            metadata=metadata,
             request_options=request_options,
-        )
-        return _response.data
-
-    async def api_v2experiments_logs_list_list(
-        self,
-        experiment_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedChDatasetTraceListList:
-        """
-        List experiment traces (root spans) using optimized CTE-based aggregation.
-
-        GET/POST /evaluations/experiments/<experiment_id>/logs/
-
-        Query params:
-        - page: Page number
-        - page_size: Page size (default 100)
-        - sort_by: Sort field (e.g., "-cost", "-start_time", "name")
-        - start_time: Filter start time
-        - end_time: Filter end time
-        - detail: Include span tree (1 or True)
-        - export: Set to 1 or True to export results to CSV/Excel
-
-        POST body (optional):
-        - filters: Advanced filter payload for complex filtering (including comparison_key filters)
-
-        Uses ExperimentTracesQueryBuilder for optimized querying:
-        1. Filter by experiment_id + org first (reduces rows 99.9%)
-        2. Aggregate into traces (GROUP BY trace_unique_id)
-        3. Join with root spans for details
-        4. Apply final filters and sort
-
-        Uses SpanTreeSerializerContextMixin to automatically handle:
-        - Span tree inclusion based on ?detail=1
-        - Storage enrichment based on authentication type (JWT vs API key)
-        - Dynamic serializer configuration
-
-        Uses ExportingMixin to handle:
-        - CSV/Excel export functionality via ?export=1
-        - Async export processing with email notifications
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedChDatasetTraceListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_logs_list_list(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_logs_list_list(
-            experiment_id, page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def list_experiment_spans(
-        self,
-        experiment_id: str,
-        *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceList:
-        """
-        Handle POST requests the same as GET for filtering.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        id : str
-
-        trace_unique_id : str
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.list_experiment_spans(
-                experiment_id="experiment_id",
-                id="id",
-                trace_unique_id="trace_unique_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_experiment_spans(
-            experiment_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_v2experiments_logs_list_update(
-        self,
-        experiment_id: str,
-        *,
-        id: str,
-        trace_unique_id: str,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceList:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        id : str
-
-        trace_unique_id : str
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_logs_list_update(
-                experiment_id="experiment_id",
-                id="id",
-                trace_unique_id="trace_unique_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_logs_list_update(
-            experiment_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_v2experiments_logs_list_partial_update(
-        self,
-        experiment_id: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        root_span_unique_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        duration: typing.Optional[float] = OMIT,
-        span_count: typing.Optional[int] = OMIT,
-        llm_call_count: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        error_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ChDatasetTraceList:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        id : typing.Optional[str]
-
-        trace_unique_id : typing.Optional[str]
-
-        root_span_unique_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        duration : typing.Optional[float]
-
-        span_count : typing.Optional[int]
-
-        llm_call_count : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_tokens : typing.Optional[int]
-
-        error_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        status : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ChDatasetTraceList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_logs_list_partial_update(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_logs_list_partial_update(
-            experiment_id,
-            id=id,
-            trace_unique_id=trace_unique_id,
-            root_span_unique_id=root_span_unique_id,
-            unique_organization_id=unique_organization_id,
-            environment=environment,
-            customer_identifier=customer_identifier,
-            start_time=start_time,
-            end_time=end_time,
-            duration=duration,
-            span_count=span_count,
-            llm_call_count=llm_call_count,
-            total_cost=total_cost,
-            total_prompt_tokens=total_prompt_tokens,
-            total_completion_tokens=total_completion_tokens,
-            total_tokens=total_tokens,
-            error_count=error_count,
-            name=name,
-            input=input,
-            output=output,
-            storage_object_key=storage_object_key,
-            comparison_key=comparison_key,
-            status=status,
-            expected_output=expected_output,
-            updated_storage_object_key=updated_storage_object_key,
-            latency=latency,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_v2experiments_logs_summary_retrieve(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Handle GET requests for summary.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_logs_summary_retrieve(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_logs_summary_retrieve(
-            experiment_id, request_options=request_options
         )
         return _response.data
 
     async def filter_experiment_spans_summary(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
+        self,
+        experiment_id: str,
+        *,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> FilterExperimentSpansSummaryResponse:
         """
-        Handle POST requests for filtering (same as GET).
+        Get aggregate workflow metrics and evaluator score summaries for traces matching a POST filter payload.
 
         Parameters
         ----------
         experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
+
+        start_time : typing.Optional[dt.datetime]
+            Filter results at or after this timestamp.
+
+        end_time : typing.Optional[dt.datetime]
+            Filter results before this timestamp.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        None
+        FilterExperimentSpansSummaryResponse
+            Experiment trace summary.
 
         Examples
         --------
@@ -10169,8 +1737,8 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
@@ -10183,420 +1751,44 @@ class AsyncExperimentsClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.filter_experiment_spans_summary(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_v2experiments_logs_summary_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_logs_summary_update(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_logs_summary_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_v2experiments_logs_summary_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_logs_summary_partial_update(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_logs_summary_partial_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_v2experiments_runs_create(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_runs_create(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_runs_create(experiment_id, request_options=request_options)
-        return _response.data
-
-    async def api_v2experiments_runs_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_runs_update(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_runs_update(experiment_id, request_options=request_options)
-        return _response.data
-
-    async def api_v2experiments_runs_partial_update(
-        self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> None:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        experiment_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_runs_partial_update(
-                experiment_id="experiment_id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_runs_partial_update(
-            experiment_id, request_options=request_options
-        )
-        return _response.data
-
-    async def api_v2experiments_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PaginatedExperimentV2ListList:
-        """
-        GET: List experiments with filters
-        POST: List experiments with filters (same as GET, but accepts filter payload in body)
-
-        Special endpoint for filtered listing. The main endpoint `/experiments/`
-        handles GET (list) + POST (create) operations.
-
-        **Authentication:**
-        - Supports both JWT (internal) and API Key (public) authentication
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PaginatedExperimentV2ListList
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_list_list()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_list_list(
-            page=page, page_size=page_size, request_options=request_options
-        )
-        return _response.data
-
-    async def list_experiments(
-        self,
-        *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
-        """
-        POST method for filtered listing (same as GET).
-
-        Parameters
-        ----------
-        id : typing.Optional[str]
-
-        name : typing.Optional[str]
-
-        dataset : typing.Optional[str]
-
-        workflow_count : typing.Optional[int]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2List
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.list_experiments()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_experiments(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
+            experiment_id,
+            start_time=start_time,
+            end_time=end_time,
+            filters=filters,
+            is_exporting=is_exporting,
             request_options=request_options,
         )
         return _response.data
 
-    async def api_v2experiments_list_update(
+    async def filter_experiment_score_histogram(
         self,
+        experiment_id: str,
         *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
+        evaluator_id: str,
+        bins: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
+    ) -> FilterExperimentScoreHistogramResponse:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        Compute histogram aggregation for experiment evaluation scores. The backend reads `evaluator_id` and `bins` from query parameters; it does not consume a request body.
 
         Parameters
         ----------
-        id : typing.Optional[str]
+        experiment_id : str
+            Experiment ID returned as `id` in experiment responses.
 
-        name : typing.Optional[str]
+        evaluator_id : str
+            Evaluator ID, optionally including a grader suffix such as `eval_123:grader_name`.
 
-        dataset : typing.Optional[str]
-
-        workflow_count : typing.Optional[int]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
+        bins : typing.Optional[int]
+            Number of histogram bins for numerical scores. Maximum 50.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        ExperimentV2List
-
+        FilterExperimentScoreHistogramResponse
+            Experiment score histogram.
 
         Examples
         --------
@@ -10605,295 +1797,21 @@ class AsyncExperimentsClient:
         from respan import AsyncRespanClient
 
         client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
         )
 
 
         async def main() -> None:
-            await client.experiments.api_v2experiments_list_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_list_update(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_v2experiments_list_partial_update(
-        self,
-        *,
-        id: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        dataset: typing.Optional[str] = OMIT,
-        workflow_count: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        progress: typing.Optional[float] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        is_starred: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExperimentV2List:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : typing.Optional[str]
-
-        name : typing.Optional[str]
-
-        dataset : typing.Optional[str]
-
-        workflow_count : typing.Optional[int]
-
-        status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        progress : typing.Optional[float]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        description : typing.Optional[str]
-
-        is_starred : typing.Optional[bool]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2List
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_list_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_list_partial_update(
-            id=id,
-            name=name,
-            dataset=dataset,
-            workflow_count=workflow_count,
-            status=status,
-            progress=progress,
-            started_at=started_at,
-            completed_at=completed_at,
-            description=description,
-            is_starred=is_starred,
-            request_options=request_options,
-        )
-        return _response.data
-
-    async def api_v2experiments_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2SummaryResponse:
-        """
-        GET/POST /api/v2/experiments/summary/
-
-        Get summary statistics for experiments.
-
-        Returns:
-            {
-                "total_count": 10
-            }
-
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2SummaryResponse
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_summary_retrieve()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_summary_retrieve(request_options=request_options)
-        return _response.data
-
-    async def filter_experiments_summary(
-        self, *, total_count: int, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2SummaryResponse:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        total_count : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2SummaryResponse
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.filter_experiments_summary(
-                total_count=1,
+            await client.experiments.filter_experiment_score_histogram(
+                experiment_id="experiment_id",
+                evaluator_id="eval_456",
             )
 
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.filter_experiments_summary(
-            total_count=total_count, request_options=request_options
-        )
-        return _response.data
-
-    async def api_v2experiments_summary_update(
-        self, *, total_count: int, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2SummaryResponse:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        total_count : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2SummaryResponse
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_summary_update(
-                total_count=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_summary_update(
-            total_count=total_count, request_options=request_options
-        )
-        return _response.data
-
-    async def api_v2experiments_summary_partial_update(
-        self, *, total_count: typing.Optional[int] = OMIT, request_options: typing.Optional[RequestOptions] = None
-    ) -> ExperimentV2SummaryResponse:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        total_count : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExperimentV2SummaryResponse
-
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            respan_deployment_token="YOUR_RESPAN_DEPLOYMENT_TOKEN",
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.experiments.api_v2experiments_summary_partial_update()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.api_v2experiments_summary_partial_update(
-            total_count=total_count, request_options=request_options
+        _response = await self._raw_client.filter_experiment_score_histogram(
+            experiment_id, evaluator_id=evaluator_id, bins=bins, request_options=request_options
         )
         return _response.data

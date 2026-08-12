@@ -2,3 +2,99 @@
 
 # isort: skip_file
 
+import typing
+from importlib import import_module
+
+if typing.TYPE_CHECKING:
+    from .types import (
+        ApiV1BatchesRetrieveResponse,
+        ApiV1BatchesRetrieveResponseDataItem,
+        ApiV1BatchesRetrieveResponseDataItemRequestCounts,
+        ApiV1BatchesRetrieveResponseDataItemStatus,
+        ApiV1BatchesRetrieveResponseObject,
+        CancelBatchResponse,
+        CancelBatchResponseRequestCounts,
+        CancelBatchResponseStatus,
+        CreateBatchRequestCompletionWindow,
+        CreateBatchRequestEndpoint,
+        CreateBatchResponse,
+        CreateBatchResponseRequestCounts,
+        CreateBatchResponseStatus,
+        DeleteFileResponse,
+        ListFilesResponse,
+        ListFilesResponseDataItem,
+        RetrieveBatchResponse,
+        RetrieveBatchResponseRequestCounts,
+        RetrieveBatchResponseStatus,
+        RetrieveFileResponse,
+        UploadFileResponse,
+    )
+_dynamic_imports: typing.Dict[str, str] = {
+    "ApiV1BatchesRetrieveResponse": ".types",
+    "ApiV1BatchesRetrieveResponseDataItem": ".types",
+    "ApiV1BatchesRetrieveResponseDataItemRequestCounts": ".types",
+    "ApiV1BatchesRetrieveResponseDataItemStatus": ".types",
+    "ApiV1BatchesRetrieveResponseObject": ".types",
+    "CancelBatchResponse": ".types",
+    "CancelBatchResponseRequestCounts": ".types",
+    "CancelBatchResponseStatus": ".types",
+    "CreateBatchRequestCompletionWindow": ".types",
+    "CreateBatchRequestEndpoint": ".types",
+    "CreateBatchResponse": ".types",
+    "CreateBatchResponseRequestCounts": ".types",
+    "CreateBatchResponseStatus": ".types",
+    "DeleteFileResponse": ".types",
+    "ListFilesResponse": ".types",
+    "ListFilesResponseDataItem": ".types",
+    "RetrieveBatchResponse": ".types",
+    "RetrieveBatchResponseRequestCounts": ".types",
+    "RetrieveBatchResponseStatus": ".types",
+    "RetrieveFileResponse": ".types",
+    "UploadFileResponse": ".types",
+}
+
+
+def __getattr__(attr_name: str) -> typing.Any:
+    module_name = _dynamic_imports.get(attr_name)
+    if module_name is None:
+        raise AttributeError(f"No {attr_name} found in _dynamic_imports for module name -> {__name__}")
+    try:
+        module = import_module(module_name, __package__)
+        if module_name == f".{attr_name}":
+            return module
+        else:
+            return getattr(module, attr_name)
+    except ImportError as e:
+        raise ImportError(f"Failed to import {attr_name} from {module_name}: {e}") from e
+    except AttributeError as e:
+        raise AttributeError(f"Failed to get {attr_name} from {module_name}: {e}") from e
+
+
+def __dir__():
+    lazy_attrs = list(_dynamic_imports.keys())
+    return sorted(lazy_attrs)
+
+
+__all__ = [
+    "ApiV1BatchesRetrieveResponse",
+    "ApiV1BatchesRetrieveResponseDataItem",
+    "ApiV1BatchesRetrieveResponseDataItemRequestCounts",
+    "ApiV1BatchesRetrieveResponseDataItemStatus",
+    "ApiV1BatchesRetrieveResponseObject",
+    "CancelBatchResponse",
+    "CancelBatchResponseRequestCounts",
+    "CancelBatchResponseStatus",
+    "CreateBatchRequestCompletionWindow",
+    "CreateBatchRequestEndpoint",
+    "CreateBatchResponse",
+    "CreateBatchResponseRequestCounts",
+    "CreateBatchResponseStatus",
+    "DeleteFileResponse",
+    "ListFilesResponse",
+    "ListFilesResponseDataItem",
+    "RetrieveBatchResponse",
+    "RetrieveBatchResponseRequestCounts",
+    "RetrieveBatchResponseStatus",
+    "RetrieveFileResponse",
+    "UploadFileResponse",
+]

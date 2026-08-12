@@ -11,15 +11,15 @@ class BaseClientWrapper:
     def __init__(
         self,
         *,
-        respan_deployment_token: str,
-        token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
+        authorization: str,
+        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
         base_url: str,
         timeout: typing.Optional[float] = None,
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
     ):
-        self._respan_deployment_token = respan_deployment_token
-        self._token = token
+        self._authorization = authorization
+        self._respan_api_key = respan_api_key
         self._headers = headers
         self._base_url = base_url
         self._timeout = timeout
@@ -29,25 +29,25 @@ class BaseClientWrapper:
         import platform
 
         headers: typing.Dict[str, str] = {
-            "User-Agent": "respan-api/0.1.35",
+            "User-Agent": "respan-api/0.1.36",
             "X-Fern-Language": "Python",
             "X-Fern-Runtime": f"python/{platform.python_version()}",
             "X-Fern-Platform": f"{platform.system().lower()}/{platform.release()}",
             "X-Fern-SDK-Name": "respan-api",
-            "X-Fern-SDK-Version": "0.1.35",
+            "X-Fern-SDK-Version": "0.1.36",
             **(self.get_custom_headers() or {}),
         }
-        headers["X-Respan-Deployment-Token"] = self._respan_deployment_token
-        token = self._get_token()
-        if token is not None:
-            headers["Authorization"] = f"Bearer {token}"
+        headers["Authorization"] = self._authorization
+        respan_api_key = self._get_respan_api_key()
+        if respan_api_key is not None:
+            headers["Authorization"] = f"Bearer {respan_api_key}"
         return headers
 
-    def _get_token(self) -> typing.Optional[str]:
-        if isinstance(self._token, str) or self._token is None:
-            return self._token
+    def _get_respan_api_key(self) -> typing.Optional[str]:
+        if isinstance(self._respan_api_key, str) or self._respan_api_key is None:
+            return self._respan_api_key
         else:
-            return self._token()
+            return self._respan_api_key()
 
     def get_custom_headers(self) -> typing.Optional[typing.Dict[str, str]]:
         return self._headers
@@ -63,8 +63,8 @@ class SyncClientWrapper(BaseClientWrapper):
     def __init__(
         self,
         *,
-        respan_deployment_token: str,
-        token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
+        authorization: str,
+        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
         base_url: str,
         timeout: typing.Optional[float] = None,
@@ -72,8 +72,8 @@ class SyncClientWrapper(BaseClientWrapper):
         httpx_client: httpx.Client,
     ):
         super().__init__(
-            respan_deployment_token=respan_deployment_token,
-            token=token,
+            authorization=authorization,
+            respan_api_key=respan_api_key,
             headers=headers,
             base_url=base_url,
             timeout=timeout,
@@ -92,8 +92,8 @@ class AsyncClientWrapper(BaseClientWrapper):
     def __init__(
         self,
         *,
-        respan_deployment_token: str,
-        token: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
+        authorization: str,
+        respan_api_key: typing.Optional[typing.Union[str, typing.Callable[[], str]]] = None,
         headers: typing.Optional[typing.Dict[str, str]] = None,
         base_url: str,
         timeout: typing.Optional[float] = None,
@@ -102,8 +102,8 @@ class AsyncClientWrapper(BaseClientWrapper):
         httpx_client: httpx.AsyncClient,
     ):
         super().__init__(
-            respan_deployment_token=respan_deployment_token,
-            token=token,
+            authorization=authorization,
+            respan_api_key=respan_api_key,
             headers=headers,
             base_url=base_url,
             timeout=timeout,

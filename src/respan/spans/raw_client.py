@@ -6,27 +6,45 @@ from json.decoder import JSONDecodeError
 
 from ..core.api_error import ApiError
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
+from ..core.datetime_utils import serialize_datetime
 from ..core.http_response import AsyncHttpResponse, HttpResponse
 from ..core.jsonable_encoder import jsonable_encoder
+from ..core.pagination import AsyncPager, SyncPager
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
-from ..types.ch_log_v2detail import ChLogV2Detail
-from ..types.ch_log_v2list import ChLogV2List
-from ..types.covered_by_enum import CoveredByEnum
-from ..types.log_method_enum import LogMethodEnum
-from ..types.log_type_enum import LogTypeEnum
-from ..types.public_ch_log_v2detail import PublicChLogV2Detail
-from ..types.request_log_create import RequestLogCreate
-from ..types.request_log_create_request_environment import RequestLogCreateRequestEnvironment
-from ..types.request_log_create_request_keywordsai_params import RequestLogCreateRequestKeywordsaiParams
-from ..types.request_log_create_request_logit_bias import RequestLogCreateRequestLogitBias
-from ..types.request_log_create_request_response_format import RequestLogCreateRequestResponseFormat
-from ..types.request_log_create_request_status import RequestLogCreateRequestStatus
-from ..types.request_log_create_request_stream_options import RequestLogCreateRequestStreamOptions
-from ..types.request_log_create_request_tool_calls import RequestLogCreateRequestToolCalls
-from ..types.request_log_create_request_tool_choice import RequestLogCreateRequestToolChoice
-from ..types.request_log_create_request_tools import RequestLogCreateRequestTools
+from ..errors.bad_request_error import BadRequestError
+from ..errors.content_too_large_error import ContentTooLargeError
+from ..errors.forbidden_error import ForbiddenError
+from ..errors.internal_server_error import InternalServerError
+from ..errors.not_found_error import NotFoundError
+from ..errors.too_many_requests_error import TooManyRequestsError
+from ..errors.unauthorized_error import UnauthorizedError
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
+from ..types.bulk_operation_response import BulkOperationResponse
+from ..types.filters import Filters
+from ..types.span_create_request import SpanCreateRequest
+from ..types.span_create_request_customer_params import SpanCreateRequestCustomerParams
+from ..types.span_create_request_environment import SpanCreateRequestEnvironment
+from ..types.span_create_request_input import SpanCreateRequestInput
+from ..types.span_create_request_log_type import SpanCreateRequestLogType
+from ..types.span_create_request_output import SpanCreateRequestOutput
+from ..types.span_create_request_status import SpanCreateRequestStatus
+from ..types.span_create_request_stop import SpanCreateRequestStop
+from ..types.span_create_request_tool_choice import SpanCreateRequestToolChoice
+from ..types.span_create_request_usage import SpanCreateRequestUsage
+from ..types.span_create_request_warnings import SpanCreateRequestWarnings
+from .types.create_span_response import CreateSpanResponse
+from .types.get_spans_summary_request_environment import GetSpansSummaryRequestEnvironment
+from .types.get_spans_summary_response import GetSpansSummaryResponse
+from .types.list_spans_request_environment import ListSpansRequestEnvironment
+from .types.list_spans_request_log_type import ListSpansRequestLogType
+from .types.list_spans_response import ListSpansResponse
+from .types.request_logs_groups_filter_request_group_by import RequestLogsGroupsFilterRequestGroupBy
+from .types.request_logs_groups_filter_response import RequestLogsGroupsFilterResponse
+from .types.request_logs_groups_list_request_group_by import RequestLogsGroupsListRequestGroupBy
+from .types.request_logs_groups_list_response import RequestLogsGroupsListResponse
+from .types.retrieve_span_response import RetrieveSpanResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -39,647 +57,324 @@ class RawSpansClient:
     def create_span(
         self,
         *,
-        ip_address: typing.Optional[str] = OMIT,
-        pre_commit_id: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        hour_group: typing.Optional[dt.datetime] = OMIT,
-        minute_group: typing.Optional[dt.datetime] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        mapped_model_name: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[RequestLogCreateRequestResponseFormat] = OMIT,
-        response_format_choice: typing.Optional[str] = OMIT,
-        parallel_tool_calls: typing.Optional[bool] = OMIT,
+        model: str,
+        prompt_messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         prompt_tokens: typing.Optional[int] = OMIT,
         completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        input_array: typing.Optional[typing.Sequence[str]] = OMIT,
-        encoding_format: typing.Optional[str] = OMIT,
-        dimensions: typing.Optional[int] = OMIT,
-        embedding: typing.Optional[typing.Sequence[float]] = OMIT,
-        base64embedding: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[bytes] = OMIT,
-        transcription: typing.Optional[str] = OMIT,
-        audio_response_format: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[bytes] = OMIT,
-        prompt_messages: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        completion_message: typing.Optional[typing.Any] = OMIT,
-        completion_messages: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        calling_model: typing.Optional[str] = OMIT,
-        foundation_model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        full_model_name: typing.Optional[str] = OMIT,
-        tool_choice: typing.Optional[RequestLogCreateRequestToolChoice] = OMIT,
-        tools: typing.Optional[RequestLogCreateRequestTools] = OMIT,
-        tool_calls: typing.Optional[RequestLogCreateRequestToolCalls] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        keywordsai_params: typing.Optional[RequestLogCreateRequestKeywordsaiParams] = OMIT,
-        note: typing.Optional[str] = OMIT,
-        session_id: typing.Optional[str] = OMIT,
-        metadata: typing.Optional[typing.Any] = OMIT,
-        metadata_indexed_string1: typing.Optional[str] = OMIT,
-        metadata_indexed_string2: typing.Optional[str] = OMIT,
-        metadata_indexed_numerical1: typing.Optional[float] = OMIT,
-        cached: typing.Optional[bool] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        positive_feedback: typing.Optional[bool] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        full_request: typing.Optional[typing.Any] = OMIT,
-        full_response: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[RequestLogCreateRequestStatus] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        warnings: typing.Optional[str] = OMIT,
-        recommendations: typing.Optional[str] = OMIT,
-        has_warnings: typing.Optional[bool] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        is_example: typing.Optional[bool] = OMIT,
-        is_malicious: typing.Optional[bool] = OMIT,
-        log_method: typing.Optional[LogMethodEnum] = OMIT,
-        log_type: typing.Optional[LogTypeEnum] = OMIT,
-        failed: typing.Optional[bool] = OMIT,
-        error_bit: typing.Optional[int] = OMIT,
-        is_test: typing.Optional[bool] = OMIT,
-        environment: typing.Optional[RequestLogCreateRequestEnvironment] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        stream_options: typing.Optional[RequestLogCreateRequestStreamOptions] = OMIT,
+        usage: typing.Optional[SpanCreateRequestUsage] = OMIT,
         temperature: typing.Optional[float] = OMIT,
+        top_p: typing.Optional[float] = OMIT,
         max_tokens: typing.Optional[int] = OMIT,
-        logit_bias: typing.Optional[RequestLogCreateRequestLogitBias] = OMIT,
-        logprobs: typing.Optional[bool] = OMIT,
-        top_logprobs: typing.Optional[int] = OMIT,
+        generation_time: typing.Optional[float] = OMIT,
+        ttft: typing.Optional[float] = OMIT,
+        customer_params: typing.Optional[SpanCreateRequestCustomerParams] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        environment: typing.Optional[SpanCreateRequestEnvironment] = OMIT,
+        stream: typing.Optional[bool] = OMIT,
+        status_code: typing.Optional[int] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_calls: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        trace_unique_id: typing.Optional[str] = OMIT,
+        span_name: typing.Optional[str] = OMIT,
+        span_parent_id: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        custom_identifier: typing.Optional[str] = OMIT,
+        thread_identifier: typing.Optional[str] = OMIT,
+        group_identifier: typing.Optional[str] = OMIT,
+        latency: typing.Optional[float] = OMIT,
+        time_to_first_token: typing.Optional[float] = OMIT,
+        log_type: typing.Optional[SpanCreateRequestLogType] = OMIT,
+        input: typing.Optional[SpanCreateRequestInput] = OMIT,
+        output: typing.Optional[SpanCreateRequestOutput] = OMIT,
+        messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        cost: typing.Optional[float] = OMIT,
+        tokens_per_second: typing.Optional[float] = OMIT,
+        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        customer_identifier: typing.Optional[str] = OMIT,
+        tool_choice: typing.Optional[SpanCreateRequestToolChoice] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        n: typing.Optional[int] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        is_dataset: typing.Optional[bool] = OMIT,
-        based_log_unique_id: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        custom_endpoint: typing.Optional[str] = OMIT,
-        custom_region: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
+        stop: typing.Optional[SpanCreateRequestStop] = OMIT,
+        error_message: typing.Optional[str] = OMIT,
+        warnings: typing.Optional[SpanCreateRequestWarnings] = OMIT,
+        status: typing.Optional[SpanCreateRequestStatus] = OMIT,
         prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        covered_by: typing.Optional[CoveredByEnum] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        system_text_vector: typing.Optional[str] = OMIT,
-        prompt_text_vector: typing.Optional[str] = OMIT,
-        completion_text_vector: typing.Optional[str] = OMIT,
-        full_text_indexed: typing.Optional[bool] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_handoffs: typing.Optional[typing.Sequence[typing.Optional[str]]] = OMIT,
-        span_tools: typing.Optional[typing.Sequence[typing.Optional[str]]] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_path: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        error_message_search: typing.Optional[str] = OMIT,
-        evaluation_cost: typing.Optional[float] = OMIT,
-        llm_based_context_precision: typing.Optional[float] = OMIT,
-        llm_based_faithfulness: typing.Optional[float] = OMIT,
-        flesch_reading_ease: typing.Optional[float] = OMIT,
-        flesch_kincaid_grade_level: typing.Optional[float] = OMIT,
-        llm_based_answer_relevance: typing.Optional[float] = OMIT,
-        amount_to_pay: typing.Optional[float] = OMIT,
-        full_cost_calculated: typing.Optional[bool] = OMIT,
-        stripe_usage_report_sent: typing.Optional[bool] = OMIT,
-        to_update_thread: typing.Optional[bool] = OMIT,
-        to_update_customer_user: typing.Optional[bool] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        company_organization: typing.Optional[int] = OMIT,
-        user: typing.Optional[int] = OMIT,
-        organization_key: typing.Optional[str] = OMIT,
-        customer_user: typing.Optional[int] = OMIT,
-        prompt_version: typing.Optional[int] = OMIT,
-        thread: typing.Optional[int] = OMIT,
-        trace: typing.Optional[int] = OMIT,
-        span: typing.Optional[int] = OMIT,
+        prompt_name: typing.Optional[str] = OMIT,
+        is_custom_prompt: typing.Optional[bool] = OMIT,
+        start_time: typing.Optional[dt.datetime] = OMIT,
+        full_request: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        full_response: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        prompt_unit_price: typing.Optional[float] = OMIT,
+        completion_unit_price: typing.Optional[float] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        keywordsai_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        positive_feedback: typing.Optional[bool] = OMIT,
+        error_code: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[RequestLogCreate]:
+    ) -> HttpResponse[CreateSpanResponse]:
         """
-        Centralized respan_params initialization and backward-compat layer.
-
-        This mixin is the SINGLE initialization point for ``respan_params``.
-        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
-        that by the time the throttle runs, ``respan_params`` is a fully resolved
-        dict.  Downstream code (throttle, preprocessing, view handler) only
-        **enriches** the existing dict — they never need to create it.
-
-        Initialization order::
-
-            _initialize_respan_params()   ← legacy rename + header parse + metadata
-                ↓
-            super().initial()             ← throttle ENRICHES the existing dict
-                ↓
-            view handler                  ← billing, security strip, etc.
-
-        Responsibilities consolidated here (previously scattered across 4 callsites):
-        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
-        2. Parse X-Data-Respan-Params header  (base64 → dict)
-        3. Legacy body rename  (keywordsai_params → respan_params)
-        4. Form data handling  (JSON string → dict)
-        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
-        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
-        7. Add request_url_path from request.META['PATH_INFO']
-        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
-
-        Safe for protobuf endpoints: body adaptation is skipped when request.data
-        is not a dict; header adaptation always runs.
-
-        Usage::
-
-            class MyChatView(AdaptRespanParamsMixin, APIView):
-                ...
+        Create a request-log span via the logging API. This is the standard create endpoint; `/api/request-logs/create/` remains supported as a legacy alias. For LLM request logs, send `prompt_messages`, `completion_message`, token counts, timing, metadata, tools, and trace fields directly in the body. `generation_time` is accepted and normalized to `latency`; `ttft` is accepted and normalized to `time_to_first_token`. The stored `environment` is derived from the API key environment, so use a key for the target environment rather than relying on a body override. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
 
         Parameters
         ----------
-        ip_address : typing.Optional[str]
+        model : str
+            Model used for the span.
 
-        pre_commit_id : typing.Optional[str]
+        prompt_messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Chat input messages for the request log.
 
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        hour_group : typing.Optional[dt.datetime]
-
-        minute_group : typing.Optional[dt.datetime]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        unique_id : typing.Optional[str]
-
-        mapped_model_name : typing.Optional[str]
-
-        response_format : typing.Optional[RequestLogCreateRequestResponseFormat]
-
-        response_format_choice : typing.Optional[str]
-
-        parallel_tool_calls : typing.Optional[bool]
+        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
+            Assistant message returned by the model.
 
         prompt_tokens : typing.Optional[int]
+            Prompt/input tokens for the request. For Anthropic logs this corresponds to `input_tokens` before cache-token normalization.
 
         completion_tokens : typing.Optional[int]
+            Completion/output tokens for the request. For Anthropic logs this corresponds to `output_tokens`.
 
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        input : typing.Optional[str]
-
-        input_array : typing.Optional[typing.Sequence[str]]
-
-        encoding_format : typing.Optional[str]
-
-        dimensions : typing.Optional[int]
-
-        embedding : typing.Optional[typing.Sequence[float]]
-
-        base64embedding : typing.Optional[str]
-
-        audio_input_file : typing.Optional[bytes]
-
-        transcription : typing.Optional[str]
-
-        audio_response_format : typing.Optional[str]
-
-        audio_output_file : typing.Optional[bytes]
-
-        prompt_messages : typing.Optional[typing.Sequence[typing.Any]]
-
-        completion_message : typing.Optional[typing.Any]
-
-        completion_messages : typing.Optional[typing.Sequence[typing.Any]]
-
-        latency : typing.Optional[float]
-
-        model : typing.Optional[str]
-
-        calling_model : typing.Optional[str]
-
-        foundation_model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        full_model_name : typing.Optional[str]
-
-        tool_choice : typing.Optional[RequestLogCreateRequestToolChoice]
-
-        tools : typing.Optional[RequestLogCreateRequestTools]
-
-        tool_calls : typing.Optional[RequestLogCreateRequestToolCalls]
-
-        has_tool_calls : typing.Optional[bool]
-
-        category : typing.Optional[str]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        keywordsai_params : typing.Optional[RequestLogCreateRequestKeywordsaiParams]
-
-        note : typing.Optional[str]
-
-        session_id : typing.Optional[str]
-
-        metadata : typing.Optional[typing.Any]
-
-        metadata_indexed_string1 : typing.Optional[str]
-
-        metadata_indexed_string2 : typing.Optional[str]
-
-        metadata_indexed_numerical1 : typing.Optional[float]
-
-        cached : typing.Optional[bool]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        positive_feedback : typing.Optional[bool]
-
-        tokens_per_second : typing.Optional[float]
-
-        full_request : typing.Optional[typing.Any]
-
-        full_response : typing.Optional[typing.Any]
-
-        status : typing.Optional[RequestLogCreateRequestStatus]
-
-        status_code : typing.Optional[int]
-
-        warnings : typing.Optional[str]
-
-        recommendations : typing.Optional[str]
-
-        has_warnings : typing.Optional[bool]
-
-        error_message : typing.Optional[str]
-
-        is_example : typing.Optional[bool]
-
-        is_malicious : typing.Optional[bool]
-
-        log_method : typing.Optional[LogMethodEnum]
-
-        log_type : typing.Optional[LogTypeEnum]
-
-        failed : typing.Optional[bool]
-
-        error_bit : typing.Optional[int]
-
-        is_test : typing.Optional[bool]
-
-        environment : typing.Optional[RequestLogCreateRequestEnvironment]
-
-        stream : typing.Optional[bool]
-
-        stream_options : typing.Optional[RequestLogCreateRequestStreamOptions]
+        usage : typing.Optional[SpanCreateRequestUsage]
+            Provider usage object. Cache token fields such as `cache_creation_input_tokens` and `cache_read_input_tokens` are accepted and normalized into Respan cache-token counters.
 
         temperature : typing.Optional[float]
+            Sampling temperature (0-2). Higher = more random.
+
+        top_p : typing.Optional[float]
+            Nucleus sampling parameter.
 
         max_tokens : typing.Optional[int]
+            Maximum tokens to generate.
 
-        logit_bias : typing.Optional[RequestLogCreateRequestLogitBias]
+        generation_time : typing.Optional[float]
+            Accepted alias for total generation latency in seconds. Stored as `latency` in responses and query results.
 
-        logprobs : typing.Optional[bool]
+        ttft : typing.Optional[float]
+            Accepted alias for time to first token in seconds. Stored as `time_to_first_token` in responses and query results.
 
-        top_logprobs : typing.Optional[int]
+        customer_params : typing.Optional[SpanCreateRequestCustomerParams]
+            Extended customer information. `customer_identifier` inside this object is promoted to the log customer identifier.
 
-        frequency_penalty : typing.Optional[float]
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Arbitrary customer metadata. Keys beginning with `_` are reserved and omitted from customer-facing read responses.
 
-        presence_penalty : typing.Optional[float]
+        environment : typing.Optional[SpanCreateRequestEnvironment]
+            Stored environment for the log. This is derived from the API key environment; body-supplied values do not override a prod/test key.
 
-        stop : typing.Optional[str]
+        stream : typing.Optional[bool]
+            Whether the response was streamed.
 
-        n : typing.Optional[int]
+        status_code : typing.Optional[int]
+            HTTP status code of the request.
 
-        evaluation_identifier : typing.Optional[str]
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools available to the model (OpenAI function calling format).
 
-        is_dataset : typing.Optional[bool]
+        tool_calls : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tool calls returned by the model.
 
-        based_log_unique_id : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        custom_endpoint : typing.Optional[str]
-
-        custom_region : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        covered_by : typing.Optional[CoveredByEnum]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        system_text_vector : typing.Optional[str]
-
-        prompt_text_vector : typing.Optional[str]
-
-        completion_text_vector : typing.Optional[str]
-
-        full_text_indexed : typing.Optional[bool]
+        timestamp : typing.Optional[dt.datetime]
+            ISO 8601 timestamp when the request completed.
 
         trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
+            Trace ID to link spans into a trace tree.
 
         span_name : typing.Optional[str]
-
-        span_handoffs : typing.Optional[typing.Sequence[typing.Optional[str]]]
-
-        span_tools : typing.Optional[typing.Sequence[typing.Optional[str]]]
+            Name of this span within the workflow.
 
         span_parent_id : typing.Optional[str]
-
-        span_path : typing.Optional[str]
+            Parent span ID. Builds the trace hierarchy.
 
         span_workflow_name : typing.Optional[str]
+            Name of the parent workflow.
 
-        output : typing.Optional[str]
+        custom_identifier : typing.Optional[str]
+            Indexed custom identifier for fast querying.
 
         thread_identifier : typing.Optional[str]
+            Conversation thread ID for multi-turn conversations.
 
-        thread_unique_id : typing.Optional[str]
+        group_identifier : typing.Optional[str]
+            Groups related spans together.
 
-        storage_object_key : typing.Optional[str]
+        latency : typing.Optional[float]
+            Total request latency in seconds. `generation_time` is also accepted and normalizes to this field.
 
-        error_message_search : typing.Optional[str]
+        time_to_first_token : typing.Optional[float]
+            Time to first token in seconds. `ttft` is also accepted and normalizes to this field.
 
-        evaluation_cost : typing.Optional[float]
+        log_type : typing.Optional[SpanCreateRequestLogType]
+            Type of span. Determines how `input` and `output` are parsed.
 
-        llm_based_context_precision : typing.Optional[float]
+        input : typing.Optional[SpanCreateRequestInput]
+            Preferred universal input field. For chat spans, send an array of message objects or a JSON string. For non-chat spans, send any string/object/array structure that represents the span input.
 
-        llm_based_faithfulness : typing.Optional[float]
+        output : typing.Optional[SpanCreateRequestOutput]
+            Preferred universal output field. For chat spans, send an assistant message object or a JSON string. For non-chat spans, send any string/object/array structure that represents the span output.
 
-        flesch_reading_ease : typing.Optional[float]
+        messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Legacy chat input field. Equivalent to `prompt_messages`; prefer `input` for new integrations.
 
-        flesch_kincaid_grade_level : typing.Optional[float]
+        cost : typing.Optional[float]
+            Cost in USD. Auto-calculated from model pricing if omitted.
 
-        llm_based_answer_relevance : typing.Optional[float]
+        tokens_per_second : typing.Optional[float]
+            Generation speed in tokens per second.
 
-        amount_to_pay : typing.Optional[float]
+        properties : typing.Optional[typing.Dict[str, typing.Any]]
+            Typed metadata that preserves native JSON types.
 
-        full_cost_calculated : typing.Optional[bool]
+        variables : typing.Optional[typing.Dict[str, typing.Any]]
+            Variables used for prompt templates.
 
-        stripe_usage_report_sent : typing.Optional[bool]
+        customer_identifier : typing.Optional[str]
+            Identifier for the end user who made this request.
 
-        to_update_thread : typing.Optional[bool]
+        tool_choice : typing.Optional[SpanCreateRequestToolChoice]
+            Controls tool selection. `"none"`, `"auto"`, or a specific tool object.
 
-        to_update_customer_user : typing.Optional[bool]
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Response format configuration (e.g. JSON mode or structured output).
 
-        organization : typing.Optional[int]
+        frequency_penalty : typing.Optional[float]
+            Penalizes repeated tokens (-2 to 2).
 
-        company_organization : typing.Optional[int]
+        presence_penalty : typing.Optional[float]
+            Penalizes tokens already present (-2 to 2).
 
-        user : typing.Optional[int]
+        stop : typing.Optional[SpanCreateRequestStop]
+            Stop sequence or sequences where generation halts.
 
-        organization_key : typing.Optional[str]
+        error_message : typing.Optional[str]
+            Error message if the request failed.
 
-        customer_user : typing.Optional[int]
+        warnings : typing.Optional[SpanCreateRequestWarnings]
+            Warnings from the request.
 
-        prompt_version : typing.Optional[int]
+        status : typing.Optional[SpanCreateRequestStatus]
+            Request status.
 
-        thread : typing.Optional[int]
+        prompt_id : typing.Optional[str]
+            ID of the Respan prompt template used.
 
-        trace : typing.Optional[int]
+        prompt_name : typing.Optional[str]
+            Name of the prompt template.
 
-        span : typing.Optional[int]
+        is_custom_prompt : typing.Optional[bool]
+            Set `true` when using a custom `prompt_id`.
+
+        start_time : typing.Optional[dt.datetime]
+            ISO 8601 timestamp when the request started.
+
+        full_request : typing.Optional[typing.Dict[str, typing.Any]]
+            Full raw request object for reference.
+
+        full_response : typing.Optional[typing.Dict[str, typing.Any]]
+            Full raw response object from the provider.
+
+        prompt_unit_price : typing.Optional[float]
+            Custom price per 1M prompt tokens (for self-hosted/fine-tuned models).
+
+        completion_unit_price : typing.Optional[float]
+            Custom price per 1M completion tokens (for self-hosted/fine-tuned models).
+
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Preferred namespace for Respan-specific controls such as customer tagging, metadata, prompt loading, cache settings, and logging flags.
+
+        keywordsai_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy alias for `respan_params`. Still accepted and merged into `respan_params`.
+
+        positive_feedback : typing.Optional[bool]
+            User feedback. `true` = positive, `false` = negative.
+
+        error_code : typing.Optional[str]
+            Normalized application or provider error code.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[RequestLogCreate]
-
+        HttpResponse[CreateSpanResponse]
+            Span created successfully
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/request-logs/",
             method="POST",
             json={
-                "ip_address": ip_address,
-                "pre_commit_id": pre_commit_id,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "hour_group": hour_group,
-                "minute_group": minute_group,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "unique_id": unique_id,
-                "mapped_model_name": mapped_model_name,
-                "response_format": convert_and_respect_annotation_metadata(
-                    object_=response_format, annotation=RequestLogCreateRequestResponseFormat, direction="write"
-                ),
-                "response_format_choice": response_format_choice,
-                "parallel_tool_calls": parallel_tool_calls,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "total_request_tokens": total_request_tokens,
-                "cost": cost,
-                "input": input,
-                "input_array": input_array,
-                "encoding_format": encoding_format,
-                "dimensions": dimensions,
-                "embedding": embedding,
-                "base64_embedding": base64embedding,
-                "audio_input_file": audio_input_file,
-                "transcription": transcription,
-                "audio_response_format": audio_response_format,
-                "audio_output_file": audio_output_file,
+                "model": model,
                 "prompt_messages": prompt_messages,
                 "completion_message": completion_message,
-                "completion_messages": completion_messages,
-                "latency": latency,
-                "model": model,
-                "calling_model": calling_model,
-                "foundation_model": foundation_model,
-                "provider_id": provider_id,
-                "full_model_name": full_model_name,
-                "tool_choice": convert_and_respect_annotation_metadata(
-                    object_=tool_choice, annotation=RequestLogCreateRequestToolChoice, direction="write"
-                ),
-                "tools": convert_and_respect_annotation_metadata(
-                    object_=tools, annotation=RequestLogCreateRequestTools, direction="write"
-                ),
-                "tool_calls": convert_and_respect_annotation_metadata(
-                    object_=tool_calls, annotation=RequestLogCreateRequestToolCalls, direction="write"
-                ),
-                "has_tool_calls": has_tool_calls,
-                "category": category,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "keywordsai_params": convert_and_respect_annotation_metadata(
-                    object_=keywordsai_params, annotation=RequestLogCreateRequestKeywordsaiParams, direction="write"
-                ),
-                "note": note,
-                "session_id": session_id,
-                "metadata": metadata,
-                "metadata_indexed_string_1": metadata_indexed_string1,
-                "metadata_indexed_string_2": metadata_indexed_string2,
-                "metadata_indexed_numerical_1": metadata_indexed_numerical1,
-                "cached": cached,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "positive_feedback": positive_feedback,
-                "tokens_per_second": tokens_per_second,
-                "full_request": full_request,
-                "full_response": full_response,
-                "status": convert_and_respect_annotation_metadata(
-                    object_=status, annotation=RequestLogCreateRequestStatus, direction="write"
-                ),
-                "status_code": status_code,
-                "warnings": warnings,
-                "recommendations": recommendations,
-                "has_warnings": has_warnings,
-                "error_message": error_message,
-                "is_example": is_example,
-                "is_malicious": is_malicious,
-                "log_method": log_method,
-                "log_type": log_type,
-                "failed": failed,
-                "error_bit": error_bit,
-                "is_test": is_test,
-                "environment": convert_and_respect_annotation_metadata(
-                    object_=environment, annotation=RequestLogCreateRequestEnvironment, direction="write"
-                ),
-                "stream": stream,
-                "stream_options": convert_and_respect_annotation_metadata(
-                    object_=stream_options, annotation=RequestLogCreateRequestStreamOptions, direction="write"
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "usage": convert_and_respect_annotation_metadata(
+                    object_=usage, annotation=SpanCreateRequestUsage, direction="write"
                 ),
                 "temperature": temperature,
+                "top_p": top_p,
                 "max_tokens": max_tokens,
-                "logit_bias": convert_and_respect_annotation_metadata(
-                    object_=logit_bias, annotation=RequestLogCreateRequestLogitBias, direction="write"
+                "generation_time": generation_time,
+                "ttft": ttft,
+                "customer_params": convert_and_respect_annotation_metadata(
+                    object_=customer_params, annotation=SpanCreateRequestCustomerParams, direction="write"
                 ),
-                "logprobs": logprobs,
-                "top_logprobs": top_logprobs,
+                "metadata": metadata,
+                "environment": environment,
+                "stream": stream,
+                "status_code": status_code,
+                "tools": tools,
+                "tool_calls": tool_calls,
+                "timestamp": timestamp,
+                "trace_unique_id": trace_unique_id,
+                "span_name": span_name,
+                "span_parent_id": span_parent_id,
+                "span_workflow_name": span_workflow_name,
+                "custom_identifier": custom_identifier,
+                "thread_identifier": thread_identifier,
+                "group_identifier": group_identifier,
+                "latency": latency,
+                "time_to_first_token": time_to_first_token,
+                "log_type": log_type,
+                "input": convert_and_respect_annotation_metadata(
+                    object_=input, annotation=SpanCreateRequestInput, direction="write"
+                ),
+                "output": convert_and_respect_annotation_metadata(
+                    object_=output, annotation=SpanCreateRequestOutput, direction="write"
+                ),
+                "messages": messages,
+                "cost": cost,
+                "tokens_per_second": tokens_per_second,
+                "properties": properties,
+                "variables": variables,
+                "customer_identifier": customer_identifier,
+                "tool_choice": convert_and_respect_annotation_metadata(
+                    object_=tool_choice, annotation=SpanCreateRequestToolChoice, direction="write"
+                ),
+                "response_format": response_format,
                 "frequency_penalty": frequency_penalty,
                 "presence_penalty": presence_penalty,
-                "stop": stop,
-                "n": n,
-                "evaluation_identifier": evaluation_identifier,
-                "is_dataset": is_dataset,
-                "based_log_unique_id": based_log_unique_id,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "custom_endpoint": custom_endpoint,
-                "custom_region": custom_region,
-                "prompt_name": prompt_name,
+                "stop": convert_and_respect_annotation_metadata(
+                    object_=stop, annotation=SpanCreateRequestStop, direction="write"
+                ),
+                "error_message": error_message,
+                "warnings": convert_and_respect_annotation_metadata(
+                    object_=warnings, annotation=SpanCreateRequestWarnings, direction="write"
+                ),
+                "status": status,
                 "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "covered_by": covered_by,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "system_text_vector": system_text_vector,
-                "prompt_text_vector": prompt_text_vector,
-                "completion_text_vector": completion_text_vector,
-                "full_text_indexed": full_text_indexed,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "trace_group_identifier": trace_group_identifier,
-                "span_name": span_name,
-                "span_handoffs": span_handoffs,
-                "span_tools": span_tools,
-                "span_parent_id": span_parent_id,
-                "span_path": span_path,
-                "span_workflow_name": span_workflow_name,
-                "output": output,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "error_message_search": error_message_search,
-                "evaluation_cost": evaluation_cost,
-                "LLM_based_context_precision": llm_based_context_precision,
-                "LLM_based_faithfulness": llm_based_faithfulness,
-                "flesch_reading_ease": flesch_reading_ease,
-                "flesch_kincaid_grade_level": flesch_kincaid_grade_level,
-                "LLM_based_answer_relevance": llm_based_answer_relevance,
-                "amount_to_pay": amount_to_pay,
-                "full_cost_calculated": full_cost_calculated,
-                "stripe_usage_report_sent": stripe_usage_report_sent,
-                "to_update_thread": to_update_thread,
-                "to_update_customer_user": to_update_customer_user,
-                "organization": organization,
-                "company_organization": company_organization,
-                "user": user,
-                "organization_key": organization_key,
-                "customer_user": customer_user,
-                "prompt_version": prompt_version,
-                "thread": thread,
-                "trace": trace,
-                "span": span,
+                "prompt_name": prompt_name,
+                "is_custom_prompt": is_custom_prompt,
+                "start_time": start_time,
+                "full_request": full_request,
+                "full_response": full_response,
+                "prompt_unit_price": prompt_unit_price,
+                "completion_unit_price": completion_unit_price,
+                "respan_params": respan_params,
+                "keywordsai_params": keywordsai_params,
+                "positive_feedback": positive_feedback,
+                "error_code": error_code,
             },
             headers={
                 "content-type": "application/json",
@@ -690,13 +385,336 @@ class RawSpansClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    RequestLogCreate,
+                    CreateSpanResponse,
                     parse_obj_as(
-                        type_=RequestLogCreate,  # type: ignore
+                        type_=CreateSpanResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def bulk_create_spans(
+        self, *, logs: typing.Sequence[SpanCreateRequest], request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[BulkOperationResponse]:
+        """
+        Create up to 500 spans in one request. Each item in `logs` accepts the same fields as the [single-span create operation](/docs/apis/spans/create-span). Rows are processed independently: one invalid row does not prevent the remaining rows from being accepted. A response is `201 Created` whenever at least one row is accepted, including partial success; inspect `error_count` and `errors` on every response. `success_count` means the row passed synchronous validation and was accepted for ingestion.
+
+        For API-key authentication, this endpoint is limited to 30 requests per minute per organization, shared across all API keys in that organization. JWT requests are limited per user. At the 500-row maximum, the API-key limit allows up to approximately 15,000 accepted rows per minute. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+
+        Parameters
+        ----------
+        logs : typing.Sequence[SpanCreateRequest]
+            Non-empty array of span payloads. Each object uses the same schema as `POST /api/request-logs/`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[BulkOperationResponse]
+            At least one row was accepted. This status is also used for partial success; inspect the response counts and indexed errors.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/request-logs/bulk/",
+            method="POST",
+            json={
+                "logs": convert_and_respect_annotation_metadata(
+                    object_=logs, annotation=typing.Sequence[SpanCreateRequest], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkOperationResponse,
+                    parse_obj_as(
+                        type_=BulkOperationResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def list_spans(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[ListSpansRequestEnvironment] = None,
+        log_type: typing.Optional[ListSpansRequestLogType] = None,
+        include_fields: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> SyncPager[typing.Dict[str, typing.Any], ListSpansResponse]:
+        """
+        Retrieve spans matching the specified filters with pagination. Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for full filter syntax. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601).
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601).
+
+        environment : typing.Optional[ListSpansRequestEnvironment]
+            Filter by environment (`prod` or `test`).
+
+        log_type : typing.Optional[ListSpansRequestLogType]
+            Filter by span/log type. Use values like `chat`, `completion`, or `response` to focus on model-inference spans; omitting this can also return non-chat span/log rows such as legacy `text` logs.
+
+        include_fields : typing.Optional[str]
+            Comma-separated list of fields to include in each span. Reduces response size.
+
+        filters : typing.Optional[Filters]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        SyncPager[typing.Dict[str, typing.Any], ListSpansResponse]
+            Successful response for List spans
+        """
+        page = page if page is not None else 1
+
+        _response = self._client_wrapper.httpx_client.request(
+            "api/request-logs/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+                "log_type": log_type,
+                "include_fields": include_fields,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=Filters, direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _parsed_response = typing.cast(
+                    ListSpansResponse,
+                    parse_obj_as(
+                        type_=ListSpansResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                _items = _parsed_response.results
+                _has_next = True
+                _get_next = lambda: self.list_spans(
+                    page=page + 1,
+                    page_size=page_size,
+                    sort_by=sort_by,
+                    start_time=start_time,
+                    end_time=end_time,
+                    environment=environment,
+                    log_type=log_type,
+                    include_fields=include_fields,
+                    filters=filters,
+                    request_options=request_options,
+                )
+                return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -704,100 +722,22 @@ class RawSpansClient:
 
     def retrieve_span(
         self, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[ChLogV2Detail]:
+    ) -> HttpResponse[RetrieveSpanResponse]:
         """
-        Mixin for views that need superadmin access to all resources.
-
-        Provides FOUR key features (all bundled - no separate mixins needed):
-        1. Queryset routing (superadmin sees all, regular user sees own org)
-        2. Organization injection (post/patch/put auto-inject org)
-        3. Object ownership checking (auto-registers ObjectOwnershipPermission)
-        4. Superadmin-only field protection (certain fields can only be modified by superadmins)
-
-        Inherits from:
-        - ObjectOwnershipMixin: Config attributes + auto-permission registration
-        - OrganizationInjectionMixin: Cross-org write protection + org injection
-
-        Config attributes (inherited from ObjectOwnershipMixin):
-        - ownership_object_field_name: Field on object (default: "organization_id")
-        - ownership_user_field_name: Field on user (default: "curr_org_id")
-        - is_allowing_global_object_read: Allow reading global objects (default: False)
-        - is_allowing_org_admin_access: Allow org admins access to any object in their org (default: False)
-        - is_requiring_org_admin_for_write: Require org admin for writes (default: False)
-
-        Config attributes (superadmin-only fields):
-        - superadmin_only_fields: List of field names that only superadmins can modify (default: [])
-          On CREATE: Fields are stripped from non-superadmin requests (model defaults apply)
-          On UPDATE: Non-superadmins trying to change these fields get PermissionDenied
-
-        - superadmin_lock_field: Field name that locks the entire object for non-superadmins (default: None)
-          When this field is truthy on the instance, non-superadmins cannot modify ANY field.
-          Common use case: is_managed=True means Keywords AI manages this resource, users can't edit it.
-
-        Note: Writing to global objects (ownership field is None) always requires superadmin.
-
-        Usage (detail view):
-
-            class MyDetailView(SuperAdminMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                # Optional: customize ownership config (inherited from ObjectOwnershipMixin)
-                is_allowing_global_object_read = True
-
-                def get_regular_user_queryset(self):
-                    return MyModel.objects.filter(organization_id=self.request.user.curr_org_id)
-
-                def get_superadmin_queryset(self):
-                    return MyModel.objects.all()
-
-        Usage (superadmin-only fields):
-
-            class IntegrationView(SuperAdminMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                superadmin_only_fields = ['is_managed']  # Only superadmins can modify is_managed
-                superadmin_lock_field = 'is_managed'  # When is_managed=True, object is locked for non-superadmins
-
-                def get_regular_user_queryset(self):
-                    return Integration.objects.filter(organization_id=self.request.user.curr_org_id)
-
-                def get_superadmin_queryset(self):
-                    return Integration.objects.all()
-
-        Usage (related-object org pattern like PromptVersion - PREFERRED: annotate queryset):
-
-            from django.db.models import F
-
-            class PromptVersionView(SuperAdminMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                def get_regular_user_queryset(self):
-                    # Annotate organization_id so ownership checks work automatically
-                    return PromptVersion.objects.filter(
-                        prompt__organization_id=self.request.user.curr_org_id
-                    ).annotate(organization_id=F("prompt__organization_id"))
-
-                def get_superadmin_queryset(self):
-                    return PromptVersion.objects.annotate(organization_id=F("prompt__organization_id"))
-
-        Alternative (override method - only if annotation not possible):
-
-            class PromptVersionView(SuperAdminMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                def get_affiliated_object_organization_id(self, instance):
-                    return instance.prompt.organization_id  # Org is on parent object
-
-        DO NOT use inline checks like this:
-            # ❌ BAD - easy to forget in branching code
-            def get_queryset(self):
-                if has_staff_role(self.request.user):
-                    return MyModel.objects.all()
-                return MyModel.objects.filter(...)
+        Retrieve a span by its unique ID. Returns the full span including input, output, metrics, metadata, trace context, evaluation scores, and credit/budget info (`limit_info`). Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
 
         Parameters
         ----------
         unique_id : str
+            The unique ID of the log to get.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[ChLogV2Detail]
-
+        HttpResponse[RetrieveSpanResponse]
+            Successful response for Retrieve span
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/request-logs/{jsonable_encoder(unique_id)}/",
@@ -807,902 +747,68 @@ class RawSpansClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ChLogV2Detail,
+                    RetrieveSpanResponse,
                     parse_obj_as(
-                        type_=ChLogV2Detail,  # type: ignore
+                        type_=RetrieveSpanResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def update_span(
-        self,
-        unique_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ChLogV2Detail]:
-        """
-        Update mutable fields via lightweight UPDATE (CH 25.7+).
-
-        Parameters
-        ----------
-        unique_id_ : str
-
-        id : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ChLogV2Detail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/request-logs/{jsonable_encoder(unique_id_)}/",
-            method="PATCH",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChLogV2Detail,
-                    parse_obj_as(
-                        type_=ChLogV2Detail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def bulk_create_spans(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
-        """
-        The single canonical mixin for bulk endpoints.
-
-        Every view in this codebase that processes a SET of items in one request
-        (``/api/.../bulk/``, ``/.../bulk-create/``, ``/.../bulk-delete/``) MUST
-        inherit this mixin. There is intentionally only one — strategy choice
-        (per-item loop vs batched query vs async dispatch vs criterion-delete)
-        lives in the SUBCLASS body of ``process_bulk``, not in the class
-        hierarchy. Helpers in ``utils/bulk/strategies.py`` cover the common
-        strategies; subclasses can also implement custom logic.
-
-        Why a single mixin: see ``BE_conventions/bulk.md``. Variation by
-        strategy was the road we explicitly avoided.
-
-        Subclass contract (required):
-            ``bulk_serializer_class``       — DRF serializer for the request body
-            ``get_bulk_items(validated_data) -> list``
-            ``process_bulk(items, **ctx) -> BulkOperationResponse``
-
-        Subclass contract (optional):
-            ``bulk_max_size``               — default 500
-            ``get_bulk_context(request, validated_data) -> dict``
-            ``get_bulk_status_code(response) -> int``
-
-        The mixin defines ``post()`` to call ``handle_bulk_request``. DELETE-shaped
-        bulk endpoints (criterion-based deletion) restrict ``http_method_names`` to
-        ``["delete", "options"]`` and define ``delete()`` that delegates to
-        ``handle_bulk_request``.
-
-        Status code policy (override ``get_bulk_status_code`` for custom):
-            all-success     → 200
-            partial-success → 207
-            all-failure     → 400
-            over-limit      → 422 (returned directly, never reaches process_bulk)
-
-        Usage::
-
-            class MyBulkView(BulkOperationMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                bulk_serializer_class = MyRequestSerializer
-                bulk_max_size = 100
-
-                def get_bulk_items(self, validated_data):
-                    return validated_data["items"]
-
-                def process_bulk(self, items, **ctx):
-                    from utils.bulk.strategies import run_bulk_loop
-
-                    def handle(*, item, index):
-                        self._do_one(item, **ctx)
-
-                    return run_bulk_loop(items, process_item=handle, is_atomic=True)
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/request-logs/bulk/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def list_spans(
-        self,
-        *,
-        id: str,
-        organization_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicChLogV2Detail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : str
-
-        organization_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicChLogV2Detail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/request-logs/list/",
-            method="POST",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicChLogV2Detail,
-                    parse_obj_as(
-                        type_=PublicChLogV2Detail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1711,172 +817,48 @@ class RawSpansClient:
     def get_spans_summary(
         self,
         *,
-        id: str,
-        organization_id: str,
-        organization_key_id: str,
-        environment: str,
-        prompt_name: str,
-        trace_unique_id: str,
-        customer_identifier: str,
-        thread_identifier: str,
-        unique_organization_id: str,
-        log_type: str,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        note: typing.Optional[str] = OMIT,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[GetSpansSummaryRequestEnvironment] = None,
+        filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ChLogV2List]:
+    ) -> HttpResponse[GetSpansSummaryResponse]:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Get aggregated statistics for spans/log rows in a time range. `start_time`, `end_time`, and `environment` are URL query parameters. Additional filters must be sent in the JSON body under `filters`; fields such as `log_type` are not read as summary query parameters. When `filters` is omitted or empty, the backend may use the pre-aggregated summary path; when `filters` is non-empty, it queries raw logs using the same filter object shape as List spans.
 
         Parameters
         ----------
-        id : str
-
-        organization_id : str
-
-        organization_key_id : str
-
-        environment : str
-
-        prompt_name : str
-
-        trace_unique_id : str
-
-        customer_identifier : str
-
-        thread_identifier : str
-
-        unique_organization_id : str
-
-        log_type : str
-
-        timestamp : typing.Optional[dt.datetime]
-
         start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601).
 
-        prompt_id : typing.Optional[str]
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601).
 
-        customer_name : typing.Optional[str]
+        environment : typing.Optional[GetSpansSummaryRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
-        customer_email : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        model : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status_code : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        storage_object_key : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        note : typing.Optional[str]
+        filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[ChLogV2List]
-
+        HttpResponse[GetSpansSummaryResponse]
+            Summary statistics for matching spans.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/request-logs/summary/",
             method="POST",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "organization_key_id": organization_key_id,
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "environment": environment,
-                "timestamp": timestamp,
-                "start_time": start_time,
-                "prompt_id": prompt_id,
-                "prompt_name": prompt_name,
-                "trace_unique_id": trace_unique_id,
-                "customer_identifier": customer_identifier,
-                "customer_name": customer_name,
-                "customer_email": customer_email,
-                "thread_identifier": thread_identifier,
-                "custom_identifier": custom_identifier,
-                "unique_organization_id": unique_organization_id,
-                "log_type": log_type,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "total_request_tokens": total_request_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "cost": cost,
-                "model": model,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status_code": status_code,
-                "status": status,
-                "blurred": blurred,
-                "storage_object_key": storage_object_key,
-                "updated_storage_object_key": updated_storage_object_key,
-                "span_workflow_name": span_workflow_name,
-                "span_name": span_name,
-                "note": note,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=Filters, direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -1887,13 +869,282 @@ class RawSpansClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ChLogV2List,
+                    GetSpansSummaryResponse,
                     parse_obj_as(
-                        type_=ChLogV2List,  # type: ignore
+                        type_=GetSpansSummaryResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def request_logs_groups_list(
+        self,
+        *,
+        group_by: typing.Optional[RequestLogsGroupsListRequestGroupBy] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[RequestLogsGroupsListResponse]:
+        """
+        Group spans by a supported dimension and return one aggregate row per group. `trace` and `thread` roll spans up through their dedicated entity views.
+
+        Parameters
+        ----------
+        group_by : typing.Optional[RequestLogsGroupsListRequestGroupBy]
+            Grouping dimension. `trace` and `thread` use entity rollups.
+
+        sort_by : typing.Optional[str]
+
+        start_time : typing.Optional[dt.datetime]
+
+        end_time : typing.Optional[dt.datetime]
+
+        environment : typing.Optional[str]
+
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RequestLogsGroupsListResponse]
+            Paginated groups and aggregate metrics.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/request-logs/groups/",
+            method="GET",
+            params={
+                "group_by": group_by,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+                "page": page,
+                "page_size": page_size,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RequestLogsGroupsListResponse,
+                    parse_obj_as(
+                        type_=RequestLogsGroupsListResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def request_logs_groups_filter(
+        self,
+        *,
+        group_by: typing.Optional[RequestLogsGroupsFilterRequestGroupBy] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[RequestLogsGroupsFilterResponse]:
+        """
+        Group spans using the same query parameters as GET and optional standard Respan filters in the request body.
+
+        Parameters
+        ----------
+        group_by : typing.Optional[RequestLogsGroupsFilterRequestGroupBy]
+            Grouping dimension. `trace` and `thread` use entity rollups.
+
+        sort_by : typing.Optional[str]
+
+        start_time : typing.Optional[dt.datetime]
+
+        end_time : typing.Optional[dt.datetime]
+
+        environment : typing.Optional[str]
+
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RequestLogsGroupsFilterResponse]
+            Paginated groups and aggregate metrics.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/request-logs/groups/",
+            method="POST",
+            params={
+                "group_by": group_by,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+                "page": page,
+                "page_size": page_size,
+            },
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RequestLogsGroupsFilterResponse,
+                    parse_obj_as(
+                        type_=RequestLogsGroupsFilterResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1907,647 +1158,324 @@ class AsyncRawSpansClient:
     async def create_span(
         self,
         *,
-        ip_address: typing.Optional[str] = OMIT,
-        pre_commit_id: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        hour_group: typing.Optional[dt.datetime] = OMIT,
-        minute_group: typing.Optional[dt.datetime] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        mapped_model_name: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[RequestLogCreateRequestResponseFormat] = OMIT,
-        response_format_choice: typing.Optional[str] = OMIT,
-        parallel_tool_calls: typing.Optional[bool] = OMIT,
+        model: str,
+        prompt_messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        completion_message: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         prompt_tokens: typing.Optional[int] = OMIT,
         completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        input_array: typing.Optional[typing.Sequence[str]] = OMIT,
-        encoding_format: typing.Optional[str] = OMIT,
-        dimensions: typing.Optional[int] = OMIT,
-        embedding: typing.Optional[typing.Sequence[float]] = OMIT,
-        base64embedding: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[bytes] = OMIT,
-        transcription: typing.Optional[str] = OMIT,
-        audio_response_format: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[bytes] = OMIT,
-        prompt_messages: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        completion_message: typing.Optional[typing.Any] = OMIT,
-        completion_messages: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        calling_model: typing.Optional[str] = OMIT,
-        foundation_model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        full_model_name: typing.Optional[str] = OMIT,
-        tool_choice: typing.Optional[RequestLogCreateRequestToolChoice] = OMIT,
-        tools: typing.Optional[RequestLogCreateRequestTools] = OMIT,
-        tool_calls: typing.Optional[RequestLogCreateRequestToolCalls] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        keywordsai_params: typing.Optional[RequestLogCreateRequestKeywordsaiParams] = OMIT,
-        note: typing.Optional[str] = OMIT,
-        session_id: typing.Optional[str] = OMIT,
-        metadata: typing.Optional[typing.Any] = OMIT,
-        metadata_indexed_string1: typing.Optional[str] = OMIT,
-        metadata_indexed_string2: typing.Optional[str] = OMIT,
-        metadata_indexed_numerical1: typing.Optional[float] = OMIT,
-        cached: typing.Optional[bool] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        positive_feedback: typing.Optional[bool] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        full_request: typing.Optional[typing.Any] = OMIT,
-        full_response: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[RequestLogCreateRequestStatus] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        warnings: typing.Optional[str] = OMIT,
-        recommendations: typing.Optional[str] = OMIT,
-        has_warnings: typing.Optional[bool] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        is_example: typing.Optional[bool] = OMIT,
-        is_malicious: typing.Optional[bool] = OMIT,
-        log_method: typing.Optional[LogMethodEnum] = OMIT,
-        log_type: typing.Optional[LogTypeEnum] = OMIT,
-        failed: typing.Optional[bool] = OMIT,
-        error_bit: typing.Optional[int] = OMIT,
-        is_test: typing.Optional[bool] = OMIT,
-        environment: typing.Optional[RequestLogCreateRequestEnvironment] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        stream_options: typing.Optional[RequestLogCreateRequestStreamOptions] = OMIT,
+        usage: typing.Optional[SpanCreateRequestUsage] = OMIT,
         temperature: typing.Optional[float] = OMIT,
+        top_p: typing.Optional[float] = OMIT,
         max_tokens: typing.Optional[int] = OMIT,
-        logit_bias: typing.Optional[RequestLogCreateRequestLogitBias] = OMIT,
-        logprobs: typing.Optional[bool] = OMIT,
-        top_logprobs: typing.Optional[int] = OMIT,
+        generation_time: typing.Optional[float] = OMIT,
+        ttft: typing.Optional[float] = OMIT,
+        customer_params: typing.Optional[SpanCreateRequestCustomerParams] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        environment: typing.Optional[SpanCreateRequestEnvironment] = OMIT,
+        stream: typing.Optional[bool] = OMIT,
+        status_code: typing.Optional[int] = OMIT,
+        tools: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        tool_calls: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        timestamp: typing.Optional[dt.datetime] = OMIT,
+        trace_unique_id: typing.Optional[str] = OMIT,
+        span_name: typing.Optional[str] = OMIT,
+        span_parent_id: typing.Optional[str] = OMIT,
+        span_workflow_name: typing.Optional[str] = OMIT,
+        custom_identifier: typing.Optional[str] = OMIT,
+        thread_identifier: typing.Optional[str] = OMIT,
+        group_identifier: typing.Optional[str] = OMIT,
+        latency: typing.Optional[float] = OMIT,
+        time_to_first_token: typing.Optional[float] = OMIT,
+        log_type: typing.Optional[SpanCreateRequestLogType] = OMIT,
+        input: typing.Optional[SpanCreateRequestInput] = OMIT,
+        output: typing.Optional[SpanCreateRequestOutput] = OMIT,
+        messages: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = OMIT,
+        cost: typing.Optional[float] = OMIT,
+        tokens_per_second: typing.Optional[float] = OMIT,
+        properties: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        variables: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        customer_identifier: typing.Optional[str] = OMIT,
+        tool_choice: typing.Optional[SpanCreateRequestToolChoice] = OMIT,
+        response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         frequency_penalty: typing.Optional[float] = OMIT,
         presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        n: typing.Optional[int] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        is_dataset: typing.Optional[bool] = OMIT,
-        based_log_unique_id: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        custom_endpoint: typing.Optional[str] = OMIT,
-        custom_region: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
+        stop: typing.Optional[SpanCreateRequestStop] = OMIT,
+        error_message: typing.Optional[str] = OMIT,
+        warnings: typing.Optional[SpanCreateRequestWarnings] = OMIT,
+        status: typing.Optional[SpanCreateRequestStatus] = OMIT,
         prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        covered_by: typing.Optional[CoveredByEnum] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        system_text_vector: typing.Optional[str] = OMIT,
-        prompt_text_vector: typing.Optional[str] = OMIT,
-        completion_text_vector: typing.Optional[str] = OMIT,
-        full_text_indexed: typing.Optional[bool] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_handoffs: typing.Optional[typing.Sequence[typing.Optional[str]]] = OMIT,
-        span_tools: typing.Optional[typing.Sequence[typing.Optional[str]]] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_path: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        error_message_search: typing.Optional[str] = OMIT,
-        evaluation_cost: typing.Optional[float] = OMIT,
-        llm_based_context_precision: typing.Optional[float] = OMIT,
-        llm_based_faithfulness: typing.Optional[float] = OMIT,
-        flesch_reading_ease: typing.Optional[float] = OMIT,
-        flesch_kincaid_grade_level: typing.Optional[float] = OMIT,
-        llm_based_answer_relevance: typing.Optional[float] = OMIT,
-        amount_to_pay: typing.Optional[float] = OMIT,
-        full_cost_calculated: typing.Optional[bool] = OMIT,
-        stripe_usage_report_sent: typing.Optional[bool] = OMIT,
-        to_update_thread: typing.Optional[bool] = OMIT,
-        to_update_customer_user: typing.Optional[bool] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        company_organization: typing.Optional[int] = OMIT,
-        user: typing.Optional[int] = OMIT,
-        organization_key: typing.Optional[str] = OMIT,
-        customer_user: typing.Optional[int] = OMIT,
-        prompt_version: typing.Optional[int] = OMIT,
-        thread: typing.Optional[int] = OMIT,
-        trace: typing.Optional[int] = OMIT,
-        span: typing.Optional[int] = OMIT,
+        prompt_name: typing.Optional[str] = OMIT,
+        is_custom_prompt: typing.Optional[bool] = OMIT,
+        start_time: typing.Optional[dt.datetime] = OMIT,
+        full_request: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        full_response: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        prompt_unit_price: typing.Optional[float] = OMIT,
+        completion_unit_price: typing.Optional[float] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        keywordsai_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        positive_feedback: typing.Optional[bool] = OMIT,
+        error_code: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[RequestLogCreate]:
+    ) -> AsyncHttpResponse[CreateSpanResponse]:
         """
-        Centralized respan_params initialization and backward-compat layer.
-
-        This mixin is the SINGLE initialization point for ``respan_params``.
-        It runs ``_initialize_respan_params()`` BEFORE ``super().initial()`` so
-        that by the time the throttle runs, ``respan_params`` is a fully resolved
-        dict.  Downstream code (throttle, preprocessing, view handler) only
-        **enriches** the existing dict — they never need to create it.
-
-        Initialization order::
-
-            _initialize_respan_params()   ← legacy rename + header parse + metadata
-                ↓
-            super().initial()             ← throttle ENRICHES the existing dict
-                ↓
-            view handler                  ← billing, security strip, etc.
-
-        Responsibilities consolidated here (previously scattered across 4 callsites):
-        1. Legacy header rename  (X-Data-Keywordsai-Params → X-Data-Respan-Params)
-        2. Parse X-Data-Respan-Params header  (base64 → dict)
-        3. Legacy body rename  (keywordsai_params → respan_params)
-        4. Form data handling  (JSON string → dict)
-        5. Metadata nesting  (passthrough endpoints — Anthropic, Google, etc.)
-        6. Merge: {**header_params, **body_params}  (body wins on field conflict)
-        7. Add request_url_path from request.META['PATH_INFO']
-        8. Guarantee request.data[RESPAN_PARAMS_KEY] is always a dict
-
-        Safe for protobuf endpoints: body adaptation is skipped when request.data
-        is not a dict; header adaptation always runs.
-
-        Usage::
-
-            class MyChatView(AdaptRespanParamsMixin, APIView):
-                ...
+        Create a request-log span via the logging API. This is the standard create endpoint; `/api/request-logs/create/` remains supported as a legacy alias. For LLM request logs, send `prompt_messages`, `completion_message`, token counts, timing, metadata, tools, and trace fields directly in the body. `generation_time` is accepted and normalized to `latency`; `ttft` is accepted and normalized to `time_to_first_token`. The stored `environment` is derived from the API key environment, so use a key for the target environment rather than relying on a body override. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
 
         Parameters
         ----------
-        ip_address : typing.Optional[str]
+        model : str
+            Model used for the span.
 
-        pre_commit_id : typing.Optional[str]
+        prompt_messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Chat input messages for the request log.
 
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        hour_group : typing.Optional[dt.datetime]
-
-        minute_group : typing.Optional[dt.datetime]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        unique_id : typing.Optional[str]
-
-        mapped_model_name : typing.Optional[str]
-
-        response_format : typing.Optional[RequestLogCreateRequestResponseFormat]
-
-        response_format_choice : typing.Optional[str]
-
-        parallel_tool_calls : typing.Optional[bool]
+        completion_message : typing.Optional[typing.Dict[str, typing.Any]]
+            Assistant message returned by the model.
 
         prompt_tokens : typing.Optional[int]
+            Prompt/input tokens for the request. For Anthropic logs this corresponds to `input_tokens` before cache-token normalization.
 
         completion_tokens : typing.Optional[int]
+            Completion/output tokens for the request. For Anthropic logs this corresponds to `output_tokens`.
 
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        input : typing.Optional[str]
-
-        input_array : typing.Optional[typing.Sequence[str]]
-
-        encoding_format : typing.Optional[str]
-
-        dimensions : typing.Optional[int]
-
-        embedding : typing.Optional[typing.Sequence[float]]
-
-        base64embedding : typing.Optional[str]
-
-        audio_input_file : typing.Optional[bytes]
-
-        transcription : typing.Optional[str]
-
-        audio_response_format : typing.Optional[str]
-
-        audio_output_file : typing.Optional[bytes]
-
-        prompt_messages : typing.Optional[typing.Sequence[typing.Any]]
-
-        completion_message : typing.Optional[typing.Any]
-
-        completion_messages : typing.Optional[typing.Sequence[typing.Any]]
-
-        latency : typing.Optional[float]
-
-        model : typing.Optional[str]
-
-        calling_model : typing.Optional[str]
-
-        foundation_model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        full_model_name : typing.Optional[str]
-
-        tool_choice : typing.Optional[RequestLogCreateRequestToolChoice]
-
-        tools : typing.Optional[RequestLogCreateRequestTools]
-
-        tool_calls : typing.Optional[RequestLogCreateRequestToolCalls]
-
-        has_tool_calls : typing.Optional[bool]
-
-        category : typing.Optional[str]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        keywordsai_params : typing.Optional[RequestLogCreateRequestKeywordsaiParams]
-
-        note : typing.Optional[str]
-
-        session_id : typing.Optional[str]
-
-        metadata : typing.Optional[typing.Any]
-
-        metadata_indexed_string1 : typing.Optional[str]
-
-        metadata_indexed_string2 : typing.Optional[str]
-
-        metadata_indexed_numerical1 : typing.Optional[float]
-
-        cached : typing.Optional[bool]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        positive_feedback : typing.Optional[bool]
-
-        tokens_per_second : typing.Optional[float]
-
-        full_request : typing.Optional[typing.Any]
-
-        full_response : typing.Optional[typing.Any]
-
-        status : typing.Optional[RequestLogCreateRequestStatus]
-
-        status_code : typing.Optional[int]
-
-        warnings : typing.Optional[str]
-
-        recommendations : typing.Optional[str]
-
-        has_warnings : typing.Optional[bool]
-
-        error_message : typing.Optional[str]
-
-        is_example : typing.Optional[bool]
-
-        is_malicious : typing.Optional[bool]
-
-        log_method : typing.Optional[LogMethodEnum]
-
-        log_type : typing.Optional[LogTypeEnum]
-
-        failed : typing.Optional[bool]
-
-        error_bit : typing.Optional[int]
-
-        is_test : typing.Optional[bool]
-
-        environment : typing.Optional[RequestLogCreateRequestEnvironment]
-
-        stream : typing.Optional[bool]
-
-        stream_options : typing.Optional[RequestLogCreateRequestStreamOptions]
+        usage : typing.Optional[SpanCreateRequestUsage]
+            Provider usage object. Cache token fields such as `cache_creation_input_tokens` and `cache_read_input_tokens` are accepted and normalized into Respan cache-token counters.
 
         temperature : typing.Optional[float]
+            Sampling temperature (0-2). Higher = more random.
+
+        top_p : typing.Optional[float]
+            Nucleus sampling parameter.
 
         max_tokens : typing.Optional[int]
+            Maximum tokens to generate.
 
-        logit_bias : typing.Optional[RequestLogCreateRequestLogitBias]
+        generation_time : typing.Optional[float]
+            Accepted alias for total generation latency in seconds. Stored as `latency` in responses and query results.
 
-        logprobs : typing.Optional[bool]
+        ttft : typing.Optional[float]
+            Accepted alias for time to first token in seconds. Stored as `time_to_first_token` in responses and query results.
 
-        top_logprobs : typing.Optional[int]
+        customer_params : typing.Optional[SpanCreateRequestCustomerParams]
+            Extended customer information. `customer_identifier` inside this object is promoted to the log customer identifier.
 
-        frequency_penalty : typing.Optional[float]
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Arbitrary customer metadata. Keys beginning with `_` are reserved and omitted from customer-facing read responses.
 
-        presence_penalty : typing.Optional[float]
+        environment : typing.Optional[SpanCreateRequestEnvironment]
+            Stored environment for the log. This is derived from the API key environment; body-supplied values do not override a prod/test key.
 
-        stop : typing.Optional[str]
+        stream : typing.Optional[bool]
+            Whether the response was streamed.
 
-        n : typing.Optional[int]
+        status_code : typing.Optional[int]
+            HTTP status code of the request.
 
-        evaluation_identifier : typing.Optional[str]
+        tools : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tools available to the model (OpenAI function calling format).
 
-        is_dataset : typing.Optional[bool]
+        tool_calls : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Tool calls returned by the model.
 
-        based_log_unique_id : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        custom_endpoint : typing.Optional[str]
-
-        custom_region : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        covered_by : typing.Optional[CoveredByEnum]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        system_text_vector : typing.Optional[str]
-
-        prompt_text_vector : typing.Optional[str]
-
-        completion_text_vector : typing.Optional[str]
-
-        full_text_indexed : typing.Optional[bool]
+        timestamp : typing.Optional[dt.datetime]
+            ISO 8601 timestamp when the request completed.
 
         trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
+            Trace ID to link spans into a trace tree.
 
         span_name : typing.Optional[str]
-
-        span_handoffs : typing.Optional[typing.Sequence[typing.Optional[str]]]
-
-        span_tools : typing.Optional[typing.Sequence[typing.Optional[str]]]
+            Name of this span within the workflow.
 
         span_parent_id : typing.Optional[str]
-
-        span_path : typing.Optional[str]
+            Parent span ID. Builds the trace hierarchy.
 
         span_workflow_name : typing.Optional[str]
+            Name of the parent workflow.
 
-        output : typing.Optional[str]
+        custom_identifier : typing.Optional[str]
+            Indexed custom identifier for fast querying.
 
         thread_identifier : typing.Optional[str]
+            Conversation thread ID for multi-turn conversations.
 
-        thread_unique_id : typing.Optional[str]
+        group_identifier : typing.Optional[str]
+            Groups related spans together.
 
-        storage_object_key : typing.Optional[str]
+        latency : typing.Optional[float]
+            Total request latency in seconds. `generation_time` is also accepted and normalizes to this field.
 
-        error_message_search : typing.Optional[str]
+        time_to_first_token : typing.Optional[float]
+            Time to first token in seconds. `ttft` is also accepted and normalizes to this field.
 
-        evaluation_cost : typing.Optional[float]
+        log_type : typing.Optional[SpanCreateRequestLogType]
+            Type of span. Determines how `input` and `output` are parsed.
 
-        llm_based_context_precision : typing.Optional[float]
+        input : typing.Optional[SpanCreateRequestInput]
+            Preferred universal input field. For chat spans, send an array of message objects or a JSON string. For non-chat spans, send any string/object/array structure that represents the span input.
 
-        llm_based_faithfulness : typing.Optional[float]
+        output : typing.Optional[SpanCreateRequestOutput]
+            Preferred universal output field. For chat spans, send an assistant message object or a JSON string. For non-chat spans, send any string/object/array structure that represents the span output.
 
-        flesch_reading_ease : typing.Optional[float]
+        messages : typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]]
+            Legacy chat input field. Equivalent to `prompt_messages`; prefer `input` for new integrations.
 
-        flesch_kincaid_grade_level : typing.Optional[float]
+        cost : typing.Optional[float]
+            Cost in USD. Auto-calculated from model pricing if omitted.
 
-        llm_based_answer_relevance : typing.Optional[float]
+        tokens_per_second : typing.Optional[float]
+            Generation speed in tokens per second.
 
-        amount_to_pay : typing.Optional[float]
+        properties : typing.Optional[typing.Dict[str, typing.Any]]
+            Typed metadata that preserves native JSON types.
 
-        full_cost_calculated : typing.Optional[bool]
+        variables : typing.Optional[typing.Dict[str, typing.Any]]
+            Variables used for prompt templates.
 
-        stripe_usage_report_sent : typing.Optional[bool]
+        customer_identifier : typing.Optional[str]
+            Identifier for the end user who made this request.
 
-        to_update_thread : typing.Optional[bool]
+        tool_choice : typing.Optional[SpanCreateRequestToolChoice]
+            Controls tool selection. `"none"`, `"auto"`, or a specific tool object.
 
-        to_update_customer_user : typing.Optional[bool]
+        response_format : typing.Optional[typing.Dict[str, typing.Any]]
+            Response format configuration (e.g. JSON mode or structured output).
 
-        organization : typing.Optional[int]
+        frequency_penalty : typing.Optional[float]
+            Penalizes repeated tokens (-2 to 2).
 
-        company_organization : typing.Optional[int]
+        presence_penalty : typing.Optional[float]
+            Penalizes tokens already present (-2 to 2).
 
-        user : typing.Optional[int]
+        stop : typing.Optional[SpanCreateRequestStop]
+            Stop sequence or sequences where generation halts.
 
-        organization_key : typing.Optional[str]
+        error_message : typing.Optional[str]
+            Error message if the request failed.
 
-        customer_user : typing.Optional[int]
+        warnings : typing.Optional[SpanCreateRequestWarnings]
+            Warnings from the request.
 
-        prompt_version : typing.Optional[int]
+        status : typing.Optional[SpanCreateRequestStatus]
+            Request status.
 
-        thread : typing.Optional[int]
+        prompt_id : typing.Optional[str]
+            ID of the Respan prompt template used.
 
-        trace : typing.Optional[int]
+        prompt_name : typing.Optional[str]
+            Name of the prompt template.
 
-        span : typing.Optional[int]
+        is_custom_prompt : typing.Optional[bool]
+            Set `true` when using a custom `prompt_id`.
+
+        start_time : typing.Optional[dt.datetime]
+            ISO 8601 timestamp when the request started.
+
+        full_request : typing.Optional[typing.Dict[str, typing.Any]]
+            Full raw request object for reference.
+
+        full_response : typing.Optional[typing.Dict[str, typing.Any]]
+            Full raw response object from the provider.
+
+        prompt_unit_price : typing.Optional[float]
+            Custom price per 1M prompt tokens (for self-hosted/fine-tuned models).
+
+        completion_unit_price : typing.Optional[float]
+            Custom price per 1M completion tokens (for self-hosted/fine-tuned models).
+
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Preferred namespace for Respan-specific controls such as customer tagging, metadata, prompt loading, cache settings, and logging flags.
+
+        keywordsai_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Legacy alias for `respan_params`. Still accepted and merged into `respan_params`.
+
+        positive_feedback : typing.Optional[bool]
+            User feedback. `true` = positive, `false` = negative.
+
+        error_code : typing.Optional[str]
+            Normalized application or provider error code.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[RequestLogCreate]
-
+        AsyncHttpResponse[CreateSpanResponse]
+            Span created successfully
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/request-logs/",
             method="POST",
             json={
-                "ip_address": ip_address,
-                "pre_commit_id": pre_commit_id,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "hour_group": hour_group,
-                "minute_group": minute_group,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "unique_id": unique_id,
-                "mapped_model_name": mapped_model_name,
-                "response_format": convert_and_respect_annotation_metadata(
-                    object_=response_format, annotation=RequestLogCreateRequestResponseFormat, direction="write"
-                ),
-                "response_format_choice": response_format_choice,
-                "parallel_tool_calls": parallel_tool_calls,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "total_request_tokens": total_request_tokens,
-                "cost": cost,
-                "input": input,
-                "input_array": input_array,
-                "encoding_format": encoding_format,
-                "dimensions": dimensions,
-                "embedding": embedding,
-                "base64_embedding": base64embedding,
-                "audio_input_file": audio_input_file,
-                "transcription": transcription,
-                "audio_response_format": audio_response_format,
-                "audio_output_file": audio_output_file,
+                "model": model,
                 "prompt_messages": prompt_messages,
                 "completion_message": completion_message,
-                "completion_messages": completion_messages,
-                "latency": latency,
-                "model": model,
-                "calling_model": calling_model,
-                "foundation_model": foundation_model,
-                "provider_id": provider_id,
-                "full_model_name": full_model_name,
-                "tool_choice": convert_and_respect_annotation_metadata(
-                    object_=tool_choice, annotation=RequestLogCreateRequestToolChoice, direction="write"
-                ),
-                "tools": convert_and_respect_annotation_metadata(
-                    object_=tools, annotation=RequestLogCreateRequestTools, direction="write"
-                ),
-                "tool_calls": convert_and_respect_annotation_metadata(
-                    object_=tool_calls, annotation=RequestLogCreateRequestToolCalls, direction="write"
-                ),
-                "has_tool_calls": has_tool_calls,
-                "category": category,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "keywordsai_params": convert_and_respect_annotation_metadata(
-                    object_=keywordsai_params, annotation=RequestLogCreateRequestKeywordsaiParams, direction="write"
-                ),
-                "note": note,
-                "session_id": session_id,
-                "metadata": metadata,
-                "metadata_indexed_string_1": metadata_indexed_string1,
-                "metadata_indexed_string_2": metadata_indexed_string2,
-                "metadata_indexed_numerical_1": metadata_indexed_numerical1,
-                "cached": cached,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "positive_feedback": positive_feedback,
-                "tokens_per_second": tokens_per_second,
-                "full_request": full_request,
-                "full_response": full_response,
-                "status": convert_and_respect_annotation_metadata(
-                    object_=status, annotation=RequestLogCreateRequestStatus, direction="write"
-                ),
-                "status_code": status_code,
-                "warnings": warnings,
-                "recommendations": recommendations,
-                "has_warnings": has_warnings,
-                "error_message": error_message,
-                "is_example": is_example,
-                "is_malicious": is_malicious,
-                "log_method": log_method,
-                "log_type": log_type,
-                "failed": failed,
-                "error_bit": error_bit,
-                "is_test": is_test,
-                "environment": convert_and_respect_annotation_metadata(
-                    object_=environment, annotation=RequestLogCreateRequestEnvironment, direction="write"
-                ),
-                "stream": stream,
-                "stream_options": convert_and_respect_annotation_metadata(
-                    object_=stream_options, annotation=RequestLogCreateRequestStreamOptions, direction="write"
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "usage": convert_and_respect_annotation_metadata(
+                    object_=usage, annotation=SpanCreateRequestUsage, direction="write"
                 ),
                 "temperature": temperature,
+                "top_p": top_p,
                 "max_tokens": max_tokens,
-                "logit_bias": convert_and_respect_annotation_metadata(
-                    object_=logit_bias, annotation=RequestLogCreateRequestLogitBias, direction="write"
+                "generation_time": generation_time,
+                "ttft": ttft,
+                "customer_params": convert_and_respect_annotation_metadata(
+                    object_=customer_params, annotation=SpanCreateRequestCustomerParams, direction="write"
                 ),
-                "logprobs": logprobs,
-                "top_logprobs": top_logprobs,
+                "metadata": metadata,
+                "environment": environment,
+                "stream": stream,
+                "status_code": status_code,
+                "tools": tools,
+                "tool_calls": tool_calls,
+                "timestamp": timestamp,
+                "trace_unique_id": trace_unique_id,
+                "span_name": span_name,
+                "span_parent_id": span_parent_id,
+                "span_workflow_name": span_workflow_name,
+                "custom_identifier": custom_identifier,
+                "thread_identifier": thread_identifier,
+                "group_identifier": group_identifier,
+                "latency": latency,
+                "time_to_first_token": time_to_first_token,
+                "log_type": log_type,
+                "input": convert_and_respect_annotation_metadata(
+                    object_=input, annotation=SpanCreateRequestInput, direction="write"
+                ),
+                "output": convert_and_respect_annotation_metadata(
+                    object_=output, annotation=SpanCreateRequestOutput, direction="write"
+                ),
+                "messages": messages,
+                "cost": cost,
+                "tokens_per_second": tokens_per_second,
+                "properties": properties,
+                "variables": variables,
+                "customer_identifier": customer_identifier,
+                "tool_choice": convert_and_respect_annotation_metadata(
+                    object_=tool_choice, annotation=SpanCreateRequestToolChoice, direction="write"
+                ),
+                "response_format": response_format,
                 "frequency_penalty": frequency_penalty,
                 "presence_penalty": presence_penalty,
-                "stop": stop,
-                "n": n,
-                "evaluation_identifier": evaluation_identifier,
-                "is_dataset": is_dataset,
-                "based_log_unique_id": based_log_unique_id,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "custom_endpoint": custom_endpoint,
-                "custom_region": custom_region,
-                "prompt_name": prompt_name,
+                "stop": convert_and_respect_annotation_metadata(
+                    object_=stop, annotation=SpanCreateRequestStop, direction="write"
+                ),
+                "error_message": error_message,
+                "warnings": convert_and_respect_annotation_metadata(
+                    object_=warnings, annotation=SpanCreateRequestWarnings, direction="write"
+                ),
+                "status": status,
                 "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "covered_by": covered_by,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "system_text_vector": system_text_vector,
-                "prompt_text_vector": prompt_text_vector,
-                "completion_text_vector": completion_text_vector,
-                "full_text_indexed": full_text_indexed,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "trace_group_identifier": trace_group_identifier,
-                "span_name": span_name,
-                "span_handoffs": span_handoffs,
-                "span_tools": span_tools,
-                "span_parent_id": span_parent_id,
-                "span_path": span_path,
-                "span_workflow_name": span_workflow_name,
-                "output": output,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "error_message_search": error_message_search,
-                "evaluation_cost": evaluation_cost,
-                "LLM_based_context_precision": llm_based_context_precision,
-                "LLM_based_faithfulness": llm_based_faithfulness,
-                "flesch_reading_ease": flesch_reading_ease,
-                "flesch_kincaid_grade_level": flesch_kincaid_grade_level,
-                "LLM_based_answer_relevance": llm_based_answer_relevance,
-                "amount_to_pay": amount_to_pay,
-                "full_cost_calculated": full_cost_calculated,
-                "stripe_usage_report_sent": stripe_usage_report_sent,
-                "to_update_thread": to_update_thread,
-                "to_update_customer_user": to_update_customer_user,
-                "organization": organization,
-                "company_organization": company_organization,
-                "user": user,
-                "organization_key": organization_key,
-                "customer_user": customer_user,
-                "prompt_version": prompt_version,
-                "thread": thread,
-                "trace": trace,
-                "span": span,
+                "prompt_name": prompt_name,
+                "is_custom_prompt": is_custom_prompt,
+                "start_time": start_time,
+                "full_request": full_request,
+                "full_response": full_response,
+                "prompt_unit_price": prompt_unit_price,
+                "completion_unit_price": completion_unit_price,
+                "respan_params": respan_params,
+                "keywordsai_params": keywordsai_params,
+                "positive_feedback": positive_feedback,
+                "error_code": error_code,
             },
             headers={
                 "content-type": "application/json",
@@ -2558,13 +1486,339 @@ class AsyncRawSpansClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    RequestLogCreate,
+                    CreateSpanResponse,
                     parse_obj_as(
-                        type_=RequestLogCreate,  # type: ignore
+                        type_=CreateSpanResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def bulk_create_spans(
+        self, *, logs: typing.Sequence[SpanCreateRequest], request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[BulkOperationResponse]:
+        """
+        Create up to 500 spans in one request. Each item in `logs` accepts the same fields as the [single-span create operation](/docs/apis/spans/create-span). Rows are processed independently: one invalid row does not prevent the remaining rows from being accepted. A response is `201 Created` whenever at least one row is accepted, including partial success; inspect `error_count` and `errors` on every response. `success_count` means the row passed synchronous validation and was accepted for ingestion.
+
+        For API-key authentication, this endpoint is limited to 30 requests per minute per organization, shared across all API keys in that organization. JWT requests are limited per user. At the 500-row maximum, the API-key limit allows up to approximately 15,000 accepted rows per minute. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+
+        Parameters
+        ----------
+        logs : typing.Sequence[SpanCreateRequest]
+            Non-empty array of span payloads. Each object uses the same schema as `POST /api/request-logs/`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[BulkOperationResponse]
+            At least one row was accepted. This status is also used for partial success; inspect the response counts and indexed errors.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/request-logs/bulk/",
+            method="POST",
+            json={
+                "logs": convert_and_respect_annotation_metadata(
+                    object_=logs, annotation=typing.Sequence[SpanCreateRequest], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkOperationResponse,
+                    parse_obj_as(
+                        type_=BulkOperationResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_spans(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[ListSpansRequestEnvironment] = None,
+        log_type: typing.Optional[ListSpansRequestLogType] = None,
+        include_fields: typing.Optional[str] = None,
+        filters: typing.Optional[Filters] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncPager[typing.Dict[str, typing.Any], ListSpansResponse]:
+        """
+        Retrieve spans matching the specified filters with pagination. Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for full filter syntax. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page (max 1000).
+
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix `-` for descending.
+
+        start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601).
+
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601).
+
+        environment : typing.Optional[ListSpansRequestEnvironment]
+            Filter by environment (`prod` or `test`).
+
+        log_type : typing.Optional[ListSpansRequestLogType]
+            Filter by span/log type. Use values like `chat`, `completion`, or `response` to focus on model-inference spans; omitting this can also return non-chat span/log rows such as legacy `text` logs.
+
+        include_fields : typing.Optional[str]
+            Comma-separated list of fields to include in each span. Reduces response size.
+
+        filters : typing.Optional[Filters]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncPager[typing.Dict[str, typing.Any], ListSpansResponse]
+            Successful response for List spans
+        """
+        page = page if page is not None else 1
+
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/request-logs/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+                "log_type": log_type,
+                "include_fields": include_fields,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=Filters, direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _parsed_response = typing.cast(
+                    ListSpansResponse,
+                    parse_obj_as(
+                        type_=ListSpansResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                _items = _parsed_response.results
+                _has_next = True
+
+                async def _get_next():
+                    return await self.list_spans(
+                        page=page + 1,
+                        page_size=page_size,
+                        sort_by=sort_by,
+                        start_time=start_time,
+                        end_time=end_time,
+                        environment=environment,
+                        log_type=log_type,
+                        include_fields=include_fields,
+                        filters=filters,
+                        request_options=request_options,
+                    )
+
+                return AsyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -2572,100 +1826,22 @@ class AsyncRawSpansClient:
 
     async def retrieve_span(
         self, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[ChLogV2Detail]:
+    ) -> AsyncHttpResponse[RetrieveSpanResponse]:
         """
-        Mixin for views that need superadmin access to all resources.
-
-        Provides FOUR key features (all bundled - no separate mixins needed):
-        1. Queryset routing (superadmin sees all, regular user sees own org)
-        2. Organization injection (post/patch/put auto-inject org)
-        3. Object ownership checking (auto-registers ObjectOwnershipPermission)
-        4. Superadmin-only field protection (certain fields can only be modified by superadmins)
-
-        Inherits from:
-        - ObjectOwnershipMixin: Config attributes + auto-permission registration
-        - OrganizationInjectionMixin: Cross-org write protection + org injection
-
-        Config attributes (inherited from ObjectOwnershipMixin):
-        - ownership_object_field_name: Field on object (default: "organization_id")
-        - ownership_user_field_name: Field on user (default: "curr_org_id")
-        - is_allowing_global_object_read: Allow reading global objects (default: False)
-        - is_allowing_org_admin_access: Allow org admins access to any object in their org (default: False)
-        - is_requiring_org_admin_for_write: Require org admin for writes (default: False)
-
-        Config attributes (superadmin-only fields):
-        - superadmin_only_fields: List of field names that only superadmins can modify (default: [])
-          On CREATE: Fields are stripped from non-superadmin requests (model defaults apply)
-          On UPDATE: Non-superadmins trying to change these fields get PermissionDenied
-
-        - superadmin_lock_field: Field name that locks the entire object for non-superadmins (default: None)
-          When this field is truthy on the instance, non-superadmins cannot modify ANY field.
-          Common use case: is_managed=True means Keywords AI manages this resource, users can't edit it.
-
-        Note: Writing to global objects (ownership field is None) always requires superadmin.
-
-        Usage (detail view):
-
-            class MyDetailView(SuperAdminMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                # Optional: customize ownership config (inherited from ObjectOwnershipMixin)
-                is_allowing_global_object_read = True
-
-                def get_regular_user_queryset(self):
-                    return MyModel.objects.filter(organization_id=self.request.user.curr_org_id)
-
-                def get_superadmin_queryset(self):
-                    return MyModel.objects.all()
-
-        Usage (superadmin-only fields):
-
-            class IntegrationView(SuperAdminMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                superadmin_only_fields = ['is_managed']  # Only superadmins can modify is_managed
-                superadmin_lock_field = 'is_managed'  # When is_managed=True, object is locked for non-superadmins
-
-                def get_regular_user_queryset(self):
-                    return Integration.objects.filter(organization_id=self.request.user.curr_org_id)
-
-                def get_superadmin_queryset(self):
-                    return Integration.objects.all()
-
-        Usage (related-object org pattern like PromptVersion - PREFERRED: annotate queryset):
-
-            from django.db.models import F
-
-            class PromptVersionView(SuperAdminMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                def get_regular_user_queryset(self):
-                    # Annotate organization_id so ownership checks work automatically
-                    return PromptVersion.objects.filter(
-                        prompt__organization_id=self.request.user.curr_org_id
-                    ).annotate(organization_id=F("prompt__organization_id"))
-
-                def get_superadmin_queryset(self):
-                    return PromptVersion.objects.annotate(organization_id=F("prompt__organization_id"))
-
-        Alternative (override method - only if annotation not possible):
-
-            class PromptVersionView(SuperAdminMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                def get_affiliated_object_organization_id(self, instance):
-                    return instance.prompt.organization_id  # Org is on parent object
-
-        DO NOT use inline checks like this:
-            # ❌ BAD - easy to forget in branching code
-            def get_queryset(self):
-                if has_staff_role(self.request.user):
-                    return MyModel.objects.all()
-                return MyModel.objects.filter(...)
+        Retrieve a span by its unique ID. Returns the full span including input, output, metrics, metadata, trace context, evaluation scores, and credit/budget info (`limit_info`). Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
 
         Parameters
         ----------
         unique_id : str
+            The unique ID of the log to get.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[ChLogV2Detail]
-
+        AsyncHttpResponse[RetrieveSpanResponse]
+            Successful response for Retrieve span
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/request-logs/{jsonable_encoder(unique_id)}/",
@@ -2675,904 +1851,68 @@ class AsyncRawSpansClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ChLogV2Detail,
+                    RetrieveSpanResponse,
                     parse_obj_as(
-                        type_=ChLogV2Detail,  # type: ignore
+                        type_=RetrieveSpanResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def update_span(
-        self,
-        unique_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ChLogV2Detail]:
-        """
-        Update mutable fields via lightweight UPDATE (CH 25.7+).
-
-        Parameters
-        ----------
-        unique_id_ : str
-
-        id : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ChLogV2Detail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/request-logs/{jsonable_encoder(unique_id_)}/",
-            method="PATCH",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChLogV2Detail,
-                    parse_obj_as(
-                        type_=ChLogV2Detail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def bulk_create_spans(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        The single canonical mixin for bulk endpoints.
-
-        Every view in this codebase that processes a SET of items in one request
-        (``/api/.../bulk/``, ``/.../bulk-create/``, ``/.../bulk-delete/``) MUST
-        inherit this mixin. There is intentionally only one — strategy choice
-        (per-item loop vs batched query vs async dispatch vs criterion-delete)
-        lives in the SUBCLASS body of ``process_bulk``, not in the class
-        hierarchy. Helpers in ``utils/bulk/strategies.py`` cover the common
-        strategies; subclasses can also implement custom logic.
-
-        Why a single mixin: see ``BE_conventions/bulk.md``. Variation by
-        strategy was the road we explicitly avoided.
-
-        Subclass contract (required):
-            ``bulk_serializer_class``       — DRF serializer for the request body
-            ``get_bulk_items(validated_data) -> list``
-            ``process_bulk(items, **ctx) -> BulkOperationResponse``
-
-        Subclass contract (optional):
-            ``bulk_max_size``               — default 500
-            ``get_bulk_context(request, validated_data) -> dict``
-            ``get_bulk_status_code(response) -> int``
-
-        The mixin defines ``post()`` to call ``handle_bulk_request``. DELETE-shaped
-        bulk endpoints (criterion-based deletion) restrict ``http_method_names`` to
-        ``["delete", "options"]`` and define ``delete()`` that delegates to
-        ``handle_bulk_request``.
-
-        Status code policy (override ``get_bulk_status_code`` for custom):
-            all-success     → 200
-            partial-success → 207
-            all-failure     → 400
-            over-limit      → 422 (returned directly, never reaches process_bulk)
-
-        Usage::
-
-            class MyBulkView(BulkOperationMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                bulk_serializer_class = MyRequestSerializer
-                bulk_max_size = 100
-
-                def get_bulk_items(self, validated_data):
-                    return validated_data["items"]
-
-                def process_bulk(self, items, **ctx):
-                    from utils.bulk.strategies import run_bulk_loop
-
-                    def handle(*, item, index):
-                        self._do_one(item, **ctx)
-
-                    return run_bulk_loop(items, process_item=handle, is_atomic=True)
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/request-logs/bulk/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_spans(
-        self,
-        *,
-        id: str,
-        organization_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicChLogV2Detail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : str
-
-        organization_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicChLogV2Detail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/request-logs/list/",
-            method="POST",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicChLogV2Detail,
-                    parse_obj_as(
-                        type_=PublicChLogV2Detail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -3581,172 +1921,48 @@ class AsyncRawSpansClient:
     async def get_spans_summary(
         self,
         *,
-        id: str,
-        organization_id: str,
-        organization_key_id: str,
-        environment: str,
-        prompt_name: str,
-        trace_unique_id: str,
-        customer_identifier: str,
-        thread_identifier: str,
-        unique_organization_id: str,
-        log_type: str,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        note: typing.Optional[str] = OMIT,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[GetSpansSummaryRequestEnvironment] = None,
+        filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ChLogV2List]:
+    ) -> AsyncHttpResponse[GetSpansSummaryResponse]:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Get aggregated statistics for spans/log rows in a time range. `start_time`, `end_time`, and `environment` are URL query parameters. Additional filters must be sent in the JSON body under `filters`; fields such as `log_type` are not read as summary query parameters. When `filters` is omitted or empty, the backend may use the pre-aggregated summary path; when `filters` is non-empty, it queries raw logs using the same filter object shape as List spans.
 
         Parameters
         ----------
-        id : str
-
-        organization_id : str
-
-        organization_key_id : str
-
-        environment : str
-
-        prompt_name : str
-
-        trace_unique_id : str
-
-        customer_identifier : str
-
-        thread_identifier : str
-
-        unique_organization_id : str
-
-        log_type : str
-
-        timestamp : typing.Optional[dt.datetime]
-
         start_time : typing.Optional[dt.datetime]
+            Start of time range (ISO 8601).
 
-        prompt_id : typing.Optional[str]
+        end_time : typing.Optional[dt.datetime]
+            End of time range (ISO 8601).
 
-        customer_name : typing.Optional[str]
+        environment : typing.Optional[GetSpansSummaryRequestEnvironment]
+            Filter by environment (`prod` or `test`).
 
-        customer_email : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        model : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status_code : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        storage_object_key : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        note : typing.Optional[str]
+        filters : typing.Optional[Filters]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[ChLogV2List]
-
+        AsyncHttpResponse[GetSpansSummaryResponse]
+            Summary statistics for matching spans.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/request-logs/summary/",
             method="POST",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "organization_key_id": organization_key_id,
+            params={
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
                 "environment": environment,
-                "timestamp": timestamp,
-                "start_time": start_time,
-                "prompt_id": prompt_id,
-                "prompt_name": prompt_name,
-                "trace_unique_id": trace_unique_id,
-                "customer_identifier": customer_identifier,
-                "customer_name": customer_name,
-                "customer_email": customer_email,
-                "thread_identifier": thread_identifier,
-                "custom_identifier": custom_identifier,
-                "unique_organization_id": unique_organization_id,
-                "log_type": log_type,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "total_request_tokens": total_request_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "cost": cost,
-                "model": model,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status_code": status_code,
-                "status": status,
-                "blurred": blurred,
-                "storage_object_key": storage_object_key,
-                "updated_storage_object_key": updated_storage_object_key,
-                "span_workflow_name": span_workflow_name,
-                "span_name": span_name,
-                "note": note,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=Filters, direction="write"
+                ),
             },
             headers={
                 "content-type": "application/json",
@@ -3757,13 +1973,282 @@ class AsyncRawSpansClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    ChLogV2List,
+                    GetSpansSummaryResponse,
                     parse_obj_as(
-                        type_=ChLogV2List,  # type: ignore
+                        type_=GetSpansSummaryResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 500:
+                raise InternalServerError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def request_logs_groups_list(
+        self,
+        *,
+        group_by: typing.Optional[RequestLogsGroupsListRequestGroupBy] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[RequestLogsGroupsListResponse]:
+        """
+        Group spans by a supported dimension and return one aggregate row per group. `trace` and `thread` roll spans up through their dedicated entity views.
+
+        Parameters
+        ----------
+        group_by : typing.Optional[RequestLogsGroupsListRequestGroupBy]
+            Grouping dimension. `trace` and `thread` use entity rollups.
+
+        sort_by : typing.Optional[str]
+
+        start_time : typing.Optional[dt.datetime]
+
+        end_time : typing.Optional[dt.datetime]
+
+        environment : typing.Optional[str]
+
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[RequestLogsGroupsListResponse]
+            Paginated groups and aggregate metrics.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/request-logs/groups/",
+            method="GET",
+            params={
+                "group_by": group_by,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+                "page": page,
+                "page_size": page_size,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RequestLogsGroupsListResponse,
+                    parse_obj_as(
+                        type_=RequestLogsGroupsListResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def request_logs_groups_filter(
+        self,
+        *,
+        group_by: typing.Optional[RequestLogsGroupsFilterRequestGroupBy] = None,
+        sort_by: typing.Optional[str] = None,
+        start_time: typing.Optional[dt.datetime] = None,
+        end_time: typing.Optional[dt.datetime] = None,
+        environment: typing.Optional[str] = None,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[RequestLogsGroupsFilterResponse]:
+        """
+        Group spans using the same query parameters as GET and optional standard Respan filters in the request body.
+
+        Parameters
+        ----------
+        group_by : typing.Optional[RequestLogsGroupsFilterRequestGroupBy]
+            Grouping dimension. `trace` and `thread` use entity rollups.
+
+        sort_by : typing.Optional[str]
+
+        start_time : typing.Optional[dt.datetime]
+
+        end_time : typing.Optional[dt.datetime]
+
+        environment : typing.Optional[str]
+
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[RequestLogsGroupsFilterResponse]
+            Paginated groups and aggregate metrics.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/request-logs/groups/",
+            method="POST",
+            params={
+                "group_by": group_by,
+                "sort_by": sort_by,
+                "start_time": serialize_datetime(start_time) if start_time is not None else None,
+                "end_time": serialize_datetime(end_time) if end_time is not None else None,
+                "environment": environment,
+                "page": page,
+                "page_size": page_size,
+            },
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RequestLogsGroupsFilterResponse,
+                    parse_obj_as(
+                        type_=RequestLogsGroupsFilterResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

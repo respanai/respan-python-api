@@ -5,60 +5,28 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
-from .model_metrics_series_bucket import ModelMetricsSeriesBucket
-from .model_status_bucket import ModelStatusBucket
-from .model_status_summary import ModelStatusSummary
-from .time_tick_enum import TimeTickEnum
+from .model_status_metric_bucket import ModelStatusMetricBucket
+from .model_status_response_status import ModelStatusResponseStatus
+from .model_status_response_time_tick import ModelStatusResponseTimeTick
+from .model_status_uptime_bucket import ModelStatusUptimeBucket
 
 
 class ModelStatusResponse(UniversalBaseModel):
-    model: str = pydantic.Field()
+    model: str
+    provider_id: typing.Optional[str] = None
+    time_tick: ModelStatusResponseTimeTick
+    start_time: dt.datetime
+    end_time: dt.datetime
+    data: typing.List[ModelStatusUptimeBucket]
+    respan_uptime: typing.Optional[typing.List[ModelStatusUptimeBucket]] = pydantic.Field(default=None)
     """
-    The model string from the URL path.
-    """
-
-    provider_id: typing.Optional[str] = pydantic.Field(default=None)
-    """
-    Echo of the `provider_id` filter, if one was supplied.
-    """
-
-    time_tick: TimeTickEnum = pydantic.Field()
-    """
-    Time-bucket size of the series (minute / hour / day).
-    
-    * `minute` - minute
-    * `hour` - hour
-    * `day` - day
+    Omitted when provider_id is supplied.
     """
 
-    start_time: dt.datetime = pydantic.Field()
+    metrics_series: typing.List[ModelStatusMetricBucket]
+    status: typing.Optional[ModelStatusResponseStatus] = pydantic.Field(default=None)
     """
-    Window start (UTC, inclusive).
-    """
-
-    end_time: dt.datetime = pydantic.Field()
-    """
-    Window end (UTC, exclusive).
-    """
-
-    data: typing.List[ModelStatusBucket] = pydantic.Field()
-    """
-    Per-provider uptime time series (per-attempt grain). Scoped to `provider_id` when that filter is supplied, else cross-provider.
-    """
-
-    respan_uptime: typing.Optional[typing.List[ModelStatusBucket]] = pydantic.Field(default=None)
-    """
-    Request-grain 'via Respan' uptime time series: one verdict per client call, UP if ANY retry/fallback attempt succeeded. Reflects failover, so it sits at or above the per-provider `data` line. Same bucket shape as `data`. Omitted when a `provider_id` filter is supplied because the series is cross-provider.
-    """
-
-    metrics_series: typing.Optional[typing.List[ModelMetricsSeriesBucket]] = pydantic.Field(default=None)
-    """
-    Per-bucket performance metrics over the window (tps, ttft, latency, cache-hit %, + admin-only counts/cost) — the other metrics plotted over time like uptime. Scoped to `provider_id` when that filter is supplied, else cross-provider. Volume fields within are admin-only.
-    """
-
-    status: typing.Optional[ModelStatusSummary] = pydantic.Field(default=None)
-    """
-    Scalar model-wide status over the whole window (uptime %, throughput/latency, cache-hit %, catalog list price). Omitted when a `provider_id` filter is supplied (it is cross-provider). Volume fields within are admin-only.
+    Omitted when provider_id is supplied. Volume fields are staff-only.
     """
 
     if IS_PYDANTIC_V2:

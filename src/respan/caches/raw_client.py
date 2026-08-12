@@ -10,8 +10,17 @@ from ..core.http_response import AsyncHttpResponse, HttpResponse
 from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
-from ..types.public_cached_response_detail import PublicCachedResponseDetail
-from ..types.public_cached_response_list import PublicCachedResponseList
+from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
+from ..errors.not_found_error import NotFoundError
+from ..errors.too_many_requests_error import TooManyRequestsError
+from ..errors.unauthorized_error import UnauthorizedError
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
+from ..types.bulk_delete_response import BulkDeleteResponse
+from .types.api_caches_partial_update2response import ApiCachesPartialUpdate2Response
+from .types.api_caches_retrieve_response import ApiCachesRetrieveResponse
+from .types.filter_cached_responses_response import FilterCachedResponsesResponse
+from .types.get_filtered_cached_responses_summary_response import GetFilteredCachedResponsesSummaryResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -21,97 +30,429 @@ class RawCachesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def retrieve_cached_response(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[PublicCachedResponseDetail]:
+    def filter_cached_responses(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[FilterCachedResponsesResponse]:
         """
-        GET/PATCH/DELETE /api/caches/<cache_key>/ — Retrieve, update, delete by cache_key.
-        GET/PATCH/DELETE /api/cache/<id>/ — Legacy alias, lookup by integer PK (JWT only).
-        GET/PATCH/DELETE /api/cache/key/<cache_key>/ — Legacy alias, lookup by cache_key.
-
-        JWT auth uses pk lookup when an integer id is supplied; otherwise (and for
-        API key auth) lookup is by cache_key_by_org_uuid.
+        List cached responses using POST-for-filtering. API-key responses expose public cache keys; dashboard JWT responses may include internal numeric identifiers.
 
         Parameters
         ----------
-        id : int
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 1000.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicCachedResponseDetail]
-
+        HttpResponse[FilterCachedResponsesResponse]
+            Filtered cached responses plus aggregate cache savings.
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/cache/{jsonable_encoder(id)}/",
+            "api/caches/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+            },
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FilterCachedResponsesResponse,
+                    parse_obj_as(
+                        type_=FilterCachedResponsesResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def get_filtered_cached_responses_summary(
+        self,
+        *,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[GetFilteredCachedResponsesSummaryResponse]:
+        """
+        Return the total number of cached responses after applying filters. This endpoint supports both JWT and API key authentication.
+
+        Parameters
+        ----------
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[GetFilteredCachedResponsesSummaryResponse]
+            Filtered cache summary statistics.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/caches/summary/",
+            method="POST",
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetFilteredCachedResponsesSummaryResponse,
+                    parse_obj_as(
+                        type_=GetFilteredCachedResponsesSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def bulk_delete_cached_responses(
+        self,
+        *,
+        cache_keys: typing.Optional[typing.Sequence[str]] = OMIT,
+        ids: typing.Optional[typing.Sequence[int]] = OMIT,
+        all_: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[BulkDeleteResponse]:
+        """
+        Delete cached responses using exactly one selector: `cache_keys`, `ids`, or `all: true`. Up to 1,000 keys or IDs can be deleted per request. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`. Rate limit: 60 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
+
+        Parameters
+        ----------
+        cache_keys : typing.Optional[typing.Sequence[str]]
+            Cache keys to delete. Supported for API key and JWT authentication.
+
+        ids : typing.Optional[typing.Sequence[int]]
+            Internal numeric cache entry IDs to delete. JWT only.
+
+        all_ : typing.Optional[bool]
+            Set to true to delete all cached responses for the current organization. The server rejects false.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[BulkDeleteResponse]
+            Cached responses were deleted synchronously.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/caches/bulk/",
+            method="DELETE",
+            json={
+                "cache_keys": cache_keys,
+                "ids": ids,
+                "all": all_,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkDeleteResponse,
+                    parse_obj_as(
+                        type_=BulkDeleteResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def api_caches_retrieve(
+        self, cache_key: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[ApiCachesRetrieveResponse]:
+        """
+        Retrieve a cached response by its organization-scoped cache key. API-key responses omit internal numeric IDs.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ApiCachesRetrieveResponse]
+            Cached response details.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/caches/{jsonable_encoder(cache_key)}/",
             method="GET",
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicCachedResponseDetail,
+                    ApiCachesRetrieveResponse,
                     parse_obj_as(
-                        type_=PublicCachedResponseDetail,  # type: ignore
+                        type_=ApiCachesRetrieveResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def filter_cached_responses(
-        self,
-        *,
-        cache_key: typing.Optional[str] = OMIT,
-        cache_key_by_org_uuid: typing.Optional[str] = OMIT,
-        hit_count: typing.Optional[int] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        expiry_date: typing.Optional[dt.datetime] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCachedResponseList]:
+    def api_caches_destroy2(
+        self, cache_key: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[None]:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Delete one cached response by its organization-scoped cache key.
 
         Parameters
         ----------
-        cache_key : typing.Optional[str]
-
-        cache_key_by_org_uuid : typing.Optional[str]
-
-        hit_count : typing.Optional[int]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        expiry_date : typing.Optional[dt.datetime]
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicCachedResponseList]
-
+        HttpResponse[None]
         """
         _response = self._client_wrapper.httpx_client.request(
-            "api/caches/",
-            method="POST",
+            f"api/caches/{jsonable_encoder(cache_key)}/",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def api_caches_partial_update2(
+        self,
+        cache_key: str,
+        *,
+        expiry_date: typing.Optional[dt.datetime] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ApiCachesPartialUpdate2Response]:
+        """
+        Update the expiry date of a cached response identified by its public cache key.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        expiry_date : typing.Optional[dt.datetime]
+            New expiry time; null clears it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ApiCachesPartialUpdate2Response]
+            Updated cached response.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/caches/{jsonable_encoder(cache_key)}/",
+            method="PATCH",
             json={
-                "cache_key": cache_key,
-                "cache_key_by_org_uuid": cache_key_by_org_uuid,
-                "hit_count": hit_count,
-                "timestamp": timestamp,
-                "updated_at": updated_at,
                 "expiry_date": expiry_date,
             },
             headers={
@@ -123,105 +464,57 @@ class RawCachesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicCachedResponseList,
+                    ApiCachesPartialUpdate2Response,
                     parse_obj_as(
-                        type_=PublicCachedResponseList,  # type: ignore
+                        type_=ApiCachesPartialUpdate2Response,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def delete_cached_responses(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
-        """
-        DEPRECATED: Batch delete via DELETE /api/caches/ with {"ids": [...]}.
-        Use DELETE /api/caches/bulk/ instead. Kept for backward compatibility.
-        JWT only — integer IDs are internal and not exposed via API key.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/caches/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def bulk_delete_cached_responses(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        DELETE /api/caches/bulk/ — Bulk delete cached responses.
-
-        Request body (exactly one of):
-            {"ids": [1, 2, 3]}         — JWT only (internal integer PKs)
-            {"cache_keys": ["k1","k2"]} — by cache_key_by_org_uuid
-            {"all": true}              — deletes all cached responses for the org
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/caches/bulk/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def get_filtered_cached_responses_summary(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/caches/summary/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -232,97 +525,429 @@ class AsyncRawCachesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def retrieve_cached_response(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[PublicCachedResponseDetail]:
+    async def filter_cached_responses(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[FilterCachedResponsesResponse]:
         """
-        GET/PATCH/DELETE /api/caches/<cache_key>/ — Retrieve, update, delete by cache_key.
-        GET/PATCH/DELETE /api/cache/<id>/ — Legacy alias, lookup by integer PK (JWT only).
-        GET/PATCH/DELETE /api/cache/key/<cache_key>/ — Legacy alias, lookup by cache_key.
-
-        JWT auth uses pk lookup when an integer id is supplied; otherwise (and for
-        API key auth) lookup is by cache_key_by_org_uuid.
+        List cached responses using POST-for-filtering. API-key responses expose public cache keys; dashboard JWT responses may include internal numeric identifiers.
 
         Parameters
         ----------
-        id : int
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 1000.
+
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicCachedResponseDetail]
-
+        AsyncHttpResponse[FilterCachedResponsesResponse]
+            Filtered cached responses plus aggregate cache savings.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/cache/{jsonable_encoder(id)}/",
+            "api/caches/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+            },
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    FilterCachedResponsesResponse,
+                    parse_obj_as(
+                        type_=FilterCachedResponsesResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def get_filtered_cached_responses_summary(
+        self,
+        *,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[GetFilteredCachedResponsesSummaryResponse]:
+        """
+        Return the total number of cached responses after applying filters. This endpoint supports both JWT and API key authentication.
+
+        Parameters
+        ----------
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[GetFilteredCachedResponsesSummaryResponse]
+            Filtered cache summary statistics.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/caches/summary/",
+            method="POST",
+            json={
+                "filters": filters,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    GetFilteredCachedResponsesSummaryResponse,
+                    parse_obj_as(
+                        type_=GetFilteredCachedResponsesSummaryResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def bulk_delete_cached_responses(
+        self,
+        *,
+        cache_keys: typing.Optional[typing.Sequence[str]] = OMIT,
+        ids: typing.Optional[typing.Sequence[int]] = OMIT,
+        all_: typing.Optional[bool] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[BulkDeleteResponse]:
+        """
+        Delete cached responses using exactly one selector: `cache_keys`, `ids`, or `all: true`. Up to 1,000 keys or IDs can be deleted per request. `ids` uses internal integer IDs and is JWT-only; API-key clients should use `cache_keys` or `all`. Rate limit: 60 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
+
+        Parameters
+        ----------
+        cache_keys : typing.Optional[typing.Sequence[str]]
+            Cache keys to delete. Supported for API key and JWT authentication.
+
+        ids : typing.Optional[typing.Sequence[int]]
+            Internal numeric cache entry IDs to delete. JWT only.
+
+        all_ : typing.Optional[bool]
+            Set to true to delete all cached responses for the current organization. The server rejects false.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[BulkDeleteResponse]
+            Cached responses were deleted synchronously.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/caches/bulk/",
+            method="DELETE",
+            json={
+                "cache_keys": cache_keys,
+                "ids": ids,
+                "all": all_,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkDeleteResponse,
+                    parse_obj_as(
+                        type_=BulkDeleteResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def api_caches_retrieve(
+        self, cache_key: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[ApiCachesRetrieveResponse]:
+        """
+        Retrieve a cached response by its organization-scoped cache key. API-key responses omit internal numeric IDs.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ApiCachesRetrieveResponse]
+            Cached response details.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/caches/{jsonable_encoder(cache_key)}/",
             method="GET",
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicCachedResponseDetail,
+                    ApiCachesRetrieveResponse,
                     parse_obj_as(
-                        type_=PublicCachedResponseDetail,  # type: ignore
+                        type_=ApiCachesRetrieveResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def filter_cached_responses(
-        self,
-        *,
-        cache_key: typing.Optional[str] = OMIT,
-        cache_key_by_org_uuid: typing.Optional[str] = OMIT,
-        hit_count: typing.Optional[int] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        expiry_date: typing.Optional[dt.datetime] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCachedResponseList]:
+    async def api_caches_destroy2(
+        self, cache_key: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Delete one cached response by its organization-scoped cache key.
 
         Parameters
         ----------
-        cache_key : typing.Optional[str]
-
-        cache_key_by_org_uuid : typing.Optional[str]
-
-        hit_count : typing.Optional[int]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        expiry_date : typing.Optional[dt.datetime]
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicCachedResponseList]
-
+        AsyncHttpResponse[None]
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "api/caches/",
-            method="POST",
+            f"api/caches/{jsonable_encoder(cache_key)}/",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def api_caches_partial_update2(
+        self,
+        cache_key: str,
+        *,
+        expiry_date: typing.Optional[dt.datetime] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ApiCachesPartialUpdate2Response]:
+        """
+        Update the expiry date of a cached response identified by its public cache key.
+
+        Parameters
+        ----------
+        cache_key : str
+            Organization-scoped cache key returned by the cache list endpoint.
+
+        expiry_date : typing.Optional[dt.datetime]
+            New expiry time; null clears it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ApiCachesPartialUpdate2Response]
+            Updated cached response.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/caches/{jsonable_encoder(cache_key)}/",
+            method="PATCH",
             json={
-                "cache_key": cache_key,
-                "cache_key_by_org_uuid": cache_key_by_org_uuid,
-                "hit_count": hit_count,
-                "timestamp": timestamp,
-                "updated_at": updated_at,
                 "expiry_date": expiry_date,
             },
             headers={
@@ -334,107 +959,57 @@ class AsyncRawCachesClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicCachedResponseList,
+                    ApiCachesPartialUpdate2Response,
                     parse_obj_as(
-                        type_=PublicCachedResponseList,  # type: ignore
+                        type_=ApiCachesPartialUpdate2Response,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def delete_cached_responses(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        DEPRECATED: Batch delete via DELETE /api/caches/ with {"ids": [...]}.
-        Use DELETE /api/caches/bulk/ instead. Kept for backward compatibility.
-        JWT only — integer IDs are internal and not exposed via API key.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/caches/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def bulk_delete_cached_responses(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        DELETE /api/caches/bulk/ — Bulk delete cached responses.
-
-        Request body (exactly one of):
-            {"ids": [1, 2, 3]}         — JWT only (internal integer PKs)
-            {"cache_keys": ["k1","k2"]} — by cache_key_by_org_uuid
-            {"all": true}              — deletes all cached responses for the org
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/caches/bulk/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def get_filtered_cached_responses_summary(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/caches/summary/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

@@ -12,35 +12,39 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
-from ..types.ch_dataset_log import ChDatasetLog
-from ..types.ch_dataset_log_list import ChDatasetLogList
-from ..types.dataset_create import DatasetCreate
-from ..types.dataset_detail import DatasetDetail
-from ..types.dataset_list import DatasetList
-from ..types.dataset_llm_run_status_enum import DatasetLlmRunStatusEnum
-from ..types.dataset_log_create_response import DatasetLogCreateResponse
-from ..types.dataset_log_presence_response import DatasetLogPresenceResponse
-from ..types.dataset_log_status_create import DatasetLogStatusCreate
-from ..types.dataset_log_status_create_status_enum import DatasetLogStatusCreateStatusEnum
-from ..types.dataset_logs_bulk_create_response import DatasetLogsBulkCreateResponse
-from ..types.dataset_logs_import_response import DatasetLogsImportResponse
-from ..types.dataset_logs_summary_response import DatasetLogsSummaryResponse
-from ..types.dataset_status_enum import DatasetStatusEnum
-from ..types.dataset_task_tracker_run_evaluation_create import DatasetTaskTrackerRunEvaluationCreate
-from ..types.dataset_type_enum import DatasetTypeEnum
-from ..types.datasets_summary_response import DatasetsSummaryResponse
-from ..types.filter_param_dict_pydantic import FilterParamDictPydantic
-from ..types.granularity_enum import GranularityEnum
-from ..types.paginated_ch_dataset_log_list import PaginatedChDatasetLogList
-from ..types.paginated_ch_dataset_log_list_list import PaginatedChDatasetLogListList
-from ..types.paginated_dataset_list_list import PaginatedDatasetListList
-from ..types.paginated_dataset_task_tracker_run_eval_list_list import PaginatedDatasetTaskTrackerRunEvalListList
-from ..types.paginated_public_dataset_task_tracker_run_eval_list_list import (
-    PaginatedPublicDatasetTaskTrackerRunEvalListList,
-)
-from ..types.public_dataset_task_tracker_run_eval_list import PublicDatasetTaskTrackerRunEvalList
-from ..types.status66c_enum import Status66CEnum
+from ..errors.payment_required_error import PaymentRequiredError
+from ..errors.too_many_requests_error import TooManyRequestsError
+from ..errors.unauthorized_error import UnauthorizedError
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
+from ..types.bulk_operation_response import BulkOperationResponse
+from ..types.dataset_log_create_request import DatasetLogCreateRequest
+from ..types.dataset_log_create_request_expected_output import DatasetLogCreateRequestExpectedOutput
+from ..types.dataset_log_create_request_input import DatasetLogCreateRequestInput
+from ..types.dataset_log_create_request_output import DatasetLogCreateRequestOutput
+from .types.create_dataset_log_response import CreateDatasetLogResponse
+from .types.create_dataset_request_granularity import CreateDatasetRequestGranularity
+from .types.create_dataset_request_initial_log_filters_value import CreateDatasetRequestInitialLogFiltersValue
+from .types.create_dataset_response import CreateDatasetResponse
+from .types.import_dataset_logs_request_filters_value import ImportDatasetLogsRequestFiltersValue
+from .types.import_dataset_logs_response import ImportDatasetLogsResponse
+from .types.list_dataset_eval_runs_response import ListDatasetEvalRunsResponse
+from .types.list_dataset_logs_request_export_format import ListDatasetLogsRequestExportFormat
+from .types.list_dataset_logs_request_filters_value import ListDatasetLogsRequestFiltersValue
+from .types.list_dataset_logs_response import ListDatasetLogsResponse
+from .types.list_datasets_request_filters_value import ListDatasetsRequestFiltersValue
+from .types.list_datasets_response import ListDatasetsResponse
+from .types.remove_dataset_logs_request_filters_value import RemoveDatasetLogsRequestFiltersValue
+from .types.remove_dataset_logs_response import RemoveDatasetLogsResponse
+from .types.replace_dataset_log_response import ReplaceDatasetLogResponse
+from .types.retrieve_dataset_log_response import RetrieveDatasetLogResponse
+from .types.retrieve_dataset_response import RetrieveDatasetResponse
+from .types.run_eval_on_dataset_response import RunEvalOnDatasetResponse
+from .types.summarize_dataset_logs_filtered_request_filters_value import SummarizeDatasetLogsFilteredRequestFiltersValue
+from .types.summarize_dataset_logs_filtered_response import SummarizeDatasetLogsFilteredResponse
+from .types.update_dataset_log_response import UpdateDatasetLogResponse
+from .types.update_dataset_response import UpdateDatasetResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -50,190 +54,77 @@ class RawDatasetsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def api_datasets_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedDatasetListList]:
-        """
-        Create or duplicate datasets
-
-        Endpoint:
-            POST /api/datasets/     - Create a dataset (from logs, empty, or by duplicating an existing one)
-
-        Args (POST):
-            - name (string, required)
-            - description (string, optional)
-            - start_time (string, required, ISO 8601) — ignored if is_empty=true or source_dataset_id set
-            - end_time (string, required, ISO 8601) — ignored if is_empty=true or source_dataset_id set
-            - sampling (integer, optional, default 100) — percent of logs to add
-            - initial_log_filters (object, optional, default {})
-            - is_empty (boolean, optional, default false) — create empty dataset without adding logs
-            - source_dataset_id (string, optional) — duplicate an existing dataset. Copies all logs
-              asynchronously. When set, start_time/end_time/sampling/initial_log_filters are ignored.
-              Name defaults to "{source_name} (copy)" if not provided.
-
-        Returns (POST 201):
-            {
-              "id": "dataset_id",
-              "name": "...",
-              "type": "sampling",
-              "status": "initializing",
-              ...
-            }
-
-        Notes:
-            - Server sets organization and updated_by; type defaults to "sampling".
-            - If selected logs exceed plan limits, returns 400 with error message.
-            - Duplication fires `dataset_processing_complete` WS event when done (same as import).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedDatasetListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/datasets/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedDatasetListList,
-                    parse_obj_as(
-                        type_=PaginatedDatasetListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def create_dataset(
         self,
         *,
-        organization: int,
-        name: str,
+        name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        granularity: typing.Optional[GranularityEnum] = OMIT,
-        initial_log_filters: typing.Optional[FilterParamDictPydantic] = OMIT,
+        sampling: typing.Optional[int] = OMIT,
         start_time: typing.Optional[dt.datetime] = OMIT,
         end_time: typing.Optional[dt.datetime] = OMIT,
-        sampling: typing.Optional[int] = OMIT,
         is_empty: typing.Optional[bool] = OMIT,
+        initial_log_filters: typing.Optional[typing.Dict[str, CreateDatasetRequestInitialLogFiltersValue]] = OMIT,
         source_dataset_id: typing.Optional[str] = OMIT,
+        granularity: typing.Optional[CreateDatasetRequestGranularity] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetCreate]:
+    ) -> HttpResponse[CreateDatasetResponse]:
         """
-        Create or duplicate datasets
-
-        Endpoint:
-            POST /api/datasets/     - Create a dataset (from logs, empty, or by duplicating an existing one)
-
-        Args (POST):
-            - name (string, required)
-            - description (string, optional)
-            - start_time (string, required, ISO 8601) — ignored if is_empty=true or source_dataset_id set
-            - end_time (string, required, ISO 8601) — ignored if is_empty=true or source_dataset_id set
-            - sampling (integer, optional, default 100) — percent of logs to add
-            - initial_log_filters (object, optional, default {})
-            - is_empty (boolean, optional, default false) — create empty dataset without adding logs
-            - source_dataset_id (string, optional) — duplicate an existing dataset. Copies all logs
-              asynchronously. When set, start_time/end_time/sampling/initial_log_filters are ignored.
-              Name defaults to "{source_name} (copy)" if not provided.
-
-        Returns (POST 201):
-            {
-              "id": "dataset_id",
-              "name": "...",
-              "type": "sampling",
-              "status": "initializing",
-              ...
-            }
-
-        Notes:
-            - Server sets organization and updated_by; type defaults to "sampling".
-            - If selected logs exceed plan limits, returns 400 with error message.
-            - Duplication fires `dataset_processing_complete` WS event when done (same as import).
+        Create a new dataset from existing logs, create an empty dataset, or duplicate an existing dataset.
 
         Parameters
         ----------
-        organization : int
-
-        name : str
+        name : typing.Optional[str]
+            Dataset name. Required unless `source_dataset_id` is provided.
 
         description : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        granularity : typing.Optional[GranularityEnum]
-            Eval unit for this dataset: 'logs' (one span per row) or 'traces' (one root row per trace). Chosen at creation and immutable.
-
-            * `logs` - Logs
-            * `traces` - Traces
-            * `threads` - Threads
-
-        initial_log_filters : typing.Optional[FilterParamDictPydantic]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
+            Dataset description.
 
         sampling : typing.Optional[int]
-            Percent of logs to add (1-100).
+            Percent of matching logs to add (1-100).
+
+        start_time : typing.Optional[dt.datetime]
+            Start of the time range to sample logs from.
+
+        end_time : typing.Optional[dt.datetime]
+            End of the time range to sample logs from.
 
         is_empty : typing.Optional[bool]
-            Create empty dataset without adding logs.
+            Create an empty dataset without importing logs.
+
+        initial_log_filters : typing.Optional[typing.Dict[str, CreateDatasetRequestInitialLogFiltersValue]]
+            Platform-standard filters keyed by field name.
 
         source_dataset_id : typing.Optional[str]
-            ID of dataset to duplicate. Copies all logs asynchronously.
+            Existing dataset ID to duplicate. Copies logs asynchronously.
+
+        granularity : typing.Optional[CreateDatasetRequestGranularity]
+            Evaluation unit. Immutable after dataset creation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[DatasetCreate]
-
+        HttpResponse[CreateDatasetResponse]
+            Dataset created.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/datasets/",
             method="POST",
             json={
-                "organization": organization,
                 "name": name,
                 "description": description,
-                "type": type,
-                "granularity": granularity,
-                "initial_log_filters": convert_and_respect_annotation_metadata(
-                    object_=initial_log_filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
+                "sampling": sampling,
                 "start_time": start_time,
                 "end_time": end_time,
-                "sampling": sampling,
                 "is_empty": is_empty,
+                "initial_log_filters": convert_and_respect_annotation_metadata(
+                    object_=initial_log_filters,
+                    annotation=typing.Dict[str, CreateDatasetRequestInitialLogFiltersValue],
+                    direction="write",
+                ),
                 "source_dataset_id": source_dataset_id,
+                "granularity": granularity,
             },
             headers={
                 "content-type": "application/json",
@@ -244,75 +135,1092 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetCreate,
+                    CreateDatasetResponse,
                     parse_obj_as(
-                        type_=DatasetCreate,  # type: ignore
+                        type_=CreateDatasetResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Dict[str, typing.Any],
+                        parse_obj_as(
+                            type_=typing.Dict[str, typing.Any],  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def api_datasets_eval_reports_create_list(
+    def list_datasets(
         self,
-        dataset_id: str,
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, ListDatasetsRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedDatasetTaskTrackerRunEvalListList]:
+    ) -> HttpResponse[ListDatasetsResponse]:
         """
-        View for creating new dataset evaluation tasks.
-
-        Args:
-            dataset_id: str, The ID of the dataset to run evaluation on
-            evaluator_ids: str[], The IDs of the evaluators to run (preferred)
-            evaluator_slugs: str[], Deprecated alias for evaluator_ids (backward compat)
-
-        Returns:
-            GET: A list of created tasks
-            POST: The created eval task if successful, otherwise a dictionary of errors
+        List datasets with pagination and optional filters.
 
         Parameters
         ----------
-        dataset_id : str
-
         page : typing.Optional[int]
-            A page number within the paginated result set.
+            Page number.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+            Results per page.
+
+        sort_by : typing.Optional[str]
+            Sort field. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, ListDatasetsRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PaginatedDatasetTaskTrackerRunEvalListList]
-
+        HttpResponse[ListDatasetsResponse]
+            Paginated list of datasets.
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/eval-reports/create/",
-            method="GET",
+            "api/datasets/list/",
+            method="POST",
             params={
                 "page": page,
                 "page_size": page_size,
+                "sort_by": sort_by,
             },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=typing.Dict[str, ListDatasetsRequestFiltersValue], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListDatasetsResponse,
+                    parse_obj_as(
+                        type_=ListDatasetsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def list_dataset_logs(
+        self,
+        dataset_id: str,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        include_fields: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, ListDatasetLogsRequestFiltersValue]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        export_format: typing.Optional[ListDatasetLogsRequestExportFormat] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ListDatasetLogsResponse]:
+        """
+        List logs in a dataset with filters and pagination. Set `is_exporting=true` to trigger an asynchronous CSV or JSONL export instead of returning results.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page. Maximum is 100.
+
+        sort_by : typing.Optional[str]
+            Sort field for dataset logs. Prefix with `-` for descending order.
+
+        include_fields : typing.Optional[str]
+            Comma-separated list of response fields to include.
+
+        filters : typing.Optional[typing.Dict[str, ListDatasetLogsRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
+
+        is_exporting : typing.Optional[bool]
+            Set to `true` to export logs instead of returning a paginated list.
+
+        export_format : typing.Optional[ListDatasetLogsRequestExportFormat]
+            Export format. Defaults to `.csv`.
+
+        name : typing.Optional[str]
+            Optional export file name.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ListDatasetLogsResponse]
+            Paginated dataset logs, or an export acknowledgement when `is_exporting=true`.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "include_fields": include_fields,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=typing.Dict[str, ListDatasetLogsRequestFiltersValue], direction="write"
+                ),
+                "is_exporting": is_exporting,
+                "export_format": export_format,
+                "name": name,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListDatasetLogsResponse,
+                    parse_obj_as(
+                        type_=ListDatasetLogsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def create_dataset_log(
+        self,
+        dataset_id: str,
+        *,
+        input: DatasetLogCreateRequestInput,
+        output: typing.Optional[DatasetLogCreateRequestOutput] = OMIT,
+        expected_output: typing.Optional[DatasetLogCreateRequestExpectedOutput] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[CreateDatasetLogResponse]:
+        """
+        Create a single dataset log from unified-format input/output data.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        input : DatasetLogCreateRequestInput
+            Model or application input. Provide a string, structured object, or message/value array.
+
+        output : typing.Optional[DatasetLogCreateRequestOutput]
+            Observed model or application output. Provide a string, structured object, or message/value array.
+
+        expected_output : typing.Optional[DatasetLogCreateRequestExpectedOutput]
+            Optional ground-truth or target output used for evaluation.
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional context for this log, such as category, model, or log type.
+
+        metrics : typing.Optional[typing.Dict[str, typing.Any]]
+            Numeric or structured measurements, such as token counts, cost, or latency.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[CreateDatasetLogResponse]
+            Dataset log created.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/",
+            method="POST",
+            json={
+                "input": convert_and_respect_annotation_metadata(
+                    object_=input, annotation=DatasetLogCreateRequestInput, direction="write"
+                ),
+                "output": convert_and_respect_annotation_metadata(
+                    object_=output, annotation=DatasetLogCreateRequestOutput, direction="write"
+                ),
+                "expected_output": convert_and_respect_annotation_metadata(
+                    object_=expected_output, annotation=DatasetLogCreateRequestExpectedOutput, direction="write"
+                ),
+                "metadata": metadata,
+                "metrics": metrics,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    CreateDatasetLogResponse,
+                    parse_obj_as(
+                        type_=CreateDatasetLogResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def retrieve_dataset_log(
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[RetrieveDatasetLogResponse]:
+        """
+        Retrieve the full dataset log object, including input/output data, metadata, and associated scores.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        unique_id : str
+            Unique log ID within the dataset.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RetrieveDatasetLogResponse]
+            Dataset log details.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
+            method="GET",
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedDatasetTaskTrackerRunEvalListList,
+                    RetrieveDatasetLogResponse,
                     parse_obj_as(
-                        type_=PaginatedDatasetTaskTrackerRunEvalListList,  # type: ignore
+                        type_=RetrieveDatasetLogResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def replace_dataset_log(
+        self,
+        dataset_id: str,
+        unique_id: str,
+        *,
+        input: typing.Optional[typing.Any] = OMIT,
+        output: typing.Optional[typing.Any] = OMIT,
+        expected_output: typing.Optional[typing.Any] = OMIT,
+        prompt: typing.Optional[str] = OMIT,
+        completion: typing.Optional[str] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        error_code: typing.Optional[str] = OMIT,
+        error_message: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ReplaceDatasetLogResponse]:
+        """
+        Replace a dataset log with a new payload. Fields omitted from the body are removed.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        unique_id : str
+            Unique log ID within the dataset.
+
+        input : typing.Optional[typing.Any]
+
+        output : typing.Optional[typing.Any]
+
+        expected_output : typing.Optional[typing.Any]
+
+        prompt : typing.Optional[str]
+
+        completion : typing.Optional[str]
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+
+        error_code : typing.Optional[str]
+
+        error_message : typing.Optional[str]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ReplaceDatasetLogResponse]
+            Updated dataset log.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
+            method="PUT",
+            json={
+                "input": input,
+                "output": output,
+                "expected_output": expected_output,
+                "prompt": prompt,
+                "completion": completion,
+                "metadata": metadata,
+                "error_code": error_code,
+                "error_message": error_message,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceDatasetLogResponse,
+                    parse_obj_as(
+                        type_=ReplaceDatasetLogResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_dataset_log(
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[None]:
+        """
+        Remove a single log from a dataset.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        unique_id : str
+            Unique log ID within the dataset.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[None]
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def update_dataset_log(
+        self,
+        dataset_id: str,
+        unique_id: str,
+        *,
+        input: typing.Optional[typing.Any] = OMIT,
+        output: typing.Optional[typing.Any] = OMIT,
+        expected_output: typing.Optional[typing.Any] = OMIT,
+        prompt: typing.Optional[str] = OMIT,
+        completion: typing.Optional[str] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        error_code: typing.Optional[str] = OMIT,
+        error_message: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[UpdateDatasetLogResponse]:
+        """
+        Partially update a dataset log. Only provided fields are changed.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        unique_id : str
+            Unique log ID within the dataset.
+
+        input : typing.Optional[typing.Any]
+
+        output : typing.Optional[typing.Any]
+
+        expected_output : typing.Optional[typing.Any]
+
+        prompt : typing.Optional[str]
+
+        completion : typing.Optional[str]
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+
+        error_code : typing.Optional[str]
+
+        error_message : typing.Optional[str]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[UpdateDatasetLogResponse]
+            Updated dataset log.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
+            method="PATCH",
+            json={
+                "input": input,
+                "output": output,
+                "expected_output": expected_output,
+                "prompt": prompt,
+                "completion": completion,
+                "metadata": metadata,
+                "error_code": error_code,
+                "error_message": error_message,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UpdateDatasetLogResponse,
+                    parse_obj_as(
+                        type_=UpdateDatasetLogResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def import_dataset_logs(
+        self,
+        dataset_id: str,
+        *,
+        start_time: dt.datetime,
+        end_time: dt.datetime,
+        filters: typing.Optional[typing.Dict[str, ImportDatasetLogsRequestFiltersValue]] = OMIT,
+        sampling_percentage: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ImportDatasetLogsResponse]:
+        """
+        Import existing request logs into a dataset asynchronously using a time range, filters, and optional sampling.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID.
+
+        start_time : dt.datetime
+
+        end_time : dt.datetime
+
+        filters : typing.Optional[typing.Dict[str, ImportDatasetLogsRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
+
+        sampling_percentage : typing.Optional[int]
+            Percent of matching logs to import (1-100).
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ImportDatasetLogsResponse]
+            Import started.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/import/",
+            method="POST",
+            json={
+                "start_time": start_time,
+                "end_time": end_time,
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters,
+                    annotation=typing.Dict[str, ImportDatasetLogsRequestFiltersValue],
+                    direction="write",
+                ),
+                "sampling_percentage": sampling_percentage,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ImportDatasetLogsResponse,
+                    parse_obj_as(
+                        type_=ImportDatasetLogsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def remove_dataset_logs(
+        self,
+        dataset_id: str,
+        *,
+        is_deleting_all_logs: typing.Optional[bool] = OMIT,
+        filters: typing.Optional[typing.Dict[str, RemoveDatasetLogsRequestFiltersValue]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[RemoveDatasetLogsResponse]:
+        """
+        Remove logs from a dataset asynchronously by filters, or remove all logs by setting `is_deleting_all_logs=true`.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID.
+
+        is_deleting_all_logs : typing.Optional[bool]
+            Set to `true` to remove every log in the dataset.
+
+        filters : typing.Optional[typing.Dict[str, RemoveDatasetLogsRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RemoveDatasetLogsResponse]
+            Removal started.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/import/",
+            method="DELETE",
+            json={
+                "is_deleting_all_logs": is_deleting_all_logs,
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters,
+                    annotation=typing.Dict[str, RemoveDatasetLogsRequestFiltersValue],
+                    direction="write",
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RemoveDatasetLogsResponse,
+                    parse_obj_as(
+                        type_=RemoveDatasetLogsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def summarize_dataset_logs_filtered(
+        self,
+        dataset_id: str,
+        *,
+        filters: typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[SummarizeDatasetLogsFilteredResponse]:
+        """
+        Get aggregate usage metrics and evaluator score summaries for a filtered subset of dataset logs.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID.
+
+        filters : typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[SummarizeDatasetLogsFilteredResponse]
+            Filtered dataset log summary.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
+            method="POST",
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters,
+                    annotation=typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue],
+                    direction="write",
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    SummarizeDatasetLogsFilteredResponse,
+                    parse_obj_as(
+                        type_=SummarizeDatasetLogsFilteredResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def bulk_create_dataset_logs(
+        self,
+        dataset_id: str,
+        *,
+        logs: typing.Sequence[DatasetLogCreateRequest],
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[BulkOperationResponse]:
+        """
+        Submit 1 to 500 dataset logs for ingestion in one request. Each log uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can therefore contain item-level errors; if every item fails, the endpoint returns `400`. Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        logs : typing.Sequence[DatasetLogCreateRequest]
+            Dataset log objects to create. Items are processed independently and errors use their zero-based array index.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[BulkOperationResponse]
+            At least one dataset log was accepted for ingestion. Inspect `error_count` and `errors` for partial failures.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/bulk/",
+            method="POST",
+            json={
+                "logs": convert_and_respect_annotation_metadata(
+                    object_=logs, annotation=typing.Sequence[DatasetLogCreateRequest], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    BulkOperationResponse,
+                    parse_obj_as(
+                        type_=BulkOperationResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -320,51 +1228,45 @@ class RawDatasetsClient:
 
     def run_eval_on_dataset(
         self,
-        dataset_id_: str,
-        *,
         dataset_id: str,
-        evaluator_slug: str,
-        unique_organization_id: str,
+        *,
+        evaluator_ids: typing.Sequence[str],
         experiment_id: typing.Optional[str] = OMIT,
+        generation_method: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetTaskTrackerRunEvaluationCreate]:
+    ) -> HttpResponse[RunEvalOnDatasetResponse]:
         """
-        Create a new dataset evaluation task.
-
-        Accepts both `evaluator_ids` (preferred) and `evaluator_slugs` (deprecated alias).
-
-        Optional: If experiment_id is provided, the experiment's evaluator_slugs
-        will be updated to include the new evaluators, making them appear as
-        columns in the experiment UI.
+        Create dataset evaluation tasks for one or more evaluators.
 
         Parameters
         ----------
-        dataset_id_ : str
-
         dataset_id : str
+            Dataset ID.
 
-        evaluator_slug : str
-
-        unique_organization_id : str
+        evaluator_ids : typing.Sequence[str]
+            Evaluator IDs to run against the dataset.
 
         experiment_id : typing.Optional[str]
+            Optional experiment to associate with the evaluation runs.
+
+        generation_method : typing.Optional[str]
+            Optional generation strategy. Defaults to `auto`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[DatasetTaskTrackerRunEvaluationCreate]
-
+        HttpResponse[RunEvalOnDatasetResponse]
+            Evaluation tasks created.
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/eval-reports/create/",
+            f"api/datasets/{jsonable_encoder(dataset_id)}/eval-reports/create/",
             method="POST",
             json={
-                "dataset_id": dataset_id,
-                "evaluator_slug": evaluator_slug,
-                "unique_organization_id": unique_organization_id,
+                "evaluator_ids": evaluator_ids,
                 "experiment_id": experiment_id,
+                "generation_method": generation_method,
             },
             headers={
                 "content-type": "application/json",
@@ -375,13 +1277,46 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetTaskTrackerRunEvaluationCreate,
+                    RunEvalOnDatasetResponse,
                     parse_obj_as(
-                        type_=DatasetTaskTrackerRunEvaluationCreate,  # type: ignore
+                        type_=RunEvalOnDatasetResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -394,35 +1329,28 @@ class RawDatasetsClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedPublicDatasetTaskTrackerRunEvalListList]:
+    ) -> HttpResponse[ListDatasetEvalRunsResponse]:
         """
-        View mixin that handles both JWT and API Key authentication.
-
-        Inherits from JWTAuthUtils:
-        - is_jwt_auth(request): Post-auth check (reliable, uses DRF's successful_authenticator)
-        - is_jwt_token_format(request): Pre-auth heuristic (used here to route authenticators)
-
-        This mixin uses is_jwt_token_format() (pre-auth) in get_authenticators() and get_permissions()
-        because those methods run BEFORE authentication completes. For post-auth checks,
-        use is_jwt_auth() instead.
+        List evaluation runs that were created for a dataset.
 
         Parameters
         ----------
         dataset_id : str
+            Dataset ID.
 
         page : typing.Optional[int]
-            A page number within the paginated result set.
+            Page number.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+            Results per page. Maximum is 100.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PaginatedPublicDatasetTaskTrackerRunEvalListList]
-
+        HttpResponse[ListDatasetEvalRunsResponse]
+            Paginated list of dataset evaluation runs.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/eval-reports/list/",
@@ -436,87 +1364,165 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedPublicDatasetTaskTrackerRunEvalListList,
+                    ListDatasetEvalRunsResponse,
                     parse_obj_as(
-                        type_=PaginatedPublicDatasetTaskTrackerRunEvalListList,  # type: ignore
+                        type_=ListDatasetEvalRunsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def api_datasets_eval_reports_list_create(
-        self,
-        dataset_id_: str,
-        *,
-        task_id: str,
-        name: str,
-        dataset_id: str,
-        status: typing.Optional[Status66CEnum] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        evaluated_logs_count: typing.Optional[int] = OMIT,
-        score: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicDatasetTaskTrackerRunEvalList]:
+    def retrieve_dataset(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[RetrieveDatasetResponse]:
         """
-        View mixin that handles both JWT and API Key authentication.
-
-        Inherits from JWTAuthUtils:
-        - is_jwt_auth(request): Post-auth check (reliable, uses DRF's successful_authenticator)
-        - is_jwt_token_format(request): Pre-auth heuristic (used here to route authenticators)
-
-        This mixin uses is_jwt_token_format() (pre-auth) in get_authenticators() and get_permissions()
-        because those methods run BEFORE authentication completes. For post-auth checks,
-        use is_jwt_auth() instead.
+        Retrieve a dataset by ID.
 
         Parameters
         ----------
-        dataset_id_ : str
-
-        task_id : str
-
-        name : str
-
-        dataset_id : str
-
-        status : typing.Optional[Status66CEnum]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        error_message : typing.Optional[str]
-
-        evaluated_logs_count : typing.Optional[int]
-
-        score : typing.Optional[float]
+        id : str
+            Dataset ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicDatasetTaskTrackerRunEvalList]
-
+        HttpResponse[RetrieveDatasetResponse]
+            Successful response for Retrieve dataset
         """
         _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/eval-reports/list/",
-            method="POST",
+            f"api/datasets/{jsonable_encoder(id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveDatasetResponse,
+                    parse_obj_as(
+                        type_=RetrieveDatasetResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_dataset(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
+        """
+        Delete a dataset and the logs it contains.
+
+        Parameters
+        ----------
+        id : str
+            Dataset ID.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[None]
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(id)}/",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def update_dataset(
+        self,
+        id: str,
+        *,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        starred: typing.Optional[bool] = OMIT,
+        tags: typing.Optional[typing.Sequence[str]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[UpdateDatasetResponse]:
+        """
+        Update dataset metadata such as the name, description, starred state, or tags.
+
+        Parameters
+        ----------
+        id : str
+            Dataset ID.
+
+        name : typing.Optional[str]
+            Updated dataset name.
+
+        description : typing.Optional[str]
+            Updated dataset description.
+
+        starred : typing.Optional[bool]
+            Whether the dataset is starred.
+
+        tags : typing.Optional[typing.Sequence[str]]
+            List of tag IDs to assign. Replaces existing tags.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[UpdateDatasetResponse]
+            Updated dataset.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(id)}/",
+            method="PATCH",
             json={
-                "task_id": task_id,
                 "name": name,
-                "dataset_id": dataset_id,
-                "status": status,
-                "started_at": started_at,
-                "completed_at": completed_at,
-                "error_message": error_message,
-                "evaluated_logs_count": evaluated_logs_count,
-                "score": score,
+                "description": description,
+                "starred": starred,
+                "tags": tags,
             },
             headers={
                 "content-type": "application/json",
@@ -527,71 +1533,408 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicDatasetTaskTrackerRunEvalList,
+                    UpdateDatasetResponse,
                     parse_obj_as(
-                        type_=PublicDatasetTaskTrackerRunEvalList,  # type: ignore
+                        type_=UpdateDatasetResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def create_dataset_log(
+
+class AsyncRawDatasetsClient:
+    def __init__(self, *, client_wrapper: AsyncClientWrapper):
+        self._client_wrapper = client_wrapper
+
+    async def create_dataset(
         self,
-        dataset_id: str,
         *,
-        input: typing.Any,
-        output: typing.Optional[typing.Any] = OMIT,
-        metadata: typing.Optional[typing.Any] = OMIT,
-        metrics: typing.Optional[typing.Any] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        description: typing.Optional[str] = OMIT,
+        sampling: typing.Optional[int] = OMIT,
+        start_time: typing.Optional[dt.datetime] = OMIT,
+        end_time: typing.Optional[dt.datetime] = OMIT,
+        is_empty: typing.Optional[bool] = OMIT,
+        initial_log_filters: typing.Optional[typing.Dict[str, CreateDatasetRequestInitialLogFiltersValue]] = OMIT,
+        source_dataset_id: typing.Optional[str] = OMIT,
+        granularity: typing.Optional[CreateDatasetRequestGranularity] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetLogCreateResponse]:
+    ) -> AsyncHttpResponse[CreateDatasetResponse]:
         """
-        Create a single dataset log from unified format data
-
-        Endpoint:
-            POST /api/datasets/{dataset_id}/logs/ - Create individual dataset log
-
-        Args (POST body - unified format):
-            - input (any): The input data (messages, text, etc.)
-            - output (any): The output data (response, completion, etc.)
-            - metadata (object, optional): Additional metadata fields (model, log_type, etc.)
-            - metrics (object, optional): Metric fields (tokens, cost, latency, etc.)
-
-        Note: model and log_type can be provided either as top-level fields or within metadata object
-
-        Returns (POST 201):
-            { "message": "Dataset log created successfully", "unique_id": "log-123..." }
+        Create a new dataset from existing logs, create an empty dataset, or duplicate an existing dataset.
 
         Parameters
         ----------
-        dataset_id : str
+        name : typing.Optional[str]
+            Dataset name. Required unless `source_dataset_id` is provided.
 
-        input : typing.Any
+        description : typing.Optional[str]
+            Dataset description.
 
-        output : typing.Optional[typing.Any]
+        sampling : typing.Optional[int]
+            Percent of matching logs to add (1-100).
 
-        metadata : typing.Optional[typing.Any]
+        start_time : typing.Optional[dt.datetime]
+            Start of the time range to sample logs from.
 
-        metrics : typing.Optional[typing.Any]
+        end_time : typing.Optional[dt.datetime]
+            End of the time range to sample logs from.
+
+        is_empty : typing.Optional[bool]
+            Create an empty dataset without importing logs.
+
+        initial_log_filters : typing.Optional[typing.Dict[str, CreateDatasetRequestInitialLogFiltersValue]]
+            Platform-standard filters keyed by field name.
+
+        source_dataset_id : typing.Optional[str]
+            Existing dataset ID to duplicate. Copies logs asynchronously.
+
+        granularity : typing.Optional[CreateDatasetRequestGranularity]
+            Evaluation unit. Immutable after dataset creation.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[DatasetLogCreateResponse]
-
+        AsyncHttpResponse[CreateDatasetResponse]
+            Dataset created.
         """
-        _response = self._client_wrapper.httpx_client.request(
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/datasets/",
+            method="POST",
+            json={
+                "name": name,
+                "description": description,
+                "sampling": sampling,
+                "start_time": start_time,
+                "end_time": end_time,
+                "is_empty": is_empty,
+                "initial_log_filters": convert_and_respect_annotation_metadata(
+                    object_=initial_log_filters,
+                    annotation=typing.Dict[str, CreateDatasetRequestInitialLogFiltersValue],
+                    direction="write",
+                ),
+                "source_dataset_id": source_dataset_id,
+                "granularity": granularity,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    CreateDatasetResponse,
+                    parse_obj_as(
+                        type_=CreateDatasetResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Dict[str, typing.Any],
+                        parse_obj_as(
+                            type_=typing.Dict[str, typing.Any],  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_datasets(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, ListDatasetsRequestFiltersValue]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ListDatasetsResponse]:
+        """
+        List datasets with pagination and optional filters.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page.
+
+        sort_by : typing.Optional[str]
+            Sort field. Prefix with `-` for descending order.
+
+        filters : typing.Optional[typing.Dict[str, ListDatasetsRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ListDatasetsResponse]
+            Paginated list of datasets.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/datasets/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=typing.Dict[str, ListDatasetsRequestFiltersValue], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListDatasetsResponse,
+                    parse_obj_as(
+                        type_=ListDatasetsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_dataset_logs(
+        self,
+        dataset_id: str,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        include_fields: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, ListDatasetLogsRequestFiltersValue]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
+        export_format: typing.Optional[ListDatasetLogsRequestExportFormat] = OMIT,
+        name: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ListDatasetLogsResponse]:
+        """
+        List logs in a dataset with filters and pagination. Set `is_exporting=true` to trigger an asynchronous CSV or JSONL export instead of returning results.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        page : typing.Optional[int]
+            Page number.
+
+        page_size : typing.Optional[int]
+            Results per page. Maximum is 100.
+
+        sort_by : typing.Optional[str]
+            Sort field for dataset logs. Prefix with `-` for descending order.
+
+        include_fields : typing.Optional[str]
+            Comma-separated list of response fields to include.
+
+        filters : typing.Optional[typing.Dict[str, ListDatasetLogsRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
+
+        is_exporting : typing.Optional[bool]
+            Set to `true` to export logs instead of returning a paginated list.
+
+        export_format : typing.Optional[ListDatasetLogsRequestExportFormat]
+            Export format. Defaults to `.csv`.
+
+        name : typing.Optional[str]
+            Optional export file name.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ListDatasetLogsResponse]
+            Paginated dataset logs, or an export acknowledgement when `is_exporting=true`.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+                "include_fields": include_fields,
+            },
+            json={
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters, annotation=typing.Dict[str, ListDatasetLogsRequestFiltersValue], direction="write"
+                ),
+                "is_exporting": is_exporting,
+                "export_format": export_format,
+                "name": name,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListDatasetLogsResponse,
+                    parse_obj_as(
+                        type_=ListDatasetLogsResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def create_dataset_log(
+        self,
+        dataset_id: str,
+        *,
+        input: DatasetLogCreateRequestInput,
+        output: typing.Optional[DatasetLogCreateRequestOutput] = OMIT,
+        expected_output: typing.Optional[DatasetLogCreateRequestExpectedOutput] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        metrics: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[CreateDatasetLogResponse]:
+        """
+        Create a single dataset log from unified-format input/output data.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        input : DatasetLogCreateRequestInput
+            Model or application input. Provide a string, structured object, or message/value array.
+
+        output : typing.Optional[DatasetLogCreateRequestOutput]
+            Observed model or application output. Provide a string, structured object, or message/value array.
+
+        expected_output : typing.Optional[DatasetLogCreateRequestExpectedOutput]
+            Optional ground-truth or target output used for evaluation.
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+            Additional context for this log, such as category, model, or log type.
+
+        metrics : typing.Optional[typing.Dict[str, typing.Any]]
+            Numeric or structured measurements, such as token counts, cost, or latency.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[CreateDatasetLogResponse]
+            Dataset log created.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/",
             method="POST",
             json={
-                "input": input,
-                "output": output,
+                "input": convert_and_respect_annotation_metadata(
+                    object_=input, annotation=DatasetLogCreateRequestInput, direction="write"
+                ),
+                "output": convert_and_respect_annotation_metadata(
+                    object_=output, annotation=DatasetLogCreateRequestOutput, direction="write"
+                ),
+                "expected_output": convert_and_respect_annotation_metadata(
+                    object_=expected_output, annotation=DatasetLogCreateRequestExpectedOutput, direction="write"
+                ),
                 "metadata": metadata,
                 "metrics": metrics,
             },
@@ -604,1294 +1947,26 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetLogCreateResponse,
+                    CreateDatasetLogResponse,
                     parse_obj_as(
-                        type_=DatasetLogCreateResponse,  # type: ignore
+                        type_=CreateDatasetLogResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_logs_status_list(
-        self, dataset_id: str, log_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[typing.List[DatasetLogStatusCreate]]:
-        """
-        A mixin that provides version handling for API views.
-
-        Reads the X-Keywords-AI-Version header and sets self.version.
-        Default version is 0 if header is not present or invalid.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        log_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[typing.List[DatasetLogStatusCreate]]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(log_unique_id)}/status/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[DatasetLogStatusCreate],
-                    parse_obj_as(
-                        type_=typing.List[DatasetLogStatusCreate],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_logs_status_create(
-        self,
-        dataset_id: str,
-        log_unique_id: str,
-        *,
-        organization: typing.Optional[int] = OMIT,
-        completed_by: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLogStatusCreateStatusEnum] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetLogStatusCreate]:
-        """
-        A mixin that provides version handling for API views.
-
-        Reads the X-Keywords-AI-Version header and sets self.version.
-        Default version is 0 if header is not present or invalid.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        log_unique_id : str
-
-        organization : typing.Optional[int]
-
-        completed_by : typing.Optional[int]
-
-        status : typing.Optional[DatasetLogStatusCreateStatusEnum]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetLogStatusCreate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(log_unique_id)}/status/",
-            method="POST",
-            json={
-                "organization": organization,
-                "completed_by": completed_by,
-                "status": status,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogStatusCreate,
-                    parse_obj_as(
-                        type_=DatasetLogStatusCreate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def retrieve_dataset_log(
-        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[ChDatasetLog]:
-        """
-        Retrieve, update, or delete a single dataset log.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/{log_id}/ - Get complete log details
-            PATCH /api/datasets/{dataset_id}/logs/{log_id}/ - Update log content
-            PUT /api/datasets/{dataset_id}/logs/{log_id}/ - Replace log content
-            DELETE /api/datasets/{dataset_id}/logs/{log_id}/ - Remove log from dataset
-
-        Response (GET 200 OK):
-            Complete log object including full input/output text, metadata, metrics,
-            annotation status, evaluation scores, and all other log fields.
-
-        Request Body (PATCH/PUT):
-            Any log fields to update (input, output, metadata, etc.)
-
-        Response (PATCH/PUT 200 OK):
-            {"message": "Log updated successfully", "unique_id": "log_id"}
-
-        Response (DELETE 204 No Content):
-            Empty response body
-
-        Errors:
-            - 401 Unauthorized — Missing/invalid authentication
-            - 404 Not Found — Log not found in dataset or dataset not found
-            - 400 Bad Request — Invalid update data
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ChDatasetLog]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def replace_dataset_log(
-        self,
-        dataset_id_: str,
-        unique_id_: str,
-        *,
-        id: str,
-        organization_id: str,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        original_copy_unique_id: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ChDatasetLog]:
-        """
-        Retrieve, update, or delete a single dataset log.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/{log_id}/ - Get complete log details
-            PATCH /api/datasets/{dataset_id}/logs/{log_id}/ - Update log content
-            PUT /api/datasets/{dataset_id}/logs/{log_id}/ - Replace log content
-            DELETE /api/datasets/{dataset_id}/logs/{log_id}/ - Remove log from dataset
-
-        Response (GET 200 OK):
-            Complete log object including full input/output text, metadata, metrics,
-            annotation status, evaluation scores, and all other log fields.
-
-        Request Body (PATCH/PUT):
-            Any log fields to update (input, output, metadata, etc.)
-
-        Response (PATCH/PUT 200 OK):
-            {"message": "Log updated successfully", "unique_id": "log_id"}
-
-        Response (DELETE 204 No Content):
-            Empty response body
-
-        Errors:
-            - 401 Unauthorized — Missing/invalid authentication
-            - 404 Not Found — Log not found in dataset or dataset not found
-            - 400 Bad Request — Invalid update data
-
-        Parameters
-        ----------
-        dataset_id_ : str
-
-        unique_id_ : str
-
-        id : str
-
-        organization_id : str
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        dataset_id : typing.Optional[str]
-
-        original_copy_unique_id : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ChDatasetLog]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/logs/{jsonable_encoder(unique_id_)}/",
-            method="PUT",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "dataset_id": dataset_id,
-                "original_copy_unique_id": original_copy_unique_id,
-                "comparison_key": comparison_key,
-                "expected_output": expected_output,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def delete_dataset_log(
-        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Retrieve, update, or delete a single dataset log.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/{log_id}/ - Get complete log details
-            PATCH /api/datasets/{dataset_id}/logs/{log_id}/ - Update log content
-            PUT /api/datasets/{dataset_id}/logs/{log_id}/ - Replace log content
-            DELETE /api/datasets/{dataset_id}/logs/{log_id}/ - Remove log from dataset
-
-        Response (GET 200 OK):
-            Complete log object including full input/output text, metadata, metrics,
-            annotation status, evaluation scores, and all other log fields.
-
-        Request Body (PATCH/PUT):
-            Any log fields to update (input, output, metadata, etc.)
-
-        Response (PATCH/PUT 200 OK):
-            {"message": "Log updated successfully", "unique_id": "log_id"}
-
-        Response (DELETE 204 No Content):
-            Empty response body
-
-        Errors:
-            - 401 Unauthorized — Missing/invalid authentication
-            - 404 Not Found — Log not found in dataset or dataset not found
-            - 400 Bad Request — Invalid update data
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def update_dataset_log(
-        self,
-        dataset_id_: str,
-        unique_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        original_copy_unique_id: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ChDatasetLog]:
-        """
-        Retrieve, update, or delete a single dataset log.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/{log_id}/ - Get complete log details
-            PATCH /api/datasets/{dataset_id}/logs/{log_id}/ - Update log content
-            PUT /api/datasets/{dataset_id}/logs/{log_id}/ - Replace log content
-            DELETE /api/datasets/{dataset_id}/logs/{log_id}/ - Remove log from dataset
-
-        Response (GET 200 OK):
-            Complete log object including full input/output text, metadata, metrics,
-            annotation status, evaluation scores, and all other log fields.
-
-        Request Body (PATCH/PUT):
-            Any log fields to update (input, output, metadata, etc.)
-
-        Response (PATCH/PUT 200 OK):
-            {"message": "Log updated successfully", "unique_id": "log_id"}
-
-        Response (DELETE 204 No Content):
-            Empty response body
-
-        Errors:
-            - 401 Unauthorized — Missing/invalid authentication
-            - 404 Not Found — Log not found in dataset or dataset not found
-            - 400 Bad Request — Invalid update data
-
-        Parameters
-        ----------
-        dataset_id_ : str
-
-        unique_id_ : str
-
-        id : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        dataset_id : typing.Optional[str]
-
-        original_copy_unique_id : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ChDatasetLog]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/logs/{jsonable_encoder(unique_id_)}/",
-            method="PATCH",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "dataset_id": dataset_id,
-                "original_copy_unique_id": original_copy_unique_id,
-                "comparison_key": comparison_key,
-                "expected_output": expected_output,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def bulk_create_dataset_logs(
-        self,
-        dataset_id: str,
-        *,
-        logs: typing.Sequence[typing.Any],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetLogsBulkCreateResponse]:
-        """
-        Bulk create dataset logs from array of unified format data
-
-        Endpoint:
-            POST /api/datasets/{dataset_id}/logs/bulk/
-
-        Args (POST body):
-            - logs (array, required): List of log objects in unified format
-              Each log object contains:
-                - input (any): The input data (required) - can be any type (dict, list, string, etc.)
-                - output (any, optional): The output data - can be any type
-                - metadata (object, optional): Additional metadata fields (model, log_type, etc.)
-                - metrics (object, optional): Metric fields (tokens, cost, latency, etc.)
-
-        Example Request (Recommended - Top-level expected_output):
-            ```json
-            {
-              "logs": [
-                {
-                  "input": "What is your return policy?",
-                  "expected_output": "You can return within 30 days",
-                  "metadata": {"category": "support"}
-                },
-                {
-                  "input": "How do I reset my password?",
-                  "expected_output": "Click Forgot Password on login page",
-                  "metadata": {"category": "support"}
-                }
-              ]
-            }
-            ```
-
-        Example Request (Legacy - Nested expected_output, auto-extracted):
-            Frontend parses CSV where expected_output is nested in input:
-            ```json
-            {
-              "logs": [
-                {
-                  "input": {
-                    "user_query": "What is your return policy?",
-                    "expected_output": "You can return within 30 days",
-                    "category": "support"
-                  }
-                }
-              ]
-            }
-            ```
-            Note: Nested expected_output is automatically extracted to top-level field.
-
-        Example Request (Direct API usage with expected_output):
-            ```json
-            {
-              "logs": [
-                {
-                  "input": "What is AI?",
-                  "expected_output": "AI is artificial intelligence",
-                  "output": "",
-                  "metadata": {"category": "qa", "model": "gpt-4"}
-                },
-                {
-                  "input": [{"role": "user", "content": "Hello"}],
-                  "expected_output": "A friendly greeting",
-                  "output": {"role": "assistant", "content": "Hi there!"},
-                  "metrics": {"tokens": 10, "cost": 0.0001}
-                }
-              ]
-            }
-            ```
-
-        Field Descriptions:
-            - input: The input to be processed (can be string, dict, or array)
-            - expected_output: Expected/ground truth output for evaluation (optional)
-            - output: Actual output from LLM or system (populated during experiments)
-            - metadata: Additional context fields
-            - metrics: Performance metrics (tokens, cost, latency)
-
-        Returns (POST 201):
-            ```json
-            {
-              "success_count": 95,
-              "error_count": 5,
-              "errors": [
-                {"index": 3, "error": "Invalid input format"},
-                {"index": 7, "error": "Missing required field"}
-              ]
-            }
-            ```
-
-        Notes:
-            - For UI users: Frontend parses CSV and sends array in unified format
-            - For API users: Send JSON array directly, no CSV conversion needed
-            - Each row of CSV becomes an "input" object in the dataset log
-            - Plan limits are enforced (current dataset log count + new logs <= limit)
-            - Errors are returned for individual logs that fail, successful ones are still created
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        logs : typing.Sequence[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetLogsBulkCreateResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/bulk/",
-            method="POST",
-            json={
-                "logs": logs,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogsBulkCreateResponse,
-                    parse_obj_as(
-                        type_=DatasetLogsBulkCreateResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
+                return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1917,143 +1992,396 @@ class RawDatasetsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def api_datasets_logs_import_list(
-        self,
-        dataset_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedChDatasetLogList]:
+    async def retrieve_dataset_log(
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[RetrieveDatasetLogResponse]:
         """
-        Import existing logs into dataset based on filter criteria
-
-        Endpoints:
-            POST   /evaluations/datasets/{dataset_id}/logs/ - Import existing logs to dataset asynchronously (legacy)
-            POST   /api/datasets/{dataset_id}/logs/import/ - Import existing logs to dataset asynchronously
-            DELETE /api/datasets/{dataset_id}/logs/import/ - Remove logs from dataset asynchronously
-
-        Args (POST body):
-            - start_time (string, required, ISO 8601)
-            - end_time (string, required, ISO 8601)
-            - filters (object, optional; key name is "filters")
-            - sampling_percentage (integer, optional, default 100)
-
-        Returns (POST 200):
-            { "message": "Logs are being imported to dataset in the background" }
-
-        Args (DELETE body):
-            - is_deleting_all_logs (boolean, required if filters not provided)
-            - filters (object, required unless is_deleting_all_logs = true)
-
-        Returns (DELETE 200):
-            { "message": "Logs are being removed from dataset in the background" }
-
-        Access Control:
-            NestedResourceMixin handles superadmin-aware parent access:
-            - Superadmin + JWT + READ: Can view any dataset's logs
-            - Superadmin + JWT + WRITE: Blocked (can't import/delete logs in other orgs via JWT)
-            - Superadmin + API key: Can import/delete logs in any dataset
-            - Regular user: Can only access their org's datasets
+        Retrieve the full dataset log object, including input/output data, metadata, and associated scores.
 
         Parameters
         ----------
         dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
+        unique_id : str
+            Unique log ID within the dataset.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PaginatedChDatasetLogList]
-
+        AsyncHttpResponse[RetrieveDatasetLogResponse]
+            Dataset log details.
         """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/import/",
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
             method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedChDatasetLogList,
+                    RetrieveDatasetLogResponse,
                     parse_obj_as(
-                        type_=PaginatedChDatasetLogList,  # type: ignore
+                        type_=RetrieveDatasetLogResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def import_dataset_logs(
+    async def replace_dataset_log(
         self,
         dataset_id: str,
+        unique_id: str,
         *,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        sampling_percentage: typing.Optional[int] = OMIT,
+        input: typing.Optional[typing.Any] = OMIT,
+        output: typing.Optional[typing.Any] = OMIT,
+        expected_output: typing.Optional[typing.Any] = OMIT,
+        prompt: typing.Optional[str] = OMIT,
+        completion: typing.Optional[str] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        error_code: typing.Optional[str] = OMIT,
+        error_message: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetLogsImportResponse]:
+    ) -> AsyncHttpResponse[ReplaceDatasetLogResponse]:
         """
-        Default POST handler with automatic organization injection.
-
-        For CREATE operations:
-        - Superadmins can specify organization_id in request body (API key only)
-        - Regular users always use their own organization
-
-        Override this method for:
-        - POST-for-filtering pattern (delegate to self.get())
-        - Custom pre-create validation
-
-        Note: ``inject_target_organization`` is a DEPRECATED ``request.data``-mutating
-        shim kept for backward-compat during the DEV-9410 migration. The blessed
-        path stamps org via ``get_create_save_kwargs`` → ``perform_create`` → a
-        ``read_only`` serializer field. The shim (and these overrides' reliance on
-        it) is removed in C18 (DEV-9430) once every view's org field is read_only.
+        Replace a dataset log with a new payload. Fields omitted from the body are removed.
 
         Parameters
         ----------
         dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        start_time : dt.datetime
+        unique_id : str
+            Unique log ID within the dataset.
 
-        end_time : dt.datetime
+        input : typing.Optional[typing.Any]
 
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
+        output : typing.Optional[typing.Any]
 
-        sampling_percentage : typing.Optional[int]
-            Percent of logs to import (1-100).
+        expected_output : typing.Optional[typing.Any]
+
+        prompt : typing.Optional[str]
+
+        completion : typing.Optional[str]
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+
+        error_code : typing.Optional[str]
+
+        error_message : typing.Optional[str]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[DatasetLogsImportResponse]
-
+        AsyncHttpResponse[ReplaceDatasetLogResponse]
+            Updated dataset log.
         """
-        _response = self._client_wrapper.httpx_client.request(
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
+            method="PUT",
+            json={
+                "input": input,
+                "output": output,
+                "expected_output": expected_output,
+                "prompt": prompt,
+                "completion": completion,
+                "metadata": metadata,
+                "error_code": error_code,
+                "error_message": error_message,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceDatasetLogResponse,
+                    parse_obj_as(
+                        type_=ReplaceDatasetLogResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_dataset_log(
+        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
+        """
+        Remove a single log from a dataset.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        unique_id : str
+            Unique log ID within the dataset.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[None]
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def update_dataset_log(
+        self,
+        dataset_id: str,
+        unique_id: str,
+        *,
+        input: typing.Optional[typing.Any] = OMIT,
+        output: typing.Optional[typing.Any] = OMIT,
+        expected_output: typing.Optional[typing.Any] = OMIT,
+        prompt: typing.Optional[str] = OMIT,
+        completion: typing.Optional[str] = OMIT,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        error_code: typing.Optional[str] = OMIT,
+        error_message: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[UpdateDatasetLogResponse]:
+        """
+        Partially update a dataset log. Only provided fields are changed.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
+
+        unique_id : str
+            Unique log ID within the dataset.
+
+        input : typing.Optional[typing.Any]
+
+        output : typing.Optional[typing.Any]
+
+        expected_output : typing.Optional[typing.Any]
+
+        prompt : typing.Optional[str]
+
+        completion : typing.Optional[str]
+
+        metadata : typing.Optional[typing.Dict[str, typing.Any]]
+
+        error_code : typing.Optional[str]
+
+        error_message : typing.Optional[str]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[UpdateDatasetLogResponse]
+            Updated dataset log.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
+            method="PATCH",
+            json={
+                "input": input,
+                "output": output,
+                "expected_output": expected_output,
+                "prompt": prompt,
+                "completion": completion,
+                "metadata": metadata,
+                "error_code": error_code,
+                "error_message": error_message,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UpdateDatasetLogResponse,
+                    parse_obj_as(
+                        type_=UpdateDatasetLogResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def import_dataset_logs(
+        self,
+        dataset_id: str,
+        *,
+        start_time: dt.datetime,
+        end_time: dt.datetime,
+        filters: typing.Optional[typing.Dict[str, ImportDatasetLogsRequestFiltersValue]] = OMIT,
+        sampling_percentage: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ImportDatasetLogsResponse]:
+        """
+        Import existing request logs into a dataset asynchronously using a time range, filters, and optional sampling.
+
+        Parameters
+        ----------
+        dataset_id : str
+            Dataset ID.
+
+        start_time : dt.datetime
+
+        end_time : dt.datetime
+
+        filters : typing.Optional[typing.Dict[str, ImportDatasetLogsRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
+
+        sampling_percentage : typing.Optional[int]
+            Percent of matching logs to import (1-100).
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ImportDatasetLogsResponse]
+            Import started.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/import/",
             method="POST",
             json={
                 "start_time": start_time,
                 "end_time": end_time,
-                "filters": filters,
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters,
+                    annotation=typing.Dict[str, ImportDatasetLogsRequestFiltersValue],
+                    direction="write",
+                ),
                 "sampling_percentage": sampling_percentage,
             },
             headers={
@@ -2065,2002 +2393,91 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetLogsImportResponse,
+                    ImportDatasetLogsResponse,
                     parse_obj_as(
-                        type_=DatasetLogsImportResponse,  # type: ignore
+                        type_=ImportDatasetLogsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def api_datasets_logs_import_update(
+    async def remove_dataset_logs(
         self,
-        dataset_id_: str,
+        dataset_id: str,
         *,
-        id: str,
-        organization_id: str,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        original_copy_unique_id: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
+        is_deleting_all_logs: typing.Optional[bool] = OMIT,
+        filters: typing.Optional[typing.Dict[str, RemoveDatasetLogsRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ChDatasetLog]:
+    ) -> AsyncHttpResponse[RemoveDatasetLogsResponse]:
         """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        dataset_id_ : str
-
-        id : str
-
-        organization_id : str
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        dataset_id : typing.Optional[str]
-
-        original_copy_unique_id : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ChDatasetLog]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/logs/import/",
-            method="PUT",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "dataset_id": dataset_id,
-                "original_copy_unique_id": original_copy_unique_id,
-                "comparison_key": comparison_key,
-                "expected_output": expected_output,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def remove_dataset_logs(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[DatasetLogsImportResponse]:
-        """
-        Import existing logs into dataset based on filter criteria
-
-        Endpoints:
-            POST   /evaluations/datasets/{dataset_id}/logs/ - Import existing logs to dataset asynchronously (legacy)
-            POST   /api/datasets/{dataset_id}/logs/import/ - Import existing logs to dataset asynchronously
-            DELETE /api/datasets/{dataset_id}/logs/import/ - Remove logs from dataset asynchronously
-
-        Args (POST body):
-            - start_time (string, required, ISO 8601)
-            - end_time (string, required, ISO 8601)
-            - filters (object, optional; key name is "filters")
-            - sampling_percentage (integer, optional, default 100)
-
-        Returns (POST 200):
-            { "message": "Logs are being imported to dataset in the background" }
-
-        Args (DELETE body):
-            - is_deleting_all_logs (boolean, required if filters not provided)
-            - filters (object, required unless is_deleting_all_logs = true)
-
-        Returns (DELETE 200):
-            { "message": "Logs are being removed from dataset in the background" }
-
-        Access Control:
-            NestedResourceMixin handles superadmin-aware parent access:
-            - Superadmin + JWT + READ: Can view any dataset's logs
-            - Superadmin + JWT + WRITE: Blocked (can't import/delete logs in other orgs via JWT)
-            - Superadmin + API key: Can import/delete logs in any dataset
-            - Regular user: Can only access their org's datasets
+        Remove logs from a dataset asynchronously by filters, or remove all logs by setting `is_deleting_all_logs=true`.
 
         Parameters
         ----------
         dataset_id : str
+            Dataset ID.
+
+        is_deleting_all_logs : typing.Optional[bool]
+            Set to `true` to remove every log in the dataset.
+
+        filters : typing.Optional[typing.Dict[str, RemoveDatasetLogsRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[DatasetLogsImportResponse]
-
+        AsyncHttpResponse[RemoveDatasetLogsResponse]
+            Removal started.
         """
-        _response = self._client_wrapper.httpx_client.request(
+        _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/logs/import/",
             method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogsImportResponse,
-                    parse_obj_as(
-                        type_=DatasetLogsImportResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_logs_import_partial_update(
-        self,
-        dataset_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        original_copy_unique_id: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ChDatasetLog]:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        dataset_id_ : str
-
-        id : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        dataset_id : typing.Optional[str]
-
-        original_copy_unique_id : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ChDatasetLog]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/logs/import/",
-            method="PATCH",
             json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "dataset_id": dataset_id,
-                "original_copy_unique_id": original_copy_unique_id,
-                "comparison_key": comparison_key,
-                "expected_output": expected_output,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_logs_list_list(
-        self,
-        dataset_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedChDatasetLogListList]:
-        """
-        List dataset logs with filtering, pagination, and full-object retrieval.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/list/ - List logs with pagination
-            POST /api/datasets/{dataset_id}/logs/list/ - List logs with complex filtering
-
-        Query Parameters (GET):
-            - page (integer, optional): Page number for pagination (default: 1)
-            - page_size (integer, optional): Number of results per page
-            - sort_by (string, optional): Field to order results by (default: unique_id)
-            - retrieval_mode (string, optional): "async" for background full-object loading
-
-        Request Body (POST):
-            - filters (object, optional): Complex filter criteria
-            - page (integer, optional): Page number
-            - page_size (integer, optional): Results per page
-
-        Response (200 OK):
-            - count (integer): Total number of logs matching filters
-            - next (string|null): URL for next page
-            - previous (string|null): URL for previous page
-            - results (array): Array of log objects
-            - filter_options (object): Available filter options
-
-        ## Under-the-hood optimizations:
-
-        ### 1. Async Full Object Preloading (retrieval_mode="async")
-        - When listing logs, the API returns immediately with shallow ClickHouse fields
-        - A background Celery task (`preload_full_objects_task`) is triggered to:
-          a. Fetch full log objects from S3 storage (including input/output)
-          b. Write them to Redis cache with key: `request_log_full_object_{unique_id}`
-          c. Cache TTL: 300 seconds (5 minutes)
-        - Subsequent detail view requests get instant cache hits
-        - Callback: `evaluation.utils.store_dataset_log_full_objects_to_cache`
-
-        ### 2. Overlay Precedence for Updated Logs
-        - When a log is updated, an overlay file is written to S3 with the new data
-        - ClickHouse row is updated with `updated_storage_object_key` pointing to overlay
-        - The preload task retrieves BOTH base index AND overlay keys
-        - Deduplication: If a `unique_id` is found in BOTH, overlay takes precedence
-          (tracked via `ids_to_retrieve` set in `batch_retrieve_full_objects`)
-
-        ### 3. ArgMax Deduplication
-        - Uses ClickHouse's argMax to get the latest version of each log
-        - Deduplicates by `unique_id`, sorted by `updated_at` field
-        - Ensures only the most recent version of each log is shown
-
-        ### 4. Storage Structure
-        - Index files (.idx): `{"unique_id1": {object1}, "unique_id2": {object2}}`
-        - Overlay files: `{object}` directly (single log, not wrapped)
-        - Both are handled transparently in `batch_retrieve_full_objects`
-
-        ## Performance characteristics:
-        - List response: ~100-200ms (ClickHouse query only, no S3)
-        - Cache population: 1-5s background (depends on log count)
-        - Detail view after list: ~10ms (Redis cache hit)
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedChDatasetLogListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedChDatasetLogListList,
-                    parse_obj_as(
-                        type_=PaginatedChDatasetLogListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def list_dataset_logs(
-        self,
-        dataset_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedChDatasetLogListList]:
-        """
-        List dataset logs with complex filtering via POST body.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedChDatasetLogListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
-            method="POST",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedChDatasetLogListList,
-                    parse_obj_as(
-                        type_=PaginatedChDatasetLogListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_logs_list_update(
-        self,
-        dataset_id: str,
-        *,
-        id: str,
-        organization_id: str,
-        organization_key_id: str,
-        environment: str,
-        prompt_name: str,
-        trace_unique_id: str,
-        customer_identifier: str,
-        thread_identifier: str,
-        unique_organization_id: str,
-        log_type: str,
-        unique_id: str,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        note: typing.Optional[str] = OMIT,
-        ch_dataset_log_list_request_dataset_id: typing.Optional[str] = OMIT,
-        annotation_status: typing.Optional[str] = OMIT,
-        annotation_completed_by: typing.Optional[typing.Any] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        updated_by_email: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ChDatasetLogList]:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        id : str
-
-        organization_id : str
-
-        organization_key_id : str
-
-        environment : str
-
-        prompt_name : str
-
-        trace_unique_id : str
-
-        customer_identifier : str
-
-        thread_identifier : str
-
-        unique_organization_id : str
-
-        log_type : str
-
-        unique_id : str
-
-        timestamp : typing.Optional[dt.datetime]
-
-        start_time : typing.Optional[dt.datetime]
-
-        prompt_id : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        model : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status_code : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        storage_object_key : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        note : typing.Optional[str]
-
-        ch_dataset_log_list_request_dataset_id : typing.Optional[str]
-
-        annotation_status : typing.Optional[str]
-
-        annotation_completed_by : typing.Optional[typing.Any]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        updated_by_email : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ChDatasetLogList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
-            method="PUT",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "organization_key_id": organization_key_id,
-                "environment": environment,
-                "timestamp": timestamp,
-                "start_time": start_time,
-                "prompt_id": prompt_id,
-                "prompt_name": prompt_name,
-                "trace_unique_id": trace_unique_id,
-                "customer_identifier": customer_identifier,
-                "customer_name": customer_name,
-                "customer_email": customer_email,
-                "thread_identifier": thread_identifier,
-                "custom_identifier": custom_identifier,
-                "unique_organization_id": unique_organization_id,
-                "log_type": log_type,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "total_request_tokens": total_request_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "cost": cost,
-                "model": model,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status_code": status_code,
-                "status": status,
-                "blurred": blurred,
-                "storage_object_key": storage_object_key,
-                "updated_storage_object_key": updated_storage_object_key,
-                "span_workflow_name": span_workflow_name,
-                "span_name": span_name,
-                "note": note,
-                "unique_id": unique_id,
-                "dataset_id": ch_dataset_log_list_request_dataset_id,
-                "annotation_status": annotation_status,
-                "annotation_completed_by": annotation_completed_by,
-                "updated_at": updated_at,
-                "updated_by_email": updated_by_email,
-                "input": input,
-                "expected_output": expected_output,
-                "output": output,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLogList,
-                    parse_obj_as(
-                        type_=ChDatasetLogList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_logs_list_partial_update(
-        self,
-        dataset_id: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        note: typing.Optional[str] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        patched_ch_dataset_log_list_request_dataset_id: typing.Optional[str] = OMIT,
-        annotation_status: typing.Optional[str] = OMIT,
-        annotation_completed_by: typing.Optional[typing.Any] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        updated_by_email: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ChDatasetLogList]:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        id : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        start_time : typing.Optional[dt.datetime]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        trace_unique_id : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        model : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status_code : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        storage_object_key : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        note : typing.Optional[str]
-
-        unique_id : typing.Optional[str]
-
-        patched_ch_dataset_log_list_request_dataset_id : typing.Optional[str]
-
-        annotation_status : typing.Optional[str]
-
-        annotation_completed_by : typing.Optional[typing.Any]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        updated_by_email : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ChDatasetLogList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
-            method="PATCH",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "organization_key_id": organization_key_id,
-                "environment": environment,
-                "timestamp": timestamp,
-                "start_time": start_time,
-                "prompt_id": prompt_id,
-                "prompt_name": prompt_name,
-                "trace_unique_id": trace_unique_id,
-                "customer_identifier": customer_identifier,
-                "customer_name": customer_name,
-                "customer_email": customer_email,
-                "thread_identifier": thread_identifier,
-                "custom_identifier": custom_identifier,
-                "unique_organization_id": unique_organization_id,
-                "log_type": log_type,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "total_request_tokens": total_request_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "cost": cost,
-                "model": model,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status_code": status_code,
-                "status": status,
-                "blurred": blurred,
-                "storage_object_key": storage_object_key,
-                "updated_storage_object_key": updated_storage_object_key,
-                "span_workflow_name": span_workflow_name,
-                "span_name": span_name,
-                "note": note,
-                "unique_id": unique_id,
-                "dataset_id": patched_ch_dataset_log_list_request_dataset_id,
-                "annotation_status": annotation_status,
-                "annotation_completed_by": annotation_completed_by,
-                "updated_at": updated_at,
-                "updated_by_email": updated_by_email,
-                "input": input,
-                "expected_output": expected_output,
-                "output": output,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLogList,
-                    parse_obj_as(
-                        type_=ChDatasetLogList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_logs_summary_retrieve(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[DatasetLogsSummaryResponse]:
-        """
-        Get summary statistics for dataset logs including score summaries
-
-        Endpoint:
-            GET /api/datasets/{dataset_id}/logs/summary/
-            POST /api/datasets/{dataset_id}/logs/summary/ (for filtering)
-
-        Args (POST body, optional):
-            - filters (object, optional): Filter criteria to aggregate subset of logs
-
-        Returns (200 OK):
-            ```json
-            {
-              "number_of_requests": 150,
-              "total_cost": 12.45,
-              "total_tokens": 50000,
-              "total_prompt_tokens": 30000,
-              "total_completion_tokens": 20000,
-              "avg_latency": 1.23,
-              "avg_tps": 45.2,
-              "avg_ttft": 0.8,
-              "scores": {
-                "<evaluator_id>": {
-                  "evaluator_id": "<uuid>",
-                  "evaluator_slug": "quality_check",
-                  "evaluator_name": "Quality Check",
-                  "score_value_type": "numerical",
-                  "avg_score": 4.5,
-                  "true_count": null,
-                  "false_count": null
-                }
-              }
-            }
-            ```
-
-        Smart Syncing:
-            When no filters are provided (or filters are empty), the endpoint will:
-            1. Count all logs in the dataset
-            2. Update dataset.log_count with the accurate count
-            3. Return the count
-
-            This ensures the dataset log_count stays accurate without requiring
-            separate sync operations.
-
-        Examples:
-            Get total count (syncs to dataset):
-            ```
-            GET /api/datasets/{id}/logs/summary/
-            POST /api/datasets/{id}/logs/summary/
-            POST /api/datasets/{id}/logs/summary/ with {"filters": {}}
-            ```
-
-            Get filtered count (no sync):
-            ```
-            POST /api/datasets/{id}/logs/summary/
-            Body: {"filters": {"status_code": {"operator": "eq", "value": 200}}}
-            ```
-
-        Note: Score summaries only include evaluators with score_value_type of
-        'numerical', 'percentage', or 'boolean'.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetLogsSummaryResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetLogsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def summarize_dataset_logs_filtered(
-        self,
-        dataset_id: str,
-        *,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetLogsSummaryResponse]:
-        """
-        Get summary statistics for a filtered subset of dataset logs.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetLogsSummaryResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="POST",
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetLogsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_logs_summary_update(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="PUT",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_logs_summary_partial_update(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="PATCH",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_presence_retrieve(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[DatasetLogPresenceResponse]:
-        """
-        Get all users currently viewing logs in this dataset from Redis cache.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetLogPresenceResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/presence/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogPresenceResponse,
-                    parse_obj_as(
-                        type_=DatasetLogPresenceResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def retrieve_dataset(
-        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[DatasetDetail]:
-        """
-        Retrieve, update, and delete a dataset
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/
-            PATCH /api/datasets/{dataset_id}/
-            DELETE /api/datasets/{dataset_id}/
-
-        Superadmin: Can READ any dataset across all organizations via JWT.
-                    Cannot WRITE via JWT - must use API key for write operations.
-        Regular users: Can only access datasets in their organization.
-
-        Defense-in-depth:
-
-        Args (PATCH):
-            - name (Optional): string
-            - description (Optional): string
-
-        Returns (GET 200):
-            {
-              "id": "dataset_id",
-              "name": "Support Conversations - July",
-              "type": "sampling",
-              "description": "Sampled support chats for July",
-              "created_at": "2025-07-26T00:00:00Z",
-              "updated_at": "2025-07-27T08:10:00Z",
-              "organization": 123,
-              "initial_log_filters": {"status_code": {"operator": "eq", "value": 200}},
-              "unique_organization_ids": [],
-              "timestamps": [],
-              "log_count": 250,
-              "evaluator": null,
-              "status": "ready",
-              "running_status": "pending",
-              "running_progress": 0,
-              "running_at": null,
-              "completed_annotation_count": 0
-            }
-
-        Returns (PATCH 200): Same shape as GET with updated fields
-        Returns (DELETE 204): No content
-
-        Defense-in-depth: SuperAdminMixin provides queryset routing + object-level ownership.
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetDetail,
-                    parse_obj_as(
-                        type_=DatasetDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_create2(
-        self,
-        id: str,
-        *,
-        name: str,
-        organization: int,
-        initial_log_filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_at: typing.Optional[dt.datetime] = OMIT,
-        unique_organization_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        timestamps: typing.Optional[typing.Sequence[dt.datetime]] = OMIT,
-        ingest_workflow_id: typing.Optional[str] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        evaluator: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : str
-
-        name : str
-
-        organization : int
-
-        initial_log_filters : typing.Optional[FilterParamDictPydantic]
-
-        project : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        description : typing.Optional[str]
-
-        running_progress : typing.Optional[float]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_at : typing.Optional[dt.datetime]
-
-        unique_organization_ids : typing.Optional[typing.Sequence[str]]
-
-        timestamps : typing.Optional[typing.Sequence[dt.datetime]]
-
-        ingest_workflow_id : typing.Optional[str]
-
-        starred : typing.Optional[bool]
-
-        evaluator : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(id)}/",
-            method="POST",
-            json={
-                "initial_log_filters": convert_and_respect_annotation_metadata(
-                    object_=initial_log_filters, annotation=FilterParamDictPydantic, direction="write"
+                "is_deleting_all_logs": is_deleting_all_logs,
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters,
+                    annotation=typing.Dict[str, RemoveDatasetLogsRequestFiltersValue],
+                    direction="write",
                 ),
-                "project": project,
-                "name": name,
-                "type": type,
-                "description": description,
-                "running_progress": running_progress,
-                "running_status": running_status,
-                "running_at": running_at,
-                "unique_organization_ids": unique_organization_ids,
-                "timestamps": timestamps,
-                "ingest_workflow_id": ingest_workflow_id,
-                "starred": starred,
-                "organization": organization,
-                "evaluator": evaluator,
             },
             headers={
                 "content-type": "application/json",
@@ -4071,1006 +2488,86 @@ class RawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetDetail,
+                    RemoveDatasetLogsResponse,
                     parse_obj_as(
-                        type_=DatasetDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_update(
-        self,
-        id: str,
-        *,
-        name: str,
-        organization: int,
-        initial_log_filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_at: typing.Optional[dt.datetime] = OMIT,
-        unique_organization_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        timestamps: typing.Optional[typing.Sequence[dt.datetime]] = OMIT,
-        ingest_workflow_id: typing.Optional[str] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        evaluator: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetDetail]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : str
-
-        name : str
-
-        organization : int
-
-        initial_log_filters : typing.Optional[FilterParamDictPydantic]
-
-        project : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        description : typing.Optional[str]
-
-        running_progress : typing.Optional[float]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_at : typing.Optional[dt.datetime]
-
-        unique_organization_ids : typing.Optional[typing.Sequence[str]]
-
-        timestamps : typing.Optional[typing.Sequence[dt.datetime]]
-
-        ingest_workflow_id : typing.Optional[str]
-
-        starred : typing.Optional[bool]
-
-        evaluator : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "initial_log_filters": convert_and_respect_annotation_metadata(
-                    object_=initial_log_filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
-                "project": project,
-                "name": name,
-                "type": type,
-                "description": description,
-                "running_progress": running_progress,
-                "running_status": running_status,
-                "running_at": running_at,
-                "unique_organization_ids": unique_organization_ids,
-                "timestamps": timestamps,
-                "ingest_workflow_id": ingest_workflow_id,
-                "starred": starred,
-                "organization": organization,
-                "evaluator": evaluator,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetDetail,
-                    parse_obj_as(
-                        type_=DatasetDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def delete_dataset(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
-        """
-        Retrieve, update, and delete a dataset
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/
-            PATCH /api/datasets/{dataset_id}/
-            DELETE /api/datasets/{dataset_id}/
-
-        Superadmin: Can READ any dataset across all organizations via JWT.
-                    Cannot WRITE via JWT - must use API key for write operations.
-        Regular users: Can only access datasets in their organization.
-
-        Defense-in-depth:
-
-        Args (PATCH):
-            - name (Optional): string
-            - description (Optional): string
-
-        Returns (GET 200):
-            {
-              "id": "dataset_id",
-              "name": "Support Conversations - July",
-              "type": "sampling",
-              "description": "Sampled support chats for July",
-              "created_at": "2025-07-26T00:00:00Z",
-              "updated_at": "2025-07-27T08:10:00Z",
-              "organization": 123,
-              "initial_log_filters": {"status_code": {"operator": "eq", "value": 200}},
-              "unique_organization_ids": [],
-              "timestamps": [],
-              "log_count": 250,
-              "evaluator": null,
-              "status": "ready",
-              "running_status": "pending",
-              "running_progress": 0,
-              "running_at": null,
-              "completed_annotation_count": 0
-            }
-
-        Returns (PATCH 200): Same shape as GET with updated fields
-        Returns (DELETE 204): No content
-
-        Defense-in-depth: SuperAdminMixin provides queryset routing + object-level ownership.
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def update_dataset(
-        self,
-        id: str,
-        *,
-        initial_log_filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_at: typing.Optional[dt.datetime] = OMIT,
-        unique_organization_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        timestamps: typing.Optional[typing.Sequence[dt.datetime]] = OMIT,
-        ingest_workflow_id: typing.Optional[str] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        evaluator: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetDetail]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : str
-
-        initial_log_filters : typing.Optional[FilterParamDictPydantic]
-
-        project : typing.Optional[str]
-
-        name : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        description : typing.Optional[str]
-
-        running_progress : typing.Optional[float]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_at : typing.Optional[dt.datetime]
-
-        unique_organization_ids : typing.Optional[typing.Sequence[str]]
-
-        timestamps : typing.Optional[typing.Sequence[dt.datetime]]
-
-        ingest_workflow_id : typing.Optional[str]
-
-        starred : typing.Optional[bool]
-
-        organization : typing.Optional[int]
-
-        evaluator : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(id)}/",
-            method="PATCH",
-            json={
-                "initial_log_filters": convert_and_respect_annotation_metadata(
-                    object_=initial_log_filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
-                "project": project,
-                "name": name,
-                "type": type,
-                "description": description,
-                "running_progress": running_progress,
-                "running_status": running_status,
-                "running_at": running_at,
-                "unique_organization_ids": unique_organization_ids,
-                "timestamps": timestamps,
-                "ingest_workflow_id": ingest_workflow_id,
-                "starred": starred,
-                "organization": organization,
-                "evaluator": evaluator,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetDetail,
-                    parse_obj_as(
-                        type_=DatasetDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedDatasetListList]:
-        """
-        List datasets
-
-        Endpoint:
-            GET /api/datasets/list/
-
-        Superadmin: Can see all datasets across all organizations.
-        Regular users: Can only see datasets in their organization.
-
-        Returns (200):
-            {
-              "count": 1,
-              "next": null,
-              "previous": null,
-              "results": [
-                {
-                  "id": "dataset_id",
-                  "organization_id": 123,
-                  "updated_by": {"first_name": "Ann", "last_name": "Lee", "email": "ann@example.com"},
-                  "log_count": 250,
-                  "name": "Support Conversations - July",
-                  "log_ids": ["..."],
-                  "description": "Sampled support chats for July",
-                  "type": "sampling",
-                  "status": "ready",
-                  "created_at": "2025-07-26T00:00:00Z",
-                  "updated_at": "2025-07-27T08:10:00Z",
-                  "completed_annotation_count": 0,
-                  "running_status": "pending",
-                  "running_progress": 0
-                }
-              ]
-            }
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedDatasetListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/datasets/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedDatasetListList,
-                    parse_obj_as(
-                        type_=PaginatedDatasetListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def list_datasets(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedDatasetListList]:
-        """
-        List datasets with complex filtering via POST body.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedDatasetListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/datasets/list/",
-            method="POST",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedDatasetListList,
-                    parse_obj_as(
-                        type_=PaginatedDatasetListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_list_update(
-        self,
-        *,
-        name: str,
-        id: typing.Optional[str] = OMIT,
-        log_count: typing.Optional[int] = OMIT,
-        log_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        status: typing.Optional[DatasetStatusEnum] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        name : str
-
-        id : typing.Optional[str]
-
-        log_count : typing.Optional[int]
-
-        log_ids : typing.Optional[typing.Sequence[str]]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        status : typing.Optional[DatasetStatusEnum]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_progress : typing.Optional[float]
-
-        starred : typing.Optional[bool]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/datasets/list/",
-            method="PUT",
-            json={
-                "id": id,
-                "log_count": log_count,
-                "name": name,
-                "log_ids": log_ids,
-                "description": description,
-                "type": type,
-                "status": status,
-                "running_status": running_status,
-                "running_progress": running_progress,
-                "starred": starred,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetList,
-                    parse_obj_as(
-                        type_=DatasetList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_list_partial_update(
-        self,
-        *,
-        id: typing.Optional[str] = OMIT,
-        log_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        log_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        status: typing.Optional[DatasetStatusEnum] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : typing.Optional[str]
-
-        log_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        log_ids : typing.Optional[typing.Sequence[str]]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        status : typing.Optional[DatasetStatusEnum]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_progress : typing.Optional[float]
-
-        starred : typing.Optional[bool]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/datasets/list/",
-            method="PATCH",
-            json={
-                "id": id,
-                "log_count": log_count,
-                "name": name,
-                "log_ids": log_ids,
-                "description": description,
-                "type": type,
-                "status": status,
-                "running_status": running_status,
-                "running_progress": running_progress,
-                "starred": starred,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetList,
-                    parse_obj_as(
-                        type_=DatasetList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[DatasetsSummaryResponse]:
-        """
-        GET/POST /api/datasets/summary/
-
-        Returns total count of datasets matching the supplied filters.
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetsSummaryResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/datasets/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_summary_filtered(
-        self,
-        *,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetsSummaryResponse]:
-        """
-        Get total count of datasets with complex filtering via POST body.
-
-        Parameters
-        ----------
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetsSummaryResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/datasets/summary/",
-            method="POST",
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_summary_update(
-        self,
-        *,
-        total_count: int,
-        filters_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetsSummaryResponse]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        total_count : int
-
-        filters_data : typing.Optional[typing.Dict[str, typing.Any]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetsSummaryResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/datasets/summary/",
-            method="PUT",
-            json={
-                "total_count": total_count,
-                "filters_data": filters_data,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_datasets_summary_partial_update(
-        self,
-        *,
-        total_count: typing.Optional[int] = OMIT,
-        filters_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[DatasetsSummaryResponse]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        total_count : typing.Optional[int]
-
-        filters_data : typing.Optional[typing.Dict[str, typing.Any]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[DatasetsSummaryResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/datasets/summary/",
-            method="PATCH",
-            json={
-                "total_count": total_count,
-                "filters_data": filters_data,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-
-class AsyncRawDatasetsClient:
-    def __init__(self, *, client_wrapper: AsyncClientWrapper):
-        self._client_wrapper = client_wrapper
-
-    async def api_datasets_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedDatasetListList]:
-        """
-        Create or duplicate datasets
-
-        Endpoint:
-            POST /api/datasets/     - Create a dataset (from logs, empty, or by duplicating an existing one)
-
-        Args (POST):
-            - name (string, required)
-            - description (string, optional)
-            - start_time (string, required, ISO 8601) — ignored if is_empty=true or source_dataset_id set
-            - end_time (string, required, ISO 8601) — ignored if is_empty=true or source_dataset_id set
-            - sampling (integer, optional, default 100) — percent of logs to add
-            - initial_log_filters (object, optional, default {})
-            - is_empty (boolean, optional, default false) — create empty dataset without adding logs
-            - source_dataset_id (string, optional) — duplicate an existing dataset. Copies all logs
-              asynchronously. When set, start_time/end_time/sampling/initial_log_filters are ignored.
-              Name defaults to "{source_name} (copy)" if not provided.
-
-        Returns (POST 201):
-            {
-              "id": "dataset_id",
-              "name": "...",
-              "type": "sampling",
-              "status": "initializing",
-              ...
-            }
-
-        Notes:
-            - Server sets organization and updated_by; type defaults to "sampling".
-            - If selected logs exceed plan limits, returns 400 with error message.
-            - Duplication fires `dataset_processing_complete` WS event when done (same as import).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedDatasetListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedDatasetListList,
-                    parse_obj_as(
-                        type_=PaginatedDatasetListList,  # type: ignore
+                        type_=RemoveDatasetLogsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def create_dataset(
+    async def summarize_dataset_logs_filtered(
         self,
+        dataset_id: str,
         *,
-        organization: int,
-        name: str,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        granularity: typing.Optional[GranularityEnum] = OMIT,
-        initial_log_filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        end_time: typing.Optional[dt.datetime] = OMIT,
-        sampling: typing.Optional[int] = OMIT,
-        is_empty: typing.Optional[bool] = OMIT,
-        source_dataset_id: typing.Optional[str] = OMIT,
+        filters: typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetCreate]:
+    ) -> AsyncHttpResponse[SummarizeDatasetLogsFilteredResponse]:
         """
-        Create or duplicate datasets
-
-        Endpoint:
-            POST /api/datasets/     - Create a dataset (from logs, empty, or by duplicating an existing one)
-
-        Args (POST):
-            - name (string, required)
-            - description (string, optional)
-            - start_time (string, required, ISO 8601) — ignored if is_empty=true or source_dataset_id set
-            - end_time (string, required, ISO 8601) — ignored if is_empty=true or source_dataset_id set
-            - sampling (integer, optional, default 100) — percent of logs to add
-            - initial_log_filters (object, optional, default {})
-            - is_empty (boolean, optional, default false) — create empty dataset without adding logs
-            - source_dataset_id (string, optional) — duplicate an existing dataset. Copies all logs
-              asynchronously. When set, start_time/end_time/sampling/initial_log_filters are ignored.
-              Name defaults to "{source_name} (copy)" if not provided.
-
-        Returns (POST 201):
-            {
-              "id": "dataset_id",
-              "name": "...",
-              "type": "sampling",
-              "status": "initializing",
-              ...
-            }
-
-        Notes:
-            - Server sets organization and updated_by; type defaults to "sampling".
-            - If selected logs exceed plan limits, returns 400 with error message.
-            - Duplication fires `dataset_processing_complete` WS event when done (same as import).
+        Get aggregate usage metrics and evaluator score summaries for a filtered subset of dataset logs.
 
         Parameters
         ----------
-        organization : int
+        dataset_id : str
+            Dataset ID.
 
-        name : str
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        granularity : typing.Optional[GranularityEnum]
-            Eval unit for this dataset: 'logs' (one span per row) or 'traces' (one root row per trace). Chosen at creation and immutable.
-
-            * `logs` - Logs
-            * `traces` - Traces
-            * `threads` - Threads
-
-        initial_log_filters : typing.Optional[FilterParamDictPydantic]
-
-        start_time : typing.Optional[dt.datetime]
-
-        end_time : typing.Optional[dt.datetime]
-
-        sampling : typing.Optional[int]
-            Percent of logs to add (1-100).
-
-        is_empty : typing.Optional[bool]
-            Create empty dataset without adding logs.
-
-        source_dataset_id : typing.Optional[str]
-            ID of dataset to duplicate. Copies all logs asynchronously.
+        filters : typing.Optional[typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue]]
+            Platform-standard filters keyed by field name.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[DatasetCreate]
-
+        AsyncHttpResponse[SummarizeDatasetLogsFilteredResponse]
+            Filtered dataset log summary.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/",
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
             method="POST",
             json={
-                "organization": organization,
-                "name": name,
-                "description": description,
-                "type": type,
-                "granularity": granularity,
-                "initial_log_filters": convert_and_respect_annotation_metadata(
-                    object_=initial_log_filters, annotation=FilterParamDictPydantic, direction="write"
+                "filters": convert_and_respect_annotation_metadata(
+                    object_=filters,
+                    annotation=typing.Dict[str, SummarizeDatasetLogsFilteredRequestFiltersValue],
+                    direction="write",
                 ),
-                "start_time": start_time,
-                "end_time": end_time,
-                "sampling": sampling,
-                "is_empty": is_empty,
-                "source_dataset_id": source_dataset_id,
             },
             headers={
                 "content-type": "application/json",
@@ -5081,75 +2578,156 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetCreate,
+                    SummarizeDatasetLogsFilteredResponse,
                     parse_obj_as(
-                        type_=DatasetCreate,  # type: ignore
+                        type_=SummarizeDatasetLogsFilteredResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def api_datasets_eval_reports_create_list(
+    async def bulk_create_dataset_logs(
         self,
         dataset_id: str,
         *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
+        logs: typing.Sequence[DatasetLogCreateRequest],
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedDatasetTaskTrackerRunEvalListList]:
+    ) -> AsyncHttpResponse[BulkOperationResponse]:
         """
-        View for creating new dataset evaluation tasks.
-
-        Args:
-            dataset_id: str, The ID of the dataset to run evaluation on
-            evaluator_ids: str[], The IDs of the evaluators to run (preferred)
-            evaluator_slugs: str[], Deprecated alias for evaluator_ids (backward compat)
-
-        Returns:
-            GET: A list of created tasks
-            POST: The created eval task if successful, otherwise a dictionary of errors
+        Submit 1 to 500 dataset logs for ingestion in one request. Each log uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can therefore contain item-level errors; if every item fails, the endpoint returns `400`. Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
         dataset_id : str
+            Dataset ID. Use `_saved_logs` for the virtual saved-logs collection.
 
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
+        logs : typing.Sequence[DatasetLogCreateRequest]
+            Dataset log objects to create. Items are processed independently and errors use their zero-based array index.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PaginatedDatasetTaskTrackerRunEvalListList]
-
+        AsyncHttpResponse[BulkOperationResponse]
+            At least one dataset log was accepted for ingestion. Inspect `error_count` and `errors` for partial failures.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/eval-reports/create/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
+            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/bulk/",
+            method="POST",
+            json={
+                "logs": convert_and_respect_annotation_metadata(
+                    object_=logs, annotation=typing.Sequence[DatasetLogCreateRequest], direction="write"
+                ),
+            },
+            headers={
+                "content-type": "application/json",
             },
             request_options=request_options,
+            omit=OMIT,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedDatasetTaskTrackerRunEvalListList,
+                    BulkOperationResponse,
                     parse_obj_as(
-                        type_=PaginatedDatasetTaskTrackerRunEvalListList,  # type: ignore
+                        type_=BulkOperationResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -5157,51 +2735,45 @@ class AsyncRawDatasetsClient:
 
     async def run_eval_on_dataset(
         self,
-        dataset_id_: str,
-        *,
         dataset_id: str,
-        evaluator_slug: str,
-        unique_organization_id: str,
+        *,
+        evaluator_ids: typing.Sequence[str],
         experiment_id: typing.Optional[str] = OMIT,
+        generation_method: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetTaskTrackerRunEvaluationCreate]:
+    ) -> AsyncHttpResponse[RunEvalOnDatasetResponse]:
         """
-        Create a new dataset evaluation task.
-
-        Accepts both `evaluator_ids` (preferred) and `evaluator_slugs` (deprecated alias).
-
-        Optional: If experiment_id is provided, the experiment's evaluator_slugs
-        will be updated to include the new evaluators, making them appear as
-        columns in the experiment UI.
+        Create dataset evaluation tasks for one or more evaluators.
 
         Parameters
         ----------
-        dataset_id_ : str
-
         dataset_id : str
+            Dataset ID.
 
-        evaluator_slug : str
-
-        unique_organization_id : str
+        evaluator_ids : typing.Sequence[str]
+            Evaluator IDs to run against the dataset.
 
         experiment_id : typing.Optional[str]
+            Optional experiment to associate with the evaluation runs.
+
+        generation_method : typing.Optional[str]
+            Optional generation strategy. Defaults to `auto`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[DatasetTaskTrackerRunEvaluationCreate]
-
+        AsyncHttpResponse[RunEvalOnDatasetResponse]
+            Evaluation tasks created.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/eval-reports/create/",
+            f"api/datasets/{jsonable_encoder(dataset_id)}/eval-reports/create/",
             method="POST",
             json={
-                "dataset_id": dataset_id,
-                "evaluator_slug": evaluator_slug,
-                "unique_organization_id": unique_organization_id,
+                "evaluator_ids": evaluator_ids,
                 "experiment_id": experiment_id,
+                "generation_method": generation_method,
             },
             headers={
                 "content-type": "application/json",
@@ -5212,13 +2784,46 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetTaskTrackerRunEvaluationCreate,
+                    RunEvalOnDatasetResponse,
                     parse_obj_as(
-                        type_=DatasetTaskTrackerRunEvaluationCreate,  # type: ignore
+                        type_=RunEvalOnDatasetResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -5231,35 +2836,28 @@ class AsyncRawDatasetsClient:
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedPublicDatasetTaskTrackerRunEvalListList]:
+    ) -> AsyncHttpResponse[ListDatasetEvalRunsResponse]:
         """
-        View mixin that handles both JWT and API Key authentication.
-
-        Inherits from JWTAuthUtils:
-        - is_jwt_auth(request): Post-auth check (reliable, uses DRF's successful_authenticator)
-        - is_jwt_token_format(request): Pre-auth heuristic (used here to route authenticators)
-
-        This mixin uses is_jwt_token_format() (pre-auth) in get_authenticators() and get_permissions()
-        because those methods run BEFORE authentication completes. For post-auth checks,
-        use is_jwt_auth() instead.
+        List evaluation runs that were created for a dataset.
 
         Parameters
         ----------
         dataset_id : str
+            Dataset ID.
 
         page : typing.Optional[int]
-            A page number within the paginated result set.
+            Page number.
 
         page_size : typing.Optional[int]
-            Number of results to return per page.
+            Results per page. Maximum is 100.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PaginatedPublicDatasetTaskTrackerRunEvalListList]
-
+        AsyncHttpResponse[ListDatasetEvalRunsResponse]
+            Paginated list of dataset evaluation runs.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(dataset_id)}/eval-reports/list/",
@@ -5273,1462 +2871,15 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedPublicDatasetTaskTrackerRunEvalListList,
+                    ListDatasetEvalRunsResponse,
                     parse_obj_as(
-                        type_=PaginatedPublicDatasetTaskTrackerRunEvalListList,  # type: ignore
+                        type_=ListDatasetEvalRunsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_eval_reports_list_create(
-        self,
-        dataset_id_: str,
-        *,
-        task_id: str,
-        name: str,
-        dataset_id: str,
-        status: typing.Optional[Status66CEnum] = OMIT,
-        started_at: typing.Optional[dt.datetime] = OMIT,
-        completed_at: typing.Optional[dt.datetime] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        evaluated_logs_count: typing.Optional[int] = OMIT,
-        score: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicDatasetTaskTrackerRunEvalList]:
-        """
-        View mixin that handles both JWT and API Key authentication.
-
-        Inherits from JWTAuthUtils:
-        - is_jwt_auth(request): Post-auth check (reliable, uses DRF's successful_authenticator)
-        - is_jwt_token_format(request): Pre-auth heuristic (used here to route authenticators)
-
-        This mixin uses is_jwt_token_format() (pre-auth) in get_authenticators() and get_permissions()
-        because those methods run BEFORE authentication completes. For post-auth checks,
-        use is_jwt_auth() instead.
-
-        Parameters
-        ----------
-        dataset_id_ : str
-
-        task_id : str
-
-        name : str
-
-        dataset_id : str
-
-        status : typing.Optional[Status66CEnum]
-
-        started_at : typing.Optional[dt.datetime]
-
-        completed_at : typing.Optional[dt.datetime]
-
-        error_message : typing.Optional[str]
-
-        evaluated_logs_count : typing.Optional[int]
-
-        score : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicDatasetTaskTrackerRunEvalList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/eval-reports/list/",
-            method="POST",
-            json={
-                "task_id": task_id,
-                "name": name,
-                "dataset_id": dataset_id,
-                "status": status,
-                "started_at": started_at,
-                "completed_at": completed_at,
-                "error_message": error_message,
-                "evaluated_logs_count": evaluated_logs_count,
-                "score": score,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicDatasetTaskTrackerRunEvalList,
-                    parse_obj_as(
-                        type_=PublicDatasetTaskTrackerRunEvalList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def create_dataset_log(
-        self,
-        dataset_id: str,
-        *,
-        input: typing.Any,
-        output: typing.Optional[typing.Any] = OMIT,
-        metadata: typing.Optional[typing.Any] = OMIT,
-        metrics: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetLogCreateResponse]:
-        """
-        Create a single dataset log from unified format data
-
-        Endpoint:
-            POST /api/datasets/{dataset_id}/logs/ - Create individual dataset log
-
-        Args (POST body - unified format):
-            - input (any): The input data (messages, text, etc.)
-            - output (any): The output data (response, completion, etc.)
-            - metadata (object, optional): Additional metadata fields (model, log_type, etc.)
-            - metrics (object, optional): Metric fields (tokens, cost, latency, etc.)
-
-        Note: model and log_type can be provided either as top-level fields or within metadata object
-
-        Returns (POST 201):
-            { "message": "Dataset log created successfully", "unique_id": "log-123..." }
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        input : typing.Any
-
-        output : typing.Optional[typing.Any]
-
-        metadata : typing.Optional[typing.Any]
-
-        metrics : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetLogCreateResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/",
-            method="POST",
-            json={
-                "input": input,
-                "output": output,
-                "metadata": metadata,
-                "metrics": metrics,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogCreateResponse,
-                    parse_obj_as(
-                        type_=DatasetLogCreateResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_status_list(
-        self, dataset_id: str, log_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[typing.List[DatasetLogStatusCreate]]:
-        """
-        A mixin that provides version handling for API views.
-
-        Reads the X-Keywords-AI-Version header and sets self.version.
-        Default version is 0 if header is not present or invalid.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        log_unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[typing.List[DatasetLogStatusCreate]]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(log_unique_id)}/status/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[DatasetLogStatusCreate],
-                    parse_obj_as(
-                        type_=typing.List[DatasetLogStatusCreate],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_status_create(
-        self,
-        dataset_id: str,
-        log_unique_id: str,
-        *,
-        organization: typing.Optional[int] = OMIT,
-        completed_by: typing.Optional[int] = OMIT,
-        status: typing.Optional[DatasetLogStatusCreateStatusEnum] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetLogStatusCreate]:
-        """
-        A mixin that provides version handling for API views.
-
-        Reads the X-Keywords-AI-Version header and sets self.version.
-        Default version is 0 if header is not present or invalid.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        log_unique_id : str
-
-        organization : typing.Optional[int]
-
-        completed_by : typing.Optional[int]
-
-        status : typing.Optional[DatasetLogStatusCreateStatusEnum]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetLogStatusCreate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(log_unique_id)}/status/",
-            method="POST",
-            json={
-                "organization": organization,
-                "completed_by": completed_by,
-                "status": status,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogStatusCreate,
-                    parse_obj_as(
-                        type_=DatasetLogStatusCreate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def retrieve_dataset_log(
-        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[ChDatasetLog]:
-        """
-        Retrieve, update, or delete a single dataset log.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/{log_id}/ - Get complete log details
-            PATCH /api/datasets/{dataset_id}/logs/{log_id}/ - Update log content
-            PUT /api/datasets/{dataset_id}/logs/{log_id}/ - Replace log content
-            DELETE /api/datasets/{dataset_id}/logs/{log_id}/ - Remove log from dataset
-
-        Response (GET 200 OK):
-            Complete log object including full input/output text, metadata, metrics,
-            annotation status, evaluation scores, and all other log fields.
-
-        Request Body (PATCH/PUT):
-            Any log fields to update (input, output, metadata, etc.)
-
-        Response (PATCH/PUT 200 OK):
-            {"message": "Log updated successfully", "unique_id": "log_id"}
-
-        Response (DELETE 204 No Content):
-            Empty response body
-
-        Errors:
-            - 401 Unauthorized — Missing/invalid authentication
-            - 404 Not Found — Log not found in dataset or dataset not found
-            - 400 Bad Request — Invalid update data
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ChDatasetLog]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def replace_dataset_log(
-        self,
-        dataset_id_: str,
-        unique_id_: str,
-        *,
-        id: str,
-        organization_id: str,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        original_copy_unique_id: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ChDatasetLog]:
-        """
-        Retrieve, update, or delete a single dataset log.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/{log_id}/ - Get complete log details
-            PATCH /api/datasets/{dataset_id}/logs/{log_id}/ - Update log content
-            PUT /api/datasets/{dataset_id}/logs/{log_id}/ - Replace log content
-            DELETE /api/datasets/{dataset_id}/logs/{log_id}/ - Remove log from dataset
-
-        Response (GET 200 OK):
-            Complete log object including full input/output text, metadata, metrics,
-            annotation status, evaluation scores, and all other log fields.
-
-        Request Body (PATCH/PUT):
-            Any log fields to update (input, output, metadata, etc.)
-
-        Response (PATCH/PUT 200 OK):
-            {"message": "Log updated successfully", "unique_id": "log_id"}
-
-        Response (DELETE 204 No Content):
-            Empty response body
-
-        Errors:
-            - 401 Unauthorized — Missing/invalid authentication
-            - 404 Not Found — Log not found in dataset or dataset not found
-            - 400 Bad Request — Invalid update data
-
-        Parameters
-        ----------
-        dataset_id_ : str
-
-        unique_id_ : str
-
-        id : str
-
-        organization_id : str
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        dataset_id : typing.Optional[str]
-
-        original_copy_unique_id : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ChDatasetLog]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/logs/{jsonable_encoder(unique_id_)}/",
-            method="PUT",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "dataset_id": dataset_id,
-                "original_copy_unique_id": original_copy_unique_id,
-                "comparison_key": comparison_key,
-                "expected_output": expected_output,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def delete_dataset_log(
-        self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Retrieve, update, or delete a single dataset log.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/{log_id}/ - Get complete log details
-            PATCH /api/datasets/{dataset_id}/logs/{log_id}/ - Update log content
-            PUT /api/datasets/{dataset_id}/logs/{log_id}/ - Replace log content
-            DELETE /api/datasets/{dataset_id}/logs/{log_id}/ - Remove log from dataset
-
-        Response (GET 200 OK):
-            Complete log object including full input/output text, metadata, metrics,
-            annotation status, evaluation scores, and all other log fields.
-
-        Request Body (PATCH/PUT):
-            Any log fields to update (input, output, metadata, etc.)
-
-        Response (PATCH/PUT 200 OK):
-            {"message": "Log updated successfully", "unique_id": "log_id"}
-
-        Response (DELETE 204 No Content):
-            Empty response body
-
-        Errors:
-            - 401 Unauthorized — Missing/invalid authentication
-            - 404 Not Found — Log not found in dataset or dataset not found
-            - 400 Bad Request — Invalid update data
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        unique_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/{jsonable_encoder(unique_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def update_dataset_log(
-        self,
-        dataset_id_: str,
-        unique_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        original_copy_unique_id: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ChDatasetLog]:
-        """
-        Retrieve, update, or delete a single dataset log.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/{log_id}/ - Get complete log details
-            PATCH /api/datasets/{dataset_id}/logs/{log_id}/ - Update log content
-            PUT /api/datasets/{dataset_id}/logs/{log_id}/ - Replace log content
-            DELETE /api/datasets/{dataset_id}/logs/{log_id}/ - Remove log from dataset
-
-        Response (GET 200 OK):
-            Complete log object including full input/output text, metadata, metrics,
-            annotation status, evaluation scores, and all other log fields.
-
-        Request Body (PATCH/PUT):
-            Any log fields to update (input, output, metadata, etc.)
-
-        Response (PATCH/PUT 200 OK):
-            {"message": "Log updated successfully", "unique_id": "log_id"}
-
-        Response (DELETE 204 No Content):
-            Empty response body
-
-        Errors:
-            - 401 Unauthorized — Missing/invalid authentication
-            - 404 Not Found — Log not found in dataset or dataset not found
-            - 400 Bad Request — Invalid update data
-
-        Parameters
-        ----------
-        dataset_id_ : str
-
-        unique_id_ : str
-
-        id : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        dataset_id : typing.Optional[str]
-
-        original_copy_unique_id : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ChDatasetLog]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/logs/{jsonable_encoder(unique_id_)}/",
-            method="PATCH",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "dataset_id": dataset_id,
-                "original_copy_unique_id": original_copy_unique_id,
-                "comparison_key": comparison_key,
-                "expected_output": expected_output,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def bulk_create_dataset_logs(
-        self,
-        dataset_id: str,
-        *,
-        logs: typing.Sequence[typing.Any],
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetLogsBulkCreateResponse]:
-        """
-        Bulk create dataset logs from array of unified format data
-
-        Endpoint:
-            POST /api/datasets/{dataset_id}/logs/bulk/
-
-        Args (POST body):
-            - logs (array, required): List of log objects in unified format
-              Each log object contains:
-                - input (any): The input data (required) - can be any type (dict, list, string, etc.)
-                - output (any, optional): The output data - can be any type
-                - metadata (object, optional): Additional metadata fields (model, log_type, etc.)
-                - metrics (object, optional): Metric fields (tokens, cost, latency, etc.)
-
-        Example Request (Recommended - Top-level expected_output):
-            ```json
-            {
-              "logs": [
-                {
-                  "input": "What is your return policy?",
-                  "expected_output": "You can return within 30 days",
-                  "metadata": {"category": "support"}
-                },
-                {
-                  "input": "How do I reset my password?",
-                  "expected_output": "Click Forgot Password on login page",
-                  "metadata": {"category": "support"}
-                }
-              ]
-            }
-            ```
-
-        Example Request (Legacy - Nested expected_output, auto-extracted):
-            Frontend parses CSV where expected_output is nested in input:
-            ```json
-            {
-              "logs": [
-                {
-                  "input": {
-                    "user_query": "What is your return policy?",
-                    "expected_output": "You can return within 30 days",
-                    "category": "support"
-                  }
-                }
-              ]
-            }
-            ```
-            Note: Nested expected_output is automatically extracted to top-level field.
-
-        Example Request (Direct API usage with expected_output):
-            ```json
-            {
-              "logs": [
-                {
-                  "input": "What is AI?",
-                  "expected_output": "AI is artificial intelligence",
-                  "output": "",
-                  "metadata": {"category": "qa", "model": "gpt-4"}
-                },
-                {
-                  "input": [{"role": "user", "content": "Hello"}],
-                  "expected_output": "A friendly greeting",
-                  "output": {"role": "assistant", "content": "Hi there!"},
-                  "metrics": {"tokens": 10, "cost": 0.0001}
-                }
-              ]
-            }
-            ```
-
-        Field Descriptions:
-            - input: The input to be processed (can be string, dict, or array)
-            - expected_output: Expected/ground truth output for evaluation (optional)
-            - output: Actual output from LLM or system (populated during experiments)
-            - metadata: Additional context fields
-            - metrics: Performance metrics (tokens, cost, latency)
-
-        Returns (POST 201):
-            ```json
-            {
-              "success_count": 95,
-              "error_count": 5,
-              "errors": [
-                {"index": 3, "error": "Invalid input format"},
-                {"index": 7, "error": "Missing required field"}
-              ]
-            }
-            ```
-
-        Notes:
-            - For UI users: Frontend parses CSV and sends array in unified format
-            - For API users: Send JSON array directly, no CSV conversion needed
-            - Each row of CSV becomes an "input" object in the dataset log
-            - Plan limits are enforced (current dataset log count + new logs <= limit)
-            - Errors are returned for individual logs that fail, successful ones are still created
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        logs : typing.Sequence[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetLogsBulkCreateResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/bulk/",
-            method="POST",
-            json={
-                "logs": logs,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogsBulkCreateResponse,
-                    parse_obj_as(
-                        type_=DatasetLogsBulkCreateResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
+            if _response.status_code == 401:
+                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -6738,1996 +2889,6 @@ class AsyncRawDatasetsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_import_list(
-        self,
-        dataset_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedChDatasetLogList]:
-        """
-        Import existing logs into dataset based on filter criteria
-
-        Endpoints:
-            POST   /evaluations/datasets/{dataset_id}/logs/ - Import existing logs to dataset asynchronously (legacy)
-            POST   /api/datasets/{dataset_id}/logs/import/ - Import existing logs to dataset asynchronously
-            DELETE /api/datasets/{dataset_id}/logs/import/ - Remove logs from dataset asynchronously
-
-        Args (POST body):
-            - start_time (string, required, ISO 8601)
-            - end_time (string, required, ISO 8601)
-            - filters (object, optional; key name is "filters")
-            - sampling_percentage (integer, optional, default 100)
-
-        Returns (POST 200):
-            { "message": "Logs are being imported to dataset in the background" }
-
-        Args (DELETE body):
-            - is_deleting_all_logs (boolean, required if filters not provided)
-            - filters (object, required unless is_deleting_all_logs = true)
-
-        Returns (DELETE 200):
-            { "message": "Logs are being removed from dataset in the background" }
-
-        Access Control:
-            NestedResourceMixin handles superadmin-aware parent access:
-            - Superadmin + JWT + READ: Can view any dataset's logs
-            - Superadmin + JWT + WRITE: Blocked (can't import/delete logs in other orgs via JWT)
-            - Superadmin + API key: Can import/delete logs in any dataset
-            - Regular user: Can only access their org's datasets
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedChDatasetLogList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/import/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedChDatasetLogList,
-                    parse_obj_as(
-                        type_=PaginatedChDatasetLogList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def import_dataset_logs(
-        self,
-        dataset_id: str,
-        *,
-        start_time: dt.datetime,
-        end_time: dt.datetime,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        sampling_percentage: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetLogsImportResponse]:
-        """
-        Default POST handler with automatic organization injection.
-
-        For CREATE operations:
-        - Superadmins can specify organization_id in request body (API key only)
-        - Regular users always use their own organization
-
-        Override this method for:
-        - POST-for-filtering pattern (delegate to self.get())
-        - Custom pre-create validation
-
-        Note: ``inject_target_organization`` is a DEPRECATED ``request.data``-mutating
-        shim kept for backward-compat during the DEV-9410 migration. The blessed
-        path stamps org via ``get_create_save_kwargs`` → ``perform_create`` → a
-        ``read_only`` serializer field. The shim (and these overrides' reliance on
-        it) is removed in C18 (DEV-9430) once every view's org field is read_only.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        start_time : dt.datetime
-
-        end_time : dt.datetime
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
-
-        sampling_percentage : typing.Optional[int]
-            Percent of logs to import (1-100).
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetLogsImportResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/import/",
-            method="POST",
-            json={
-                "start_time": start_time,
-                "end_time": end_time,
-                "filters": filters,
-                "sampling_percentage": sampling_percentage,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogsImportResponse,
-                    parse_obj_as(
-                        type_=DatasetLogsImportResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_import_update(
-        self,
-        dataset_id_: str,
-        *,
-        id: str,
-        organization_id: str,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        original_copy_unique_id: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ChDatasetLog]:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        dataset_id_ : str
-
-        id : str
-
-        organization_id : str
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        dataset_id : typing.Optional[str]
-
-        original_copy_unique_id : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ChDatasetLog]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/logs/import/",
-            method="PUT",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "dataset_id": dataset_id,
-                "original_copy_unique_id": original_copy_unique_id,
-                "comparison_key": comparison_key,
-                "expected_output": expected_output,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def remove_dataset_logs(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[DatasetLogsImportResponse]:
-        """
-        Import existing logs into dataset based on filter criteria
-
-        Endpoints:
-            POST   /evaluations/datasets/{dataset_id}/logs/ - Import existing logs to dataset asynchronously (legacy)
-            POST   /api/datasets/{dataset_id}/logs/import/ - Import existing logs to dataset asynchronously
-            DELETE /api/datasets/{dataset_id}/logs/import/ - Remove logs from dataset asynchronously
-
-        Args (POST body):
-            - start_time (string, required, ISO 8601)
-            - end_time (string, required, ISO 8601)
-            - filters (object, optional; key name is "filters")
-            - sampling_percentage (integer, optional, default 100)
-
-        Returns (POST 200):
-            { "message": "Logs are being imported to dataset in the background" }
-
-        Args (DELETE body):
-            - is_deleting_all_logs (boolean, required if filters not provided)
-            - filters (object, required unless is_deleting_all_logs = true)
-
-        Returns (DELETE 200):
-            { "message": "Logs are being removed from dataset in the background" }
-
-        Access Control:
-            NestedResourceMixin handles superadmin-aware parent access:
-            - Superadmin + JWT + READ: Can view any dataset's logs
-            - Superadmin + JWT + WRITE: Blocked (can't import/delete logs in other orgs via JWT)
-            - Superadmin + API key: Can import/delete logs in any dataset
-            - Regular user: Can only access their org's datasets
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetLogsImportResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/import/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogsImportResponse,
-                    parse_obj_as(
-                        type_=DatasetLogsImportResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_import_partial_update(
-        self,
-        dataset_id_: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        organization_name: typing.Optional[str] = OMIT,
-        error_message: typing.Optional[str] = OMIT,
-        completion_messages: typing.Optional[typing.Any] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        variables: typing.Optional[typing.Any] = OMIT,
-        temperature: typing.Optional[float] = OMIT,
-        max_tokens: typing.Optional[int] = OMIT,
-        top_p: typing.Optional[float] = OMIT,
-        frequency_penalty: typing.Optional[float] = OMIT,
-        presence_penalty: typing.Optional[float] = OMIT,
-        stop: typing.Optional[str] = OMIT,
-        response_format: typing.Optional[typing.Any] = OMIT,
-        matched_meter_ids: typing.Optional[typing.Sequence[typing.Any]] = OMIT,
-        unit_prices: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        component_costs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        dataset_id: typing.Optional[str] = OMIT,
-        original_copy_unique_id: typing.Optional[str] = OMIT,
-        comparison_key: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        group_identifier: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        load_balance_group_id: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        is_token_count_estimated: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        llm_gateway_markup_rate: typing.Optional[float] = OMIT,
-        service_tier: typing.Optional[str] = OMIT,
-        model_discount: typing.Optional[float] = OMIT,
-        pricing_tier: typing.Optional[str] = OMIT,
-        audio_input_file: typing.Optional[str] = OMIT,
-        audio_output_file: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        user_email: typing.Optional[str] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        category: typing.Optional[str] = OMIT,
-        properties: typing.Optional[str] = OMIT,
-        cache_bit: typing.Optional[int] = OMIT,
-        cache_miss_bit: typing.Optional[int] = OMIT,
-        cache_key: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        has_tool_calls: typing.Optional[bool] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        log_method: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        stream: typing.Optional[bool] = OMIT,
-        evaluation_identifier: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_user_unique_id: typing.Optional[str] = OMIT,
-        used_custom_credential: typing.Optional[bool] = OMIT,
-        deployment_name: typing.Optional[str] = OMIT,
-        deployment_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_version_number: typing.Optional[int] = OMIT,
-        system_text: typing.Optional[str] = OMIT,
-        prompt_text: typing.Optional[str] = OMIT,
-        completion_text: typing.Optional[str] = OMIT,
-        prompt_message_count: typing.Optional[int] = OMIT,
-        completion_message_count: typing.Optional[int] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        span_unique_id: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        span_parent_id: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        session_identifier: typing.Optional[str] = OMIT,
-        span_links: typing.Optional[str] = OMIT,
-        trace_group_identifier: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        thread_unique_id: typing.Optional[str] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        period_start: typing.Optional[dt.datetime] = OMIT,
-        period_end: typing.Optional[dt.datetime] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        respan_gateway_request_id: typing.Optional[str] = OMIT,
-        full_text: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ChDatasetLog]:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        dataset_id_ : str
-
-        id : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        organization_name : typing.Optional[str]
-
-        error_message : typing.Optional[str]
-
-        completion_messages : typing.Optional[typing.Any]
-
-        input : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        variables : typing.Optional[typing.Any]
-
-        temperature : typing.Optional[float]
-
-        max_tokens : typing.Optional[int]
-
-        top_p : typing.Optional[float]
-
-        frequency_penalty : typing.Optional[float]
-
-        presence_penalty : typing.Optional[float]
-
-        stop : typing.Optional[str]
-
-        response_format : typing.Optional[typing.Any]
-
-        matched_meter_ids : typing.Optional[typing.Sequence[typing.Any]]
-
-        unit_prices : typing.Optional[typing.Dict[str, typing.Any]]
-
-        component_costs : typing.Optional[typing.Dict[str, typing.Any]]
-
-        dataset_id : typing.Optional[str]
-
-        original_copy_unique_id : typing.Optional[str]
-
-        comparison_key : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        group_identifier : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        start_time : typing.Optional[dt.datetime]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        load_balance_group_id : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        is_token_count_estimated : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        llm_gateway_markup_rate : typing.Optional[float]
-
-        service_tier : typing.Optional[str]
-
-        model_discount : typing.Optional[float]
-
-        pricing_tier : typing.Optional[str]
-
-        audio_input_file : typing.Optional[str]
-
-        audio_output_file : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        user_email : typing.Optional[str]
-
-        model : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        category : typing.Optional[str]
-
-        properties : typing.Optional[str]
-
-        cache_bit : typing.Optional[int]
-
-        cache_miss_bit : typing.Optional[int]
-
-        cache_key : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status : typing.Optional[str]
-
-        has_tool_calls : typing.Optional[bool]
-
-        status_code : typing.Optional[int]
-
-        log_method : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        stream : typing.Optional[bool]
-
-        evaluation_identifier : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_user_unique_id : typing.Optional[str]
-
-        used_custom_credential : typing.Optional[bool]
-
-        deployment_name : typing.Optional[str]
-
-        deployment_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_version_number : typing.Optional[int]
-
-        system_text : typing.Optional[str]
-
-        prompt_text : typing.Optional[str]
-
-        completion_text : typing.Optional[str]
-
-        prompt_message_count : typing.Optional[int]
-
-        completion_message_count : typing.Optional[int]
-
-        trace_unique_id : typing.Optional[str]
-
-        span_unique_id : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        span_parent_id : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        session_identifier : typing.Optional[str]
-
-        span_links : typing.Optional[str]
-
-        trace_group_identifier : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        thread_unique_id : typing.Optional[str]
-
-        storage_object_key : typing.Optional[str]
-
-        period_start : typing.Optional[dt.datetime]
-
-        period_end : typing.Optional[dt.datetime]
-
-        unique_id : typing.Optional[str]
-
-        respan_gateway_request_id : typing.Optional[str]
-
-        full_text : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ChDatasetLog]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id_)}/logs/import/",
-            method="PATCH",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "unique_organization_id": unique_organization_id,
-                "organization_name": organization_name,
-                "error_message": error_message,
-                "completion_messages": completion_messages,
-                "input": input,
-                "output": output,
-                "variables": variables,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "frequency_penalty": frequency_penalty,
-                "presence_penalty": presence_penalty,
-                "stop": stop,
-                "response_format": response_format,
-                "matched_meter_ids": matched_meter_ids,
-                "unit_prices": unit_prices,
-                "component_costs": component_costs,
-                "dataset_id": dataset_id,
-                "original_copy_unique_id": original_copy_unique_id,
-                "comparison_key": comparison_key,
-                "expected_output": expected_output,
-                "custom_identifier": custom_identifier,
-                "group_identifier": group_identifier,
-                "blurred": blurred,
-                "start_time": start_time,
-                "timestamp": timestamp,
-                "load_balance_group_id": load_balance_group_id,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "total_request_tokens": total_request_tokens,
-                "is_token_count_estimated": is_token_count_estimated,
-                "cost": cost,
-                "llm_gateway_markup_rate": llm_gateway_markup_rate,
-                "service_tier": service_tier,
-                "model_discount": model_discount,
-                "pricing_tier": pricing_tier,
-                "audio_input_file": audio_input_file,
-                "audio_output_file": audio_output_file,
-                "organization_key_id": organization_key_id,
-                "user_email": user_email,
-                "model": model,
-                "provider_id": provider_id,
-                "category": category,
-                "properties": properties,
-                "cache_bit": cache_bit,
-                "cache_miss_bit": cache_miss_bit,
-                "cache_key": cache_key,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status": status,
-                "has_tool_calls": has_tool_calls,
-                "status_code": status_code,
-                "log_method": log_method,
-                "log_type": log_type,
-                "environment": environment,
-                "stream": stream,
-                "evaluation_identifier": evaluation_identifier,
-                "customer_identifier": customer_identifier,
-                "customer_email": customer_email,
-                "customer_name": customer_name,
-                "customer_user_unique_id": customer_user_unique_id,
-                "used_custom_credential": used_custom_credential,
-                "deployment_name": deployment_name,
-                "deployment_id": deployment_id,
-                "prompt_name": prompt_name,
-                "prompt_id": prompt_id,
-                "prompt_version_number": prompt_version_number,
-                "system_text": system_text,
-                "prompt_text": prompt_text,
-                "completion_text": completion_text,
-                "prompt_message_count": prompt_message_count,
-                "completion_message_count": completion_message_count,
-                "trace_unique_id": trace_unique_id,
-                "span_unique_id": span_unique_id,
-                "span_name": span_name,
-                "span_parent_id": span_parent_id,
-                "span_workflow_name": span_workflow_name,
-                "session_identifier": session_identifier,
-                "span_links": span_links,
-                "trace_group_identifier": trace_group_identifier,
-                "thread_identifier": thread_identifier,
-                "thread_unique_id": thread_unique_id,
-                "storage_object_key": storage_object_key,
-                "period_start": period_start,
-                "period_end": period_end,
-                "unique_id": unique_id,
-                "respan_gateway_request_id": respan_gateway_request_id,
-                "full_text": full_text,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLog,
-                    parse_obj_as(
-                        type_=ChDatasetLog,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_list_list(
-        self,
-        dataset_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedChDatasetLogListList]:
-        """
-        List dataset logs with filtering, pagination, and full-object retrieval.
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/logs/list/ - List logs with pagination
-            POST /api/datasets/{dataset_id}/logs/list/ - List logs with complex filtering
-
-        Query Parameters (GET):
-            - page (integer, optional): Page number for pagination (default: 1)
-            - page_size (integer, optional): Number of results per page
-            - sort_by (string, optional): Field to order results by (default: unique_id)
-            - retrieval_mode (string, optional): "async" for background full-object loading
-
-        Request Body (POST):
-            - filters (object, optional): Complex filter criteria
-            - page (integer, optional): Page number
-            - page_size (integer, optional): Results per page
-
-        Response (200 OK):
-            - count (integer): Total number of logs matching filters
-            - next (string|null): URL for next page
-            - previous (string|null): URL for previous page
-            - results (array): Array of log objects
-            - filter_options (object): Available filter options
-
-        ## Under-the-hood optimizations:
-
-        ### 1. Async Full Object Preloading (retrieval_mode="async")
-        - When listing logs, the API returns immediately with shallow ClickHouse fields
-        - A background Celery task (`preload_full_objects_task`) is triggered to:
-          a. Fetch full log objects from S3 storage (including input/output)
-          b. Write them to Redis cache with key: `request_log_full_object_{unique_id}`
-          c. Cache TTL: 300 seconds (5 minutes)
-        - Subsequent detail view requests get instant cache hits
-        - Callback: `evaluation.utils.store_dataset_log_full_objects_to_cache`
-
-        ### 2. Overlay Precedence for Updated Logs
-        - When a log is updated, an overlay file is written to S3 with the new data
-        - ClickHouse row is updated with `updated_storage_object_key` pointing to overlay
-        - The preload task retrieves BOTH base index AND overlay keys
-        - Deduplication: If a `unique_id` is found in BOTH, overlay takes precedence
-          (tracked via `ids_to_retrieve` set in `batch_retrieve_full_objects`)
-
-        ### 3. ArgMax Deduplication
-        - Uses ClickHouse's argMax to get the latest version of each log
-        - Deduplicates by `unique_id`, sorted by `updated_at` field
-        - Ensures only the most recent version of each log is shown
-
-        ### 4. Storage Structure
-        - Index files (.idx): `{"unique_id1": {object1}, "unique_id2": {object2}}`
-        - Overlay files: `{object}` directly (single log, not wrapped)
-        - Both are handled transparently in `batch_retrieve_full_objects`
-
-        ## Performance characteristics:
-        - List response: ~100-200ms (ClickHouse query only, no S3)
-        - Cache population: 1-5s background (depends on log count)
-        - Detail view after list: ~10ms (Redis cache hit)
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedChDatasetLogListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedChDatasetLogListList,
-                    parse_obj_as(
-                        type_=PaginatedChDatasetLogListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_dataset_logs(
-        self,
-        dataset_id: str,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedChDatasetLogListList]:
-        """
-        List dataset logs with complex filtering via POST body.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedChDatasetLogListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
-            method="POST",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedChDatasetLogListList,
-                    parse_obj_as(
-                        type_=PaginatedChDatasetLogListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_list_update(
-        self,
-        dataset_id: str,
-        *,
-        id: str,
-        organization_id: str,
-        organization_key_id: str,
-        environment: str,
-        prompt_name: str,
-        trace_unique_id: str,
-        customer_identifier: str,
-        thread_identifier: str,
-        unique_organization_id: str,
-        log_type: str,
-        unique_id: str,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        note: typing.Optional[str] = OMIT,
-        ch_dataset_log_list_request_dataset_id: typing.Optional[str] = OMIT,
-        annotation_status: typing.Optional[str] = OMIT,
-        annotation_completed_by: typing.Optional[typing.Any] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        updated_by_email: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ChDatasetLogList]:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        id : str
-
-        organization_id : str
-
-        organization_key_id : str
-
-        environment : str
-
-        prompt_name : str
-
-        trace_unique_id : str
-
-        customer_identifier : str
-
-        thread_identifier : str
-
-        unique_organization_id : str
-
-        log_type : str
-
-        unique_id : str
-
-        timestamp : typing.Optional[dt.datetime]
-
-        start_time : typing.Optional[dt.datetime]
-
-        prompt_id : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        model : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status_code : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        storage_object_key : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        note : typing.Optional[str]
-
-        ch_dataset_log_list_request_dataset_id : typing.Optional[str]
-
-        annotation_status : typing.Optional[str]
-
-        annotation_completed_by : typing.Optional[typing.Any]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        updated_by_email : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ChDatasetLogList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
-            method="PUT",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "organization_key_id": organization_key_id,
-                "environment": environment,
-                "timestamp": timestamp,
-                "start_time": start_time,
-                "prompt_id": prompt_id,
-                "prompt_name": prompt_name,
-                "trace_unique_id": trace_unique_id,
-                "customer_identifier": customer_identifier,
-                "customer_name": customer_name,
-                "customer_email": customer_email,
-                "thread_identifier": thread_identifier,
-                "custom_identifier": custom_identifier,
-                "unique_organization_id": unique_organization_id,
-                "log_type": log_type,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "total_request_tokens": total_request_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "cost": cost,
-                "model": model,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status_code": status_code,
-                "status": status,
-                "blurred": blurred,
-                "storage_object_key": storage_object_key,
-                "updated_storage_object_key": updated_storage_object_key,
-                "span_workflow_name": span_workflow_name,
-                "span_name": span_name,
-                "note": note,
-                "unique_id": unique_id,
-                "dataset_id": ch_dataset_log_list_request_dataset_id,
-                "annotation_status": annotation_status,
-                "annotation_completed_by": annotation_completed_by,
-                "updated_at": updated_at,
-                "updated_by_email": updated_by_email,
-                "input": input,
-                "expected_output": expected_output,
-                "output": output,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLogList,
-                    parse_obj_as(
-                        type_=ChDatasetLogList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_list_partial_update(
-        self,
-        dataset_id: str,
-        *,
-        id: typing.Optional[str] = OMIT,
-        organization_id: typing.Optional[str] = OMIT,
-        organization_key_id: typing.Optional[str] = OMIT,
-        environment: typing.Optional[str] = OMIT,
-        timestamp: typing.Optional[dt.datetime] = OMIT,
-        start_time: typing.Optional[dt.datetime] = OMIT,
-        prompt_id: typing.Optional[str] = OMIT,
-        prompt_name: typing.Optional[str] = OMIT,
-        trace_unique_id: typing.Optional[str] = OMIT,
-        customer_identifier: typing.Optional[str] = OMIT,
-        customer_name: typing.Optional[str] = OMIT,
-        customer_email: typing.Optional[str] = OMIT,
-        thread_identifier: typing.Optional[str] = OMIT,
-        custom_identifier: typing.Optional[str] = OMIT,
-        unique_organization_id: typing.Optional[str] = OMIT,
-        log_type: typing.Optional[str] = OMIT,
-        prompt_tokens: typing.Optional[int] = OMIT,
-        completion_tokens: typing.Optional[int] = OMIT,
-        total_request_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_hit_tokens: typing.Optional[int] = OMIT,
-        prompt_cache_creation_tokens: typing.Optional[int] = OMIT,
-        reasoning_tokens: typing.Optional[int] = OMIT,
-        cost: typing.Optional[float] = OMIT,
-        model: typing.Optional[str] = OMIT,
-        latency: typing.Optional[float] = OMIT,
-        tokens_per_second: typing.Optional[float] = OMIT,
-        time_to_first_token: typing.Optional[float] = OMIT,
-        routing_time: typing.Optional[float] = OMIT,
-        status_code: typing.Optional[int] = OMIT,
-        status: typing.Optional[str] = OMIT,
-        blurred: typing.Optional[bool] = OMIT,
-        storage_object_key: typing.Optional[str] = OMIT,
-        updated_storage_object_key: typing.Optional[str] = OMIT,
-        span_workflow_name: typing.Optional[str] = OMIT,
-        span_name: typing.Optional[str] = OMIT,
-        note: typing.Optional[str] = OMIT,
-        unique_id: typing.Optional[str] = OMIT,
-        patched_ch_dataset_log_list_request_dataset_id: typing.Optional[str] = OMIT,
-        annotation_status: typing.Optional[str] = OMIT,
-        annotation_completed_by: typing.Optional[typing.Any] = OMIT,
-        updated_at: typing.Optional[dt.datetime] = OMIT,
-        updated_by_email: typing.Optional[str] = OMIT,
-        input: typing.Optional[str] = OMIT,
-        expected_output: typing.Optional[str] = OMIT,
-        output: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ChDatasetLogList]:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        id : typing.Optional[str]
-
-        organization_id : typing.Optional[str]
-
-        organization_key_id : typing.Optional[str]
-
-        environment : typing.Optional[str]
-
-        timestamp : typing.Optional[dt.datetime]
-
-        start_time : typing.Optional[dt.datetime]
-
-        prompt_id : typing.Optional[str]
-
-        prompt_name : typing.Optional[str]
-
-        trace_unique_id : typing.Optional[str]
-
-        customer_identifier : typing.Optional[str]
-
-        customer_name : typing.Optional[str]
-
-        customer_email : typing.Optional[str]
-
-        thread_identifier : typing.Optional[str]
-
-        custom_identifier : typing.Optional[str]
-
-        unique_organization_id : typing.Optional[str]
-
-        log_type : typing.Optional[str]
-
-        prompt_tokens : typing.Optional[int]
-
-        completion_tokens : typing.Optional[int]
-
-        total_request_tokens : typing.Optional[int]
-
-        prompt_cache_hit_tokens : typing.Optional[int]
-
-        prompt_cache_creation_tokens : typing.Optional[int]
-
-        reasoning_tokens : typing.Optional[int]
-
-        cost : typing.Optional[float]
-
-        model : typing.Optional[str]
-
-        latency : typing.Optional[float]
-
-        tokens_per_second : typing.Optional[float]
-
-        time_to_first_token : typing.Optional[float]
-
-        routing_time : typing.Optional[float]
-
-        status_code : typing.Optional[int]
-
-        status : typing.Optional[str]
-
-        blurred : typing.Optional[bool]
-
-        storage_object_key : typing.Optional[str]
-
-        updated_storage_object_key : typing.Optional[str]
-
-        span_workflow_name : typing.Optional[str]
-
-        span_name : typing.Optional[str]
-
-        note : typing.Optional[str]
-
-        unique_id : typing.Optional[str]
-
-        patched_ch_dataset_log_list_request_dataset_id : typing.Optional[str]
-
-        annotation_status : typing.Optional[str]
-
-        annotation_completed_by : typing.Optional[typing.Any]
-
-        updated_at : typing.Optional[dt.datetime]
-
-        updated_by_email : typing.Optional[str]
-
-        input : typing.Optional[str]
-
-        expected_output : typing.Optional[str]
-
-        output : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ChDatasetLogList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/list/",
-            method="PATCH",
-            json={
-                "id": id,
-                "organization_id": organization_id,
-                "organization_key_id": organization_key_id,
-                "environment": environment,
-                "timestamp": timestamp,
-                "start_time": start_time,
-                "prompt_id": prompt_id,
-                "prompt_name": prompt_name,
-                "trace_unique_id": trace_unique_id,
-                "customer_identifier": customer_identifier,
-                "customer_name": customer_name,
-                "customer_email": customer_email,
-                "thread_identifier": thread_identifier,
-                "custom_identifier": custom_identifier,
-                "unique_organization_id": unique_organization_id,
-                "log_type": log_type,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "total_request_tokens": total_request_tokens,
-                "prompt_cache_hit_tokens": prompt_cache_hit_tokens,
-                "prompt_cache_creation_tokens": prompt_cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-                "cost": cost,
-                "model": model,
-                "latency": latency,
-                "tokens_per_second": tokens_per_second,
-                "time_to_first_token": time_to_first_token,
-                "routing_time": routing_time,
-                "status_code": status_code,
-                "status": status,
-                "blurred": blurred,
-                "storage_object_key": storage_object_key,
-                "updated_storage_object_key": updated_storage_object_key,
-                "span_workflow_name": span_workflow_name,
-                "span_name": span_name,
-                "note": note,
-                "unique_id": unique_id,
-                "dataset_id": patched_ch_dataset_log_list_request_dataset_id,
-                "annotation_status": annotation_status,
-                "annotation_completed_by": annotation_completed_by,
-                "updated_at": updated_at,
-                "updated_by_email": updated_by_email,
-                "input": input,
-                "expected_output": expected_output,
-                "output": output,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ChDatasetLogList,
-                    parse_obj_as(
-                        type_=ChDatasetLogList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_summary_retrieve(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[DatasetLogsSummaryResponse]:
-        """
-        Get summary statistics for dataset logs including score summaries
-
-        Endpoint:
-            GET /api/datasets/{dataset_id}/logs/summary/
-            POST /api/datasets/{dataset_id}/logs/summary/ (for filtering)
-
-        Args (POST body, optional):
-            - filters (object, optional): Filter criteria to aggregate subset of logs
-
-        Returns (200 OK):
-            ```json
-            {
-              "number_of_requests": 150,
-              "total_cost": 12.45,
-              "total_tokens": 50000,
-              "total_prompt_tokens": 30000,
-              "total_completion_tokens": 20000,
-              "avg_latency": 1.23,
-              "avg_tps": 45.2,
-              "avg_ttft": 0.8,
-              "scores": {
-                "<evaluator_id>": {
-                  "evaluator_id": "<uuid>",
-                  "evaluator_slug": "quality_check",
-                  "evaluator_name": "Quality Check",
-                  "score_value_type": "numerical",
-                  "avg_score": 4.5,
-                  "true_count": null,
-                  "false_count": null
-                }
-              }
-            }
-            ```
-
-        Smart Syncing:
-            When no filters are provided (or filters are empty), the endpoint will:
-            1. Count all logs in the dataset
-            2. Update dataset.log_count with the accurate count
-            3. Return the count
-
-            This ensures the dataset log_count stays accurate without requiring
-            separate sync operations.
-
-        Examples:
-            Get total count (syncs to dataset):
-            ```
-            GET /api/datasets/{id}/logs/summary/
-            POST /api/datasets/{id}/logs/summary/
-            POST /api/datasets/{id}/logs/summary/ with {"filters": {}}
-            ```
-
-            Get filtered count (no sync):
-            ```
-            POST /api/datasets/{id}/logs/summary/
-            Body: {"filters": {"status_code": {"operator": "eq", "value": 200}}}
-            ```
-
-        Note: Score summaries only include evaluators with score_value_type of
-        'numerical', 'percentage', or 'boolean'.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetLogsSummaryResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetLogsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def summarize_dataset_logs_filtered(
-        self,
-        dataset_id: str,
-        *,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetLogsSummaryResponse]:
-        """
-        Get summary statistics for a filtered subset of dataset logs.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetLogsSummaryResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="POST",
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetLogsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_summary_update(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Default PUT handler with automatic organization injection.
-
-        Same behavior as patch() - preserves ownership for superadmins,
-        forces user's org for regular users.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="PUT",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_logs_summary_partial_update(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Default PATCH handler with automatic organization injection.
-
-        For UPDATE operations:
-        - Superadmins preserve original ownership (org fields removed from request)
-        - Regular users are forced to their own organization
-
-        Override this method only for custom pre-update logic.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/logs/summary/",
-            method="PATCH",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_presence_retrieve(
-        self, dataset_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[DatasetLogPresenceResponse]:
-        """
-        Get all users currently viewing logs in this dataset from Redis cache.
-
-        Parameters
-        ----------
-        dataset_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetLogPresenceResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(dataset_id)}/presence/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetLogPresenceResponse,
-                    parse_obj_as(
-                        type_=DatasetLogPresenceResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -8735,62 +2896,22 @@ class AsyncRawDatasetsClient:
 
     async def retrieve_dataset(
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[DatasetDetail]:
+    ) -> AsyncHttpResponse[RetrieveDatasetResponse]:
         """
-        Retrieve, update, and delete a dataset
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/
-            PATCH /api/datasets/{dataset_id}/
-            DELETE /api/datasets/{dataset_id}/
-
-        Superadmin: Can READ any dataset across all organizations via JWT.
-                    Cannot WRITE via JWT - must use API key for write operations.
-        Regular users: Can only access datasets in their organization.
-
-        Defense-in-depth:
-
-        Args (PATCH):
-            - name (Optional): string
-            - description (Optional): string
-
-        Returns (GET 200):
-            {
-              "id": "dataset_id",
-              "name": "Support Conversations - July",
-              "type": "sampling",
-              "description": "Sampled support chats for July",
-              "created_at": "2025-07-26T00:00:00Z",
-              "updated_at": "2025-07-27T08:10:00Z",
-              "organization": 123,
-              "initial_log_filters": {"status_code": {"operator": "eq", "value": 200}},
-              "unique_organization_ids": [],
-              "timestamps": [],
-              "log_count": 250,
-              "evaluator": null,
-              "status": "ready",
-              "running_status": "pending",
-              "running_progress": 0,
-              "running_at": null,
-              "completed_annotation_count": 0
-            }
-
-        Returns (PATCH 200): Same shape as GET with updated fields
-        Returns (DELETE 204): No content
-
-        Defense-in-depth: SuperAdminMixin provides queryset routing + object-level ownership.
+        Retrieve a dataset by ID.
 
         Parameters
         ----------
         id : str
+            Dataset ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[DatasetDetail]
-
+        AsyncHttpResponse[RetrieveDatasetResponse]
+            Successful response for Retrieve dataset
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(id)}/",
@@ -8800,228 +2921,24 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetDetail,
+                    RetrieveDatasetResponse,
                     parse_obj_as(
-                        type_=DatasetDetail,  # type: ignore
+                        type_=RetrieveDatasetResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_create2(
-        self,
-        id: str,
-        *,
-        name: str,
-        organization: int,
-        initial_log_filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_at: typing.Optional[dt.datetime] = OMIT,
-        unique_organization_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        timestamps: typing.Optional[typing.Sequence[dt.datetime]] = OMIT,
-        ingest_workflow_id: typing.Optional[str] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        evaluator: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : str
-
-        name : str
-
-        organization : int
-
-        initial_log_filters : typing.Optional[FilterParamDictPydantic]
-
-        project : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        description : typing.Optional[str]
-
-        running_progress : typing.Optional[float]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_at : typing.Optional[dt.datetime]
-
-        unique_organization_ids : typing.Optional[typing.Sequence[str]]
-
-        timestamps : typing.Optional[typing.Sequence[dt.datetime]]
-
-        ingest_workflow_id : typing.Optional[str]
-
-        starred : typing.Optional[bool]
-
-        evaluator : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(id)}/",
-            method="POST",
-            json={
-                "initial_log_filters": convert_and_respect_annotation_metadata(
-                    object_=initial_log_filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
-                "project": project,
-                "name": name,
-                "type": type,
-                "description": description,
-                "running_progress": running_progress,
-                "running_status": running_status,
-                "running_at": running_at,
-                "unique_organization_ids": unique_organization_ids,
-                "timestamps": timestamps,
-                "ingest_workflow_id": ingest_workflow_id,
-                "starred": starred,
-                "organization": organization,
-                "evaluator": evaluator,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetDetail,
-                    parse_obj_as(
-                        type_=DatasetDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_update(
-        self,
-        id: str,
-        *,
-        name: str,
-        organization: int,
-        initial_log_filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        project: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_at: typing.Optional[dt.datetime] = OMIT,
-        unique_organization_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        timestamps: typing.Optional[typing.Sequence[dt.datetime]] = OMIT,
-        ingest_workflow_id: typing.Optional[str] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        evaluator: typing.Optional[str] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetDetail]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : str
-
-        name : str
-
-        organization : int
-
-        initial_log_filters : typing.Optional[FilterParamDictPydantic]
-
-        project : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        description : typing.Optional[str]
-
-        running_progress : typing.Optional[float]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_at : typing.Optional[dt.datetime]
-
-        unique_organization_ids : typing.Optional[typing.Sequence[str]]
-
-        timestamps : typing.Optional[typing.Sequence[dt.datetime]]
-
-        ingest_workflow_id : typing.Optional[str]
-
-        starred : typing.Optional[bool]
-
-        evaluator : typing.Optional[str]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/datasets/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "initial_log_filters": convert_and_respect_annotation_metadata(
-                    object_=initial_log_filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
-                "project": project,
-                "name": name,
-                "type": type,
-                "description": description,
-                "running_progress": running_progress,
-                "running_status": running_status,
-                "running_at": running_at,
-                "unique_organization_ids": unique_organization_ids,
-                "timestamps": timestamps,
-                "ingest_workflow_id": ingest_workflow_id,
-                "starred": starred,
-                "organization": organization,
-                "evaluator": evaluator,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetDetail,
-                    parse_obj_as(
-                        type_=DatasetDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -9031,52 +2948,12 @@ class AsyncRawDatasetsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Retrieve, update, and delete a dataset
-
-        Endpoints:
-            GET /api/datasets/{dataset_id}/
-            PATCH /api/datasets/{dataset_id}/
-            DELETE /api/datasets/{dataset_id}/
-
-        Superadmin: Can READ any dataset across all organizations via JWT.
-                    Cannot WRITE via JWT - must use API key for write operations.
-        Regular users: Can only access datasets in their organization.
-
-        Defense-in-depth:
-
-        Args (PATCH):
-            - name (Optional): string
-            - description (Optional): string
-
-        Returns (GET 200):
-            {
-              "id": "dataset_id",
-              "name": "Support Conversations - July",
-              "type": "sampling",
-              "description": "Sampled support chats for July",
-              "created_at": "2025-07-26T00:00:00Z",
-              "updated_at": "2025-07-27T08:10:00Z",
-              "organization": 123,
-              "initial_log_filters": {"status_code": {"operator": "eq", "value": 200}},
-              "unique_organization_ids": [],
-              "timestamps": [],
-              "log_count": 250,
-              "evaluator": null,
-              "status": "ready",
-              "running_status": "pending",
-              "running_progress": 0,
-              "running_at": null,
-              "completed_annotation_count": 0
-            }
-
-        Returns (PATCH 200): Same shape as GET with updated fields
-        Returns (DELETE 204): No content
-
-        Defense-in-depth: SuperAdminMixin provides queryset routing + object-level ownership.
+        Delete a dataset and the logs it contains.
 
         Parameters
         ----------
         id : str
+            Dataset ID.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -9093,6 +2970,17 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -9102,89 +2990,48 @@ class AsyncRawDatasetsClient:
         self,
         id: str,
         *,
-        initial_log_filters: typing.Optional[FilterParamDictPydantic] = OMIT,
-        project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
         description: typing.Optional[str] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_at: typing.Optional[dt.datetime] = OMIT,
-        unique_organization_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        timestamps: typing.Optional[typing.Sequence[dt.datetime]] = OMIT,
-        ingest_workflow_id: typing.Optional[str] = OMIT,
         starred: typing.Optional[bool] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        evaluator: typing.Optional[str] = OMIT,
+        tags: typing.Optional[typing.Sequence[str]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetDetail]:
+    ) -> AsyncHttpResponse[UpdateDatasetResponse]:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Update dataset metadata such as the name, description, starred state, or tags.
 
         Parameters
         ----------
         id : str
-
-        initial_log_filters : typing.Optional[FilterParamDictPydantic]
-
-        project : typing.Optional[str]
+            Dataset ID.
 
         name : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
+            Updated dataset name.
 
         description : typing.Optional[str]
-
-        running_progress : typing.Optional[float]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_at : typing.Optional[dt.datetime]
-
-        unique_organization_ids : typing.Optional[typing.Sequence[str]]
-
-        timestamps : typing.Optional[typing.Sequence[dt.datetime]]
-
-        ingest_workflow_id : typing.Optional[str]
+            Updated dataset description.
 
         starred : typing.Optional[bool]
+            Whether the dataset is starred.
 
-        organization : typing.Optional[int]
-
-        evaluator : typing.Optional[str]
+        tags : typing.Optional[typing.Sequence[str]]
+            List of tag IDs to assign. Replaces existing tags.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[DatasetDetail]
-
+        AsyncHttpResponse[UpdateDatasetResponse]
+            Updated dataset.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/datasets/{jsonable_encoder(id)}/",
             method="PATCH",
             json={
-                "initial_log_filters": convert_and_respect_annotation_metadata(
-                    object_=initial_log_filters, annotation=FilterParamDictPydantic, direction="write"
-                ),
-                "project": project,
                 "name": name,
-                "type": type,
                 "description": description,
-                "running_progress": running_progress,
-                "running_status": running_status,
-                "running_at": running_at,
-                "unique_organization_ids": unique_organization_ids,
-                "timestamps": timestamps,
-                "ingest_workflow_id": ingest_workflow_id,
                 "starred": starred,
-                "organization": organization,
-                "evaluator": evaluator,
+                "tags": tags,
             },
             headers={
                 "content-type": "application/json",
@@ -9195,527 +3042,24 @@ class AsyncRawDatasetsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    DatasetDetail,
+                    UpdateDatasetResponse,
                     parse_obj_as(
-                        type_=DatasetDetail,  # type: ignore
+                        type_=UpdateDatasetResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedDatasetListList]:
-        """
-        List datasets
-
-        Endpoint:
-            GET /api/datasets/list/
-
-        Superadmin: Can see all datasets across all organizations.
-        Regular users: Can only see datasets in their organization.
-
-        Returns (200):
-            {
-              "count": 1,
-              "next": null,
-              "previous": null,
-              "results": [
-                {
-                  "id": "dataset_id",
-                  "organization_id": 123,
-                  "updated_by": {"first_name": "Ann", "last_name": "Lee", "email": "ann@example.com"},
-                  "log_count": 250,
-                  "name": "Support Conversations - July",
-                  "log_ids": ["..."],
-                  "description": "Sampled support chats for July",
-                  "type": "sampling",
-                  "status": "ready",
-                  "created_at": "2025-07-26T00:00:00Z",
-                  "updated_at": "2025-07-27T08:10:00Z",
-                  "completed_annotation_count": 0,
-                  "running_status": "pending",
-                  "running_progress": 0
-                }
-              ]
-            }
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedDatasetListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedDatasetListList,
-                    parse_obj_as(
-                        type_=PaginatedDatasetListList,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_datasets(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedDatasetListList]:
-        """
-        List datasets with complex filtering via POST body.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedDatasetListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/list/",
-            method="POST",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedDatasetListList,
-                    parse_obj_as(
-                        type_=PaginatedDatasetListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_list_update(
-        self,
-        *,
-        name: str,
-        id: typing.Optional[str] = OMIT,
-        log_count: typing.Optional[int] = OMIT,
-        log_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        status: typing.Optional[DatasetStatusEnum] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        name : str
-
-        id : typing.Optional[str]
-
-        log_count : typing.Optional[int]
-
-        log_ids : typing.Optional[typing.Sequence[str]]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        status : typing.Optional[DatasetStatusEnum]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_progress : typing.Optional[float]
-
-        starred : typing.Optional[bool]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/list/",
-            method="PUT",
-            json={
-                "id": id,
-                "log_count": log_count,
-                "name": name,
-                "log_ids": log_ids,
-                "description": description,
-                "type": type,
-                "status": status,
-                "running_status": running_status,
-                "running_progress": running_progress,
-                "starred": starred,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetList,
-                    parse_obj_as(
-                        type_=DatasetList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_list_partial_update(
-        self,
-        *,
-        id: typing.Optional[str] = OMIT,
-        log_count: typing.Optional[int] = OMIT,
-        name: typing.Optional[str] = OMIT,
-        log_ids: typing.Optional[typing.Sequence[str]] = OMIT,
-        description: typing.Optional[str] = OMIT,
-        type: typing.Optional[DatasetTypeEnum] = OMIT,
-        status: typing.Optional[DatasetStatusEnum] = OMIT,
-        running_status: typing.Optional[DatasetLlmRunStatusEnum] = OMIT,
-        running_progress: typing.Optional[float] = OMIT,
-        starred: typing.Optional[bool] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : typing.Optional[str]
-
-        log_count : typing.Optional[int]
-
-        name : typing.Optional[str]
-
-        log_ids : typing.Optional[typing.Sequence[str]]
-
-        description : typing.Optional[str]
-
-        type : typing.Optional[DatasetTypeEnum]
-
-        status : typing.Optional[DatasetStatusEnum]
-
-        running_status : typing.Optional[DatasetLlmRunStatusEnum]
-
-        running_progress : typing.Optional[float]
-
-        starred : typing.Optional[bool]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/list/",
-            method="PATCH",
-            json={
-                "id": id,
-                "log_count": log_count,
-                "name": name,
-                "log_ids": log_ids,
-                "description": description,
-                "type": type,
-                "status": status,
-                "running_status": running_status,
-                "running_progress": running_progress,
-                "starred": starred,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetList,
-                    parse_obj_as(
-                        type_=DatasetList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[DatasetsSummaryResponse]:
-        """
-        GET/POST /api/datasets/summary/
-
-        Returns total count of datasets matching the supplied filters.
-        POST supports filtering via body (POST-for-filtering pattern).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetsSummaryResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_summary_filtered(
-        self,
-        *,
-        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetsSummaryResponse]:
-        """
-        Get total count of datasets with complex filtering via POST body.
-
-        Parameters
-        ----------
-        filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter parameters keyed by metric name.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetsSummaryResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/summary/",
-            method="POST",
-            json={
-                "filters": filters,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_summary_update(
-        self,
-        *,
-        total_count: int,
-        filters_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetsSummaryResponse]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        total_count : int
-
-        filters_data : typing.Optional[typing.Dict[str, typing.Any]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetsSummaryResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/summary/",
-            method="PUT",
-            json={
-                "total_count": total_count,
-                "filters_data": filters_data,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_datasets_summary_partial_update(
-        self,
-        *,
-        total_count: typing.Optional[int] = OMIT,
-        filters_data: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[DatasetsSummaryResponse]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        total_count : typing.Optional[int]
-
-        filters_data : typing.Optional[typing.Dict[str, typing.Any]]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[DatasetsSummaryResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/datasets/summary/",
-            method="PATCH",
-            json={
-                "total_count": total_count,
-                "filters_data": filters_data,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    DatasetsSummaryResponse,
-                    parse_obj_as(
-                        type_=DatasetsSummaryResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

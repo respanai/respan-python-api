@@ -7,46 +7,30 @@ from ..core.api_error import ApiError
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.http_response import AsyncHttpResponse, HttpResponse
 from ..core.jsonable_encoder import jsonable_encoder
+from ..core.pagination import AsyncPager, SyncPager
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
-from ..core.serialization import convert_and_respect_annotation_metadata
-from ..types.affiliation_category_enum import AffiliationCategoryEnum
-from ..types.llm_foundation_model import LlmFoundationModel
-from ..types.llm_foundation_model_detail import LlmFoundationModelDetail
-from ..types.llm_model_detail import LlmModelDetail
-from ..types.llm_model_detail_request_metadata import LlmModelDetailRequestMetadata
-from ..types.llm_provider import LlmProvider
-from ..types.llm_provider_integration import LlmProviderIntegration
-from ..types.llm_provider_request import LlmProviderRequest
+from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
+from ..errors.not_found_error import NotFoundError
+from ..errors.too_many_requests_error import TooManyRequestsError
+from ..errors.unauthorized_error import UnauthorizedError
 from ..types.model_status_response import ModelStatusResponse
-from ..types.model_type_enum import ModelTypeEnum
-from ..types.paginated_llm_foundation_model_list import PaginatedLlmFoundationModelList
-from ..types.paginated_llm_provider_list import PaginatedLlmProviderList
-from ..types.paginated_public_custom_provider_list_list import PaginatedPublicCustomProviderListList
-from ..types.paginated_public_model_list_list import PaginatedPublicModelListList
-from ..types.patched_public_model_list_request_metadata import PatchedPublicModelListRequestMetadata
-from ..types.patched_public_model_update_request_metadata import PatchedPublicModelUpdateRequestMetadata
-from ..types.patched_public_model_update_request_supported_params_override import (
-    PatchedPublicModelUpdateRequestSupportedParamsOverride,
-)
-from ..types.provider_credential_field_list_request import ProviderCredentialFieldListRequest
-from ..types.public_custom_provider_create import PublicCustomProviderCreate
-from ..types.public_custom_provider_detail import PublicCustomProviderDetail
-from ..types.public_custom_provider_list import PublicCustomProviderList
-from ..types.public_custom_provider_update import PublicCustomProviderUpdate
-from ..types.public_model_detail import PublicModelDetail
-from ..types.public_model_list import PublicModelList
-from ..types.public_model_list_request_metadata import PublicModelListRequestMetadata
-from ..types.public_model_update import PublicModelUpdate
-from ..types.public_model_update_request_metadata import PublicModelUpdateRequestMetadata
-from ..types.public_model_update_request_supported_params_override import (
-    PublicModelUpdateRequestSupportedParamsOverride,
-)
-from ..types.source7d1enum import Source7D1Enum
-from ..types.status359enum import Status359Enum
-from ..types.time_tick_enum import TimeTickEnum
+from .types.api_models_status_create_request_time_tick import ApiModelsStatusCreateRequestTimeTick
 from .types.api_models_status_retrieve_request_time_tick import ApiModelsStatusRetrieveRequestTimeTick
-from .types.llm_models_models_status_retrieve_request_time_tick import LlmModelsModelsStatusRetrieveRequestTimeTick
+from .types.create_custom_model_response import CreateCustomModelResponse
+from .types.create_custom_provider_response import CreateCustomProviderResponse
+from .types.filter_models_response import FilterModelsResponse
+from .types.filter_models_response_results_item import FilterModelsResponseResultsItem
+from .types.filter_models_summary_response import FilterModelsSummaryResponse
+from .types.list_custom_providers_response import ListCustomProvidersResponse
+from .types.list_models_response import ListModelsResponse
+from .types.replace_custom_model_response import ReplaceCustomModelResponse
+from .types.replace_custom_provider_response import ReplaceCustomProviderResponse
+from .types.retrieve_custom_model_response import RetrieveCustomModelResponse
+from .types.retrieve_custom_provider_response import RetrieveCustomProviderResponse
+from .types.update_custom_model_response import UpdateCustomModelResponse
+from .types.update_custom_provider_response import UpdateCustomProviderResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -56,135 +40,59 @@ class RawModelsClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def api_models_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedPublicModelListList]:
-        """
-        GET/POST /api/llm_models/models/  (platform - shows global + custom)
-        GET/POST /api/llm-models/custom-models/  (public API - shows ONLY custom)
-
-        Unified endpoint for models.
-
-        GET:  List models
-              - Platform: global + org's custom (same for superadmin - no cross-org listing)
-              - Public (custom-models path): ONLY org's custom models
-              Filter with standard syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-
-        POST:
-            - Without 'model_name' in body: Filter/list models (backward compatible)
-            - With 'model_name' in body: Create model
-                - organization_id=null + superadmin: Create global model
-                - Otherwise: Create custom model for target org (superadmin can specify organization_id)
-
-        Note: Uses SuperAdminMixin for consistency, but queryset is intentionally the same
-        for both regular users and superadmins (global + org's custom pattern).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedPublicModelListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/models/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicModelListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicModelListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def create_custom_model(
         self,
         *,
         model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelList]:
+    ) -> HttpResponse[CreateCustomModelResponse]:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Create an organization-specific custom model. If a model with the same `model_name` already exists in your organization, it is updated and the endpoint returns `200`.
 
         Parameters
         ----------
         model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Unique model name within your organization.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -192,71 +100,35 @@ class RawModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicModelList]
-
+        HttpResponse[CreateCustomModelResponse]
+            Updated existing model.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/models/",
             method="POST",
             json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
                 "model_name": model_name,
                 "base_model_name": base_model_name,
                 "display_name": display_name,
-                "max_context_window": max_context_window,
+                "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
                 "input_cost": input_cost,
                 "output_cost": output_cost,
                 "cache_hit_input_cost": cache_hit_input_cost,
                 "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
+                "max_context_window": max_context_window,
                 "streaming_support": streaming_support,
                 "function_call": function_call,
                 "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
+                "supported_params_override": supported_params_override,
             },
             headers={
                 "content-type": "application/json",
@@ -267,151 +139,113 @@ class RawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelList,
+                    CreateCustomModelResponse,
                     parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
+                        type_=CreateCustomModelResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def api_models_update(
+    def filter_models(
         self,
         *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelList]:
+    ) -> SyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        List models using POST-for-filtering. Authentication is optional: anonymous callers receive managed global models, while API-key and dashboard callers also receive their organization's custom models. Anonymous requests are rate-limited per client IP.
 
         Parameters
         ----------
-        model_name : str
+        page : typing.Optional[int]
+            Page number.
 
-        project : typing.Optional[str]
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
 
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
 
-        is_managed : typing.Optional[bool]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicModelList]
-
+        SyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]
+            Paginated filtered list of models.
         """
+        page = page if page is not None else 1
+
         _response = self._client_wrapper.httpx_client.request(
-            "api/models/",
-            method="PUT",
+            "api/models/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
             json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
+                "filters": filters,
+                "is_exporting": is_exporting,
             },
             headers={
                 "content-type": "application/json",
@@ -421,154 +255,67 @@ class RawModelsClient:
         )
         try:
             if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
+                _parsed_response = typing.cast(
+                    FilterModelsResponse,
                     parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
+                        type_=FilterModelsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
+                _items = _parsed_response.results
+                _has_next = True
+                _get_next = lambda: self.filter_models(
+                    page=page + 1,
+                    page_size=page_size,
+                    sort_by=sort_by,
+                    filters=filters,
+                    is_exporting=is_exporting,
+                    request_options=request_options,
+                )
+                return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def api_models_partial_update(
+    def filter_models_summary(
         self,
         *,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        model_name: typing.Optional[str] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelList]:
+    ) -> HttpResponse[FilterModelsSummaryResponse]:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Return model counts after applying an optional POST filter. Authentication is optional: anonymous counts cover managed global models, while authenticated counts also include the caller's custom models.
 
         Parameters
         ----------
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        model_name : typing.Optional[str]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicModelList]
-
+        HttpResponse[FilterModelsSummaryResponse]
+            Models summary.
         """
         _response = self._client_wrapper.httpx_client.request(
-            "api/models/",
-            method="PATCH",
+            "api/models/summary/",
+            method="POST",
             json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PatchedPublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
+                "filters": filters,
             },
             headers={
                 "content-type": "application/json",
@@ -579,13 +326,24 @@ class RawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelList,
+                    FilterModelsSummaryResponse,
                     parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
+                        type_=FilterModelsSummaryResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -593,36 +351,22 @@ class RawModelsClient:
 
     def retrieve_custom_model(
         self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[PublicModelDetail]:
+    ) -> HttpResponse[RetrieveCustomModelResponse]:
         """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
+        Retrieve a built-in or custom model by model name. Custom models are only visible to the owning organization.
 
         Parameters
         ----------
         model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicModelDetail]
-
+        HttpResponse[RetrieveCustomModelResponse]
+            Model details.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/",
@@ -632,270 +376,35 @@ class RawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelDetail,
+                    RetrieveCustomModelResponse,
                     parse_obj_as(
-                        type_=PublicModelDetail,  # type: ignore
+                        type_=RetrieveCustomModelResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_models_create2(
-        self,
-        model_name_: str,
-        *,
-        provider: LlmProviderRequest,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        order: typing.Optional[int] = OMIT,
-        sdk: typing.Optional[str] = OMIT,
-        foundation_model_name: typing.Optional[str] = OMIT,
-        drop_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        fallbacks: typing.Optional[typing.Any] = OMIT,
-        deprecated: typing.Optional[bool] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[LlmModelDetailRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        foundation_model: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[LlmModelDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        model_name_ : str
-
-        provider : LlmProviderRequest
-
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        order : typing.Optional[int]
-
-        sdk : typing.Optional[str]
-
-        foundation_model_name : typing.Optional[str]
-
-        drop_params : typing.Optional[typing.Sequence[str]]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        fallbacks : typing.Optional[typing.Any]
-
-        deprecated : typing.Optional[bool]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[LlmModelDetailRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        foundation_model : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmModelDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/models/{jsonable_encoder(model_name_)}/",
-            method="POST",
-            json={
-                "project": project,
-                "provider": convert_and_respect_annotation_metadata(
-                    object_=provider, annotation=LlmProviderRequest, direction="write"
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "speed": speed,
-                "max_context_window": max_context_window,
-                "model_size": model_size,
-                "mmlu_score": mmlu_score,
-                "mt_bench_score": mt_bench_score,
-                "big_bench_score": big_bench_score,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "rate_limit": rate_limit,
-                "token_rate_limit": token_rate_limit,
-                "multilingual": multilingual,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "enforce_function_call": enforce_function_call,
-                "weight": weight,
-                "image_support": image_support,
-                "order": order,
-                "sdk": sdk,
-                "foundation_model_name": foundation_model_name,
-                "drop_params": drop_params,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "fallbacks": fallbacks,
-                "deprecated": deprecated,
-                "status": status,
-                "is_verified": is_verified,
-                "total_requests": total_requests,
-                "total_cost": total_cost,
-                "total_tokens": total_tokens,
-                "total_completion_tokens": total_completion_tokens,
-                "total_prompt_tokens": total_prompt_tokens,
-                "avg_tps": avg_tps,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=LlmModelDetailRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-                "foundation_model": foundation_model,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmModelDetail,
-                    parse_obj_as(
-                        type_=LlmModelDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -905,63 +414,55 @@ class RawModelsClient:
         self,
         model_name: str,
         *,
-        supported_params_override: typing.Optional[PublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelUpdate]:
+    ) -> HttpResponse[ReplaceCustomModelResponse]:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        Replace editable fields for a custom model. The `model_name` path value remains the identifier.
 
         Parameters
         ----------
         model_name : str
-
-        supported_params_override : typing.Optional[PublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -969,74 +470,34 @@ class RawModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicModelUpdate]
-
+        HttpResponse[ReplaceCustomModelResponse]
+            Updated model.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/",
             method="PUT",
             json={
-                "supported_params_override": convert_and_respect_annotation_metadata(
-                    object_=supported_params_override,
-                    annotation=PublicModelUpdateRequestSupportedParamsOverride,
-                    direction="write",
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
                 "base_model_name": base_model_name,
                 "display_name": display_name,
-                "max_context_window": max_context_window,
+                "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
                 "input_cost": input_cost,
                 "output_cost": output_cost,
                 "cache_hit_input_cost": cache_hit_input_cost,
                 "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
+                "max_context_window": max_context_window,
                 "streaming_support": streaming_support,
                 "function_call": function_call,
                 "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelUpdateRequestMetadata, direction="write"
-                ),
-                "provider": provider,
+                "supported_params_override": supported_params_override,
             },
             headers={
                 "content-type": "application/json",
@@ -1047,13 +508,57 @@ class RawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelUpdate,
+                    ReplaceCustomModelResponse,
                     parse_obj_as(
-                        type_=PublicModelUpdate,  # type: ignore
+                        type_=ReplaceCustomModelResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1063,26 +568,12 @@ class RawModelsClient:
         self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
+        Delete a custom model by model name.
 
         Parameters
         ----------
         model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1099,6 +590,39 @@ class RawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1108,65 +632,55 @@ class RawModelsClient:
         self,
         model_name: str,
         *,
-        supported_params_override: typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelUpdate]:
+    ) -> HttpResponse[UpdateCustomModelResponse]:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Partially update editable fields for a custom model. The `model_name` field is read-only.
 
         Parameters
         ----------
         model_name : str
-
-        supported_params_override : typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -1174,74 +688,34 @@ class RawModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PublicModelUpdate]
-
+        HttpResponse[UpdateCustomModelResponse]
+            Updated model.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/",
             method="PATCH",
             json={
-                "supported_params_override": convert_and_respect_annotation_metadata(
-                    object_=supported_params_override,
-                    annotation=PatchedPublicModelUpdateRequestSupportedParamsOverride,
-                    direction="write",
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
                 "base_model_name": base_model_name,
                 "display_name": display_name,
-                "max_context_window": max_context_window,
+                "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
                 "input_cost": input_cost,
                 "output_cost": output_cost,
                 "cache_hit_input_cost": cache_hit_input_cost,
                 "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
+                "max_context_window": max_context_window,
                 "streaming_support": streaming_support,
                 "function_call": function_call,
                 "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PatchedPublicModelUpdateRequestMetadata, direction="write"
-                ),
-                "provider": provider,
+                "supported_params_override": supported_params_override,
             },
             headers={
                 "content-type": "application/json",
@@ -1252,9 +726,564 @@ class RawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelUpdate,
+                    UpdateCustomModelResponse,
                     parse_obj_as(
-                        type_=PublicModelUpdate,  # type: ignore
+                        type_=UpdateCustomModelResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def list_custom_providers(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ListCustomProvidersResponse]:
+        """
+        List custom providers for the authenticated organization.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ListCustomProvidersResponse]
+            Paginated custom providers.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/providers/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListCustomProvidersResponse,
+                    parse_obj_as(
+                        type_=ListCustomProvidersResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def create_custom_provider(
+        self,
+        *,
+        provider_id: str,
+        provider_name: str,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[CreateCustomProviderResponse]:
+        """
+        Create a custom provider. Use `PATCH /api/providers/{provider_id}/` to update an existing provider.
+
+        Parameters
+        ----------
+        provider_id : str
+            Unique provider identifier within your organization.
+
+        provider_name : str
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[CreateCustomProviderResponse]
+            Created provider.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/providers/",
+            method="POST",
+            json={
+                "provider_id": provider_id,
+                "provider_name": provider_name,
+                "extra_kwargs": extra_kwargs,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    CreateCustomProviderResponse,
+                    parse_obj_as(
+                        type_=CreateCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def retrieve_custom_provider(
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[RetrieveCustomProviderResponse]:
+        """
+        Retrieve a custom provider by its string provider ID. The current backend returns `extra_kwargs`, including any credentials stored in that object; handle this response as sensitive.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[RetrieveCustomProviderResponse]
+            Provider details.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveCustomProviderResponse,
+                    parse_obj_as(
+                        type_=RetrieveCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def replace_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        provider_name: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[ReplaceCustomProviderResponse]:
+        """
+        Replace editable fields for a custom provider. The `provider_id` path value remains the identifier.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ReplaceCustomProviderResponse]
+            Updated provider.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="PUT",
+            json={
+                "provider_name": provider_name,
+                "extra_kwargs": extra_kwargs,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceCustomProviderResponse,
+                    parse_obj_as(
+                        type_=ReplaceCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_custom_provider(
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[None]:
+        """
+        Delete a custom provider by string provider ID.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[None]
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def update_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        provider_name: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[UpdateCustomProviderResponse]:
+        """
+        Partially update editable fields for a custom provider. The `provider_id` field is read-only.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[UpdateCustomProviderResponse]
+            Updated provider.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="PATCH",
+            json={
+                "provider_name": provider_name,
+                "extra_kwargs": extra_kwargs,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UpdateCustomProviderResponse,
+                    parse_obj_as(
+                        type_=UpdateCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def list_models(
+        self, *, unnest: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[ListModelsResponse]:
+        """
+        List built-in public models and provider metadata. This endpoint does not require authentication. By default the response is `{ "models": [...] }`; pass `unnest=true` to return the array directly.
+
+        Parameters
+        ----------
+        unnest : typing.Optional[bool]
+            If `true`, return the public model catalog as an array instead of `{ "models": [...] }`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ListModelsResponse]
+            Public model catalog.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/models/public/",
+            method="GET",
+            params={
+                "unnest": unnest,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListModelsResponse,
+                    parse_obj_as(
+                        type_=ListModelsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1268,57 +1297,27 @@ class RawModelsClient:
         self,
         model_name: str,
         *,
-        end_time: str,
         start_time: str,
+        end_time: str,
         provider_id: typing.Optional[str] = None,
         time_tick: typing.Optional[ApiModelsStatusRetrieveRequestTimeTick] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ModelStatusResponse]:
         """
-        GET/POST /api/models/<model_name>/status/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/<model_name>/status/ (Platform)
-
-        Per-model status resource for the exact logged model string in the URL path,
-        over an absolute UTC ``[start_time, end_time)`` range, bucketed by
-        ``time_tick`` (minute / hour / day).
-        Returns four things (see ``ModelStatusResponseSerializer``):
-          - ``data`` — per-provider uptime time series (per-attempt grain). Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``respan_uptime`` — request-grain "via Respan" uptime time series: one
-            verdict per client call (UP if ANY retry/fallback attempt succeeded), so
-            it reflects failover and sits at/above the per-provider line. Omitted for
-            provider-filtered requests because it is inherently cross-provider.
-          - ``metrics_series`` — per-bucket performance metrics over the window (tps,
-            ttft, latency, cache-hit %, + admin-only counts/cost), so the other
-            metrics can be plotted over time just like uptime. Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``status`` — scalar model-wide summary over the window (uptime %, tps,
-            ttft, latency, cache-hit %, catalog input list price). Omitted when a
-            ``provider_id`` filter is supplied (it is cross-provider).
-
-        Redaction: public/regular callers get only normalized rates/percentages plus
-        the catalog list price; staff/superadmins additionally get volume scalars
-        (request/down counts, total cost) — those are withheld from the public so
-        competitors can't infer platform traffic/revenue from counts × price.
-
-        The model is the URL path segment (``<path:model_name>``) so provider-prefixed
-        identifiers (e.g. ``vertex_ai/gemini-1.5-pro``) survive routing; the filters
-        (``provider_id``, ``time_tick``, range) stay query/body params.
+        Get public uptime and normalized performance metrics for an exact logged model string. Authentication is optional. Public callers receive redacted volume fields.
 
         Parameters
         ----------
         model_name : str
-
-        end_time : str
+            Exact logged model string; provider-prefixed values may contain a slash.
 
         start_time : str
+
+        end_time : str
 
         provider_id : typing.Optional[str]
 
         time_tick : typing.Optional[ApiModelsStatusRetrieveRequestTimeTick]
-            * `minute` - minute
-            * `hour` - hour
-            * `day` - day
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1326,15 +1325,15 @@ class RawModelsClient:
         Returns
         -------
         HttpResponse[ModelStatusResponse]
-
+            Model status series. Unknown model names return empty series rather than 404.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/status/",
             method="GET",
             params={
-                "end_time": end_time,
                 "provider_id": provider_id,
                 "start_time": start_time,
+                "end_time": end_time,
                 "time_tick": time_tick,
             },
             request_options=request_options,
@@ -1349,6 +1348,28 @@ class RawModelsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1361,23 +1382,26 @@ class RawModelsClient:
         start_time: str,
         end_time: str,
         provider_id: typing.Optional[str] = OMIT,
-        time_tick: typing.Optional[TimeTickEnum] = OMIT,
+        time_tick: typing.Optional[ApiModelsStatusCreateRequestTimeTick] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ModelStatusResponse]:
         """
-        POST for filtering - delegate to GET (BE conventions).
+        POST-for-filtering model status. Manually supplied query parameters override the same body values.
 
         Parameters
         ----------
         model_name : str
+            Exact logged model string; provider-prefixed values may contain a slash.
 
         start_time : str
+            ISO-8601 or epoch timestamp. Raw window max 90 days.
 
         end_time : str
+            Timestamp after start_time.
 
         provider_id : typing.Optional[str]
 
-        time_tick : typing.Optional[TimeTickEnum]
+        time_tick : typing.Optional[ApiModelsStatusCreateRequestTimeTick]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1385,7 +1409,7 @@ class RawModelsClient:
         Returns
         -------
         HttpResponse[ModelStatusResponse]
-
+            Model status series. Unknown model names return empty series rather than 404.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/status/",
@@ -1412,4595 +1436,28 @@ class RawModelsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedPublicModelListList]:
-        """
-        GET/POST /api/models/list/        (Public API)
-        GET/POST /api/llm_models/models/list/  (Platform)
-
-        List models. **Authentication is optional** (OpenRouter-style catalog) — the
-        SAME endpoint serves both public and authenticated callers:
-
-        - **Unauthenticated** → managed/shared models only (``organization=None``).
-          Rate-limited per client IP.
-        - **API key / JWT** → managed models PLUS the caller's own custom models.
-
-        Read-only: there is no create/write path (``ListAPIView``); ``post()`` only
-        delegates to ``get()`` to support POST-body filtering (BE conventions). Both
-        auth modes fully support filtering.
-
-        Optionally enriches each model with cross-org performance metrics (opt-in via
-        ``is_including_metrics``) over an absolute UTC ``[start_time, end_time)`` window
-        read at ``time_tick`` grain (dashboard convention). Each model gets a ``metrics``
-        object: average_tps / average_ttft / average_latency (OpenRouter-style
-        averages), uptime_percent, number_of_requests, cost, the prompt/completion/
-        cache token sums, and cache_hit_percentage. Sourced from the cross-org
-        ``get_public_breakdown_metrics`` reader (clickhouse/tasks.py). The metrics are
-        cross-org aggregates, so they're identical regardless of auth.
-
-        Filtering:
-            Use standard filter syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-            See boilerplates/keywordsai/feature_docs/shared/filters_api_reference.md
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedPublicModelListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/models/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicModelListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicModelListList,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def filter_models(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelList]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicModelList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/models/list/",
-            method="POST",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def list_models(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
-        """
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/models/public/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_models_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        GET/POST /api/models/summary/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/summary/ (Platform)
-
-        Summary counts for LLM models. **Auth is optional** — same model as
-        ``ModelsListView``:
-
-        - **Unauthenticated** → counts over managed/global models only
-          (``organization=null``). Rate-limited per client IP.
-        - **API key / JWT** → counts include the caller's custom models too.
-
-        Read-only: only GET (and POST-as-filter, delegating to GET). No write path.
-
-        Returns:
-            {
-                "summary": {
-                    "total_count": 150,
-                    "global_count": 120,
-                    "custom_count": 30
-                }
-            }
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/models/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def filter_models_summary(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/models/summary/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_provider_integrations_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[typing.List[LlmProviderIntegration]]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[typing.List[LlmProviderIntegration]]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/provider-integrations/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[LlmProviderIntegration],
-                    parse_obj_as(
-                        type_=typing.List[LlmProviderIntegration],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_provider_integrations_create(
-        self,
-        *,
-        credential_fields: typing.Sequence[ProviderCredentialFieldListRequest],
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        integration_id: typing.Optional[int] = OMIT,
-        active_integrations_count: typing.Optional[int] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[LlmProviderIntegration]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        credential_fields : typing.Sequence[ProviderCredentialFieldListRequest]
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        integration_id : typing.Optional[int]
-
-        active_integrations_count : typing.Optional[int]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmProviderIntegration]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/provider-integrations/",
-            method="POST",
-            json={
-                "project": project,
-                "credential_fields": convert_and_respect_annotation_metadata(
-                    object_=credential_fields,
-                    annotation=typing.Sequence[ProviderCredentialFieldListRequest],
-                    direction="write",
-                ),
-                "integration_id": integration_id,
-                "active_integrations_count": active_integrations_count,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProviderIntegration,
-                    parse_obj_as(
-                        type_=LlmProviderIntegration,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def list_custom_providers(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedPublicCustomProviderListList]:
-        """
-        Create and list custom LLM providers for an organization
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Superadmin access:
-            Superadmins can access ALL custom providers across all organizations.
-            Regular users can only access their own organization's providers.
-
-        Endpoint:
-            GET/POST /llm_models/custom_providers/
-            GET/POST /api/llm-models/custom-providers/
-
-        Args (POST):
-            - provider_id (Required): Unique identifier for the custom provider
-            - provider_name (Required): Human-readable name for the provider
-            - litellm_provider_id (Optional): Base provider ID for LiteLLM compatibility (e.g., "openai", "anthropic")
-            - moderation (Optional): Moderation setting ("filtered", "unfiltered")
-            - extra_kwargs (Optional): Additional provider-specific configuration (all credentials live here)
-                * api_key: Provider API key
-                * base_url: Custom base URL for the provider's API
-                * temperature: Default temperature setting
-                * max_tokens: Default max tokens setting
-                * timeout: Request timeout in seconds
-
-        Returns (POST):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z"
-            }
-
-        Returns (GET):
-            [
-                {
-                    "id": 123,
-                    "provider_id": "my-custom-openai",
-                    "provider_name": "My Custom OpenAI Provider",
-                    "litellm_provider_id": "openai",
-                    ...
-                }
-            ]
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedPublicCustomProviderListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/providers/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicCustomProviderListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicCustomProviderListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def create_custom_provider(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderCreate]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderCreate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/providers/",
-            method="POST",
-            json={
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderCreate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderCreate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_providers_update(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/providers/",
-            method="PUT",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderList,
-                    parse_obj_as(
-                        type_=PublicCustomProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_providers_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/providers/",
-            method="PATCH",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderList,
-                    parse_obj_as(
-                        type_=PublicCustomProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def retrieve_custom_provider(
-        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[PublicCustomProviderDetail]:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        provider_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderDetail,
-                    parse_obj_as(
-                        type_=PublicCustomProviderDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def api_providers_create2(
-        self,
-        provider_id_: str,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_id_ : str
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id_)}/",
-            method="POST",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderDetail,
-                    parse_obj_as(
-                        type_=PublicCustomProviderDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def replace_custom_provider(
-        self,
-        provider_id: str,
-        *,
-        provider_name: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderUpdate]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_id : str
-
-        provider_name : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id)}/",
-            method="PUT",
-            json={
-                "provider_name": provider_name,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderUpdate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def delete_custom_provider(
-        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        provider_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def update_custom_provider(
-        self,
-        provider_id: str,
-        *,
-        provider_name: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        provider_id : str
-
-        provider_name : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id)}/",
-            method="PATCH",
-            json={
-                "provider_name": provider_name,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderUpdate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_custom_providers_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedPublicCustomProviderListList]:
-        """
-        Create and list custom LLM providers for an organization
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Superadmin access:
-            Superadmins can access ALL custom providers across all organizations.
-            Regular users can only access their own organization's providers.
-
-        Endpoint:
-            GET/POST /llm_models/custom_providers/
-            GET/POST /api/llm-models/custom-providers/
-
-        Args (POST):
-            - provider_id (Required): Unique identifier for the custom provider
-            - provider_name (Required): Human-readable name for the provider
-            - litellm_provider_id (Optional): Base provider ID for LiteLLM compatibility (e.g., "openai", "anthropic")
-            - moderation (Optional): Moderation setting ("filtered", "unfiltered")
-            - extra_kwargs (Optional): Additional provider-specific configuration (all credentials live here)
-                * api_key: Provider API key
-                * base_url: Custom base URL for the provider's API
-                * temperature: Default temperature setting
-                * max_tokens: Default max tokens setting
-                * timeout: Request timeout in seconds
-
-        Returns (POST):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z"
-            }
-
-        Returns (GET):
-            [
-                {
-                    "id": 123,
-                    "provider_id": "my-custom-openai",
-                    "provider_name": "My Custom OpenAI Provider",
-                    "litellm_provider_id": "openai",
-                    ...
-                }
-            ]
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedPublicCustomProviderListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/custom_providers/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicCustomProviderListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicCustomProviderListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_custom_providers_create(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderCreate]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderCreate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/custom_providers/",
-            method="POST",
-            json={
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderCreate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderCreate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_custom_providers_update(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/custom_providers/",
-            method="PUT",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderList,
-                    parse_obj_as(
-                        type_=PublicCustomProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_custom_providers_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/custom_providers/",
-            method="PATCH",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderList,
-                    parse_obj_as(
-                        type_=PublicCustomProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_custom_providers_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[PublicCustomProviderDetail]:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderDetail,
-                    parse_obj_as(
-                        type_=PublicCustomProviderDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_custom_providers_create2(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="POST",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderDetail,
-                    parse_obj_as(
-                        type_=PublicCustomProviderDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_custom_providers_update2(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderUpdate]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "provider_name": provider_name,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderUpdate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_custom_providers_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_custom_providers_partial_update2(
-        self,
-        id: int,
-        *,
-        provider_name: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicCustomProviderUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicCustomProviderUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="PATCH",
-            json={
-                "provider_name": provider_name,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderUpdate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_foundation_model_retrieve2(
-        self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[LlmFoundationModelDetail]:
-        """
-        Foundation model detail by model_name. Auth optional — API key OR JWT
-        parsed if present, anonymous allowed. Serializer filters variants by org
-        when authenticated. See ``FoundationModelView`` for why the optional mixin
-        replaces the bare JWT authenticator (it 401'd valid API-key callers).
-
-        Parameters
-        ----------
-        model_name : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmFoundationModelDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/foundation_model/{jsonable_encoder(model_name)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmFoundationModelDetail,
-                    parse_obj_as(
-                        type_=LlmFoundationModelDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_foundation_model_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[LlmFoundationModelDetail]:
-        """
-        Foundation model detail by PK. Auth optional — API key OR JWT parsed if
-        present, anonymous allowed. Serializer filters variants by org when
-        authenticated.
-
-        Uses ``OptionalJWTAndAPIKeyAuthenticationViewMixin`` (not bare
-        ``authentication_classes=[KeywordsAIJWTAuthentication]``): SimpleJWT raises
-        ``InvalidToken`` (401) on any present-but-non-JWT bearer — i.e. an API key —
-        so the bare config 401'd legitimate API-key callers despite ``AllowAny``.
-        The mixin accepts API key OR JWT and treats unparseable creds as anonymous,
-        and IP-rate-limits anonymous callers via ``TokenBucketThrottle``.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmFoundationModelDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/foundation_model/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmFoundationModelDetail,
-                    parse_obj_as(
-                        type_=LlmFoundationModelDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_foundation_models_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[typing.List[LlmFoundationModel]]:
-        """
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[typing.List[LlmFoundationModel]]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/foundation_models/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[LlmFoundationModel],
-                    parse_obj_as(
-                        type_=typing.List[LlmFoundationModel],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_foundation_models_create(
-        self,
-        *,
-        model_name: str,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        hf_url: typing.Optional[str] = OMIT,
-        model_description: typing.Optional[str] = OMIT,
-        model_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[LlmFoundationModel]:
-        """
-        Parameters
-        ----------
-        model_name : str
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        hf_url : typing.Optional[str]
-
-        model_description : typing.Optional[str]
-
-        model_params : typing.Optional[typing.Sequence[str]]
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmFoundationModel]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/foundation_models/",
-            method="POST",
-            json={
-                "model_name": model_name,
-                "display_name": display_name,
-                "speed": speed,
-                "max_context_window": max_context_window,
-                "model_size": model_size,
-                "mmlu_score": mmlu_score,
-                "mt_bench_score": mt_bench_score,
-                "big_bench_score": big_bench_score,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "rate_limit": rate_limit,
-                "token_rate_limit": token_rate_limit,
-                "multilingual": multilingual,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "enforce_function_call": enforce_function_call,
-                "weight": weight,
-                "image_support": image_support,
-                "hf_url": hf_url,
-                "model_description": model_description,
-                "model_params": model_params,
-                "total_requests": total_requests,
-                "total_cost": total_cost,
-                "total_tokens": total_tokens,
-                "total_completion_tokens": total_completion_tokens,
-                "total_prompt_tokens": total_prompt_tokens,
-                "avg_tps": avg_tps,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmFoundationModel,
-                    parse_obj_as(
-                        type_=LlmFoundationModel,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_foundation_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedLlmFoundationModelList]:
-        """
-        View mixin that handles both JWT and API Key authentication.
-
-        Inherits from JWTAuthUtils:
-        - is_jwt_auth(request): Post-auth check (reliable, uses DRF's successful_authenticator)
-        - is_jwt_token_format(request): Pre-auth heuristic (used here to route authenticators)
-
-        This mixin uses is_jwt_token_format() (pre-auth) in get_authenticators() and get_permissions()
-        because those methods run BEFORE authentication completes. For post-auth checks,
-        use is_jwt_auth() instead.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedLlmFoundationModelList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/foundation_models/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedLlmFoundationModelList,
-                    parse_obj_as(
-                        type_=PaginatedLlmFoundationModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_model_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[PublicModelDetail]:
-        """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicModelDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelDetail,
-                    parse_obj_as(
-                        type_=PublicModelDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_model_create(
-        self,
-        id: int,
-        *,
-        provider: LlmProviderRequest,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        order: typing.Optional[int] = OMIT,
-        sdk: typing.Optional[str] = OMIT,
-        foundation_model_name: typing.Optional[str] = OMIT,
-        drop_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        fallbacks: typing.Optional[typing.Any] = OMIT,
-        deprecated: typing.Optional[bool] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[LlmModelDetailRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        foundation_model: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[LlmModelDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : int
-
-        provider : LlmProviderRequest
-
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        order : typing.Optional[int]
-
-        sdk : typing.Optional[str]
-
-        foundation_model_name : typing.Optional[str]
-
-        drop_params : typing.Optional[typing.Sequence[str]]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        fallbacks : typing.Optional[typing.Any]
-
-        deprecated : typing.Optional[bool]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[LlmModelDetailRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        foundation_model : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmModelDetail]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="POST",
-            json={
-                "project": project,
-                "provider": convert_and_respect_annotation_metadata(
-                    object_=provider, annotation=LlmProviderRequest, direction="write"
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "speed": speed,
-                "max_context_window": max_context_window,
-                "model_size": model_size,
-                "mmlu_score": mmlu_score,
-                "mt_bench_score": mt_bench_score,
-                "big_bench_score": big_bench_score,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "rate_limit": rate_limit,
-                "token_rate_limit": token_rate_limit,
-                "multilingual": multilingual,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "enforce_function_call": enforce_function_call,
-                "weight": weight,
-                "image_support": image_support,
-                "order": order,
-                "sdk": sdk,
-                "foundation_model_name": foundation_model_name,
-                "drop_params": drop_params,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "fallbacks": fallbacks,
-                "deprecated": deprecated,
-                "status": status,
-                "is_verified": is_verified,
-                "total_requests": total_requests,
-                "total_cost": total_cost,
-                "total_tokens": total_tokens,
-                "total_completion_tokens": total_completion_tokens,
-                "total_prompt_tokens": total_prompt_tokens,
-                "avg_tps": avg_tps,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=LlmModelDetailRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-                "foundation_model": foundation_model,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmModelDetail,
-                    parse_obj_as(
-                        type_=LlmModelDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_model_update(
-        self,
-        id: int,
-        *,
-        supported_params_override: typing.Optional[PublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelUpdate]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : int
-
-        supported_params_override : typing.Optional[PublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicModelUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "supported_params_override": convert_and_respect_annotation_metadata(
-                    object_=supported_params_override,
-                    annotation=PublicModelUpdateRequestSupportedParamsOverride,
-                    direction="write",
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelUpdateRequestMetadata, direction="write"
-                ),
-                "provider": provider,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelUpdate,
-                    parse_obj_as(
-                        type_=PublicModelUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_model_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_model_partial_update(
-        self,
-        id: int,
-        *,
-        supported_params_override: typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : int
-
-        supported_params_override : typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicModelUpdate]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="PATCH",
-            json={
-                "supported_params_override": convert_and_respect_annotation_metadata(
-                    object_=supported_params_override,
-                    annotation=PatchedPublicModelUpdateRequestSupportedParamsOverride,
-                    direction="write",
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PatchedPublicModelUpdateRequestMetadata, direction="write"
-                ),
-                "provider": provider,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelUpdate,
-                    parse_obj_as(
-                        type_=PublicModelUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedPublicModelListList]:
-        """
-        GET/POST /api/llm_models/models/  (platform - shows global + custom)
-        GET/POST /api/llm-models/custom-models/  (public API - shows ONLY custom)
-
-        Unified endpoint for models.
-
-        GET:  List models
-              - Platform: global + org's custom (same for superadmin - no cross-org listing)
-              - Public (custom-models path): ONLY org's custom models
-              Filter with standard syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-
-        POST:
-            - Without 'model_name' in body: Filter/list models (backward compatible)
-            - With 'model_name' in body: Create model
-                - organization_id=null + superadmin: Create global model
-                - Otherwise: Create custom model for target org (superadmin can specify organization_id)
-
-        Note: Uses SuperAdminMixin for consistency, but queryset is intentionally the same
-        for both regular users and superadmins (global + org's custom pattern).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedPublicModelListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/models/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicModelListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicModelListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_create(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelList]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicModelList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/models/",
-            method="POST",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_update(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicModelList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/models/",
-            method="PUT",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        model_name: typing.Optional[str] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        model_name : typing.Optional[str]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicModelList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/models/",
-            method="PATCH",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PatchedPublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_status_retrieve(
-        self,
-        model_name: str,
-        *,
-        end_time: str,
-        start_time: str,
-        provider_id: typing.Optional[str] = None,
-        time_tick: typing.Optional[LlmModelsModelsStatusRetrieveRequestTimeTick] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ModelStatusResponse]:
-        """
-        GET/POST /api/models/<model_name>/status/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/<model_name>/status/ (Platform)
-
-        Per-model status resource for the exact logged model string in the URL path,
-        over an absolute UTC ``[start_time, end_time)`` range, bucketed by
-        ``time_tick`` (minute / hour / day).
-        Returns four things (see ``ModelStatusResponseSerializer``):
-          - ``data`` — per-provider uptime time series (per-attempt grain). Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``respan_uptime`` — request-grain "via Respan" uptime time series: one
-            verdict per client call (UP if ANY retry/fallback attempt succeeded), so
-            it reflects failover and sits at/above the per-provider line. Omitted for
-            provider-filtered requests because it is inherently cross-provider.
-          - ``metrics_series`` — per-bucket performance metrics over the window (tps,
-            ttft, latency, cache-hit %, + admin-only counts/cost), so the other
-            metrics can be plotted over time just like uptime. Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``status`` — scalar model-wide summary over the window (uptime %, tps,
-            ttft, latency, cache-hit %, catalog input list price). Omitted when a
-            ``provider_id`` filter is supplied (it is cross-provider).
-
-        Redaction: public/regular callers get only normalized rates/percentages plus
-        the catalog list price; staff/superadmins additionally get volume scalars
-        (request/down counts, total cost) — those are withheld from the public so
-        competitors can't infer platform traffic/revenue from counts × price.
-
-        The model is the URL path segment (``<path:model_name>``) so provider-prefixed
-        identifiers (e.g. ``vertex_ai/gemini-1.5-pro``) survive routing; the filters
-        (``provider_id``, ``time_tick``, range) stay query/body params.
-
-        Parameters
-        ----------
-        model_name : str
-
-        end_time : str
-
-        start_time : str
-
-        provider_id : typing.Optional[str]
-
-        time_tick : typing.Optional[LlmModelsModelsStatusRetrieveRequestTimeTick]
-            * `minute` - minute
-            * `hour` - hour
-            * `day` - day
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ModelStatusResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/models/{jsonable_encoder(model_name)}/status/",
-            method="GET",
-            params={
-                "end_time": end_time,
-                "provider_id": provider_id,
-                "start_time": start_time,
-                "time_tick": time_tick,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ModelStatusResponse,
-                    parse_obj_as(
-                        type_=ModelStatusResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_status_create(
-        self,
-        model_name: str,
-        *,
-        start_time: str,
-        end_time: str,
-        provider_id: typing.Optional[str] = OMIT,
-        time_tick: typing.Optional[TimeTickEnum] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[ModelStatusResponse]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        start_time : str
-
-        end_time : str
-
-        provider_id : typing.Optional[str]
-
-        time_tick : typing.Optional[TimeTickEnum]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[ModelStatusResponse]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/models/{jsonable_encoder(model_name)}/status/",
-            method="POST",
-            json={
-                "provider_id": provider_id,
-                "start_time": start_time,
-                "end_time": end_time,
-                "time_tick": time_tick,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ModelStatusResponse,
-                    parse_obj_as(
-                        type_=ModelStatusResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedPublicModelListList]:
-        """
-        GET/POST /api/models/list/        (Public API)
-        GET/POST /api/llm_models/models/list/  (Platform)
-
-        List models. **Authentication is optional** (OpenRouter-style catalog) — the
-        SAME endpoint serves both public and authenticated callers:
-
-        - **Unauthenticated** → managed/shared models only (``organization=None``).
-          Rate-limited per client IP.
-        - **API key / JWT** → managed models PLUS the caller's own custom models.
-
-        Read-only: there is no create/write path (``ListAPIView``); ``post()`` only
-        delegates to ``get()`` to support POST-body filtering (BE conventions). Both
-        auth modes fully support filtering.
-
-        Optionally enriches each model with cross-org performance metrics (opt-in via
-        ``is_including_metrics``) over an absolute UTC ``[start_time, end_time)`` window
-        read at ``time_tick`` grain (dashboard convention). Each model gets a ``metrics``
-        object: average_tps / average_ttft / average_latency (OpenRouter-style
-        averages), uptime_percent, number_of_requests, cost, the prompt/completion/
-        cache token sums, and cache_hit_percentage. Sourced from the cross-org
-        ``get_public_breakdown_metrics`` reader (clickhouse/tasks.py). The metrics are
-        cross-org aggregates, so they're identical regardless of auth.
-
-        Filtering:
-            Use standard filter syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-            See boilerplates/keywordsai/feature_docs/shared/filters_api_reference.md
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedPublicModelListList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/models/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicModelListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicModelListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_list_create(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PublicModelList]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PublicModelList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/models/list/",
-            method="POST",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        GET/POST /api/models/summary/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/summary/ (Platform)
-
-        Summary counts for LLM models. **Auth is optional** — same model as
-        ``ModelsListView``:
-
-        - **Unauthenticated** → counts over managed/global models only
-          (``organization=null``). Rate-limited per client IP.
-        - **API key / JWT** → counts include the caller's custom models too.
-
-        Read-only: only GET (and POST-as-filter, delegating to GET). No write path.
-
-        Returns:
-            {
-                "summary": {
-                    "total_count": 150,
-                    "global_count": 120,
-                    "custom_count": 30
-                }
-            }
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/models/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_models_summary_create(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/models/summary/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_provider_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[LlmProvider]:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmProvider]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/provider/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProvider,
-                    parse_obj_as(
-                        type_=LlmProvider,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_provider_update(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[LlmProvider]:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmProvider]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/provider/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProvider,
-                    parse_obj_as(
-                        type_=LlmProvider,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_provider_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/provider/{jsonable_encoder(id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_provider_partial_update(
-        self,
-        id: int,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[LlmProvider]:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmProvider]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"llm_models/provider/{jsonable_encoder(id)}/",
-            method="PATCH",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProvider,
-                    parse_obj_as(
-                        type_=LlmProvider,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_provider_integrations_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[typing.List[LlmProviderIntegration]]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[typing.List[LlmProviderIntegration]]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/provider_integrations/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[LlmProviderIntegration],
-                    parse_obj_as(
-                        type_=typing.List[LlmProviderIntegration],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_provider_integrations_create(
-        self,
-        *,
-        credential_fields: typing.Sequence[ProviderCredentialFieldListRequest],
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        integration_id: typing.Optional[int] = OMIT,
-        active_integrations_count: typing.Optional[int] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[LlmProviderIntegration]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        credential_fields : typing.Sequence[ProviderCredentialFieldListRequest]
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        integration_id : typing.Optional[int]
-
-        active_integrations_count : typing.Optional[int]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmProviderIntegration]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/provider_integrations/",
-            method="POST",
-            json={
-                "project": project,
-                "credential_fields": convert_and_respect_annotation_metadata(
-                    object_=credential_fields,
-                    annotation=typing.Sequence[ProviderCredentialFieldListRequest],
-                    direction="write",
-                ),
-                "integration_id": integration_id,
-                "active_integrations_count": active_integrations_count,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProviderIntegration,
-                    parse_obj_as(
-                        type_=LlmProviderIntegration,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_providers_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedLlmProviderList]:
-        """
-        Global providers list. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PaginatedLlmProviderList]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/providers/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedLlmProviderList,
-                    parse_obj_as(
-                        type_=PaginatedLlmProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_providers_create(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[LlmProvider]:
-        """
-        Global providers list. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[LlmProvider]
-
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/providers/",
-            method="POST",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProvider,
-                    parse_obj_as(
-                        type_=LlmProvider,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def llm_models_validate_api_key_create(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[None]:
-        """
-        Validate API credentials. Supports both JWT and API key auth.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[None]
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "llm_models/validate_api_key/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return HttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -6011,135 +1468,59 @@ class AsyncRawModelsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def api_models_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedPublicModelListList]:
-        """
-        GET/POST /api/llm_models/models/  (platform - shows global + custom)
-        GET/POST /api/llm-models/custom-models/  (public API - shows ONLY custom)
-
-        Unified endpoint for models.
-
-        GET:  List models
-              - Platform: global + org's custom (same for superadmin - no cross-org listing)
-              - Public (custom-models path): ONLY org's custom models
-              Filter with standard syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-
-        POST:
-            - Without 'model_name' in body: Filter/list models (backward compatible)
-            - With 'model_name' in body: Create model
-                - organization_id=null + superadmin: Create global model
-                - Otherwise: Create custom model for target org (superadmin can specify organization_id)
-
-        Note: Uses SuperAdminMixin for consistency, but queryset is intentionally the same
-        for both regular users and superadmins (global + org's custom pattern).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedPublicModelListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/models/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicModelListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicModelListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def create_custom_model(
         self,
         *,
         model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelList]:
+    ) -> AsyncHttpResponse[CreateCustomModelResponse]:
         """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
+        Create an organization-specific custom model. If a model with the same `model_name` already exists in your organization, it is updated and the endpoint returns `200`.
 
         Parameters
         ----------
         model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Unique model name within your organization.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -6147,71 +1528,35 @@ class AsyncRawModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicModelList]
-
+        AsyncHttpResponse[CreateCustomModelResponse]
+            Updated existing model.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/models/",
             method="POST",
             json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
                 "model_name": model_name,
                 "base_model_name": base_model_name,
                 "display_name": display_name,
-                "max_context_window": max_context_window,
+                "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
                 "input_cost": input_cost,
                 "output_cost": output_cost,
                 "cache_hit_input_cost": cache_hit_input_cost,
                 "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
+                "max_context_window": max_context_window,
                 "streaming_support": streaming_support,
                 "function_call": function_call,
                 "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
+                "supported_params_override": supported_params_override,
             },
             headers={
                 "content-type": "application/json",
@@ -6222,151 +1567,113 @@ class AsyncRawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelList,
+                    CreateCustomModelResponse,
                     parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
+                        type_=CreateCustomModelResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def api_models_update(
+    async def filter_models(
         self,
         *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        sort_by: typing.Optional[str] = None,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        is_exporting: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelList]:
+    ) -> AsyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        List models using POST-for-filtering. Authentication is optional: anonymous callers receive managed global models, while API-key and dashboard callers also receive their organization's custom models. Anonymous requests are rate-limited per client IP.
 
         Parameters
         ----------
-        model_name : str
+        page : typing.Optional[int]
+            Page number.
 
-        project : typing.Optional[str]
+        page_size : typing.Optional[int]
+            Number of results to return per page. Maximum 100.
 
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending order.
 
-        is_managed : typing.Optional[bool]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        is_exporting : typing.Optional[bool]
+            Reserved for dashboard exports.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicModelList]
-
+        AsyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]
+            Paginated filtered list of models.
         """
+        page = page if page is not None else 1
+
         _response = await self._client_wrapper.httpx_client.request(
-            "api/models/",
-            method="PUT",
+            "api/models/list/",
+            method="POST",
+            params={
+                "page": page,
+                "page_size": page_size,
+                "sort_by": sort_by,
+            },
             json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
+                "filters": filters,
+                "is_exporting": is_exporting,
             },
             headers={
                 "content-type": "application/json",
@@ -6376,154 +1683,70 @@ class AsyncRawModelsClient:
         )
         try:
             if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
+                _parsed_response = typing.cast(
+                    FilterModelsResponse,
                     parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
+                        type_=FilterModelsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
+                _items = _parsed_response.results
+                _has_next = True
+
+                async def _get_next():
+                    return await self.filter_models(
+                        page=page + 1,
+                        page_size=page_size,
+                        sort_by=sort_by,
+                        filters=filters,
+                        is_exporting=is_exporting,
+                        request_options=request_options,
+                    )
+
+                return AsyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def api_models_partial_update(
+    async def filter_models_summary(
         self,
         *,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        model_name: typing.Optional[str] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
+        filters: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelList]:
+    ) -> AsyncHttpResponse[FilterModelsSummaryResponse]:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Return model counts after applying an optional POST filter. Authentication is optional: anonymous counts cover managed global models, while authenticated counts also include the caller's custom models.
 
         Parameters
         ----------
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        model_name : typing.Optional[str]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
+        filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Filter criteria using the standard Respan filter format.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicModelList]
-
+        AsyncHttpResponse[FilterModelsSummaryResponse]
+            Models summary.
         """
         _response = await self._client_wrapper.httpx_client.request(
-            "api/models/",
-            method="PATCH",
+            "api/models/summary/",
+            method="POST",
             json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PatchedPublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
+                "filters": filters,
             },
             headers={
                 "content-type": "application/json",
@@ -6534,13 +1757,24 @@ class AsyncRawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelList,
+                    FilterModelsSummaryResponse,
                     parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
+                        type_=FilterModelsSummaryResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -6548,36 +1782,22 @@ class AsyncRawModelsClient:
 
     async def retrieve_custom_model(
         self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[PublicModelDetail]:
+    ) -> AsyncHttpResponse[RetrieveCustomModelResponse]:
         """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
+        Retrieve a built-in or custom model by model name. Custom models are only visible to the owning organization.
 
         Parameters
         ----------
         model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicModelDetail]
-
+        AsyncHttpResponse[RetrieveCustomModelResponse]
+            Model details.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/",
@@ -6587,270 +1807,35 @@ class AsyncRawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelDetail,
+                    RetrieveCustomModelResponse,
                     parse_obj_as(
-                        type_=PublicModelDetail,  # type: ignore
+                        type_=RetrieveCustomModelResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_models_create2(
-        self,
-        model_name_: str,
-        *,
-        provider: LlmProviderRequest,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        order: typing.Optional[int] = OMIT,
-        sdk: typing.Optional[str] = OMIT,
-        foundation_model_name: typing.Optional[str] = OMIT,
-        drop_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        fallbacks: typing.Optional[typing.Any] = OMIT,
-        deprecated: typing.Optional[bool] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[LlmModelDetailRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        foundation_model: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[LlmModelDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        model_name_ : str
-
-        provider : LlmProviderRequest
-
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        order : typing.Optional[int]
-
-        sdk : typing.Optional[str]
-
-        foundation_model_name : typing.Optional[str]
-
-        drop_params : typing.Optional[typing.Sequence[str]]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        fallbacks : typing.Optional[typing.Any]
-
-        deprecated : typing.Optional[bool]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[LlmModelDetailRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        foundation_model : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmModelDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/models/{jsonable_encoder(model_name_)}/",
-            method="POST",
-            json={
-                "project": project,
-                "provider": convert_and_respect_annotation_metadata(
-                    object_=provider, annotation=LlmProviderRequest, direction="write"
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "speed": speed,
-                "max_context_window": max_context_window,
-                "model_size": model_size,
-                "mmlu_score": mmlu_score,
-                "mt_bench_score": mt_bench_score,
-                "big_bench_score": big_bench_score,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "rate_limit": rate_limit,
-                "token_rate_limit": token_rate_limit,
-                "multilingual": multilingual,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "enforce_function_call": enforce_function_call,
-                "weight": weight,
-                "image_support": image_support,
-                "order": order,
-                "sdk": sdk,
-                "foundation_model_name": foundation_model_name,
-                "drop_params": drop_params,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "fallbacks": fallbacks,
-                "deprecated": deprecated,
-                "status": status,
-                "is_verified": is_verified,
-                "total_requests": total_requests,
-                "total_cost": total_cost,
-                "total_tokens": total_tokens,
-                "total_completion_tokens": total_completion_tokens,
-                "total_prompt_tokens": total_prompt_tokens,
-                "avg_tps": avg_tps,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=LlmModelDetailRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-                "foundation_model": foundation_model,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmModelDetail,
-                    parse_obj_as(
-                        type_=LlmModelDetail,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -6860,63 +1845,55 @@ class AsyncRawModelsClient:
         self,
         model_name: str,
         *,
-        supported_params_override: typing.Optional[PublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelUpdate]:
+    ) -> AsyncHttpResponse[ReplaceCustomModelResponse]:
         """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
+        Replace editable fields for a custom model. The `model_name` path value remains the identifier.
 
         Parameters
         ----------
         model_name : str
-
-        supported_params_override : typing.Optional[PublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -6924,74 +1901,34 @@ class AsyncRawModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicModelUpdate]
-
+        AsyncHttpResponse[ReplaceCustomModelResponse]
+            Updated model.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/",
             method="PUT",
             json={
-                "supported_params_override": convert_and_respect_annotation_metadata(
-                    object_=supported_params_override,
-                    annotation=PublicModelUpdateRequestSupportedParamsOverride,
-                    direction="write",
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
                 "base_model_name": base_model_name,
                 "display_name": display_name,
-                "max_context_window": max_context_window,
+                "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
                 "input_cost": input_cost,
                 "output_cost": output_cost,
                 "cache_hit_input_cost": cache_hit_input_cost,
                 "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
+                "max_context_window": max_context_window,
                 "streaming_support": streaming_support,
                 "function_call": function_call,
                 "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelUpdateRequestMetadata, direction="write"
-                ),
-                "provider": provider,
+                "supported_params_override": supported_params_override,
             },
             headers={
                 "content-type": "application/json",
@@ -7002,13 +1939,57 @@ class AsyncRawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelUpdate,
+                    ReplaceCustomModelResponse,
                     parse_obj_as(
-                        type_=PublicModelUpdate,  # type: ignore
+                        type_=ReplaceCustomModelResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -7018,26 +1999,12 @@ class AsyncRawModelsClient:
         self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
+        Delete a custom model by model name.
 
         Parameters
         ----------
         model_name : str
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -7054,6 +2021,39 @@ class AsyncRawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -7063,65 +2063,55 @@ class AsyncRawModelsClient:
         self,
         model_name: str,
         *,
-        supported_params_override: typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
         base_model_name: typing.Optional[str] = OMIT,
         display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
+        custom_provider_id: typing.Optional[str] = OMIT,
+        provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
         output_cost: typing.Optional[float] = OMIT,
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
+        max_context_window: typing.Optional[int] = OMIT,
         streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
+        supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelUpdate]:
+    ) -> AsyncHttpResponse[UpdateCustomModelResponse]:
         """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
+        Partially update editable fields for a custom model. The `model_name` field is read-only.
 
         Parameters
         ----------
         model_name : str
-
-        supported_params_override : typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
+            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
 
         base_model_name : typing.Optional[str]
+            Base model to inherit properties from.
 
         display_name : typing.Optional[str]
+            Human-readable display name.
 
-        max_context_window : typing.Optional[int]
+        custom_provider_id : typing.Optional[str]
+            Custom provider string ID or provider identifier to associate.
+
+        provider_id : typing.Optional[str]
+            Alternative to `custom_provider_id`.
 
         input_cost : typing.Optional[float]
+            Cost per 1M input tokens in USD.
 
         output_cost : typing.Optional[float]
+            Cost per 1M output tokens in USD.
 
         cache_hit_input_cost : typing.Optional[float]
+            Cost per 1M cached input tokens in USD.
 
         cache_creation_input_cost : typing.Optional[float]
+            Cost per 1M cache creation input tokens in USD.
 
-        respan_discount_rate : typing.Optional[float]
+        max_context_window : typing.Optional[int]
+            Maximum context window size.
 
         streaming_support : typing.Optional[int]
 
@@ -7129,74 +2119,34 @@ class AsyncRawModelsClient:
 
         image_support : typing.Optional[int]
 
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
+        supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
+            Partial override for model parameter support. The response returns computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PublicModelUpdate]
-
+        AsyncHttpResponse[UpdateCustomModelResponse]
+            Updated model.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/",
             method="PATCH",
             json={
-                "supported_params_override": convert_and_respect_annotation_metadata(
-                    object_=supported_params_override,
-                    annotation=PatchedPublicModelUpdateRequestSupportedParamsOverride,
-                    direction="write",
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
                 "base_model_name": base_model_name,
                 "display_name": display_name,
-                "max_context_window": max_context_window,
+                "custom_provider_id": custom_provider_id,
+                "provider_id": provider_id,
                 "input_cost": input_cost,
                 "output_cost": output_cost,
                 "cache_hit_input_cost": cache_hit_input_cost,
                 "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
+                "max_context_window": max_context_window,
                 "streaming_support": streaming_support,
                 "function_call": function_call,
                 "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PatchedPublicModelUpdateRequestMetadata, direction="write"
-                ),
-                "provider": provider,
+                "supported_params_override": supported_params_override,
             },
             headers={
                 "content-type": "application/json",
@@ -7207,9 +2157,564 @@ class AsyncRawModelsClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PublicModelUpdate,
+                    UpdateCustomModelResponse,
                     parse_obj_as(
-                        type_=PublicModelUpdate,  # type: ignore
+                        type_=UpdateCustomModelResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_custom_providers(
+        self,
+        *,
+        page: typing.Optional[int] = None,
+        page_size: typing.Optional[int] = None,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ListCustomProvidersResponse]:
+        """
+        List custom providers for the authenticated organization.
+
+        Parameters
+        ----------
+        page : typing.Optional[int]
+
+        page_size : typing.Optional[int]
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ListCustomProvidersResponse]
+            Paginated custom providers.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/providers/",
+            method="GET",
+            params={
+                "page": page,
+                "page_size": page_size,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListCustomProvidersResponse,
+                    parse_obj_as(
+                        type_=ListCustomProvidersResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def create_custom_provider(
+        self,
+        *,
+        provider_id: str,
+        provider_name: str,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[CreateCustomProviderResponse]:
+        """
+        Create a custom provider. Use `PATCH /api/providers/{provider_id}/` to update an existing provider.
+
+        Parameters
+        ----------
+        provider_id : str
+            Unique provider identifier within your organization.
+
+        provider_name : str
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[CreateCustomProviderResponse]
+            Created provider.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/providers/",
+            method="POST",
+            json={
+                "provider_id": provider_id,
+                "provider_name": provider_name,
+                "extra_kwargs": extra_kwargs,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    CreateCustomProviderResponse,
+                    parse_obj_as(
+                        type_=CreateCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def retrieve_custom_provider(
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[RetrieveCustomProviderResponse]:
+        """
+        Retrieve a custom provider by its string provider ID. The current backend returns `extra_kwargs`, including any credentials stored in that object; handle this response as sensitive.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[RetrieveCustomProviderResponse]
+            Provider details.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    RetrieveCustomProviderResponse,
+                    parse_obj_as(
+                        type_=RetrieveCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def replace_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        provider_name: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[ReplaceCustomProviderResponse]:
+        """
+        Replace editable fields for a custom provider. The `provider_id` path value remains the identifier.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ReplaceCustomProviderResponse]
+            Updated provider.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="PUT",
+            json={
+                "provider_name": provider_name,
+                "extra_kwargs": extra_kwargs,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ReplaceCustomProviderResponse,
+                    parse_obj_as(
+                        type_=ReplaceCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_custom_provider(
+        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
+        """
+        Delete a custom provider by string provider ID.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[None]
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def update_custom_provider(
+        self,
+        provider_id: str,
+        *,
+        provider_name: typing.Optional[str] = OMIT,
+        extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[UpdateCustomProviderResponse]:
+        """
+        Partially update editable fields for a custom provider. The `provider_id` field is read-only.
+
+        Parameters
+        ----------
+        provider_id : str
+            Custom provider string ID returned as `id` and `provider_id` in provider responses.
+
+        provider_name : typing.Optional[str]
+            Human-readable provider name.
+
+        extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
+            Provider configuration. Put provider credentials under extra_kwargs.api_key.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[UpdateCustomProviderResponse]
+            Updated provider.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"api/providers/{jsonable_encoder(provider_id)}/",
+            method="PATCH",
+            json={
+                "provider_name": provider_name,
+                "extra_kwargs": extra_kwargs,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    UpdateCustomProviderResponse,
+                    parse_obj_as(
+                        type_=UpdateCustomProviderResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_models(
+        self, *, unnest: typing.Optional[bool] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[ListModelsResponse]:
+        """
+        List built-in public models and provider metadata. This endpoint does not require authentication. By default the response is `{ "models": [...] }`; pass `unnest=true` to return the array directly.
+
+        Parameters
+        ----------
+        unnest : typing.Optional[bool]
+            If `true`, return the public model catalog as an array instead of `{ "models": [...] }`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ListModelsResponse]
+            Public model catalog.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/models/public/",
+            method="GET",
+            params={
+                "unnest": unnest,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ListModelsResponse,
+                    parse_obj_as(
+                        type_=ListModelsResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -7223,57 +2728,27 @@ class AsyncRawModelsClient:
         self,
         model_name: str,
         *,
-        end_time: str,
         start_time: str,
+        end_time: str,
         provider_id: typing.Optional[str] = None,
         time_tick: typing.Optional[ApiModelsStatusRetrieveRequestTimeTick] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ModelStatusResponse]:
         """
-        GET/POST /api/models/<model_name>/status/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/<model_name>/status/ (Platform)
-
-        Per-model status resource for the exact logged model string in the URL path,
-        over an absolute UTC ``[start_time, end_time)`` range, bucketed by
-        ``time_tick`` (minute / hour / day).
-        Returns four things (see ``ModelStatusResponseSerializer``):
-          - ``data`` — per-provider uptime time series (per-attempt grain). Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``respan_uptime`` — request-grain "via Respan" uptime time series: one
-            verdict per client call (UP if ANY retry/fallback attempt succeeded), so
-            it reflects failover and sits at/above the per-provider line. Omitted for
-            provider-filtered requests because it is inherently cross-provider.
-          - ``metrics_series`` — per-bucket performance metrics over the window (tps,
-            ttft, latency, cache-hit %, + admin-only counts/cost), so the other
-            metrics can be plotted over time just like uptime. Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``status`` — scalar model-wide summary over the window (uptime %, tps,
-            ttft, latency, cache-hit %, catalog input list price). Omitted when a
-            ``provider_id`` filter is supplied (it is cross-provider).
-
-        Redaction: public/regular callers get only normalized rates/percentages plus
-        the catalog list price; staff/superadmins additionally get volume scalars
-        (request/down counts, total cost) — those are withheld from the public so
-        competitors can't infer platform traffic/revenue from counts × price.
-
-        The model is the URL path segment (``<path:model_name>``) so provider-prefixed
-        identifiers (e.g. ``vertex_ai/gemini-1.5-pro``) survive routing; the filters
-        (``provider_id``, ``time_tick``, range) stay query/body params.
+        Get public uptime and normalized performance metrics for an exact logged model string. Authentication is optional. Public callers receive redacted volume fields.
 
         Parameters
         ----------
         model_name : str
-
-        end_time : str
+            Exact logged model string; provider-prefixed values may contain a slash.
 
         start_time : str
+
+        end_time : str
 
         provider_id : typing.Optional[str]
 
         time_tick : typing.Optional[ApiModelsStatusRetrieveRequestTimeTick]
-            * `minute` - minute
-            * `hour` - hour
-            * `day` - day
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -7281,15 +2756,15 @@ class AsyncRawModelsClient:
         Returns
         -------
         AsyncHttpResponse[ModelStatusResponse]
-
+            Model status series. Unknown model names return empty series rather than 404.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/status/",
             method="GET",
             params={
-                "end_time": end_time,
                 "provider_id": provider_id,
                 "start_time": start_time,
+                "end_time": end_time,
                 "time_tick": time_tick,
             },
             request_options=request_options,
@@ -7304,6 +2779,28 @@ class AsyncRawModelsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -7316,23 +2813,26 @@ class AsyncRawModelsClient:
         start_time: str,
         end_time: str,
         provider_id: typing.Optional[str] = OMIT,
-        time_tick: typing.Optional[TimeTickEnum] = OMIT,
+        time_tick: typing.Optional[ApiModelsStatusCreateRequestTimeTick] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ModelStatusResponse]:
         """
-        POST for filtering - delegate to GET (BE conventions).
+        POST-for-filtering model status. Manually supplied query parameters override the same body values.
 
         Parameters
         ----------
         model_name : str
+            Exact logged model string; provider-prefixed values may contain a slash.
 
         start_time : str
+            ISO-8601 or epoch timestamp. Raw window max 90 days.
 
         end_time : str
+            Timestamp after start_time.
 
         provider_id : typing.Optional[str]
 
-        time_tick : typing.Optional[TimeTickEnum]
+        time_tick : typing.Optional[ApiModelsStatusCreateRequestTimeTick]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -7340,7 +2840,7 @@ class AsyncRawModelsClient:
         Returns
         -------
         AsyncHttpResponse[ModelStatusResponse]
-
+            Model status series. Unknown model names return empty series rather than 404.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/models/{jsonable_encoder(model_name)}/status/",
@@ -7367,4597 +2867,28 @@ class AsyncRawModelsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedPublicModelListList]:
-        """
-        GET/POST /api/models/list/        (Public API)
-        GET/POST /api/llm_models/models/list/  (Platform)
-
-        List models. **Authentication is optional** (OpenRouter-style catalog) — the
-        SAME endpoint serves both public and authenticated callers:
-
-        - **Unauthenticated** → managed/shared models only (``organization=None``).
-          Rate-limited per client IP.
-        - **API key / JWT** → managed models PLUS the caller's own custom models.
-
-        Read-only: there is no create/write path (``ListAPIView``); ``post()`` only
-        delegates to ``get()`` to support POST-body filtering (BE conventions). Both
-        auth modes fully support filtering.
-
-        Optionally enriches each model with cross-org performance metrics (opt-in via
-        ``is_including_metrics``) over an absolute UTC ``[start_time, end_time)`` window
-        read at ``time_tick`` grain (dashboard convention). Each model gets a ``metrics``
-        object: average_tps / average_ttft / average_latency (OpenRouter-style
-        averages), uptime_percent, number_of_requests, cost, the prompt/completion/
-        cache token sums, and cache_hit_percentage. Sourced from the cross-org
-        ``get_public_breakdown_metrics`` reader (clickhouse/tasks.py). The metrics are
-        cross-org aggregates, so they're identical regardless of auth.
-
-        Filtering:
-            Use standard filter syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-            See boilerplates/keywordsai/feature_docs/shared/filters_api_reference.md
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedPublicModelListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/models/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicModelListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicModelListList,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def filter_models(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelList]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicModelList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/models/list/",
-            method="POST",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_models(self, *, request_options: typing.Optional[RequestOptions] = None) -> AsyncHttpResponse[None]:
-        """
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/models/public/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_models_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        GET/POST /api/models/summary/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/summary/ (Platform)
-
-        Summary counts for LLM models. **Auth is optional** — same model as
-        ``ModelsListView``:
-
-        - **Unauthenticated** → counts over managed/global models only
-          (``organization=null``). Rate-limited per client IP.
-        - **API key / JWT** → counts include the caller's custom models too.
-
-        Read-only: only GET (and POST-as-filter, delegating to GET). No write path.
-
-        Returns:
-            {
-                "summary": {
-                    "total_count": 150,
-                    "global_count": 120,
-                    "custom_count": 30
-                }
-            }
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/models/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def filter_models_summary(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/models/summary/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_provider_integrations_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[typing.List[LlmProviderIntegration]]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[typing.List[LlmProviderIntegration]]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/provider-integrations/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[LlmProviderIntegration],
-                    parse_obj_as(
-                        type_=typing.List[LlmProviderIntegration],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_provider_integrations_create(
-        self,
-        *,
-        credential_fields: typing.Sequence[ProviderCredentialFieldListRequest],
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        integration_id: typing.Optional[int] = OMIT,
-        active_integrations_count: typing.Optional[int] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[LlmProviderIntegration]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        credential_fields : typing.Sequence[ProviderCredentialFieldListRequest]
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        integration_id : typing.Optional[int]
-
-        active_integrations_count : typing.Optional[int]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmProviderIntegration]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/provider-integrations/",
-            method="POST",
-            json={
-                "project": project,
-                "credential_fields": convert_and_respect_annotation_metadata(
-                    object_=credential_fields,
-                    annotation=typing.Sequence[ProviderCredentialFieldListRequest],
-                    direction="write",
-                ),
-                "integration_id": integration_id,
-                "active_integrations_count": active_integrations_count,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProviderIntegration,
-                    parse_obj_as(
-                        type_=LlmProviderIntegration,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def list_custom_providers(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedPublicCustomProviderListList]:
-        """
-        Create and list custom LLM providers for an organization
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Superadmin access:
-            Superadmins can access ALL custom providers across all organizations.
-            Regular users can only access their own organization's providers.
-
-        Endpoint:
-            GET/POST /llm_models/custom_providers/
-            GET/POST /api/llm-models/custom-providers/
-
-        Args (POST):
-            - provider_id (Required): Unique identifier for the custom provider
-            - provider_name (Required): Human-readable name for the provider
-            - litellm_provider_id (Optional): Base provider ID for LiteLLM compatibility (e.g., "openai", "anthropic")
-            - moderation (Optional): Moderation setting ("filtered", "unfiltered")
-            - extra_kwargs (Optional): Additional provider-specific configuration (all credentials live here)
-                * api_key: Provider API key
-                * base_url: Custom base URL for the provider's API
-                * temperature: Default temperature setting
-                * max_tokens: Default max tokens setting
-                * timeout: Request timeout in seconds
-
-        Returns (POST):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z"
-            }
-
-        Returns (GET):
-            [
-                {
-                    "id": 123,
-                    "provider_id": "my-custom-openai",
-                    "provider_name": "My Custom OpenAI Provider",
-                    "litellm_provider_id": "openai",
-                    ...
-                }
-            ]
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedPublicCustomProviderListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/providers/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicCustomProviderListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicCustomProviderListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def create_custom_provider(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderCreate]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderCreate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/providers/",
-            method="POST",
-            json={
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderCreate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderCreate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_providers_update(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/providers/",
-            method="PUT",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderList,
-                    parse_obj_as(
-                        type_=PublicCustomProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_providers_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/providers/",
-            method="PATCH",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderList,
-                    parse_obj_as(
-                        type_=PublicCustomProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def retrieve_custom_provider(
-        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[PublicCustomProviderDetail]:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        provider_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderDetail,
-                    parse_obj_as(
-                        type_=PublicCustomProviderDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def api_providers_create2(
-        self,
-        provider_id_: str,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_id_ : str
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id_)}/",
-            method="POST",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderDetail,
-                    parse_obj_as(
-                        type_=PublicCustomProviderDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def replace_custom_provider(
-        self,
-        provider_id: str,
-        *,
-        provider_name: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderUpdate]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_id : str
-
-        provider_name : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id)}/",
-            method="PUT",
-            json={
-                "provider_name": provider_name,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderUpdate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def delete_custom_provider(
-        self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        provider_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def update_custom_provider(
-        self,
-        provider_id: str,
-        *,
-        provider_name: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        provider_id : str
-
-        provider_name : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"api/providers/{jsonable_encoder(provider_id)}/",
-            method="PATCH",
-            json={
-                "provider_name": provider_name,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderUpdate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_custom_providers_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedPublicCustomProviderListList]:
-        """
-        Create and list custom LLM providers for an organization
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Superadmin access:
-            Superadmins can access ALL custom providers across all organizations.
-            Regular users can only access their own organization's providers.
-
-        Endpoint:
-            GET/POST /llm_models/custom_providers/
-            GET/POST /api/llm-models/custom-providers/
-
-        Args (POST):
-            - provider_id (Required): Unique identifier for the custom provider
-            - provider_name (Required): Human-readable name for the provider
-            - litellm_provider_id (Optional): Base provider ID for LiteLLM compatibility (e.g., "openai", "anthropic")
-            - moderation (Optional): Moderation setting ("filtered", "unfiltered")
-            - extra_kwargs (Optional): Additional provider-specific configuration (all credentials live here)
-                * api_key: Provider API key
-                * base_url: Custom base URL for the provider's API
-                * temperature: Default temperature setting
-                * max_tokens: Default max tokens setting
-                * timeout: Request timeout in seconds
-
-        Returns (POST):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z"
-            }
-
-        Returns (GET):
-            [
-                {
-                    "id": 123,
-                    "provider_id": "my-custom-openai",
-                    "provider_name": "My Custom OpenAI Provider",
-                    "litellm_provider_id": "openai",
-                    ...
-                }
-            ]
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedPublicCustomProviderListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/custom_providers/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicCustomProviderListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicCustomProviderListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_custom_providers_create(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderCreate]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderCreate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/custom_providers/",
-            method="POST",
-            json={
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderCreate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderCreate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_custom_providers_update(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/custom_providers/",
-            method="PUT",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderList,
-                    parse_obj_as(
-                        type_=PublicCustomProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_custom_providers_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/custom_providers/",
-            method="PATCH",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderList,
-                    parse_obj_as(
-                        type_=PublicCustomProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_custom_providers_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[PublicCustomProviderDetail]:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderDetail,
-                    parse_obj_as(
-                        type_=PublicCustomProviderDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_custom_providers_create2(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="POST",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderDetail,
-                    parse_obj_as(
-                        type_=PublicCustomProviderDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_custom_providers_update2(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderUpdate]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "provider_name": provider_name,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderUpdate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_custom_providers_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Retrieve, update, and delete individual custom LLM providers
-
-        Supports both internal (JWT) and public (API key) authentication.
-        - Internal API: Returns all fields
-        - Public API: Hides internal fields (litellm_provider_id, is_managed, moderation)
-
-        Access control (layered):
-            1. SuperAdminMixin: Routes queryset (superadmins see all, users see own org)
-               + auto-registers ObjectOwnershipPermission for object-level ownership checks
-            2. Server-side org assignment: Prevents cross-org writes via request body
-
-        Endpoints:
-            Platform (JWT auth, uses numeric pk):
-                GET /llm_models/custom_providers/{pk}/ - Retrieve a specific custom provider
-                PATCH /llm_models/custom_providers/{pk}/ - Update a specific custom provider
-                DELETE /llm_models/custom_providers/{pk}/ - Delete a specific custom provider
-            Public API (API key auth, uses provider_id string):
-                GET /api/providers/{provider_id}/ - Retrieve a specific custom provider
-                PATCH /api/providers/{provider_id}/ - Update a specific custom provider
-                DELETE /api/providers/{provider_id}/ - Delete a specific custom provider
-
-        Args (PATCH):
-            - provider_name (Optional): Updated provider name
-            - litellm_provider_id (Optional): Updated base provider ID
-            - moderation (Optional): Updated moderation setting
-            - extra_kwargs (Optional): Updated additional configuration (all credentials live here)
-                * api_key: Updated provider API key
-                * base_url: Updated custom base URL for the provider's API
-                * temperature: Updated default temperature setting
-                * max_tokens: Updated default max tokens setting
-                * timeout: Updated request timeout in seconds
-
-        Returns (GET):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Custom OpenAI Provider",
-                "litellm_provider_id": "openai",
-                "moderation": "filtered",
-                "extra_kwargs": {
-                    "api_key": "sk-custom-key-123",
-                    "base_url": "https://api.my-custom-provider.com/v1",
-                    "temperature": 0.7,
-                    "max_tokens": 4096
-                },
-                "organization": 456,
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-01-15T11:00:00Z"
-            }
-
-        Returns (PATCH):
-            {
-                "id": 123,
-                "provider_id": "my-custom-openai",
-                "provider_name": "My Updated Custom OpenAI Provider",
-                "extra_kwargs": {
-                    "api_key": "sk-updated-key-456",
-                    "base_url": "https://api.my-updated-provider.com/v1",
-                    "temperature": 0.8,
-                    "max_tokens": 8192
-                },
-                ...
-            }
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_custom_providers_partial_update2(
-        self,
-        id: int,
-        *,
-        provider_name: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicCustomProviderUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicCustomProviderUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/custom_providers/{jsonable_encoder(id)}/",
-            method="PATCH",
-            json={
-                "provider_name": provider_name,
-                "extra_kwargs": extra_kwargs,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicCustomProviderUpdate,
-                    parse_obj_as(
-                        type_=PublicCustomProviderUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_foundation_model_retrieve2(
-        self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[LlmFoundationModelDetail]:
-        """
-        Foundation model detail by model_name. Auth optional — API key OR JWT
-        parsed if present, anonymous allowed. Serializer filters variants by org
-        when authenticated. See ``FoundationModelView`` for why the optional mixin
-        replaces the bare JWT authenticator (it 401'd valid API-key callers).
-
-        Parameters
-        ----------
-        model_name : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmFoundationModelDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/foundation_model/{jsonable_encoder(model_name)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmFoundationModelDetail,
-                    parse_obj_as(
-                        type_=LlmFoundationModelDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_foundation_model_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[LlmFoundationModelDetail]:
-        """
-        Foundation model detail by PK. Auth optional — API key OR JWT parsed if
-        present, anonymous allowed. Serializer filters variants by org when
-        authenticated.
-
-        Uses ``OptionalJWTAndAPIKeyAuthenticationViewMixin`` (not bare
-        ``authentication_classes=[KeywordsAIJWTAuthentication]``): SimpleJWT raises
-        ``InvalidToken`` (401) on any present-but-non-JWT bearer — i.e. an API key —
-        so the bare config 401'd legitimate API-key callers despite ``AllowAny``.
-        The mixin accepts API key OR JWT and treats unparseable creds as anonymous,
-        and IP-rate-limits anonymous callers via ``TokenBucketThrottle``.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmFoundationModelDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/foundation_model/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmFoundationModelDetail,
-                    parse_obj_as(
-                        type_=LlmFoundationModelDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_foundation_models_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[typing.List[LlmFoundationModel]]:
-        """
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[typing.List[LlmFoundationModel]]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/foundation_models/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[LlmFoundationModel],
-                    parse_obj_as(
-                        type_=typing.List[LlmFoundationModel],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_foundation_models_create(
-        self,
-        *,
-        model_name: str,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        hf_url: typing.Optional[str] = OMIT,
-        model_description: typing.Optional[str] = OMIT,
-        model_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[LlmFoundationModel]:
-        """
-        Parameters
-        ----------
-        model_name : str
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        hf_url : typing.Optional[str]
-
-        model_description : typing.Optional[str]
-
-        model_params : typing.Optional[typing.Sequence[str]]
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmFoundationModel]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/foundation_models/",
-            method="POST",
-            json={
-                "model_name": model_name,
-                "display_name": display_name,
-                "speed": speed,
-                "max_context_window": max_context_window,
-                "model_size": model_size,
-                "mmlu_score": mmlu_score,
-                "mt_bench_score": mt_bench_score,
-                "big_bench_score": big_bench_score,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "rate_limit": rate_limit,
-                "token_rate_limit": token_rate_limit,
-                "multilingual": multilingual,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "enforce_function_call": enforce_function_call,
-                "weight": weight,
-                "image_support": image_support,
-                "hf_url": hf_url,
-                "model_description": model_description,
-                "model_params": model_params,
-                "total_requests": total_requests,
-                "total_cost": total_cost,
-                "total_tokens": total_tokens,
-                "total_completion_tokens": total_completion_tokens,
-                "total_prompt_tokens": total_prompt_tokens,
-                "avg_tps": avg_tps,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmFoundationModel,
-                    parse_obj_as(
-                        type_=LlmFoundationModel,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_foundation_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedLlmFoundationModelList]:
-        """
-        View mixin that handles both JWT and API Key authentication.
-
-        Inherits from JWTAuthUtils:
-        - is_jwt_auth(request): Post-auth check (reliable, uses DRF's successful_authenticator)
-        - is_jwt_token_format(request): Pre-auth heuristic (used here to route authenticators)
-
-        This mixin uses is_jwt_token_format() (pre-auth) in get_authenticators() and get_permissions()
-        because those methods run BEFORE authentication completes. For post-auth checks,
-        use is_jwt_auth() instead.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedLlmFoundationModelList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/foundation_models/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedLlmFoundationModelList,
-                    parse_obj_as(
-                        type_=PaginatedLlmFoundationModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_model_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[PublicModelDetail]:
-        """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicModelDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelDetail,
-                    parse_obj_as(
-                        type_=PublicModelDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_model_create(
-        self,
-        id: int,
-        *,
-        provider: LlmProviderRequest,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        speed: typing.Optional[float] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        model_size: typing.Optional[int] = OMIT,
-        mmlu_score: typing.Optional[float] = OMIT,
-        mt_bench_score: typing.Optional[float] = OMIT,
-        big_bench_score: typing.Optional[float] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        rate_limit: typing.Optional[int] = OMIT,
-        token_rate_limit: typing.Optional[int] = OMIT,
-        multilingual: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        enforce_function_call: typing.Optional[int] = OMIT,
-        weight: typing.Optional[float] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        order: typing.Optional[int] = OMIT,
-        sdk: typing.Optional[str] = OMIT,
-        foundation_model_name: typing.Optional[str] = OMIT,
-        drop_params: typing.Optional[typing.Sequence[str]] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        fallbacks: typing.Optional[typing.Any] = OMIT,
-        deprecated: typing.Optional[bool] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        total_requests: typing.Optional[int] = OMIT,
-        total_cost: typing.Optional[float] = OMIT,
-        total_tokens: typing.Optional[int] = OMIT,
-        total_completion_tokens: typing.Optional[int] = OMIT,
-        total_prompt_tokens: typing.Optional[int] = OMIT,
-        avg_tps: typing.Optional[float] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[LlmModelDetailRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        foundation_model: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[LlmModelDetail]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        id : int
-
-        provider : LlmProviderRequest
-
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        speed : typing.Optional[float]
-
-        max_context_window : typing.Optional[int]
-
-        model_size : typing.Optional[int]
-
-        mmlu_score : typing.Optional[float]
-
-        mt_bench_score : typing.Optional[float]
-
-        big_bench_score : typing.Optional[float]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        rate_limit : typing.Optional[int]
-
-        token_rate_limit : typing.Optional[int]
-
-        multilingual : typing.Optional[int]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        enforce_function_call : typing.Optional[int]
-
-        weight : typing.Optional[float]
-
-        image_support : typing.Optional[int]
-
-        order : typing.Optional[int]
-
-        sdk : typing.Optional[str]
-
-        foundation_model_name : typing.Optional[str]
-
-        drop_params : typing.Optional[typing.Sequence[str]]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        fallbacks : typing.Optional[typing.Any]
-
-        deprecated : typing.Optional[bool]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        total_requests : typing.Optional[int]
-
-        total_cost : typing.Optional[float]
-
-        total_tokens : typing.Optional[int]
-
-        total_completion_tokens : typing.Optional[int]
-
-        total_prompt_tokens : typing.Optional[int]
-
-        avg_tps : typing.Optional[float]
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[LlmModelDetailRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        foundation_model : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmModelDetail]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="POST",
-            json={
-                "project": project,
-                "provider": convert_and_respect_annotation_metadata(
-                    object_=provider, annotation=LlmProviderRequest, direction="write"
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "speed": speed,
-                "max_context_window": max_context_window,
-                "model_size": model_size,
-                "mmlu_score": mmlu_score,
-                "mt_bench_score": mt_bench_score,
-                "big_bench_score": big_bench_score,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "rate_limit": rate_limit,
-                "token_rate_limit": token_rate_limit,
-                "multilingual": multilingual,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "enforce_function_call": enforce_function_call,
-                "weight": weight,
-                "image_support": image_support,
-                "order": order,
-                "sdk": sdk,
-                "foundation_model_name": foundation_model_name,
-                "drop_params": drop_params,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "fallbacks": fallbacks,
-                "deprecated": deprecated,
-                "status": status,
-                "is_verified": is_verified,
-                "total_requests": total_requests,
-                "total_cost": total_cost,
-                "total_tokens": total_tokens,
-                "total_completion_tokens": total_completion_tokens,
-                "total_prompt_tokens": total_prompt_tokens,
-                "avg_tps": avg_tps,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=LlmModelDetailRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-                "foundation_model": foundation_model,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmModelDetail,
-                    parse_obj_as(
-                        type_=LlmModelDetail,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_model_update(
-        self,
-        id: int,
-        *,
-        supported_params_override: typing.Optional[PublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelUpdate]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        id : int
-
-        supported_params_override : typing.Optional[PublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicModelUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "supported_params_override": convert_and_respect_annotation_metadata(
-                    object_=supported_params_override,
-                    annotation=PublicModelUpdateRequestSupportedParamsOverride,
-                    direction="write",
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelUpdateRequestMetadata, direction="write"
-                ),
-                "provider": provider,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelUpdate,
-                    parse_obj_as(
-                        type_=PublicModelUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_model_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        GET/PATCH/DELETE /llm_models/model/<pk>/  (platform - uses pk)
-        GET/PATCH/DELETE /api/models/<path:model_name>/  (public API - uses model_name)
-
-        Unified endpoint for any model (global or custom).
-
-        Lookup field determined by URL kwargs:
-            - If 'pk' in kwargs: Uses pk lookup
-            - If 'model_name' in kwargs: Uses model_name lookup
-
-        GET:    Retrieve model (public for global, org auth for custom)
-        PATCH:  Update model (admin for global, org owner for custom)
-        DELETE: Delete model (admin for global, org owner for custom)
-
-        Permission logic:
-            - Global model (organization_id is None): Admin required for write
-            - Custom model (organization_id is set): Org ownership required for write
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_model_partial_update(
-        self,
-        id: int,
-        *,
-        supported_params_override: typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelUpdateRequestMetadata] = OMIT,
-        provider: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelUpdate]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        id : int
-
-        supported_params_override : typing.Optional[PatchedPublicModelUpdateRequestSupportedParamsOverride]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelUpdateRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        provider : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicModelUpdate]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/model/{jsonable_encoder(id)}/",
-            method="PATCH",
-            json={
-                "supported_params_override": convert_and_respect_annotation_metadata(
-                    object_=supported_params_override,
-                    annotation=PatchedPublicModelUpdateRequestSupportedParamsOverride,
-                    direction="write",
-                ),
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PatchedPublicModelUpdateRequestMetadata, direction="write"
-                ),
-                "provider": provider,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelUpdate,
-                    parse_obj_as(
-                        type_=PublicModelUpdate,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedPublicModelListList]:
-        """
-        GET/POST /api/llm_models/models/  (platform - shows global + custom)
-        GET/POST /api/llm-models/custom-models/  (public API - shows ONLY custom)
-
-        Unified endpoint for models.
-
-        GET:  List models
-              - Platform: global + org's custom (same for superadmin - no cross-org listing)
-              - Public (custom-models path): ONLY org's custom models
-              Filter with standard syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-
-        POST:
-            - Without 'model_name' in body: Filter/list models (backward compatible)
-            - With 'model_name' in body: Create model
-                - organization_id=null + superadmin: Create global model
-                - Otherwise: Create custom model for target org (superadmin can specify organization_id)
-
-        Note: Uses SuperAdminMixin for consistency, but queryset is intentionally the same
-        for both regular users and superadmins (global + org's custom pattern).
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedPublicModelListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/models/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicModelListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicModelListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_create(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelList]:
-        """
-        POST handler with superadmin-only field protection.
-
-        Strips superadmin-only fields from non-superadmin requests before
-        delegating to OrganizationInjectionMixin.post() for org injection.
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicModelList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/models/",
-            method="POST",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_update(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelList]:
-        """
-        PUT handler with superadmin lock and field protection.
-
-        Same as patch() - checks lock and field protection before delegating.
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicModelList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/models/",
-            method="PUT",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_partial_update(
-        self,
-        *,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        model_name: typing.Optional[str] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PatchedPublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelList]:
-        """
-        PATCH handler with superadmin lock and field protection.
-
-        Checks:
-        1. Object lock (is_managed=True -> non-superadmins can't modify)
-        2. Field protection (non-superadmins can't modify specific fields)
-
-        Parameters
-        ----------
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        model_name : typing.Optional[str]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PatchedPublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicModelList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/models/",
-            method="PATCH",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PatchedPublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_status_retrieve(
-        self,
-        model_name: str,
-        *,
-        end_time: str,
-        start_time: str,
-        provider_id: typing.Optional[str] = None,
-        time_tick: typing.Optional[LlmModelsModelsStatusRetrieveRequestTimeTick] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ModelStatusResponse]:
-        """
-        GET/POST /api/models/<model_name>/status/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/<model_name>/status/ (Platform)
-
-        Per-model status resource for the exact logged model string in the URL path,
-        over an absolute UTC ``[start_time, end_time)`` range, bucketed by
-        ``time_tick`` (minute / hour / day).
-        Returns four things (see ``ModelStatusResponseSerializer``):
-          - ``data`` — per-provider uptime time series (per-attempt grain). Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``respan_uptime`` — request-grain "via Respan" uptime time series: one
-            verdict per client call (UP if ANY retry/fallback attempt succeeded), so
-            it reflects failover and sits at/above the per-provider line. Omitted for
-            provider-filtered requests because it is inherently cross-provider.
-          - ``metrics_series`` — per-bucket performance metrics over the window (tps,
-            ttft, latency, cache-hit %, + admin-only counts/cost), so the other
-            metrics can be plotted over time just like uptime. Scoped to
-            ``provider_id`` when that filter is supplied, else cross-provider.
-          - ``status`` — scalar model-wide summary over the window (uptime %, tps,
-            ttft, latency, cache-hit %, catalog input list price). Omitted when a
-            ``provider_id`` filter is supplied (it is cross-provider).
-
-        Redaction: public/regular callers get only normalized rates/percentages plus
-        the catalog list price; staff/superadmins additionally get volume scalars
-        (request/down counts, total cost) — those are withheld from the public so
-        competitors can't infer platform traffic/revenue from counts × price.
-
-        The model is the URL path segment (``<path:model_name>``) so provider-prefixed
-        identifiers (e.g. ``vertex_ai/gemini-1.5-pro``) survive routing; the filters
-        (``provider_id``, ``time_tick``, range) stay query/body params.
-
-        Parameters
-        ----------
-        model_name : str
-
-        end_time : str
-
-        start_time : str
-
-        provider_id : typing.Optional[str]
-
-        time_tick : typing.Optional[LlmModelsModelsStatusRetrieveRequestTimeTick]
-            * `minute` - minute
-            * `hour` - hour
-            * `day` - day
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ModelStatusResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/models/{jsonable_encoder(model_name)}/status/",
-            method="GET",
-            params={
-                "end_time": end_time,
-                "provider_id": provider_id,
-                "start_time": start_time,
-                "time_tick": time_tick,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ModelStatusResponse,
-                    parse_obj_as(
-                        type_=ModelStatusResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_status_create(
-        self,
-        model_name: str,
-        *,
-        start_time: str,
-        end_time: str,
-        provider_id: typing.Optional[str] = OMIT,
-        time_tick: typing.Optional[TimeTickEnum] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[ModelStatusResponse]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        start_time : str
-
-        end_time : str
-
-        provider_id : typing.Optional[str]
-
-        time_tick : typing.Optional[TimeTickEnum]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[ModelStatusResponse]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/models/{jsonable_encoder(model_name)}/status/",
-            method="POST",
-            json={
-                "provider_id": provider_id,
-                "start_time": start_time,
-                "end_time": end_time,
-                "time_tick": time_tick,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    ModelStatusResponse,
-                    parse_obj_as(
-                        type_=ModelStatusResponse,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_list_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedPublicModelListList]:
-        """
-        GET/POST /api/models/list/        (Public API)
-        GET/POST /api/llm_models/models/list/  (Platform)
-
-        List models. **Authentication is optional** (OpenRouter-style catalog) — the
-        SAME endpoint serves both public and authenticated callers:
-
-        - **Unauthenticated** → managed/shared models only (``organization=None``).
-          Rate-limited per client IP.
-        - **API key / JWT** → managed models PLUS the caller's own custom models.
-
-        Read-only: there is no create/write path (``ListAPIView``); ``post()`` only
-        delegates to ``get()`` to support POST-body filtering (BE conventions). Both
-        auth modes fully support filtering.
-
-        Optionally enriches each model with cross-org performance metrics (opt-in via
-        ``is_including_metrics``) over an absolute UTC ``[start_time, end_time)`` window
-        read at ``time_tick`` grain (dashboard convention). Each model gets a ``metrics``
-        object: average_tps / average_ttft / average_latency (OpenRouter-style
-        averages), uptime_percent, number_of_requests, cost, the prompt/completion/
-        cache token sums, and cache_hit_percentage. Sourced from the cross-org
-        ``get_public_breakdown_metrics`` reader (clickhouse/tasks.py). The metrics are
-        cross-org aggregates, so they're identical regardless of auth.
-
-        Filtering:
-            Use standard filter syntax: { "filters": { "affiliation_category": { "value": ["CUSTOM"] } } }
-            See boilerplates/keywordsai/feature_docs/shared/filters_api_reference.md
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedPublicModelListList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/models/list/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedPublicModelListList,
-                    parse_obj_as(
-                        type_=PaginatedPublicModelListList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_list_create(
-        self,
-        *,
-        model_name: str,
-        project: typing.Optional[str] = OMIT,
-        affiliation_category: typing.Optional[AffiliationCategoryEnum] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        is_called_by_custom_name: typing.Optional[bool] = OMIT,
-        base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
-        max_context_window: typing.Optional[int] = OMIT,
-        input_cost: typing.Optional[float] = OMIT,
-        output_cost: typing.Optional[float] = OMIT,
-        cache_hit_input_cost: typing.Optional[float] = OMIT,
-        cache_creation_input_cost: typing.Optional[float] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
-        function_call: typing.Optional[int] = OMIT,
-        image_support: typing.Optional[int] = OMIT,
-        overridden_fields: typing.Optional[typing.Sequence[str]] = OMIT,
-        load_balance_backups: typing.Optional[typing.Any] = OMIT,
-        status: typing.Optional[Status359Enum] = OMIT,
-        is_verified: typing.Optional[bool] = OMIT,
-        source: typing.Optional[Source7D1Enum] = OMIT,
-        model_type: typing.Optional[ModelTypeEnum] = OMIT,
-        metadata: typing.Optional[PublicModelListRequestMetadata] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PublicModelList]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        model_name : str
-
-        project : typing.Optional[str]
-
-        affiliation_category : typing.Optional[AffiliationCategoryEnum]
-
-        is_managed : typing.Optional[bool]
-
-        is_called_by_custom_name : typing.Optional[bool]
-
-        base_model_name : typing.Optional[str]
-
-        display_name : typing.Optional[str]
-
-        max_context_window : typing.Optional[int]
-
-        input_cost : typing.Optional[float]
-
-        output_cost : typing.Optional[float]
-
-        cache_hit_input_cost : typing.Optional[float]
-
-        cache_creation_input_cost : typing.Optional[float]
-
-        respan_discount_rate : typing.Optional[float]
-
-        streaming_support : typing.Optional[int]
-
-        function_call : typing.Optional[int]
-
-        image_support : typing.Optional[int]
-
-        overridden_fields : typing.Optional[typing.Sequence[str]]
-
-        load_balance_backups : typing.Optional[typing.Any]
-
-        status : typing.Optional[Status359Enum]
-
-        is_verified : typing.Optional[bool]
-            Whether the model's pricing has been human-verified. Unverified auto-discovered models are kept out of the live model dictionary.
-
-        source : typing.Optional[Source7D1Enum]
-            Source of truth for this model definition
-
-            * `hardcoded` - Synced from Code
-            * `db` - Database Only
-
-        model_type : typing.Optional[ModelTypeEnum]
-            Type of model: chat, embedding, or audio
-
-            * `chat` - Chat
-            * `embedding` - Embedding
-            * `audio` - Audio
-
-        metadata : typing.Optional[PublicModelListRequestMetadata]
-            Flexible catalog metadata; known keys are documented, extras allowed.
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PublicModelList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/models/list/",
-            method="POST",
-            json={
-                "project": project,
-                "affiliation_category": affiliation_category,
-                "is_managed": is_managed,
-                "is_called_by_custom_name": is_called_by_custom_name,
-                "model_name": model_name,
-                "base_model_name": base_model_name,
-                "display_name": display_name,
-                "max_context_window": max_context_window,
-                "input_cost": input_cost,
-                "output_cost": output_cost,
-                "cache_hit_input_cost": cache_hit_input_cost,
-                "cache_creation_input_cost": cache_creation_input_cost,
-                "respan_discount_rate": respan_discount_rate,
-                "streaming_support": streaming_support,
-                "function_call": function_call,
-                "image_support": image_support,
-                "overridden_fields": overridden_fields,
-                "load_balance_backups": load_balance_backups,
-                "status": status,
-                "is_verified": is_verified,
-                "source": source,
-                "model_type": model_type,
-                "metadata": convert_and_respect_annotation_metadata(
-                    object_=metadata, annotation=PublicModelListRequestMetadata, direction="write"
-                ),
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PublicModelList,
-                    parse_obj_as(
-                        type_=PublicModelList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_summary_retrieve(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        GET/POST /api/models/summary/        (Public API — **auth optional**)
-        GET/POST /api/llm_models/models/summary/ (Platform)
-
-        Summary counts for LLM models. **Auth is optional** — same model as
-        ``ModelsListView``:
-
-        - **Unauthenticated** → counts over managed/global models only
-          (``organization=null``). Rate-limited per client IP.
-        - **API key / JWT** → counts include the caller's custom models too.
-
-        Read-only: only GET (and POST-as-filter, delegating to GET). No write path.
-
-        Returns:
-            {
-                "summary": {
-                    "total_count": 150,
-                    "global_count": 120,
-                    "custom_count": 30
-                }
-            }
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/models/summary/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_models_summary_create(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        POST for filtering - delegate to GET (BE conventions).
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/models/summary/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_provider_retrieve(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[LlmProvider]:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmProvider]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/provider/{jsonable_encoder(id)}/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProvider,
-                    parse_obj_as(
-                        type_=LlmProvider,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_provider_update(
-        self,
-        id: int,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[LlmProvider]:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmProvider]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/provider/{jsonable_encoder(id)}/",
-            method="PUT",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProvider,
-                    parse_obj_as(
-                        type_=LlmProvider,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_provider_destroy(
-        self, id: int, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/provider/{jsonable_encoder(id)}/",
-            method="DELETE",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_provider_partial_update(
-        self,
-        id: int,
-        *,
-        project: typing.Optional[str] = OMIT,
-        provider_name: typing.Optional[str] = OMIT,
-        provider_id: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[LlmProvider]:
-        """
-        Global provider detail. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        id : int
-
-        project : typing.Optional[str]
-
-        provider_name : typing.Optional[str]
-
-        provider_id : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmProvider]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"llm_models/provider/{jsonable_encoder(id)}/",
-            method="PATCH",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProvider,
-                    parse_obj_as(
-                        type_=LlmProvider,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_provider_integrations_list(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[typing.List[LlmProviderIntegration]]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[typing.List[LlmProviderIntegration]]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/provider_integrations/",
-            method="GET",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    typing.List[LlmProviderIntegration],
-                    parse_obj_as(
-                        type_=typing.List[LlmProviderIntegration],  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_provider_integrations_create(
-        self,
-        *,
-        credential_fields: typing.Sequence[ProviderCredentialFieldListRequest],
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        integration_id: typing.Optional[int] = OMIT,
-        active_integrations_count: typing.Optional[int] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[LlmProviderIntegration]:
-        """
-        Mixin for views that need method-level permission enforcement.
-
-        Supports two approaches for defining permissions:
-
-        1. Auto-generation (Recommended - DRY):
-            Set permission_resource to auto-generate CRUD permissions based on HTTP methods:
-
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, RetrieveUpdateDestroyAPIView):
-                permission_resource = Resources.LOG
-                # Auto-generates:
-                # GET -> log:read
-                # PATCH -> log:update
-                # DELETE -> log:delete
-
-            Override specific methods via permission_map (always use constants):
-            class MyView(PermissionMapMixin, ...):
-                permission_resource = Resources.LOG
-                permission_map: PermissionMap = {
-                    "GET": None,  # Override: no permission required for GET
-                    "POST": make_permission(Resources.LOG, CRUDActions.READ),  # POST acts as read
-                }
-
-        2. Explicit mapping (for non-CRUD or complex cases - always use constants):
-            class MyView(PermissionMapMixin, JWTAndAPIKeyAuthenticationViewMixin, APIView):
-                permission_map: PermissionMap = {
-                    "GET": make_permission(Features.PROXY, Actions.ACCESS),
-                    "POST": make_permission(Features.PLAYGROUND, Actions.ACCESS),
-                }
-
-        3. Dynamic logic (most flexible):
-            def get_required_permission(self, method: str) -> str | None:
-                if self.kwargs.get('public'):
-                    return None
-                return "dataset:read"
-
-        Notes:
-        - permission_map acts as an override when permission_resource is set
-        - If neither is defined, no permission check is performed (backward compatible)
-        - HasJWTPermission automatically enforces permissions when defined
-
-        Parameters
-        ----------
-        credential_fields : typing.Sequence[ProviderCredentialFieldListRequest]
-
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        integration_id : typing.Optional[int]
-
-        active_integrations_count : typing.Optional[int]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmProviderIntegration]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/provider_integrations/",
-            method="POST",
-            json={
-                "project": project,
-                "credential_fields": convert_and_respect_annotation_metadata(
-                    object_=credential_fields,
-                    annotation=typing.Sequence[ProviderCredentialFieldListRequest],
-                    direction="write",
-                ),
-                "integration_id": integration_id,
-                "active_integrations_count": active_integrations_count,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProviderIntegration,
-                    parse_obj_as(
-                        type_=LlmProviderIntegration,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_providers_list(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedLlmProviderList]:
-        """
-        Global providers list. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PaginatedLlmProviderList]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/providers/",
-            method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PaginatedLlmProviderList,
-                    parse_obj_as(
-                        type_=PaginatedLlmProviderList,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_providers_create(
-        self,
-        *,
-        provider_name: str,
-        provider_id: str,
-        project: typing.Optional[str] = OMIT,
-        litellm_provider_id: typing.Optional[str] = OMIT,
-        moderation: typing.Optional[str] = OMIT,
-        extra_kwargs: typing.Optional[typing.Any] = OMIT,
-        is_managed: typing.Optional[bool] = OMIT,
-        respan_discount_rate: typing.Optional[float] = OMIT,
-        models_sync_config: typing.Optional[typing.Any] = OMIT,
-        organization: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[LlmProvider]:
-        """
-        Global providers list. Returns providers with organization=None only.
-
-        Parameters
-        ----------
-        provider_name : str
-
-        provider_id : str
-
-        project : typing.Optional[str]
-
-        litellm_provider_id : typing.Optional[str]
-
-        moderation : typing.Optional[str]
-
-        extra_kwargs : typing.Optional[typing.Any]
-
-        is_managed : typing.Optional[bool]
-
-        respan_discount_rate : typing.Optional[float]
-
-        models_sync_config : typing.Optional[typing.Any]
-
-        organization : typing.Optional[int]
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[LlmProvider]
-
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/providers/",
-            method="POST",
-            json={
-                "project": project,
-                "provider_name": provider_name,
-                "provider_id": provider_id,
-                "litellm_provider_id": litellm_provider_id,
-                "moderation": moderation,
-                "extra_kwargs": extra_kwargs,
-                "is_managed": is_managed,
-                "respan_discount_rate": respan_discount_rate,
-                "models_sync_config": models_sync_config,
-                "organization": organization,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    LlmProvider,
-                    parse_obj_as(
-                        type_=LlmProvider,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def llm_models_validate_api_key_create(
-        self, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[None]:
-        """
-        Validate API credentials. Supports both JWT and API key auth.
-
-        Parameters
-        ----------
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[None]
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "llm_models/validate_api_key/",
-            method="POST",
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                return AsyncHttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

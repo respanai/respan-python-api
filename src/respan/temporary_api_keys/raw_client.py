@@ -10,9 +10,12 @@ from ..core.http_response import AsyncHttpResponse, HttpResponse
 from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
-from ..types.organization_key import OrganizationKey
-from ..types.organization_key_update import OrganizationKeyUpdate
-from ..types.paginated_organization_key_read_list import PaginatedOrganizationKeyReadList
+from ..errors.not_found_error import NotFoundError
+from ..errors.unauthorized_error import UnauthorizedError
+from .types.create_api_key_response import CreateApiKeyResponse
+from .types.list_api_keys_response import ListApiKeysResponse
+from .types.retrieve_api_key_response import RetrieveApiKeyResponse
+from .types.update_api_key_response import UpdateApiKeyResponse
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -23,78 +26,47 @@ class RawTemporaryApiKeysClient:
         self._client_wrapper = client_wrapper
 
     def list_api_keys(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PaginatedOrganizationKeyReadList]:
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[ListApiKeysResponse]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        List all API keys for your organization.
 
         Parameters
         ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[PaginatedOrganizationKeyReadList]
-
+        HttpResponse[ListApiKeysResponse]
+            Paginated API keys.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/temporary-keys/",
             method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedOrganizationKeyReadList,
+                    ListApiKeysResponse,
                     parse_obj_as(
-                        type_=PaginatedOrganizationKeyReadList,  # type: ignore
+                        type_=ListApiKeysResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -103,92 +75,55 @@ class RawTemporaryApiKeysClient:
     def create_api_key(
         self,
         *,
-        project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        revoked: typing.Optional[bool] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
-        rate_limit: typing.Optional[float] = OMIT,
+        rate_limit: typing.Optional[int] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
-        is_temporary: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[OrganizationKey]:
+    ) -> HttpResponse[CreateApiKeyResponse]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Create a new API key.
 
         Parameters
         ----------
-        project : typing.Optional[str]
-
         name : typing.Optional[str]
-            A free-form name for the API key. Need not be unique. 50 characters max.
-
-        revoked : typing.Optional[bool]
-            If the API key is revoked, clients cannot use it anymore. (This cannot be undone.)
+            Key name.
 
         expiry_date : typing.Optional[dt.datetime]
-            Once API key expires, clients cannot use it anymore.
+            Expiry date (ISO 8601).
 
         max_usage : typing.Optional[int]
+            Max usage count. -1 = unlimited.
 
-        rate_limit : typing.Optional[float]
+        rate_limit : typing.Optional[int]
+            Calls per minute. Overridden by plan limit.
 
         spending_limit : typing.Optional[float]
+            Spending limit in USD for gateway usage.
 
         is_test : typing.Optional[bool]
-
-        is_temporary : typing.Optional[bool]
+            Test key (`true`) or production key (`false`).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[OrganizationKey]
-
+        HttpResponse[CreateApiKeyResponse]
+            Created API key.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/temporary-keys/",
             method="POST",
             json={
-                "project": project,
                 "name": name,
-                "revoked": revoked,
                 "expiry_date": expiry_date,
                 "max_usage": max_usage,
                 "rate_limit": rate_limit,
                 "spending_limit": spending_limit,
                 "is_test": is_test,
-                "is_temporary": is_temporary,
             },
             headers={
                 "content-type": "application/json",
@@ -199,13 +134,24 @@ class RawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    OrganizationKey,
+                    CreateApiKeyResponse,
                     parse_obj_as(
-                        type_=OrganizationKey,  # type: ignore
+                        type_=CreateApiKeyResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -213,49 +159,22 @@ class RawTemporaryApiKeysClient:
 
     def retrieve_api_key(
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[OrganizationKeyUpdate]:
+    ) -> HttpResponse[RetrieveApiKeyResponse]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Retrieve an API key by ID.
 
         Parameters
         ----------
         id : str
+            The ID of the temporary API key to retrieve.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[OrganizationKeyUpdate]
-
+        HttpResponse[RetrieveApiKeyResponse]
+            API key details.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/temporary-keys/{jsonable_encoder(id)}/",
@@ -265,13 +184,35 @@ class RawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    OrganizationKeyUpdate,
+                    RetrieveApiKeyResponse,
                     parse_obj_as(
-                        type_=OrganizationKeyUpdate,  # type: ignore
+                        type_=RetrieveApiKeyResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -279,39 +220,12 @@ class RawTemporaryApiKeysClient:
 
     def delete_api_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Delete an API key. This action is irreversible.
 
         Parameters
         ----------
         id : str
+            The ID of the temporary API key to delete.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -328,6 +242,28 @@ class RawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -337,90 +273,51 @@ class RawTemporaryApiKeysClient:
         self,
         id: str,
         *,
-        project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        revoked: typing.Optional[bool] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
         rate_limit: typing.Optional[float] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
-        is_temporary: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[OrganizationKeyUpdate]:
+    ) -> HttpResponse[UpdateApiKeyResponse]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Update an API key's name, expiry, usage, rate, or spending limit.
 
         Parameters
         ----------
         id : str
-
-        project : typing.Optional[str]
+            The ID of the temporary API key to update.
 
         name : typing.Optional[str]
-            A free-form name for the API key. Need not be unique. 50 characters max.
-
-        revoked : typing.Optional[bool]
-            If the API key is revoked, clients cannot use it anymore. (This cannot be undone.)
+            Key name.
 
         expiry_date : typing.Optional[dt.datetime]
-            Once API key expires, clients cannot use it anymore.
+            Expiry date (ISO 8601).
 
         max_usage : typing.Optional[int]
+            Maximum use count. -1 means unlimited.
 
         rate_limit : typing.Optional[float]
 
         spending_limit : typing.Optional[float]
-
-        is_temporary : typing.Optional[bool]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        HttpResponse[OrganizationKeyUpdate]
-
+        HttpResponse[UpdateApiKeyResponse]
+            Updated API key.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"api/temporary-keys/{jsonable_encoder(id)}/",
             method="PATCH",
             json={
-                "project": project,
                 "name": name,
-                "revoked": revoked,
                 "expiry_date": expiry_date,
                 "max_usage": max_usage,
                 "rate_limit": rate_limit,
                 "spending_limit": spending_limit,
-                "is_temporary": is_temporary,
             },
             headers={
                 "content-type": "application/json",
@@ -431,13 +328,35 @@ class RawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    OrganizationKeyUpdate,
+                    UpdateApiKeyResponse,
                     parse_obj_as(
-                        type_=OrganizationKeyUpdate,  # type: ignore
+                        type_=UpdateApiKeyResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -449,78 +368,47 @@ class AsyncRawTemporaryApiKeysClient:
         self._client_wrapper = client_wrapper
 
     async def list_api_keys(
-        self,
-        *,
-        page: typing.Optional[int] = None,
-        page_size: typing.Optional[int] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PaginatedOrganizationKeyReadList]:
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[ListApiKeysResponse]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        List all API keys for your organization.
 
         Parameters
         ----------
-        page : typing.Optional[int]
-            A page number within the paginated result set.
-
-        page_size : typing.Optional[int]
-            Number of results to return per page.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[PaginatedOrganizationKeyReadList]
-
+        AsyncHttpResponse[ListApiKeysResponse]
+            Paginated API keys.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/temporary-keys/",
             method="GET",
-            params={
-                "page": page,
-                "page_size": page_size,
-            },
             request_options=request_options,
         )
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    PaginatedOrganizationKeyReadList,
+                    ListApiKeysResponse,
                     parse_obj_as(
-                        type_=PaginatedOrganizationKeyReadList,  # type: ignore
+                        type_=ListApiKeysResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -529,92 +417,55 @@ class AsyncRawTemporaryApiKeysClient:
     async def create_api_key(
         self,
         *,
-        project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        revoked: typing.Optional[bool] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
-        rate_limit: typing.Optional[float] = OMIT,
+        rate_limit: typing.Optional[int] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
-        is_temporary: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[OrganizationKey]:
+    ) -> AsyncHttpResponse[CreateApiKeyResponse]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Create a new API key.
 
         Parameters
         ----------
-        project : typing.Optional[str]
-
         name : typing.Optional[str]
-            A free-form name for the API key. Need not be unique. 50 characters max.
-
-        revoked : typing.Optional[bool]
-            If the API key is revoked, clients cannot use it anymore. (This cannot be undone.)
+            Key name.
 
         expiry_date : typing.Optional[dt.datetime]
-            Once API key expires, clients cannot use it anymore.
+            Expiry date (ISO 8601).
 
         max_usage : typing.Optional[int]
+            Max usage count. -1 = unlimited.
 
-        rate_limit : typing.Optional[float]
+        rate_limit : typing.Optional[int]
+            Calls per minute. Overridden by plan limit.
 
         spending_limit : typing.Optional[float]
+            Spending limit in USD for gateway usage.
 
         is_test : typing.Optional[bool]
-
-        is_temporary : typing.Optional[bool]
+            Test key (`true`) or production key (`false`).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[OrganizationKey]
-
+        AsyncHttpResponse[CreateApiKeyResponse]
+            Created API key.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/temporary-keys/",
             method="POST",
             json={
-                "project": project,
                 "name": name,
-                "revoked": revoked,
                 "expiry_date": expiry_date,
                 "max_usage": max_usage,
                 "rate_limit": rate_limit,
                 "spending_limit": spending_limit,
                 "is_test": is_test,
-                "is_temporary": is_temporary,
             },
             headers={
                 "content-type": "application/json",
@@ -625,13 +476,24 @@ class AsyncRawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    OrganizationKey,
+                    CreateApiKeyResponse,
                     parse_obj_as(
-                        type_=OrganizationKey,  # type: ignore
+                        type_=CreateApiKeyResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -639,49 +501,22 @@ class AsyncRawTemporaryApiKeysClient:
 
     async def retrieve_api_key(
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[OrganizationKeyUpdate]:
+    ) -> AsyncHttpResponse[RetrieveApiKeyResponse]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Retrieve an API key by ID.
 
         Parameters
         ----------
         id : str
+            The ID of the temporary API key to retrieve.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[OrganizationKeyUpdate]
-
+        AsyncHttpResponse[RetrieveApiKeyResponse]
+            API key details.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/temporary-keys/{jsonable_encoder(id)}/",
@@ -691,13 +526,35 @@ class AsyncRawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    OrganizationKeyUpdate,
+                    RetrieveApiKeyResponse,
                     parse_obj_as(
-                        type_=OrganizationKeyUpdate,  # type: ignore
+                        type_=RetrieveApiKeyResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -707,39 +564,12 @@ class AsyncRawTemporaryApiKeysClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Delete an API key. This action is irreversible.
 
         Parameters
         ----------
         id : str
+            The ID of the temporary API key to delete.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -756,6 +586,28 @@ class AsyncRawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -765,90 +617,51 @@ class AsyncRawTemporaryApiKeysClient:
         self,
         id: str,
         *,
-        project: typing.Optional[str] = OMIT,
         name: typing.Optional[str] = OMIT,
-        revoked: typing.Optional[bool] = OMIT,
         expiry_date: typing.Optional[dt.datetime] = OMIT,
         max_usage: typing.Optional[int] = OMIT,
         rate_limit: typing.Optional[float] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
-        is_temporary: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[OrganizationKeyUpdate]:
+    ) -> AsyncHttpResponse[UpdateApiKeyResponse]:
         """
-        Stamp server-controlled fields at save time — never by mutating
-        ``request.data``.
-
-        DRF's contract: ``post()`` → ``create()`` → ``serializer.is_valid()`` →
-        ``perform_create(serializer)`` → ``serializer.save(**kwargs)``. Server values
-        belong in that final ``save(**kwargs)`` — they override ``validated_data``,
-        never pass through client validation, and don't need to be *writable*
-        serializer fields. The matching serializer field becomes ``read_only=True``
-        (or is dropped from ``fields``), shrinking — not widening — the
-        mass-assignment surface, and the immutable-``QueryDict`` (multipart) failure
-        mode of the old ``request.data[...] =`` pattern disappears.
-
-        Declare the fields to stamp as ``field -> fn(view) -> value`` maps::
-
-            class ExperimentV2sView(ServerStampedFieldsMixin, ...):
-                create_stamped_fields = {"created_by": stamp_request_user_id}
-            # + serializer: created_by = ...(read_only=True)
-
-        FK columns: when the stamped value is an ``int`` and the field names a
-        relation on the serializer's ``Meta.model``, the kwarg is rewritten to
-        ``<field>_id`` so ``Model.objects.create`` accepts it (a raw ``int`` on the
-        FK attribute itself would raise). Non-relation fields (``scorer`` = email)
-        and instance values pass through unchanged.
-
-        Cooperative composition: subclasses that need to stamp *additional* server
-        values (e.g. ``OrganizationInjectionMixin`` stamping org/project) override
-        ``get_create_save_kwargs`` / ``get_update_save_kwargs`` and merge onto
-        ``super()`` — yielding exactly ONE ``serializer.save()`` per request (calling
-        ``save()`` twice would re-run create/update side effects).
+        Update an API key's name, expiry, usage, rate, or spending limit.
 
         Parameters
         ----------
         id : str
-
-        project : typing.Optional[str]
+            The ID of the temporary API key to update.
 
         name : typing.Optional[str]
-            A free-form name for the API key. Need not be unique. 50 characters max.
-
-        revoked : typing.Optional[bool]
-            If the API key is revoked, clients cannot use it anymore. (This cannot be undone.)
+            Key name.
 
         expiry_date : typing.Optional[dt.datetime]
-            Once API key expires, clients cannot use it anymore.
+            Expiry date (ISO 8601).
 
         max_usage : typing.Optional[int]
+            Maximum use count. -1 means unlimited.
 
         rate_limit : typing.Optional[float]
 
         spending_limit : typing.Optional[float]
-
-        is_temporary : typing.Optional[bool]
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
         Returns
         -------
-        AsyncHttpResponse[OrganizationKeyUpdate]
-
+        AsyncHttpResponse[UpdateApiKeyResponse]
+            Updated API key.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"api/temporary-keys/{jsonable_encoder(id)}/",
             method="PATCH",
             json={
-                "project": project,
                 "name": name,
-                "revoked": revoked,
                 "expiry_date": expiry_date,
                 "max_usage": max_usage,
                 "rate_limit": rate_limit,
                 "spending_limit": spending_limit,
-                "is_temporary": is_temporary,
             },
             headers={
                 "content-type": "application/json",
@@ -859,13 +672,35 @@ class AsyncRawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    OrganizationKeyUpdate,
+                    UpdateApiKeyResponse,
                     parse_obj_as(
-                        type_=OrganizationKeyUpdate,  # type: ignore
+                        type_=UpdateApiKeyResponse,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
