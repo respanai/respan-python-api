@@ -23,6 +23,7 @@ if typing.TYPE_CHECKING:
     from .models.client import AsyncModelsClient, ModelsClient
     from .multimodal.client import AsyncMultimodalClient, MultimodalClient
     from .open_ai_batch.client import AsyncOpenAiBatchClient, OpenAiBatchClient
+    from .open_router_gateway.client import AsyncOpenRouterGatewayClient, OpenRouterGatewayClient
     from .prompts.client import AsyncPromptsClient, PromptsClient
     from .scores.client import AsyncScoresClient, ScoresClient
     from .spans.client import AsyncSpansClient, SpansClient
@@ -129,6 +130,7 @@ class RespanClient:
         self._dashboard: typing.Optional[DashboardClient] = None
         self._anthropic_gateway: typing.Optional[AnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[GoogleGatewayClient] = None
+        self._open_router_gateway: typing.Optional[OpenRouterGatewayClient] = None
 
     @property
     def traces(self):
@@ -298,6 +300,14 @@ class RespanClient:
             self._google_gateway = GoogleGatewayClient(client_wrapper=self._client_wrapper)
         return self._google_gateway
 
+    @property
+    def open_router_gateway(self):
+        if self._open_router_gateway is None:
+            from .open_router_gateway.client import OpenRouterGatewayClient  # noqa: E402
+
+            self._open_router_gateway = OpenRouterGatewayClient(client_wrapper=self._client_wrapper)
+        return self._open_router_gateway
+
 
 class AsyncRespanClient:
     """
@@ -394,6 +404,7 @@ class AsyncRespanClient:
         self._dashboard: typing.Optional[AsyncDashboardClient] = None
         self._anthropic_gateway: typing.Optional[AsyncAnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[AsyncGoogleGatewayClient] = None
+        self._open_router_gateway: typing.Optional[AsyncOpenRouterGatewayClient] = None
 
     @property
     def traces(self):
@@ -562,6 +573,14 @@ class AsyncRespanClient:
 
             self._google_gateway = AsyncGoogleGatewayClient(client_wrapper=self._client_wrapper)
         return self._google_gateway
+
+    @property
+    def open_router_gateway(self):
+        if self._open_router_gateway is None:
+            from .open_router_gateway.client import AsyncOpenRouterGatewayClient  # noqa: E402
+
+            self._open_router_gateway = AsyncOpenRouterGatewayClient(client_wrapper=self._client_wrapper)
+        return self._open_router_gateway
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: RespanClientEnvironment) -> str:
