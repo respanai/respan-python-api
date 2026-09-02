@@ -5,6 +5,7 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
+from ..types.api_key_limit_policy_spec import ApiKeyLimitPolicySpec
 from .raw_client import AsyncRawTemporaryApiKeysClient, RawTemporaryApiKeysClient
 from .types.create_api_key_response import CreateApiKeyResponse
 from .types.list_api_keys_response import ListApiKeysResponse
@@ -66,6 +67,7 @@ class TemporaryApiKeysClient:
         rate_limit: typing.Optional[int] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
+        limit_policies: typing.Optional[typing.Sequence[ApiKeyLimitPolicySpec]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateApiKeyResponse:
         """
@@ -90,6 +92,9 @@ class TemporaryApiKeysClient:
 
         is_test : typing.Optional[bool]
             Test key (`true`) or production key (`false`).
+
+        limit_policies : typing.Optional[typing.Sequence[ApiKeyLimitPolicySpec]]
+            Optional. Spending, token, or request caps to create and scope to this key in the same call. The response echoes the created policies in full (each with its `id`, `meter_definition_id`, and `current_state`). Caps are stored and visible as soon as they are created, but the gateway enforces them only where the limit system is enabled for your environment. Where it is not enabled, a cap records no usage and never blocks.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -116,6 +121,7 @@ class TemporaryApiKeysClient:
             rate_limit=rate_limit,
             spending_limit=spending_limit,
             is_test=is_test,
+            limit_policies=limit_policies,
             request_options=request_options,
         )
         return _response.data
@@ -308,6 +314,7 @@ class AsyncTemporaryApiKeysClient:
         rate_limit: typing.Optional[int] = OMIT,
         spending_limit: typing.Optional[float] = OMIT,
         is_test: typing.Optional[bool] = OMIT,
+        limit_policies: typing.Optional[typing.Sequence[ApiKeyLimitPolicySpec]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateApiKeyResponse:
         """
@@ -332,6 +339,9 @@ class AsyncTemporaryApiKeysClient:
 
         is_test : typing.Optional[bool]
             Test key (`true`) or production key (`false`).
+
+        limit_policies : typing.Optional[typing.Sequence[ApiKeyLimitPolicySpec]]
+            Optional. Spending, token, or request caps to create and scope to this key in the same call. The response echoes the created policies in full (each with its `id`, `meter_definition_id`, and `current_state`). Caps are stored and visible as soon as they are created, but the gateway enforces them only where the limit system is enabled for your environment. Where it is not enabled, a cap records no usage and never blocks.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -366,6 +376,7 @@ class AsyncTemporaryApiKeysClient:
             rate_limit=rate_limit,
             spending_limit=spending_limit,
             is_test=is_test,
+            limit_policies=limit_policies,
             request_options=request_options,
         )
         return _response.data

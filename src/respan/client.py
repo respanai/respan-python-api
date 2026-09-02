@@ -20,6 +20,7 @@ if typing.TYPE_CHECKING:
     from .experiments.client import AsyncExperimentsClient, ExperimentsClient
     from .gateway.client import AsyncGatewayClient, GatewayClient
     from .google_gateway.client import AsyncGoogleGatewayClient, GoogleGatewayClient
+    from .limit_policies.client import AsyncLimitPoliciesClient, LimitPoliciesClient
     from .models.client import AsyncModelsClient, ModelsClient
     from .multimodal.client import AsyncMultimodalClient, MultimodalClient
     from .open_ai_batch.client import AsyncOpenAiBatchClient, OpenAiBatchClient
@@ -131,6 +132,7 @@ class RespanClient:
         self._anthropic_gateway: typing.Optional[AnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[GoogleGatewayClient] = None
         self._open_router_gateway: typing.Optional[OpenRouterGatewayClient] = None
+        self._limit_policies: typing.Optional[LimitPoliciesClient] = None
 
     @property
     def traces(self):
@@ -308,6 +310,14 @@ class RespanClient:
             self._open_router_gateway = OpenRouterGatewayClient(client_wrapper=self._client_wrapper)
         return self._open_router_gateway
 
+    @property
+    def limit_policies(self):
+        if self._limit_policies is None:
+            from .limit_policies.client import LimitPoliciesClient  # noqa: E402
+
+            self._limit_policies = LimitPoliciesClient(client_wrapper=self._client_wrapper)
+        return self._limit_policies
+
 
 class AsyncRespanClient:
     """
@@ -405,6 +415,7 @@ class AsyncRespanClient:
         self._anthropic_gateway: typing.Optional[AsyncAnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[AsyncGoogleGatewayClient] = None
         self._open_router_gateway: typing.Optional[AsyncOpenRouterGatewayClient] = None
+        self._limit_policies: typing.Optional[AsyncLimitPoliciesClient] = None
 
     @property
     def traces(self):
@@ -581,6 +592,14 @@ class AsyncRespanClient:
 
             self._open_router_gateway = AsyncOpenRouterGatewayClient(client_wrapper=self._client_wrapper)
         return self._open_router_gateway
+
+    @property
+    def limit_policies(self):
+        if self._limit_policies is None:
+            from .limit_policies.client import AsyncLimitPoliciesClient  # noqa: E402
+
+            self._limit_policies = AsyncLimitPoliciesClient(client_wrapper=self._client_wrapper)
+        return self._limit_policies
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: RespanClientEnvironment) -> str:
