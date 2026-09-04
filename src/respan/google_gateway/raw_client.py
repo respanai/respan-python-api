@@ -47,7 +47,7 @@ class RawGoogleGatewayClient:
         render_format : ApiGoogleV1BetaModelsCreateRequestRenderFormat
 
         goog_api_key : str
-            Respan API key in Google's native auth header.
+            Respan API key in Google's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key.
 
         request : typing.Dict[str, typing.Any]
 
@@ -167,7 +167,7 @@ class AsyncRawGoogleGatewayClient:
         render_format : ApiGoogleV1BetaModelsCreateRequestRenderFormat
 
         goog_api_key : str
-            Respan API key in Google's native auth header.
+            Respan API key in Google's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key.
 
         request : typing.Dict[str, typing.Any]
 

@@ -49,7 +49,7 @@ class GoogleGatewayClient:
         render_format : ApiGoogleV1BetaModelsCreateRequestRenderFormat
 
         goog_api_key : str
-            Respan API key in Google's native auth header.
+            Respan API key in Google's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key.
 
         request : typing.Dict[str, typing.Any]
 
@@ -71,10 +71,17 @@ class GoogleGatewayClient:
         )
         client.google_gateway.api_google_v1beta_models_create(
             sdk_type="gemini",
-            model_name="model_name",
+            model_name="gemini-3.5-flash",
             render_format="generateContent",
-            goog_api_key="x-goog-api-key",
-            request={"key": "value"},
+            goog_api_key="YOUR_RESPAN_API_KEY",
+            request={
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": [{"text": "Explain how AI works in a few words."}],
+                    }
+                ]
+            },
         )
         """
         _response = self._raw_client.api_google_v1beta_models_create(
@@ -125,7 +132,7 @@ class AsyncGoogleGatewayClient:
         render_format : ApiGoogleV1BetaModelsCreateRequestRenderFormat
 
         goog_api_key : str
-            Respan API key in Google's native auth header.
+            Respan API key in Google's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key.
 
         request : typing.Dict[str, typing.Any]
 
@@ -152,10 +159,17 @@ class AsyncGoogleGatewayClient:
         async def main() -> None:
             await client.google_gateway.api_google_v1beta_models_create(
                 sdk_type="gemini",
-                model_name="model_name",
+                model_name="gemini-3.5-flash",
                 render_format="generateContent",
-                goog_api_key="x-goog-api-key",
-                request={"key": "value"},
+                goog_api_key="YOUR_RESPAN_API_KEY",
+                request={
+                    "contents": [
+                        {
+                            "role": "user",
+                            "parts": [{"text": "Explain how AI works in a few words."}],
+                        }
+                    ]
+                },
             )
 
 
