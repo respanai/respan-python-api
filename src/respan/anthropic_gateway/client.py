@@ -43,7 +43,7 @@ class AnthropicGatewayClient:
         Parameters
         ----------
         api_key : str
-            Respan API key in Anthropic's native auth header. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
+            Respan API key in Anthropic's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
 
         model : str
 
@@ -74,10 +74,12 @@ class AnthropicGatewayClient:
             respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.anthropic_gateway.api_anthropic_v1messages_create(
-            api_key="x-api-key",
-            model="model",
-            max_tokens=1,
-            messages=[{"key": "value"}],
+            api_key="YOUR_RESPAN_API_KEY",
+            model="claude-sonnet-4-5-20250929",
+            max_tokens=64,
+            messages=[
+                {"role": "user", "content": "Explain how AI works in a few words."}
+            ],
         )
         """
         _response = self._raw_client.api_anthropic_v1messages_create(
@@ -126,7 +128,7 @@ class AsyncAnthropicGatewayClient:
         Parameters
         ----------
         api_key : str
-            Respan API key in Anthropic's native auth header. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
+            Respan API key in Anthropic's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
 
         model : str
 
@@ -162,10 +164,12 @@ class AsyncAnthropicGatewayClient:
 
         async def main() -> None:
             await client.anthropic_gateway.api_anthropic_v1messages_create(
-                api_key="x-api-key",
-                model="model",
-                max_tokens=1,
-                messages=[{"key": "value"}],
+                api_key="YOUR_RESPAN_API_KEY",
+                model="claude-sonnet-4-5-20250929",
+                max_tokens=64,
+                messages=[
+                    {"role": "user", "content": "Explain how AI works in a few words."}
+                ],
             )
 
 

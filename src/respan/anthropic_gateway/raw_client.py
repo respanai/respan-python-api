@@ -40,7 +40,7 @@ class RawAnthropicGatewayClient:
         Parameters
         ----------
         api_key : str
-            Respan API key in Anthropic's native auth header. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
+            Respan API key in Anthropic's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
 
         model : str
 
@@ -174,7 +174,7 @@ class AsyncRawAnthropicGatewayClient:
         Parameters
         ----------
         api_key : str
-            Respan API key in Anthropic's native auth header. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
+            Respan API key in Anthropic's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
 
         model : str
 
