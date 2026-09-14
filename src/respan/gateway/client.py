@@ -85,7 +85,7 @@ class GatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateChatCompletionResponse:
         """
-        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
+        Send a chat completion request through the Respan gateway. Supports 1000+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
 
         Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
@@ -521,7 +521,7 @@ class AsyncGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateChatCompletionResponse:
         """
-        Send a chat completion request through the Respan gateway. Supports 250+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
+        Send a chat completion request through the Respan gateway. Supports 1000+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
 
         Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
         1. **Top-level body fields** - add directly to the request body
