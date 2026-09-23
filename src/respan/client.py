@@ -32,6 +32,7 @@ if typing.TYPE_CHECKING:
     from .testsets.client import AsyncTestsetsClient, TestsetsClient
     from .threads.client import AsyncThreadsClient, ThreadsClient
     from .traces.client import AsyncTracesClient, TracesClient
+    from .type_safe_gateway.client import AsyncTypeSafeGatewayClient, TypeSafeGatewayClient
     from .users.client import AsyncUsersClient, UsersClient
     from .workflows.client import AsyncWorkflowsClient, WorkflowsClient
 
@@ -132,6 +133,7 @@ class RespanClient:
         self._anthropic_gateway: typing.Optional[AnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[GoogleGatewayClient] = None
         self._open_router_gateway: typing.Optional[OpenRouterGatewayClient] = None
+        self._type_safe_gateway: typing.Optional[TypeSafeGatewayClient] = None
         self._limit_policies: typing.Optional[LimitPoliciesClient] = None
 
     @property
@@ -311,6 +313,14 @@ class RespanClient:
         return self._open_router_gateway
 
     @property
+    def type_safe_gateway(self):
+        if self._type_safe_gateway is None:
+            from .type_safe_gateway.client import TypeSafeGatewayClient  # noqa: E402
+
+            self._type_safe_gateway = TypeSafeGatewayClient(client_wrapper=self._client_wrapper)
+        return self._type_safe_gateway
+
+    @property
     def limit_policies(self):
         if self._limit_policies is None:
             from .limit_policies.client import LimitPoliciesClient  # noqa: E402
@@ -415,6 +425,7 @@ class AsyncRespanClient:
         self._anthropic_gateway: typing.Optional[AsyncAnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[AsyncGoogleGatewayClient] = None
         self._open_router_gateway: typing.Optional[AsyncOpenRouterGatewayClient] = None
+        self._type_safe_gateway: typing.Optional[AsyncTypeSafeGatewayClient] = None
         self._limit_policies: typing.Optional[AsyncLimitPoliciesClient] = None
 
     @property
@@ -592,6 +603,14 @@ class AsyncRespanClient:
 
             self._open_router_gateway = AsyncOpenRouterGatewayClient(client_wrapper=self._client_wrapper)
         return self._open_router_gateway
+
+    @property
+    def type_safe_gateway(self):
+        if self._type_safe_gateway is None:
+            from .type_safe_gateway.client import AsyncTypeSafeGatewayClient  # noqa: E402
+
+            self._type_safe_gateway = AsyncTypeSafeGatewayClient(client_wrapper=self._client_wrapper)
+        return self._type_safe_gateway
 
     @property
     def limit_policies(self):
