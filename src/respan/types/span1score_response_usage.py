@@ -6,15 +6,14 @@ import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class TooManyRequestsErrorBody(UniversalBaseModel):
-    detail: typing.Optional[str] = pydantic.Field(default=None)
+class Span1ScoreResponseUsage(UniversalBaseModel):
     """
-    Explanation of the limit, including the affected tier and reset guidance when applicable.
+    Token usage, when reported by the scorer. May be omitted if the scorer does not report token counts.
     """
 
-    code: typing.Optional[str] = pydantic.Field(default=None)
+    input_tokens: int = pydantic.Field()
     """
-    behavior_scorer_tier_limit for the per-tier minute or daily limit; behavior_scorer_at_capacity for shared service capacity. May be absent for other rate-limit responses.
+    Total input tokens for the span plus all behavior definitions. Pro is billed on this count; for Lite it is informational. Output is free.
     """
 
     if IS_PYDANTIC_V2:

@@ -26,6 +26,7 @@ if typing.TYPE_CHECKING:
     from .open_ai_batch.client import AsyncOpenAiBatchClient, OpenAiBatchClient
     from .open_router_gateway.client import AsyncOpenRouterGatewayClient, OpenRouterGatewayClient
     from .prompts.client import AsyncPromptsClient, PromptsClient
+    from .respan_models.client import AsyncRespanModelsClient, RespanModelsClient
     from .scores.client import AsyncScoresClient, ScoresClient
     from .spans.client import AsyncSpansClient, SpansClient
     from .temporary_api_keys.client import AsyncTemporaryApiKeysClient, TemporaryApiKeysClient
@@ -133,6 +134,7 @@ class RespanClient:
         self._anthropic_gateway: typing.Optional[AnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[GoogleGatewayClient] = None
         self._open_router_gateway: typing.Optional[OpenRouterGatewayClient] = None
+        self._respan_models: typing.Optional[RespanModelsClient] = None
         self._type_safe_gateway: typing.Optional[TypeSafeGatewayClient] = None
         self._limit_policies: typing.Optional[LimitPoliciesClient] = None
 
@@ -313,6 +315,14 @@ class RespanClient:
         return self._open_router_gateway
 
     @property
+    def respan_models(self):
+        if self._respan_models is None:
+            from .respan_models.client import RespanModelsClient  # noqa: E402
+
+            self._respan_models = RespanModelsClient(client_wrapper=self._client_wrapper)
+        return self._respan_models
+
+    @property
     def type_safe_gateway(self):
         if self._type_safe_gateway is None:
             from .type_safe_gateway.client import TypeSafeGatewayClient  # noqa: E402
@@ -425,6 +435,7 @@ class AsyncRespanClient:
         self._anthropic_gateway: typing.Optional[AsyncAnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[AsyncGoogleGatewayClient] = None
         self._open_router_gateway: typing.Optional[AsyncOpenRouterGatewayClient] = None
+        self._respan_models: typing.Optional[AsyncRespanModelsClient] = None
         self._type_safe_gateway: typing.Optional[AsyncTypeSafeGatewayClient] = None
         self._limit_policies: typing.Optional[AsyncLimitPoliciesClient] = None
 
@@ -603,6 +614,14 @@ class AsyncRespanClient:
 
             self._open_router_gateway = AsyncOpenRouterGatewayClient(client_wrapper=self._client_wrapper)
         return self._open_router_gateway
+
+    @property
+    def respan_models(self):
+        if self._respan_models is None:
+            from .respan_models.client import AsyncRespanModelsClient  # noqa: E402
+
+            self._respan_models = AsyncRespanModelsClient(client_wrapper=self._client_wrapper)
+        return self._respan_models
 
     @property
     def type_safe_gateway(self):

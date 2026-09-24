@@ -6,15 +6,19 @@ import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class TooManyRequestsErrorBody(UniversalBaseModel):
-    detail: typing.Optional[str] = pydantic.Field(default=None)
+class Span1Message(UniversalBaseModel):
     """
-    Explanation of the limit, including the affected tier and reset guidance when applicable.
+    A conversation message with a speaker role and text content.
     """
 
-    code: typing.Optional[str] = pydantic.Field(default=None)
+    role: typing.Optional[str] = pydantic.Field(default=None)
     """
-    behavior_scorer_tier_limit for the per-tier minute or daily limit; behavior_scorer_at_capacity for shared service capacity. May be absent for other rate-limit responses.
+    The speaker of this message, for example user or assistant.
+    """
+
+    content: typing.Optional[str] = pydantic.Field(default=None)
+    """
+    The text of the message to evaluate.
     """
 
     if IS_PYDANTIC_V2:

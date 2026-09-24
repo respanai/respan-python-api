@@ -77,6 +77,13 @@ if typing.TYPE_CHECKING:
     )
     from .prompt_bulk_update_body import PromptBulkUpdateBody
     from .prompt_bulk_update_item import PromptBulkUpdateItem
+    from .span1behavior import Span1Behavior
+    from .span1behavior_result import Span1BehaviorResult
+    from .span1message import Span1Message
+    from .span1score_response import Span1ScoreResponse
+    from .span1score_response_model import Span1ScoreResponseModel
+    from .span1score_response_usage import Span1ScoreResponseUsage
+    from .span1span import Span1Span
     from .span_create_request import SpanCreateRequest
     from .span_create_request_customer_params import SpanCreateRequestCustomerParams
     from .span_create_request_environment import SpanCreateRequestEnvironment
@@ -195,6 +202,13 @@ _dynamic_imports: typing.Dict[str, str] = {
     "PromptBulkRequestItem_Update": ".prompt_bulk_request_item",
     "PromptBulkUpdateBody": ".prompt_bulk_update_body",
     "PromptBulkUpdateItem": ".prompt_bulk_update_item",
+    "Span1Behavior": ".span1behavior",
+    "Span1BehaviorResult": ".span1behavior_result",
+    "Span1Message": ".span1message",
+    "Span1ScoreResponse": ".span1score_response",
+    "Span1ScoreResponseModel": ".span1score_response_model",
+    "Span1ScoreResponseUsage": ".span1score_response_usage",
+    "Span1Span": ".span1span",
     "SpanCreateRequest": ".span_create_request",
     "SpanCreateRequestCustomerParams": ".span_create_request_customer_params",
     "SpanCreateRequestEnvironment": ".span_create_request_environment",
@@ -329,6 +343,13 @@ __all__ = [
     "PromptBulkRequestItem_Update",
     "PromptBulkUpdateBody",
     "PromptBulkUpdateItem",
+    "Span1Behavior",
+    "Span1BehaviorResult",
+    "Span1Message",
+    "Span1ScoreResponse",
+    "Span1ScoreResponseModel",
+    "Span1ScoreResponseUsage",
+    "Span1Span",
     "SpanCreateRequest",
     "SpanCreateRequestCustomerParams",
     "SpanCreateRequestEnvironment",

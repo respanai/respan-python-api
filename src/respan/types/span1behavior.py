@@ -6,15 +6,15 @@ import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
-class TooManyRequestsErrorBody(UniversalBaseModel):
-    detail: typing.Optional[str] = pydantic.Field(default=None)
+class Span1Behavior(UniversalBaseModel):
+    id: str = pydantic.Field()
     """
-    Explanation of the limit, including the affected tier and reset guidance when applicable.
+    Your identifier for this behavior. It is echoed in the corresponding result so you can match scores to definitions.
     """
 
-    code: typing.Optional[str] = pydantic.Field(default=None)
+    definition: str = pydantic.Field()
     """
-    behavior_scorer_tier_limit for the per-tier minute or daily limit; behavior_scorer_at_capacity for shared service capacity. May be absent for other rate-limit responses.
+    A plain-language description of the behavior to detect. State clearly whose behavior to judge and what to look for. Definitions shorter than 3 characters are rejected by the scorer.
     """
 
     if IS_PYDANTIC_V2:

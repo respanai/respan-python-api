@@ -4,17 +4,18 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
+from .span1message import Span1Message
 
 
-class TooManyRequestsErrorBody(UniversalBaseModel):
-    detail: typing.Optional[str] = pydantic.Field(default=None)
+class Span1Span(UniversalBaseModel):
+    input: typing.List[Span1Message] = pydantic.Field()
     """
-    Explanation of the limit, including the affected tier and reset guidance when applicable.
+    Conversation messages leading up to the turn being evaluated, in chronological order.
     """
 
-    code: typing.Optional[str] = pydantic.Field(default=None)
+    output: Span1Message = pydantic.Field()
     """
-    behavior_scorer_tier_limit for the per-tier minute or daily limit; behavior_scorer_at_capacity for shared service capacity. May be absent for other rate-limit responses.
+    The single turn to evaluate in the context of span.input, usually the assistant's reply.
     """
 
     if IS_PYDANTIC_V2:
