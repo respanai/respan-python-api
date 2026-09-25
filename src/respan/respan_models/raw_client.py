@@ -55,7 +55,7 @@ class RawRespanModelsClient:
         - `p_absent` is the probability that it is absent.
         - `p_not_observable` is the probability that there is not enough evidence to judge.
 
-        These three probabilities sum to approximately 1. The example response was captured from a live call using `respan-01-free`.
+        These three probabilities sum to approximately 1. The example response was captured from a live call using `span-01-free`.
 
         Parameters
         ----------
@@ -66,7 +66,7 @@ class RawRespanModelsClient:
             The rubric: one ID and plain-language definition per behavior. There is no per-request behavior-count cap. Definitions count toward usage.input_tokens.
 
         model : typing.Optional[str]
-            Use respan-01-free or respan-01-pro. Omit for respan-01-free.
+            Use span-01-free or span-01-pro. Omit for span-01-free.
 
         respan_params : typing.Optional[Span1ScoreRequestRespanParams]
             Optional Respan gateway parameters for logging and attribution. These are removed before the request reaches the scorer. See the Respan gateway parameters guide for other supported fields.
@@ -241,7 +241,7 @@ class AsyncRawRespanModelsClient:
         - `p_absent` is the probability that it is absent.
         - `p_not_observable` is the probability that there is not enough evidence to judge.
 
-        These three probabilities sum to approximately 1. The example response was captured from a live call using `respan-01-free`.
+        These three probabilities sum to approximately 1. The example response was captured from a live call using `span-01-free`.
 
         Parameters
         ----------
@@ -252,7 +252,7 @@ class AsyncRawRespanModelsClient:
             The rubric: one ID and plain-language definition per behavior. There is no per-request behavior-count cap. Definitions count toward usage.input_tokens.
 
         model : typing.Optional[str]
-            Use respan-01-free or respan-01-pro. Omit for respan-01-free.
+            Use span-01-free or span-01-pro. Omit for span-01-free.
 
         respan_params : typing.Optional[Span1ScoreRequestRespanParams]
             Optional Respan gateway parameters for logging and attribution. These are removed before the request reaches the scorer. See the Respan gateway parameters guide for other supported fields.

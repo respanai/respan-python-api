@@ -53,7 +53,7 @@ class RespanModelsClient:
         - `p_absent` is the probability that it is absent.
         - `p_not_observable` is the probability that there is not enough evidence to judge.
 
-        These three probabilities sum to approximately 1. The example response was captured from a live call using `respan-01-free`.
+        These three probabilities sum to approximately 1. The example response was captured from a live call using `span-01-free`.
 
         Parameters
         ----------
@@ -64,7 +64,7 @@ class RespanModelsClient:
             The rubric: one ID and plain-language definition per behavior. There is no per-request behavior-count cap. Definitions count toward usage.input_tokens.
 
         model : typing.Optional[str]
-            Use respan-01-free or respan-01-pro. Omit for respan-01-free.
+            Use span-01-free or span-01-pro. Omit for span-01-free.
 
         respan_params : typing.Optional[Span1ScoreRequestRespanParams]
             Optional Respan gateway parameters for logging and attribution. These are removed before the request reaches the scorer. See the Respan gateway parameters guide for other supported fields.
@@ -87,7 +87,7 @@ class RespanModelsClient:
             respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.respan_models.score_span_behaviors(
-            model="respan-01-free",
+            model="span-01-free",
             span=Span1Span(
                 input=[
                     Span1Message(
@@ -160,7 +160,7 @@ class AsyncRespanModelsClient:
         - `p_absent` is the probability that it is absent.
         - `p_not_observable` is the probability that there is not enough evidence to judge.
 
-        These three probabilities sum to approximately 1. The example response was captured from a live call using `respan-01-free`.
+        These three probabilities sum to approximately 1. The example response was captured from a live call using `span-01-free`.
 
         Parameters
         ----------
@@ -171,7 +171,7 @@ class AsyncRespanModelsClient:
             The rubric: one ID and plain-language definition per behavior. There is no per-request behavior-count cap. Definitions count toward usage.input_tokens.
 
         model : typing.Optional[str]
-            Use respan-01-free or respan-01-pro. Omit for respan-01-free.
+            Use span-01-free or span-01-pro. Omit for span-01-free.
 
         respan_params : typing.Optional[Span1ScoreRequestRespanParams]
             Optional Respan gateway parameters for logging and attribution. These are removed before the request reaches the scorer. See the Respan gateway parameters guide for other supported fields.
@@ -199,7 +199,7 @@ class AsyncRespanModelsClient:
 
         async def main() -> None:
             await client.respan_models.score_span_behaviors(
-                model="respan-01-free",
+                model="span-01-free",
                 span=Span1Span(
                     input=[
                         Span1Message(
