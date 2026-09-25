@@ -39,7 +39,7 @@ class RespanModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> Span1ScoreResponse:
         """
-        Use Span-1 to check a conversation for behaviors you describe in plain language. The endpoint returns probabilities showing whether each behavior is present, absent, or cannot be judged from the conversation.
+        Use Span-01 to check a conversation for behaviors you describe in plain language. The endpoint returns probabilities showing whether each behavior is present, absent, or cannot be judged from the conversation.
 
         In the example, a customer complains that their order is late, and the assistant apologizes:
 
@@ -47,13 +47,13 @@ class RespanModelsClient:
         - `span.output` contains the assistant's reply.
         - `behaviors` defines two checks: `frustrated` checks whether the user expresses frustration, and `apology` checks whether the assistant apologizes. Each result uses the same `id` as its check.
 
-        The example response gives `frustrated` a `p_present` of **0.87 (87%)** and `apology` a `p_present` of **0.96 (96%)**. For each check:
+        In the captured response, `p_present` is **0.4459707 (about 45%)** for `frustrated` and **0.9433637 (about 94%)** for `apology`. For each check:
 
         - `p_present` is the probability that the behavior is present.
         - `p_absent` is the probability that it is absent.
         - `p_not_observable` is the probability that there is not enough evidence to judge.
 
-        These three probabilities sum to approximately 1. The example values are illustrative.
+        These three probabilities sum to approximately 1. The example response was captured from a live call using `respan-01-free`.
 
         Parameters
         ----------
@@ -64,7 +64,7 @@ class RespanModelsClient:
             The rubric: one ID and plain-language definition per behavior. There is no per-request behavior-count cap. Definitions count toward usage.input_tokens.
 
         model : typing.Optional[str]
-            Use lite or pro. Omit for lite. The aliases span-1-lite and span-1-pro are also accepted. Responses use the full model name.
+            Use respan-01-free or respan-01-pro. Omit for respan-01-free.
 
         respan_params : typing.Optional[Span1ScoreRequestRespanParams]
             Optional Respan gateway parameters for logging and attribution. These are removed before the request reaches the scorer. See the Respan gateway parameters guide for other supported fields.
@@ -75,7 +75,7 @@ class RespanModelsClient:
         Returns
         -------
         Span1ScoreResponse
-            Behavior probabilities for the submitted span. Example values are illustrative and will vary with the content, rubric, and model.
+            Behavior probabilities for the submitted span. The example is the captured response to the request shown.
 
         Examples
         --------
@@ -87,7 +87,7 @@ class RespanModelsClient:
             respan_api_key="YOUR_RESPAN_API_KEY",
         )
         client.respan_models.score_span_behaviors(
-            model="lite",
+            model="respan-01-free",
             span=Span1Span(
                 input=[
                     Span1Message(
@@ -146,7 +146,7 @@ class AsyncRespanModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> Span1ScoreResponse:
         """
-        Use Span-1 to check a conversation for behaviors you describe in plain language. The endpoint returns probabilities showing whether each behavior is present, absent, or cannot be judged from the conversation.
+        Use Span-01 to check a conversation for behaviors you describe in plain language. The endpoint returns probabilities showing whether each behavior is present, absent, or cannot be judged from the conversation.
 
         In the example, a customer complains that their order is late, and the assistant apologizes:
 
@@ -154,13 +154,13 @@ class AsyncRespanModelsClient:
         - `span.output` contains the assistant's reply.
         - `behaviors` defines two checks: `frustrated` checks whether the user expresses frustration, and `apology` checks whether the assistant apologizes. Each result uses the same `id` as its check.
 
-        The example response gives `frustrated` a `p_present` of **0.87 (87%)** and `apology` a `p_present` of **0.96 (96%)**. For each check:
+        In the captured response, `p_present` is **0.4459707 (about 45%)** for `frustrated` and **0.9433637 (about 94%)** for `apology`. For each check:
 
         - `p_present` is the probability that the behavior is present.
         - `p_absent` is the probability that it is absent.
         - `p_not_observable` is the probability that there is not enough evidence to judge.
 
-        These three probabilities sum to approximately 1. The example values are illustrative.
+        These three probabilities sum to approximately 1. The example response was captured from a live call using `respan-01-free`.
 
         Parameters
         ----------
@@ -171,7 +171,7 @@ class AsyncRespanModelsClient:
             The rubric: one ID and plain-language definition per behavior. There is no per-request behavior-count cap. Definitions count toward usage.input_tokens.
 
         model : typing.Optional[str]
-            Use lite or pro. Omit for lite. The aliases span-1-lite and span-1-pro are also accepted. Responses use the full model name.
+            Use respan-01-free or respan-01-pro. Omit for respan-01-free.
 
         respan_params : typing.Optional[Span1ScoreRequestRespanParams]
             Optional Respan gateway parameters for logging and attribution. These are removed before the request reaches the scorer. See the Respan gateway parameters guide for other supported fields.
@@ -182,7 +182,7 @@ class AsyncRespanModelsClient:
         Returns
         -------
         Span1ScoreResponse
-            Behavior probabilities for the submitted span. Example values are illustrative and will vary with the content, rubric, and model.
+            Behavior probabilities for the submitted span. The example is the captured response to the request shown.
 
         Examples
         --------
@@ -199,7 +199,7 @@ class AsyncRespanModelsClient:
 
         async def main() -> None:
             await client.respan_models.score_span_behaviors(
-                model="lite",
+                model="respan-01-free",
                 span=Span1Span(
                     input=[
                         Span1Message(

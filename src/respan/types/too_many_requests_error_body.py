@@ -9,7 +9,7 @@ from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 class TooManyRequestsErrorBody(UniversalBaseModel):
     detail: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Explanation of the limit, including the affected tier and reset guidance when applicable.
+    Explanation of the limit, including the affected tier and reset guidance when applicable. The message may use the internal tier names lite and pro.
     """
 
     code: typing.Optional[str] = pydantic.Field(default=None)

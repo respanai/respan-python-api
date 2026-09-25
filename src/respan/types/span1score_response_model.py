@@ -2,4 +2,4 @@
 
 import typing
 
-Span1ScoreResponseModel = typing.Union[typing.Literal["span-1-lite", "span-1-pro"], typing.Any]
+Span1ScoreResponseModel = typing.Union[typing.Literal["respan-01-free", "respan-01-pro"], typing.Any]

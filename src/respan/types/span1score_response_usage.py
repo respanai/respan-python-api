@@ -13,7 +13,7 @@ class Span1ScoreResponseUsage(UniversalBaseModel):
 
     input_tokens: int = pydantic.Field()
     """
-    Total input tokens for the span plus all behavior definitions. Pro is billed on this count; for Lite it is informational. Output is free.
+    Total input tokens for the span plus all behavior definitions. respan-01-pro is billed on this count; for respan-01-free it is informational. Output is free.
     """
 
     if IS_PYDANTIC_V2:
