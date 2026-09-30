@@ -117,7 +117,7 @@ class RawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateSpanResponse]:
         """
-        Create a request-log span via the logging API. This is the standard create endpoint; `/api/request-logs/create/` remains supported as a legacy alias. For LLM request logs, send `prompt_messages`, `completion_message`, token counts, timing, metadata, tools, and trace fields directly in the body. `generation_time` is accepted and normalized to `latency`; `ttft` is accepted and normalized to `time_to_first_token`. The stored `environment` is derived from the API key environment, so use a key for the target environment rather than relying on a body override. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Records a span through the logging API. `/api/request-logs/create/` remains supported as a legacy alias. `generation_time` is normalized to `latency`, and `ttft` to `time_to_first_token`. The API key determines the stored `environment`; a body value does not override it. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -456,9 +456,9 @@ class RawSpansClient:
         self, *, logs: typing.Sequence[SpanCreateRequest], request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[BulkOperationResponse]:
         """
-        Create up to 500 spans in one request. Each item in `logs` accepts the same fields as the [single-span create operation](/docs/apis/spans/create-span). Rows are processed independently: one invalid row does not prevent the remaining rows from being accepted. A response is `201 Created` whenever at least one row is accepted, including partial success; inspect `error_count` and `errors` on every response. `success_count` means the row passed synchronous validation and was accepted for ingestion.
+        Accepts up to 500 spans per request. Each item in `logs` uses the fields in [Create a span](/docs/apis/spans/create-span). Rows are processed independently. A `201 Created` response means at least one row was accepted, so check `error_count` and `errors` for partial failures. `success_count` counts rows that passed synchronous validation and were accepted for ingestion.
 
-        For API-key authentication, this endpoint is limited to 30 requests per minute per organization, shared across all API keys in that organization. JWT requests are limited per user. At the 500-row maximum, the API-key limit allows up to approximately 15,000 accepted rows per minute. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Rate limit: 30 requests per minute per organization for API-key calls, shared across the organization's keys. For JWT calls, the limit is per user. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -572,7 +572,7 @@ class RawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[typing.Dict[str, typing.Any], ListSpansResponse]:
         """
-        Retrieve spans matching the specified filters with pagination. Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for full filter syntax. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for syntax. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -724,7 +724,7 @@ class RawSpansClient:
         self, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveSpanResponse]:
         """
-        Retrieve a span by its unique ID. Returns the full span including input, output, metrics, metadata, trace context, evaluation scores, and credit/budget info (`limit_info`). Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Returns the full span, including evaluation scores and credit and budget information (`limit_info`). Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -824,7 +824,7 @@ class RawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetSpansSummaryResponse]:
         """
-        Get aggregated statistics for spans/log rows in a time range. `start_time`, `end_time`, and `environment` are URL query parameters. Additional filters must be sent in the JSON body under `filters`; fields such as `log_type` are not read as summary query parameters. When `filters` is omitted or empty, the backend may use the pre-aggregated summary path; when `filters` is non-empty, it queries raw logs using the same filter object shape as List spans.
+        Returns aggregate span statistics for a time range. Send `start_time`, `end_time`, and `environment` as query parameters, and additional `filters` in the JSON body. Fields such as `log_type` are not read from query parameters. Empty or omitted `filters` may use pre-aggregated data; non-empty `filters` query individual spans using the List spans filter format.
 
         Parameters
         ----------
@@ -1218,7 +1218,7 @@ class AsyncRawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateSpanResponse]:
         """
-        Create a request-log span via the logging API. This is the standard create endpoint; `/api/request-logs/create/` remains supported as a legacy alias. For LLM request logs, send `prompt_messages`, `completion_message`, token counts, timing, metadata, tools, and trace fields directly in the body. `generation_time` is accepted and normalized to `latency`; `ttft` is accepted and normalized to `time_to_first_token`. The stored `environment` is derived from the API key environment, so use a key for the target environment rather than relying on a body override. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Records a span through the logging API. `/api/request-logs/create/` remains supported as a legacy alias. `generation_time` is normalized to `latency`, and `ttft` to `time_to_first_token`. The API key determines the stored `environment`; a body value does not override it. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -1557,9 +1557,9 @@ class AsyncRawSpansClient:
         self, *, logs: typing.Sequence[SpanCreateRequest], request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[BulkOperationResponse]:
         """
-        Create up to 500 spans in one request. Each item in `logs` accepts the same fields as the [single-span create operation](/docs/apis/spans/create-span). Rows are processed independently: one invalid row does not prevent the remaining rows from being accepted. A response is `201 Created` whenever at least one row is accepted, including partial success; inspect `error_count` and `errors` on every response. `success_count` means the row passed synchronous validation and was accepted for ingestion.
+        Accepts up to 500 spans per request. Each item in `logs` uses the fields in [Create a span](/docs/apis/spans/create-span). Rows are processed independently. A `201 Created` response means at least one row was accepted, so check `error_count` and `errors` for partial failures. `success_count` counts rows that passed synchronous validation and were accepted for ingestion.
 
-        For API-key authentication, this endpoint is limited to 30 requests per minute per organization, shared across all API keys in that organization. JWT requests are limited per user. At the 500-row maximum, the API-key limit allows up to approximately 15,000 accepted rows per minute. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Rate limit: 30 requests per minute per organization for API-key calls, shared across the organization's keys. For JWT calls, the limit is per user. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -1673,7 +1673,7 @@ class AsyncRawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[typing.Dict[str, typing.Any], ListSpansResponse]:
         """
-        Retrieve spans matching the specified filters with pagination. Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for full filter syntax. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for syntax. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -1828,7 +1828,7 @@ class AsyncRawSpansClient:
         self, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveSpanResponse]:
         """
-        Retrieve a span by its unique ID. Returns the full span including input, output, metrics, metadata, trace context, evaluation scores, and credit/budget info (`limit_info`). Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Returns the full span, including evaluation scores and credit and budget information (`limit_info`). Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -1928,7 +1928,7 @@ class AsyncRawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetSpansSummaryResponse]:
         """
-        Get aggregated statistics for spans/log rows in a time range. `start_time`, `end_time`, and `environment` are URL query parameters. Additional filters must be sent in the JSON body under `filters`; fields such as `log_type` are not read as summary query parameters. When `filters` is omitted or empty, the backend may use the pre-aggregated summary path; when `filters` is non-empty, it queries raw logs using the same filter object shape as List spans.
+        Returns aggregate span statistics for a time range. Send `start_time`, `end_time`, and `environment` as query parameters, and additional `filters` in the JSON body. Fields such as `log_type` are not read from query parameters. Empty or omitted `filters` may use pre-aggregated data; non-empty `filters` query individual spans using the List spans filter format.
 
         Parameters
         ----------

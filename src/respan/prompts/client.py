@@ -59,8 +59,6 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListPromptsResponse:
         """
-        Retrieve prompts with pagination, sorting, and POST-based filters. Common filter fields include `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `tags`, `current_version__updated_at`, and `is_deleted`.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -118,8 +116,6 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptResponse:
         """
-        Create a new prompt template.
-
         Parameters
         ----------
         name : str
@@ -217,7 +213,7 @@ class PromptsClient:
         self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrievePromptResponse:
         """
-        Retrieve a prompt template by ID, including its current and live versions.
+        Returns the prompt template with its current and live versions.
 
         Parameters
         ----------
@@ -334,7 +330,7 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListPromptVersionsResponse:
         """
-        List all versions for a prompt. Results are ordered newest first.
+        Results are ordered newest first.
 
         Parameters
         ----------
@@ -401,7 +397,7 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptVersionResponse:
         """
-        Create a new version of a prompt. Use `{{variable_name}}` syntax in messages to define template variables.
+        Use `{{variable_name}}` syntax in messages to define template variables.
 
         Parameters
         ----------
@@ -547,8 +543,6 @@ class PromptsClient:
         self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrievePromptVersionResponse:
         """
-        Retrieve a specific version of a prompt.
-
         Parameters
         ----------
         prompt_id : str
@@ -585,7 +579,7 @@ class PromptsClient:
         self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a specific prompt version. The currently deployed live version cannot be deleted.
+        The currently deployed live version cannot be deleted.
 
         Parameters
         ----------
@@ -648,7 +642,7 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdatePromptVersionResponse:
         """
-        Update a prompt version. Set `deploy: true` to make this version live immediately.
+        Set `deploy: true` to make this version live immediately.
 
         Parameters
         ----------
@@ -883,7 +877,7 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetPromptsSummaryWithFiltersResponse:
         """
-        Get summary statistics for prompts that match the specified filters.
+        Returns the number of prompts matching the filters.
 
         Parameters
         ----------
@@ -928,7 +922,7 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ApiResponseFormatPresetsListResponse:
         """
-        List the project's saved response-format schemas. List rows intentionally omit the schema content; retrieve a preset to load it into an editor.
+        Returns the project's saved response-format presets without schema content. Get a preset to retrieve its schema.
 
         Parameters
         ----------
@@ -970,7 +964,7 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ApiResponseFormatPresetsCreateResponse:
         """
-        Save JSON-schema text in the caller's project. The content remains a JSON string and is validated without reformatting. Project and creator are server stamped.
+        Stores JSON-schema text in the caller's project as a JSON string, validated without reformatting. The server sets the project and creator.
 
         Parameters
         ----------
@@ -1087,7 +1081,7 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ApiResponseFormatPresetsPartialUpdateResponse:
         """
-        Partially update a preset. When supplied, schema content is validated and preserved verbatim.
+        When supplied, schema content is validated and preserved unchanged.
 
         Parameters
         ----------
@@ -1156,8 +1150,6 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListPromptsResponse:
         """
-        Retrieve prompts with pagination, sorting, and POST-based filters. Common filter fields include `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `tags`, `current_version__updated_at`, and `is_deleted`.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -1223,8 +1215,6 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptResponse:
         """
-        Create a new prompt template.
-
         Parameters
         ----------
         name : str
@@ -1342,7 +1332,7 @@ class AsyncPromptsClient:
         self, prompt_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrievePromptResponse:
         """
-        Retrieve a prompt template by ID, including its current and live versions.
+        Returns the prompt template with its current and live versions.
 
         Parameters
         ----------
@@ -1483,7 +1473,7 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListPromptVersionsResponse:
         """
-        List all versions for a prompt. Results are ordered newest first.
+        Results are ordered newest first.
 
         Parameters
         ----------
@@ -1558,7 +1548,7 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptVersionResponse:
         """
-        Create a new version of a prompt. Use `{{variable_name}}` syntax in messages to define template variables.
+        Use `{{variable_name}}` syntax in messages to define template variables.
 
         Parameters
         ----------
@@ -1712,8 +1702,6 @@ class AsyncPromptsClient:
         self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrievePromptVersionResponse:
         """
-        Retrieve a specific version of a prompt.
-
         Parameters
         ----------
         prompt_id : str
@@ -1758,7 +1746,7 @@ class AsyncPromptsClient:
         self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a specific prompt version. The currently deployed live version cannot be deleted.
+        The currently deployed live version cannot be deleted.
 
         Parameters
         ----------
@@ -1829,7 +1817,7 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdatePromptVersionResponse:
         """
-        Update a prompt version. Set `deploy: true` to make this version live immediately.
+        Set `deploy: true` to make this version live immediately.
 
         Parameters
         ----------
@@ -2090,7 +2078,7 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetPromptsSummaryWithFiltersResponse:
         """
-        Get summary statistics for prompts that match the specified filters.
+        Returns the number of prompts matching the filters.
 
         Parameters
         ----------
@@ -2145,7 +2133,7 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ApiResponseFormatPresetsListResponse:
         """
-        List the project's saved response-format schemas. List rows intentionally omit the schema content; retrieve a preset to load it into an editor.
+        Returns the project's saved response-format presets without schema content. Get a preset to retrieve its schema.
 
         Parameters
         ----------
@@ -2195,7 +2183,7 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ApiResponseFormatPresetsCreateResponse:
         """
-        Save JSON-schema text in the caller's project. The content remains a JSON string and is validated without reformatting. Project and creator are server stamped.
+        Stores JSON-schema text in the caller's project as a JSON string, validated without reformatting. The server sets the project and creator.
 
         Parameters
         ----------
@@ -2336,7 +2324,7 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ApiResponseFormatPresetsPartialUpdateResponse:
         """
-        Partially update a preset. When supplied, schema content is validated and preserved verbatim.
+        When supplied, schema content is validated and preserved unchanged.
 
         Parameters
         ----------

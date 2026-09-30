@@ -29,8 +29,6 @@ class RawCreditTransactionsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
         """
-        List credit transactions with pagination.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -95,8 +93,6 @@ class RawCreditTransactionsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveCreditTransactionResponse]:
         """
-        Retrieve details of a specific credit transaction.
-
         Parameters
         ----------
         id : str
@@ -165,8 +161,6 @@ class AsyncRawCreditTransactionsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListCreditTransactionsResponseResultsItem, ListCreditTransactionsResponse]:
         """
-        List credit transactions with pagination.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -234,8 +228,6 @@ class AsyncRawCreditTransactionsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveCreditTransactionResponse]:
         """
-        Retrieve details of a specific credit transaction.
-
         Parameters
         ----------
         id : str

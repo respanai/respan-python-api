@@ -12,12 +12,12 @@ from .list_customers_response_results_item_environment import ListCustomersRespo
 class ListCustomersResponseResultsItem(UniversalBaseModel):
     id: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Synthetic customer ID used by list responses.
+    Synthetic user ID returned in lists.
     """
 
     customer_identifier: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Your unique identifier for the customer.
+    Your unique identifier for the user.
     """
 
     unique_organization_id: typing.Optional[str] = pydantic.Field(default=None)
@@ -27,22 +27,22 @@ class ListCustomersResponseResultsItem(UniversalBaseModel):
 
     environment: typing.Optional[ListCustomersResponseResultsItemEnvironment] = pydantic.Field(default=None)
     """
-    Customer environment.
+    User environment.
     """
 
     name: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Customer display name.
+    User display name.
     """
 
     email: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Customer email address.
+    User email address.
     """
 
     first_seen: typing.Optional[dt.datetime] = pydantic.Field(default=None)
     """
-    When the customer was first observed.
+    When the user was first observed.
     """
 
     last_active_timeframe: typing.Optional[dt.datetime] = pydantic.Field(default=None)
@@ -57,7 +57,7 @@ class ListCustomersResponseResultsItem(UniversalBaseModel):
 
     number_of_requests: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Total requests made by this customer.
+    Total requests made by this user.
     """
 
     total_requests: typing.Optional[int] = pydantic.Field(default=None)
@@ -67,7 +67,7 @@ class ListCustomersResponseResultsItem(UniversalBaseModel):
 
     total_tokens: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Total tokens used by this customer.
+    Total tokens used by this user.
     """
 
     tokens: typing.Optional[int] = pydantic.Field(default=None)

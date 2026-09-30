@@ -195,7 +195,7 @@ class WorkflowsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterWorkflowsResponse:
         """
-        List one representative version per workflow family using optional complex filters in the request body. An omitted body or omitted `filters` object applies only the query-string filters.
+        Returns one representative version per workflow family. An omitted body or omitted `filters` object applies only the query-string filters.
 
         Parameters
         ----------
@@ -712,7 +712,7 @@ class WorkflowsClient:
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> ValidateWorkflowResponse:
         """
-        Validate the latest editable draft and send real preview notifications or webhooks for delivery tasks. No logs are fetched and no aggregation runs. Configuration failures are returned in the `200` validation envelope; a draft with no tasks succeeds with an empty `task_results` array.
+        Validates the latest editable draft and sends real preview notifications or webhooks for delivery tasks. No spans are fetched and no aggregation runs. Configuration failures are returned in the `200` validation envelope; a draft with no tasks succeeds with an empty `task_results` array.
 
         Parameters
         ----------
@@ -959,7 +959,7 @@ class AsyncWorkflowsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterWorkflowsResponse:
         """
-        List one representative version per workflow family using optional complex filters in the request body. An omitted body or omitted `filters` object applies only the query-string filters.
+        Returns one representative version per workflow family. An omitted body or omitted `filters` object applies only the query-string filters.
 
         Parameters
         ----------
@@ -1562,7 +1562,7 @@ class AsyncWorkflowsClient:
         self, workflow_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> ValidateWorkflowResponse:
         """
-        Validate the latest editable draft and send real preview notifications or webhooks for delivery tasks. No logs are fetched and no aggregation runs. Configuration failures are returned in the `200` validation envelope; a draft with no tasks succeeds with an empty `task_results` array.
+        Validates the latest editable draft and sends real preview notifications or webhooks for delivery tasks. No spans are fetched and no aggregation runs. Configuration failures are returned in the `200` validation envelope; a draft with no tasks succeeds with an empty `task_results` array.
 
         Parameters
         ----------

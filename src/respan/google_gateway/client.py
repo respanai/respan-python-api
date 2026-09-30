@@ -38,7 +38,7 @@ class GoogleGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Send a native Google Gen AI or Vertex AI content-generation payload through Respan. The Respan API key travels in x-goog-api-key; provider credentials are configured in Respan.
+        Send native Google Gen AI or Vertex AI requests through Respan using provider credentials configured in Respan. Authenticate with your Respan key in `x-goog-api-key`.
 
         Parameters
         ----------
@@ -49,7 +49,7 @@ class GoogleGatewayClient:
         render_format : ApiGoogleV1BetaModelsCreateRequestRenderFormat
 
         goog_api_key : str
-            Respan API key in Google's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key.
+            Your Respan API key in Google's native authentication header.
 
         request : typing.Dict[str, typing.Any]
 
@@ -121,7 +121,7 @@ class AsyncGoogleGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Send a native Google Gen AI or Vertex AI content-generation payload through Respan. The Respan API key travels in x-goog-api-key; provider credentials are configured in Respan.
+        Send native Google Gen AI or Vertex AI requests through Respan using provider credentials configured in Respan. Authenticate with your Respan key in `x-goog-api-key`.
 
         Parameters
         ----------
@@ -132,7 +132,7 @@ class AsyncGoogleGatewayClient:
         render_format : ApiGoogleV1BetaModelsCreateRequestRenderFormat
 
         goog_api_key : str
-            Respan API key in Google's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key.
+            Your Respan API key in Google's native authentication header.
 
         request : typing.Dict[str, typing.Any]
 

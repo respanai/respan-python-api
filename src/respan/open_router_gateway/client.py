@@ -38,7 +38,7 @@ class OpenRouterGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Relay an OpenRouter chat-completions payload through Respan with nothing filtered out, so OpenRouter-owned fields such as provider and reasoning survive the call. This endpoint is BYOK: Authorization carries your Respan API key and x-openrouter-api-key carries your OpenRouter API key. There is no fallback to Respan gateway credits. OpenRouter's response, status code, and event stream are relayed back unchanged.
+        Forward OpenRouter requests and return its response, status code, or event stream unchanged. OpenRouter fields such as `provider` and `reasoning` are preserved. Supply your Respan key in `Authorization` and your OpenRouter key in `x-openrouter-api-key`; this endpoint requires your own OpenRouter key and does not use Respan gateway credits.
 
         Parameters
         ----------
@@ -59,7 +59,7 @@ class OpenRouterGatewayClient:
             OpenRouter reasoning block, forwarded unchanged.
 
         respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Respan gateway metadata. Stripped before the payload reaches OpenRouter.
+            Respan gateway metadata. Stripped before the payload reaches OpenRouter. Must be a JSON object: a string, list, number or boolean is ignored and none of its params apply.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -124,7 +124,7 @@ class AsyncOpenRouterGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Relay an OpenRouter chat-completions payload through Respan with nothing filtered out, so OpenRouter-owned fields such as provider and reasoning survive the call. This endpoint is BYOK: Authorization carries your Respan API key and x-openrouter-api-key carries your OpenRouter API key. There is no fallback to Respan gateway credits. OpenRouter's response, status code, and event stream are relayed back unchanged.
+        Forward OpenRouter requests and return its response, status code, or event stream unchanged. OpenRouter fields such as `provider` and `reasoning` are preserved. Supply your Respan key in `Authorization` and your OpenRouter key in `x-openrouter-api-key`; this endpoint requires your own OpenRouter key and does not use Respan gateway credits.
 
         Parameters
         ----------
@@ -145,7 +145,7 @@ class AsyncOpenRouterGatewayClient:
             OpenRouter reasoning block, forwarded unchanged.
 
         respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Respan gateway metadata. Stripped before the payload reaches OpenRouter.
+            Respan gateway metadata. Stripped before the payload reaches OpenRouter. Must be a JSON object: a string, list, number or boolean is ignored and none of its params apply.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.

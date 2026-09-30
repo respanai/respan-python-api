@@ -58,7 +58,7 @@ class ScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateScoreResponse:
         """
-        Create an evaluation score. Prefer the log-scoped route `POST /api/logs/{log_id}/scores/` when creating a score for a known log.
+        Use `POST /api/logs/{log_id}/scores/` when creating a score for a known span.
 
         Parameters
         ----------
@@ -164,8 +164,6 @@ class ScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterScoresResponse:
         """
-        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -209,8 +207,6 @@ class ScoresClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveScoreResponse:
         """
-        Retrieve a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -262,8 +258,6 @@ class ScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceScoreResponse:
         """
-        Replace a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -365,8 +359,6 @@ class ScoresClient:
 
     def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -406,8 +398,6 @@ class ScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateScoreResponse:
         """
-        Partially update a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -470,8 +460,6 @@ class ScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListSpanScoresResponse:
         """
-        List all scores for a specific log/span.
-
         Parameters
         ----------
         log_id : str
@@ -530,7 +518,7 @@ class ScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateSpanScoreResponse:
         """
-        Create a score for a specific log/span. The backend keeps one score per `(log, evaluator, scorer)` and updates the existing score if the same combination is submitted again.
+        Each `(log, evaluator, scorer)` combination has one score. Submitting the same combination again updates that score.
 
         Parameters
         ----------
@@ -630,8 +618,6 @@ class ScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveSpanScoreResponse:
         """
-        Retrieve a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -687,8 +673,6 @@ class ScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceSpanScoreResponse:
         """
-        Replace a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -792,8 +776,6 @@ class ScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a score from a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -838,8 +820,6 @@ class ScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateSpanScoreResponse:
         """
-        Partially update a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -936,7 +916,7 @@ class AsyncScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateScoreResponse:
         """
-        Create an evaluation score. Prefer the log-scoped route `POST /api/logs/{log_id}/scores/` when creating a score for a known log.
+        Use `POST /api/logs/{log_id}/scores/` when creating a score for a known span.
 
         Parameters
         ----------
@@ -1049,8 +1029,6 @@ class AsyncScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterScoresResponse:
         """
-        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -1102,8 +1080,6 @@ class AsyncScoresClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveScoreResponse:
         """
-        Retrieve a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -1163,8 +1139,6 @@ class AsyncScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceScoreResponse:
         """
-        Replace a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -1273,8 +1247,6 @@ class AsyncScoresClient:
 
     async def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -1322,8 +1294,6 @@ class AsyncScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateScoreResponse:
         """
-        Partially update a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -1394,8 +1364,6 @@ class AsyncScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListSpanScoresResponse:
         """
-        List all scores for a specific log/span.
-
         Parameters
         ----------
         log_id : str
@@ -1462,7 +1430,7 @@ class AsyncScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateSpanScoreResponse:
         """
-        Create a score for a specific log/span. The backend keeps one score per `(log, evaluator, scorer)` and updates the existing score if the same combination is submitted again.
+        Each `(log, evaluator, scorer)` combination has one score. Submitting the same combination again updates that score.
 
         Parameters
         ----------
@@ -1569,8 +1537,6 @@ class AsyncScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveSpanScoreResponse:
         """
-        Retrieve a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -1634,8 +1600,6 @@ class AsyncScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceSpanScoreResponse:
         """
-        Replace a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -1746,8 +1710,6 @@ class AsyncScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a score from a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -1800,8 +1762,6 @@ class AsyncScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateSpanScoreResponse:
         """
-        Partially update a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str

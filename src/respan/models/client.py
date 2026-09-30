@@ -155,7 +155,7 @@ class ModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
         """
-        List models using POST-for-filtering. Authentication is optional: anonymous callers receive managed global models, while API-key and dashboard callers also receive their organization's custom models. Anonymous requests are rate-limited per client IP.
+        Anonymous callers receive managed global models. API-key and dashboard callers also receive their organization's custom models. Anonymous requests are rate-limited per client IP.
 
         Parameters
         ----------
@@ -216,7 +216,7 @@ class ModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterModelsSummaryResponse:
         """
-        Return model counts after applying an optional POST filter. Authentication is optional: anonymous counts cover managed global models, while authenticated counts also include the caller's custom models.
+        Returns model counts matching the filters. Anonymous counts cover managed global models; authenticated counts also include the organization's custom models.
 
         Parameters
         ----------
@@ -384,8 +384,6 @@ class ModelsClient:
 
     def delete_custom_model(self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete a custom model by model name.
-
         Parameters
         ----------
         model_name : str
@@ -563,7 +561,7 @@ class ModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateCustomProviderResponse:
         """
-        Create a custom provider. Use `PATCH /api/providers/{provider_id}/` to update an existing provider.
+        To update an existing provider, use `PATCH /api/providers/{provider_id}/`.
 
         Parameters
         ----------
@@ -690,8 +688,6 @@ class ModelsClient:
         self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a custom provider by string provider ID.
-
         Parameters
         ----------
         provider_id : str
@@ -867,7 +863,7 @@ class ModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ModelStatusResponse:
         """
-        POST-for-filtering model status. Manually supplied query parameters override the same body values.
+        Query parameters override matching values in the request body.
 
         Parameters
         ----------
@@ -1053,7 +1049,7 @@ class AsyncModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[FilterModelsResponseResultsItem, FilterModelsResponse]:
         """
-        List models using POST-for-filtering. Authentication is optional: anonymous callers receive managed global models, while API-key and dashboard callers also receive their organization's custom models. Anonymous requests are rate-limited per client IP.
+        Anonymous callers receive managed global models. API-key and dashboard callers also receive their organization's custom models. Anonymous requests are rate-limited per client IP.
 
         Parameters
         ----------
@@ -1123,7 +1119,7 @@ class AsyncModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterModelsSummaryResponse:
         """
-        Return model counts after applying an optional POST filter. Authentication is optional: anonymous counts cover managed global models, while authenticated counts also include the caller's custom models.
+        Returns model counts matching the filters. Anonymous counts cover managed global models; authenticated counts also include the organization's custom models.
 
         Parameters
         ----------
@@ -1317,8 +1313,6 @@ class AsyncModelsClient:
         self, model_name: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a custom model by model name.
-
         Parameters
         ----------
         model_name : str
@@ -1520,7 +1514,7 @@ class AsyncModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateCustomProviderResponse:
         """
-        Create a custom provider. Use `PATCH /api/providers/{provider_id}/` to update an existing provider.
+        To update an existing provider, use `PATCH /api/providers/{provider_id}/`.
 
         Parameters
         ----------
@@ -1671,8 +1665,6 @@ class AsyncModelsClient:
         self, provider_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a custom provider by string provider ID.
-
         Parameters
         ----------
         provider_id : str
@@ -1880,7 +1872,7 @@ class AsyncModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ModelStatusResponse:
         """
-        POST-for-filtering model status. Manually supplied query parameters override the same body values.
+        Query parameters override matching values in the request body.
 
         Parameters
         ----------

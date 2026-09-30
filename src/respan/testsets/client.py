@@ -50,7 +50,7 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTestsetResponse:
         """
-        Create a new testset for evaluation. Public API responses return the external testset ID and column metadata only.
+        Returns testset metadata without row data.
 
         Parameters
         ----------
@@ -105,8 +105,6 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTestsetsResponse:
         """
-        List testsets with pagination and optional filters.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -153,7 +151,7 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredTestsetsSummaryResponse:
         """
-        Return summary statistics for testsets after applying filters.
+        Returns the number of testsets matching the filters.
 
         Parameters
         ----------
@@ -185,8 +183,6 @@ class TestsetsClient:
         self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetResponse:
         """
-        Retrieve a testset by ID.
-
         Parameters
         ----------
         testset_id : str
@@ -226,7 +222,7 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceTestsetResponse:
         """
-        Replace a testset metadata payload.
+        Replaces testset metadata.
 
         Parameters
         ----------
@@ -318,7 +314,7 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetResponse:
         """
-        Partially update testset metadata such as the name, description, starred state, or column definitions.
+        Updates testset metadata and column definitions.
 
         Parameters
         ----------
@@ -376,8 +372,6 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTestsetRowsResponse:
         """
-        List rows in a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -422,7 +416,7 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[CreateTestsetRowsResponseItem]:
         """
-        Create or upsert one or more rows in a testset. Send the rows in the required `testset_rows` envelope.
+        Creates or upserts one or more rows. Send the rows in the required `testset_rows` envelope.
 
         Parameters
         ----------
@@ -470,7 +464,7 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
         """
-        Delete multiple rows from a testset by `row_index`.
+        Deletes rows identified by `row_index`.
 
         Parameters
         ----------
@@ -509,8 +503,6 @@ class TestsetsClient:
         self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetRowResponse:
         """
-        Retrieve a single row from a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -552,8 +544,6 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceTestsetRowResponse:
         """
-        Replace the payload for a single row.
-
         Parameters
         ----------
         testset_id : str
@@ -596,8 +586,6 @@ class TestsetsClient:
         self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a single row from a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -638,8 +626,6 @@ class TestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetRowResponse:
         """
-        Partially update a single row in a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -703,7 +689,7 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTestsetResponse:
         """
-        Create a new testset for evaluation. Public API responses return the external testset ID and column metadata only.
+        Returns testset metadata without row data.
 
         Parameters
         ----------
@@ -766,8 +752,6 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTestsetsResponse:
         """
-        List testsets with pagination and optional filters.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -822,7 +806,7 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredTestsetsSummaryResponse:
         """
-        Return summary statistics for testsets after applying filters.
+        Returns the number of testsets matching the filters.
 
         Parameters
         ----------
@@ -864,8 +848,6 @@ class AsyncTestsetsClient:
         self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetResponse:
         """
-        Retrieve a testset by ID.
-
         Parameters
         ----------
         testset_id : str
@@ -913,7 +895,7 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceTestsetResponse:
         """
-        Replace a testset metadata payload.
+        Replaces testset metadata.
 
         Parameters
         ----------
@@ -1021,7 +1003,7 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetResponse:
         """
-        Partially update testset metadata such as the name, description, starred state, or column definitions.
+        Updates testset metadata and column definitions.
 
         Parameters
         ----------
@@ -1087,8 +1069,6 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTestsetRowsResponse:
         """
-        List rows in a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -1141,7 +1121,7 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.List[CreateTestsetRowsResponseItem]:
         """
-        Create or upsert one or more rows in a testset. Send the rows in the required `testset_rows` envelope.
+        Creates or upserts one or more rows. Send the rows in the required `testset_rows` envelope.
 
         Parameters
         ----------
@@ -1197,7 +1177,7 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
         """
-        Delete multiple rows from a testset by `row_index`.
+        Deletes rows identified by `row_index`.
 
         Parameters
         ----------
@@ -1244,8 +1224,6 @@ class AsyncTestsetsClient:
         self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTestsetRowResponse:
         """
-        Retrieve a single row from a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -1295,8 +1273,6 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceTestsetRowResponse:
         """
-        Replace the payload for a single row.
-
         Parameters
         ----------
         testset_id : str
@@ -1347,8 +1323,6 @@ class AsyncTestsetsClient:
         self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete a single row from a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -1397,8 +1371,6 @@ class AsyncTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateTestsetRowResponse:
         """
-        Partially update a single row in a testset.
-
         Parameters
         ----------
         testset_id : str

@@ -41,26 +41,14 @@ class RawRespanModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[Span1ScoreResponse]:
         """
-        Use Span-01 to check a conversation for behaviors you describe in plain language. The endpoint returns probabilities showing whether each behavior is present, absent, or cannot be judged from the conversation.
+        Run inference with Span-01, Respan's first-party classification model for agent traces. Provide an interaction in `span` and plain-language definitions in `behaviors`. Your application can use the model's predictions for evaluations, guardrails, routing, and monitoring.
 
-        In the example, a customer complains that their order is late, and the assistant apologizes:
-
-        - `span.input` contains the customer's message.
-        - `span.output` contains the assistant's reply.
-        - `behaviors` defines two checks: `frustrated` checks whether the user expresses frustration, and `apology` checks whether the assistant apologizes. Each result uses the same `id` as its check.
-
-        In the captured response, `p_present` is **0.4459707 (about 45%)** for `frustrated` and **0.9433637 (about 94%)** for `apology`. For each check:
-
-        - `p_present` is the probability that the behavior is present.
-        - `p_absent` is the probability that it is absent.
-        - `p_not_observable` is the probability that there is not enough evidence to judge.
-
-        These three probabilities sum to approximately 1. The example response was captured from a live call using `span-01-free`.
+        For each definition, the model returns the probabilities that it is present, absent, or not observable; the three probabilities sum to approximately 1. The example classifies a support interaction for user frustration and an assistant apology. Replace those definitions to apply the model to your own use case.
 
         Parameters
         ----------
         span : Span1Span
-            The conversation content to score: preceding messages in input and the turn being judged in output.
+            The interaction to classify: preceding messages in input and the target turn in output.
 
         behaviors : typing.Sequence[Span1Behavior]
             The rubric: one ID and plain-language definition per behavior. There is no per-request behavior-count cap. Definitions count toward usage.input_tokens.
@@ -227,26 +215,14 @@ class AsyncRawRespanModelsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[Span1ScoreResponse]:
         """
-        Use Span-01 to check a conversation for behaviors you describe in plain language. The endpoint returns probabilities showing whether each behavior is present, absent, or cannot be judged from the conversation.
+        Run inference with Span-01, Respan's first-party classification model for agent traces. Provide an interaction in `span` and plain-language definitions in `behaviors`. Your application can use the model's predictions for evaluations, guardrails, routing, and monitoring.
 
-        In the example, a customer complains that their order is late, and the assistant apologizes:
-
-        - `span.input` contains the customer's message.
-        - `span.output` contains the assistant's reply.
-        - `behaviors` defines two checks: `frustrated` checks whether the user expresses frustration, and `apology` checks whether the assistant apologizes. Each result uses the same `id` as its check.
-
-        In the captured response, `p_present` is **0.4459707 (about 45%)** for `frustrated` and **0.9433637 (about 94%)** for `apology`. For each check:
-
-        - `p_present` is the probability that the behavior is present.
-        - `p_absent` is the probability that it is absent.
-        - `p_not_observable` is the probability that there is not enough evidence to judge.
-
-        These three probabilities sum to approximately 1. The example response was captured from a live call using `span-01-free`.
+        For each definition, the model returns the probabilities that it is present, absent, or not observable; the three probabilities sum to approximately 1. The example classifies a support interaction for user frustration and an assistant apology. Replace those definitions to apply the model to your own use case.
 
         Parameters
         ----------
         span : Span1Span
-            The conversation content to score: preceding messages in input and the turn being judged in output.
+            The interaction to classify: preceding messages in input and the target turn in output.
 
         behaviors : typing.Sequence[Span1Behavior]
             The rubric: one ID and plain-language definition per behavior. There is no per-request behavior-count cap. Definitions count toward usage.input_tokens.

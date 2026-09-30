@@ -88,7 +88,7 @@ class RawDashboardClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListLlmMetricsResponse]:
         """
-        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day).
+        Returns LLM usage metrics in time buckets set by `time_tick`.
 
         Parameters
         ----------
@@ -440,7 +440,7 @@ class RawDashboardClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.Dict[str, ListMetricsBreakdownResponseValue]]:
         """
-        Return time-series metrics broken down by a dimension. Span scope supports full filtering and dimensions; trace scope accepts no body filters and only customer or organization-key breakdowns; thread scope accepts neither filters nor a breakdown dimension. Each requested metric is a top-level key whose value is an array of time buckets.
+        Returns time-series metrics grouped by a dimension. Span scope supports full filtering and dimensions. Trace scope accepts no body filters and only user or organization-key breakdowns. Thread scope accepts neither filters nor a breakdown dimension. Each requested metric is a top-level key containing an array of time buckets.
 
         Parameters
         ----------
@@ -634,7 +634,7 @@ class RawDashboardClient:
         self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[GetTotalUsersResponse]:
         """
-        Return the total customer-user count time series. Time controls are query parameters; the backend does not read a request body for this endpoint.
+        Returns the total user count as a time series. Set the time range through query parameters; this endpoint ignores the request body.
 
         Parameters
         ----------
@@ -1133,7 +1133,7 @@ class RawDashboardClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[PlatformStatsResponse]:
         """
-        Public, unauthenticated endpoint. Returns platform-wide weekly token usage broken down by model or provider for the last 52 weeks. Top 10 breakdown values are returned; the remainder are aggregated into an `Others` bucket. Pre-aggregated weekly (Monday-aligned) in ClickHouse and cached for 1 hour. Rate limited to 30 requests per minute per IP.
+        Returns weekly token usage across the platform for the last 52 weeks, grouped by model or provider. The top 10 values are returned individually; the rest are grouped in `Others`. Weekly buckets start on Monday, and results are cached for 1 hour. Rate limit: 30 requests per minute per IP.
 
         Parameters
         ----------
@@ -1190,7 +1190,7 @@ class AsyncRawDashboardClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListLlmMetricsResponse]:
         """
-        Returns LLM usage metrics (requests, tokens, cost, latency, cache hit rate, etc.) bucketed by `time_tick` (minute / hour / day).
+        Returns LLM usage metrics in time buckets set by `time_tick`.
 
         Parameters
         ----------
@@ -1542,7 +1542,7 @@ class AsyncRawDashboardClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.Dict[str, ListMetricsBreakdownResponseValue]]:
         """
-        Return time-series metrics broken down by a dimension. Span scope supports full filtering and dimensions; trace scope accepts no body filters and only customer or organization-key breakdowns; thread scope accepts neither filters nor a breakdown dimension. Each requested metric is a top-level key whose value is an array of time buckets.
+        Returns time-series metrics grouped by a dimension. Span scope supports full filtering and dimensions. Trace scope accepts no body filters and only user or organization-key breakdowns. Thread scope accepts neither filters nor a breakdown dimension. Each requested metric is a top-level key containing an array of time buckets.
 
         Parameters
         ----------
@@ -1736,7 +1736,7 @@ class AsyncRawDashboardClient:
         self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[GetTotalUsersResponse]:
         """
-        Return the total customer-user count time series. Time controls are query parameters; the backend does not read a request body for this endpoint.
+        Returns the total user count as a time series. Set the time range through query parameters; this endpoint ignores the request body.
 
         Parameters
         ----------
@@ -2235,7 +2235,7 @@ class AsyncRawDashboardClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[PlatformStatsResponse]:
         """
-        Public, unauthenticated endpoint. Returns platform-wide weekly token usage broken down by model or provider for the last 52 weeks. Top 10 breakdown values are returned; the remainder are aggregated into an `Others` bucket. Pre-aggregated weekly (Monday-aligned) in ClickHouse and cached for 1 hour. Rate limited to 30 requests per minute per IP.
+        Returns weekly token usage across the platform for the last 52 weeks, grouped by model or provider. The top 10 values are returned individually; the rest are grouped in `Others`. Weekly buckets start on Monday, and results are cached for 1 hour. Rate limit: 30 requests per minute per IP.
 
         Parameters
         ----------

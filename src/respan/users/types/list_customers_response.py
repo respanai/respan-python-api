@@ -10,7 +10,7 @@ from .list_customers_response_results_item import ListCustomersResponseResultsIt
 class ListCustomersResponse(UniversalBaseModel):
     count: int = pydantic.Field()
     """
-    Total number of matching customers.
+    Total number of matching users.
     """
 
     next: typing.Optional[str] = pydantic.Field(default=None)
@@ -25,7 +25,7 @@ class ListCustomersResponse(UniversalBaseModel):
 
     results: typing.List[ListCustomersResponseResultsItem] = pydantic.Field()
     """
-    Customers for the current page.
+    Users for the current page.
     """
 
     if IS_PYDANTIC_V2:

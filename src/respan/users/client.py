@@ -48,7 +48,7 @@ class UsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
-        Retrieve customers in your organization with analytics and budget fields. Available filter fields include `customer_identifier`, `name`, `email`, `number_of_requests`, `total_tokens`, `total_cost`, and `active_days`.
+        Returns users in your organization with usage analytics and budget settings. Filter fields include `customer_identifier`, `name`, `email`, `number_of_requests`, `total_tokens`, `total_cost`, and `active_days`.
 
         Parameters
         ----------
@@ -56,7 +56,7 @@ class UsersClient:
             Page number.
 
         page_size : typing.Optional[int]
-            Number of customers per page. Maximum is 1000.
+            Number of users per page. Maximum is 1000.
 
         sort_by : typing.Optional[str]
             Sort field. Prefix with `-` for descending. Common values include `customer_identifier`, `email`, `name`, `-first_seen`, `-number_of_requests`, and `-total_cost`.
@@ -72,7 +72,7 @@ class UsersClient:
         Returns
         -------
         SyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]
-            Paginated list of customers.
+            Paginated list of users.
 
         Examples
         --------
@@ -108,12 +108,12 @@ class UsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveUserResponse:
         """
-        Retrieve a customer by `customer_identifier`. This endpoint returns the editable customer profile and current budget usage fields.
+        Returns the user's editable profile and current budget usage.
 
         Parameters
         ----------
         customer_identifier : str
-            Your unique identifier for this customer.
+            Your unique identifier for this user.
 
         environment : typing.Optional[RetrieveUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -124,7 +124,7 @@ class UsersClient:
         Returns
         -------
         RetrieveUserResponse
-            Customer details.
+            User details.
 
         Examples
         --------
@@ -151,12 +151,12 @@ class UsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
         """
-        Delete a customer by `customer_identifier`. This action is irreversible.
+        Permanently deletes the user.
 
         Parameters
         ----------
         customer_identifier : str
-            Your unique identifier for this customer.
+            Your unique identifier for this user.
 
         environment : typing.Optional[DeleteUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -202,21 +202,21 @@ class UsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateUserResponse:
         """
-        Update customer profile and budget settings. Customers are created automatically from usage; use this endpoint to configure budgets or update profile fields after creation.
+        Users are created automatically from usage. Use this endpoint to set budgets or update profile fields after creation.
 
         Parameters
         ----------
         customer_identifier : str
-            Your unique identifier for this customer.
+            Your unique identifier for this user.
 
         environment : typing.Optional[UpdateUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
 
         email : typing.Optional[str]
-            Customer email address.
+            User email address.
 
         name : typing.Optional[str]
-            Customer display name.
+            User display name.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
             Custom key-value metadata.
@@ -237,7 +237,7 @@ class UsersClient:
             Optional custom budget period end.
 
         markup_percentage : typing.Optional[float]
-            Markup percentage applied to usage reports for this customer.
+            Markup percentage applied to usage reports for this user.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -245,7 +245,7 @@ class UsersClient:
         Returns
         -------
         UpdateUserResponse
-            Updated customer details.
+            Updated user details.
 
         Examples
         --------
@@ -305,7 +305,7 @@ class AsyncUsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]:
         """
-        Retrieve customers in your organization with analytics and budget fields. Available filter fields include `customer_identifier`, `name`, `email`, `number_of_requests`, `total_tokens`, `total_cost`, and `active_days`.
+        Returns users in your organization with usage analytics and budget settings. Filter fields include `customer_identifier`, `name`, `email`, `number_of_requests`, `total_tokens`, `total_cost`, and `active_days`.
 
         Parameters
         ----------
@@ -313,7 +313,7 @@ class AsyncUsersClient:
             Page number.
 
         page_size : typing.Optional[int]
-            Number of customers per page. Maximum is 1000.
+            Number of users per page. Maximum is 1000.
 
         sort_by : typing.Optional[str]
             Sort field. Prefix with `-` for descending. Common values include `customer_identifier`, `email`, `name`, `-first_seen`, `-number_of_requests`, and `-total_cost`.
@@ -329,7 +329,7 @@ class AsyncUsersClient:
         Returns
         -------
         AsyncPager[ListCustomersResponseResultsItem, ListCustomersResponse]
-            Paginated list of customers.
+            Paginated list of users.
 
         Examples
         --------
@@ -374,12 +374,12 @@ class AsyncUsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrieveUserResponse:
         """
-        Retrieve a customer by `customer_identifier`. This endpoint returns the editable customer profile and current budget usage fields.
+        Returns the user's editable profile and current budget usage.
 
         Parameters
         ----------
         customer_identifier : str
-            Your unique identifier for this customer.
+            Your unique identifier for this user.
 
         environment : typing.Optional[RetrieveUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -390,7 +390,7 @@ class AsyncUsersClient:
         Returns
         -------
         RetrieveUserResponse
-            Customer details.
+            User details.
 
         Examples
         --------
@@ -425,12 +425,12 @@ class AsyncUsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> None:
         """
-        Delete a customer by `customer_identifier`. This action is irreversible.
+        Permanently deletes the user.
 
         Parameters
         ----------
         customer_identifier : str
-            Your unique identifier for this customer.
+            Your unique identifier for this user.
 
         environment : typing.Optional[DeleteUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
@@ -484,21 +484,21 @@ class AsyncUsersClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateUserResponse:
         """
-        Update customer profile and budget settings. Customers are created automatically from usage; use this endpoint to configure budgets or update profile fields after creation.
+        Users are created automatically from usage. Use this endpoint to set budgets or update profile fields after creation.
 
         Parameters
         ----------
         customer_identifier : str
-            Your unique identifier for this customer.
+            Your unique identifier for this user.
 
         environment : typing.Optional[UpdateUserRequestEnvironment]
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
 
         email : typing.Optional[str]
-            Customer email address.
+            User email address.
 
         name : typing.Optional[str]
-            Customer display name.
+            User display name.
 
         metadata : typing.Optional[typing.Dict[str, typing.Any]]
             Custom key-value metadata.
@@ -519,7 +519,7 @@ class AsyncUsersClient:
             Optional custom budget period end.
 
         markup_percentage : typing.Optional[float]
-            Markup percentage applied to usage reports for this customer.
+            Markup percentage applied to usage reports for this user.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -527,7 +527,7 @@ class AsyncUsersClient:
         Returns
         -------
         UpdateUserResponse
-            Updated customer details.
+            Updated user details.
 
         Examples
         --------

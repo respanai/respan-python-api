@@ -12,7 +12,7 @@ from .span1score_response_usage import Span1ScoreResponseUsage
 class Span1ScoreResponse(UniversalBaseModel):
     model: Span1ScoreResponseModel = pydantic.Field()
     """
-    The model that scored the span.
+    The model used for inference.
     """
 
     results: typing.List[Span1BehaviorResult] = pydantic.Field()

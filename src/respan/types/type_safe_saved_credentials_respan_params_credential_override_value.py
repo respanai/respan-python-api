@@ -9,7 +9,7 @@ from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 class TypeSafeSavedCredentialsRespanParamsCredentialOverrideValue(UniversalBaseModel):
     api_key: str = pydantic.Field()
     """
-    **Required: your TypeSafe API key.** Replace YOUR_TYPESAFE_API_KEY with this provider key. Enter your Respan key in Authorization above.
+    Your TypeSafe API key.
     """
 
     if IS_PYDANTIC_V2:

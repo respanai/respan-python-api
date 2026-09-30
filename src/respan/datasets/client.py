@@ -68,7 +68,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateDatasetResponse:
         """
-        Create a new dataset from existing logs, create an empty dataset, or duplicate an existing dataset.
+        Create an empty dataset, import existing spans or traces as rows, or duplicate another dataset.
 
         Parameters
         ----------
@@ -160,8 +160,6 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListDatasetsResponse:
         """
-        List datasets with pagination and optional filters.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -222,7 +220,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListDatasetLogsResponse:
         """
-        List logs in a dataset with filters and pagination. Set `is_exporting=true` to trigger an asynchronous CSV or JSONL export instead of returning results.
+        Set `is_exporting=true` to start an asynchronous CSV or JSONL export instead of returning rows.
 
         Parameters
         ----------
@@ -307,7 +305,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateDatasetLogResponse:
         """
-        Create a single dataset log from unified-format input/output data.
+        Create a dataset row from unified-format input/output data.
 
         Parameters
         ----------
@@ -369,8 +367,6 @@ class DatasetsClient:
         self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveDatasetLogResponse:
         """
-        Retrieve the full dataset log object, including input/output data, metadata, and associated scores.
-
         Parameters
         ----------
         dataset_id : str
@@ -419,7 +415,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceDatasetLogResponse:
         """
-        Replace a dataset log with a new payload. Fields omitted from the body are removed.
+        Fields omitted from the body are removed.
 
         Parameters
         ----------
@@ -490,8 +486,6 @@ class DatasetsClient:
         self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Remove a single log from a dataset.
-
         Parameters
         ----------
         dataset_id : str
@@ -539,7 +533,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateDatasetLogResponse:
         """
-        Partially update a dataset log. Only provided fields are changed.
+        Only provided fields are changed.
 
         Parameters
         ----------
@@ -617,7 +611,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ImportDatasetLogsResponse:
         """
-        Import existing request logs into a dataset asynchronously using a time range, filters, and optional sampling.
+        Imports existing spans or traces as dataset rows asynchronously, using a time range, filters, and optional sampling. The dataset's `granularity` determines which kind is imported; trace datasets store one root row per trace.
 
         Parameters
         ----------
@@ -689,7 +683,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RemoveDatasetLogsResponse:
         """
-        Remove logs from a dataset asynchronously by filters, or remove all logs by setting `is_deleting_all_logs=true`.
+        Removes matching dataset rows asynchronously. Set `is_deleting_all_logs=true` without filters to remove all rows.
 
         Parameters
         ----------
@@ -742,7 +736,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SummarizeDatasetLogsFilteredResponse:
         """
-        Get aggregate usage metrics and evaluator score summaries for a filtered subset of dataset logs.
+        Returns aggregate usage metrics and evaluator score summaries for matching dataset rows.
 
         Parameters
         ----------
@@ -792,7 +786,9 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BulkOperationResponse:
         """
-        Submit 1 to 500 dataset logs for ingestion in one request. Each log uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can therefore contain item-level errors; if every item fails, the endpoint returns `400`. Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
+        Submit 1 to 500 dataset rows in one request. Each row uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can contain item-level errors; if every item fails, the endpoint returns `400`.
+
+        Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
@@ -902,8 +898,6 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListDatasetEvalRunsResponse:
         """
-        List evaluation runs that were created for a dataset.
-
         Parameters
         ----------
         dataset_id : str
@@ -944,8 +938,6 @@ class DatasetsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveDatasetResponse:
         """
-        Retrieve a dataset by ID.
-
         Parameters
         ----------
         id : str
@@ -976,7 +968,7 @@ class DatasetsClient:
 
     def delete_dataset(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete a dataset and the logs it contains.
+        Deletes the dataset and all its rows.
 
         Parameters
         ----------
@@ -1016,7 +1008,7 @@ class DatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateDatasetResponse:
         """
-        Update dataset metadata such as the name, description, starred state, or tags.
+        Updates dataset metadata.
 
         Parameters
         ----------
@@ -1093,7 +1085,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateDatasetResponse:
         """
-        Create a new dataset from existing logs, create an empty dataset, or duplicate an existing dataset.
+        Create an empty dataset, import existing spans or traces as rows, or duplicate another dataset.
 
         Parameters
         ----------
@@ -1192,8 +1184,6 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListDatasetsResponse:
         """
-        List datasets with pagination and optional filters.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -1262,7 +1252,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListDatasetLogsResponse:
         """
-        List logs in a dataset with filters and pagination. Set `is_exporting=true` to trigger an asynchronous CSV or JSONL export instead of returning results.
+        Set `is_exporting=true` to start an asynchronous CSV or JSONL export instead of returning rows.
 
         Parameters
         ----------
@@ -1355,7 +1345,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateDatasetLogResponse:
         """
-        Create a single dataset log from unified-format input/output data.
+        Create a dataset row from unified-format input/output data.
 
         Parameters
         ----------
@@ -1425,8 +1415,6 @@ class AsyncDatasetsClient:
         self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveDatasetLogResponse:
         """
-        Retrieve the full dataset log object, including input/output data, metadata, and associated scores.
-
         Parameters
         ----------
         dataset_id : str
@@ -1483,7 +1471,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceDatasetLogResponse:
         """
-        Replace a dataset log with a new payload. Fields omitted from the body are removed.
+        Fields omitted from the body are removed.
 
         Parameters
         ----------
@@ -1562,8 +1550,6 @@ class AsyncDatasetsClient:
         self, dataset_id: str, unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Remove a single log from a dataset.
-
         Parameters
         ----------
         dataset_id : str
@@ -1619,7 +1605,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateDatasetLogResponse:
         """
-        Partially update a dataset log. Only provided fields are changed.
+        Only provided fields are changed.
 
         Parameters
         ----------
@@ -1705,7 +1691,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ImportDatasetLogsResponse:
         """
-        Import existing request logs into a dataset asynchronously using a time range, filters, and optional sampling.
+        Imports existing spans or traces as dataset rows asynchronously, using a time range, filters, and optional sampling. The dataset's `granularity` determines which kind is imported; trace datasets store one root row per trace.
 
         Parameters
         ----------
@@ -1784,7 +1770,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RemoveDatasetLogsResponse:
         """
-        Remove logs from a dataset asynchronously by filters, or remove all logs by setting `is_deleting_all_logs=true`.
+        Removes matching dataset rows asynchronously. Set `is_deleting_all_logs=true` without filters to remove all rows.
 
         Parameters
         ----------
@@ -1845,7 +1831,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SummarizeDatasetLogsFilteredResponse:
         """
-        Get aggregate usage metrics and evaluator score summaries for a filtered subset of dataset logs.
+        Returns aggregate usage metrics and evaluator score summaries for matching dataset rows.
 
         Parameters
         ----------
@@ -1903,7 +1889,9 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BulkOperationResponse:
         """
-        Submit 1 to 500 dataset logs for ingestion in one request. Each log uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can therefore contain item-level errors; if every item fails, the endpoint returns `400`. Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
+        Submit 1 to 500 dataset rows in one request. Each row uses the same object as the single-create endpoint, and partial success is allowed. A `201` response can contain item-level errors; if every item fails, the endpoint returns `400`.
+
+        Rate limit: 30 requests per minute per organization for API-key calls (shared across API keys) and per user for JWT calls.
 
         Parameters
         ----------
@@ -2031,8 +2019,6 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListDatasetEvalRunsResponse:
         """
-        List evaluation runs that were created for a dataset.
-
         Parameters
         ----------
         dataset_id : str
@@ -2081,8 +2067,6 @@ class AsyncDatasetsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveDatasetResponse:
         """
-        Retrieve a dataset by ID.
-
         Parameters
         ----------
         id : str
@@ -2121,7 +2105,7 @@ class AsyncDatasetsClient:
 
     async def delete_dataset(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete a dataset and the logs it contains.
+        Deletes the dataset and all its rows.
 
         Parameters
         ----------
@@ -2169,7 +2153,7 @@ class AsyncDatasetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateDatasetResponse:
         """
-        Update dataset metadata such as the name, description, starred state, or tags.
+        Updates dataset metadata.
 
         Parameters
         ----------

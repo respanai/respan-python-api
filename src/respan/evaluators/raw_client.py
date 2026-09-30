@@ -104,7 +104,7 @@ class RawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateEvaluatorResponse]:
         """
-        Create a grader/evaluator. Current public evaluator types are `llm`, `human`, and `code`; legacy human-specific types remain readable for older evaluators. New clients should use the flat config fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of relying on legacy `configurations`.
+        Accepts `llm`, `human`, and `code` evaluators. Legacy human-specific types remain readable for older evaluators. Use the flat configuration fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of legacy `configurations`.
 
         Parameters
         ----------
@@ -231,7 +231,7 @@ class RawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListEvaluatorsResponse]:
         """
-        List evaluators using POST-for-filtering. The backend returns only the current draft/latest row for each evaluator and includes filter metadata for dashboard clients.
+        Returns only the current draft/latest version of each evaluator, with filter metadata for dashboard clients.
 
         Parameters
         ----------
@@ -320,7 +320,7 @@ class RawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetFilteredEvaluatorsSummaryResponse]:
         """
-        Return the total number of current draft/latest evaluators after applying standard filters.
+        Returns the number of current draft/latest evaluators matching the filters.
 
         Parameters
         ----------
@@ -912,7 +912,7 @@ class RawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListEvaluatorVersionsResponse]:
         """
-        List all versions of an evaluator, ordered newest first. Version `0` is the initial draft; committed versions are returned with `is_read_only: true`.
+        Results are ordered newest first. Version `0` is the initial draft; committed versions have `is_read_only: true`.
 
         Parameters
         ----------
@@ -1002,7 +1002,7 @@ class RawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateEvaluatorVersionResponse]:
         """
-        Commit the current draft and create the next draft version. Supplying only `version_description` commits the existing draft snapshot; supplying configuration fields commits with changes.
+        Commits the current draft and returns the next editable draft. `version_description` labels the committed version; configuration fields apply to the new draft.
 
         Parameters
         ----------
@@ -1144,8 +1144,6 @@ class RawEvaluatorsClient:
         self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveEvaluatorVersionResponse]:
         """
-        Retrieve a specific evaluator version by version number.
-
         Parameters
         ----------
         evaluator_id : str
@@ -1227,7 +1225,7 @@ class RawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ReplaceEvaluatorVersionResponse]:
         """
-        Replace a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Only the current draft (`is_read_only: false`) can be edited.
 
         Parameters
         ----------
@@ -1398,7 +1396,7 @@ class RawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateEvaluatorVersionResponse]:
         """
-        Partially update a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Only the current draft (`is_read_only: false`) can be edited.
 
         Parameters
         ----------
@@ -1570,7 +1568,7 @@ class AsyncRawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateEvaluatorResponse]:
         """
-        Create a grader/evaluator. Current public evaluator types are `llm`, `human`, and `code`; legacy human-specific types remain readable for older evaluators. New clients should use the flat config fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of relying on legacy `configurations`.
+        Accepts `llm`, `human`, and `code` evaluators. Legacy human-specific types remain readable for older evaluators. Use the flat configuration fields (`score_config`, `passing_conditions`, `llm_config`, `code_config`) instead of legacy `configurations`.
 
         Parameters
         ----------
@@ -1697,7 +1695,7 @@ class AsyncRawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListEvaluatorsResponse]:
         """
-        List evaluators using POST-for-filtering. The backend returns only the current draft/latest row for each evaluator and includes filter metadata for dashboard clients.
+        Returns only the current draft/latest version of each evaluator, with filter metadata for dashboard clients.
 
         Parameters
         ----------
@@ -1786,7 +1784,7 @@ class AsyncRawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetFilteredEvaluatorsSummaryResponse]:
         """
-        Return the total number of current draft/latest evaluators after applying standard filters.
+        Returns the number of current draft/latest evaluators matching the filters.
 
         Parameters
         ----------
@@ -2378,7 +2376,7 @@ class AsyncRawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListEvaluatorVersionsResponse]:
         """
-        List all versions of an evaluator, ordered newest first. Version `0` is the initial draft; committed versions are returned with `is_read_only: true`.
+        Results are ordered newest first. Version `0` is the initial draft; committed versions have `is_read_only: true`.
 
         Parameters
         ----------
@@ -2468,7 +2466,7 @@ class AsyncRawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateEvaluatorVersionResponse]:
         """
-        Commit the current draft and create the next draft version. Supplying only `version_description` commits the existing draft snapshot; supplying configuration fields commits with changes.
+        Commits the current draft and returns the next editable draft. `version_description` labels the committed version; configuration fields apply to the new draft.
 
         Parameters
         ----------
@@ -2610,8 +2608,6 @@ class AsyncRawEvaluatorsClient:
         self, evaluator_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveEvaluatorVersionResponse]:
         """
-        Retrieve a specific evaluator version by version number.
-
         Parameters
         ----------
         evaluator_id : str
@@ -2693,7 +2689,7 @@ class AsyncRawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ReplaceEvaluatorVersionResponse]:
         """
-        Replace a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Only the current draft (`is_read_only: false`) can be edited.
 
         Parameters
         ----------
@@ -2864,7 +2860,7 @@ class AsyncRawEvaluatorsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateEvaluatorVersionResponse]:
         """
-        Partially update a specific evaluator version. Only the current draft (`is_read_only: false`) can be edited.
+        Only the current draft (`is_read_only: false`) can be edited.
 
         Parameters
         ----------

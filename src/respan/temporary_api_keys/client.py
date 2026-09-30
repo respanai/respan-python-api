@@ -33,7 +33,7 @@ class TemporaryApiKeysClient:
 
     def list_api_keys(self, *, request_options: typing.Optional[RequestOptions] = None) -> ListApiKeysResponse:
         """
-        List all API keys for your organization.
+        Returns unrevoked temporary API keys for your organization.
 
         Parameters
         ----------
@@ -71,8 +71,6 @@ class TemporaryApiKeysClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateApiKeyResponse:
         """
-        Create a new API key.
-
         Parameters
         ----------
         name : typing.Optional[str]
@@ -94,7 +92,7 @@ class TemporaryApiKeysClient:
             Test key (`true`) or production key (`false`).
 
         limit_policies : typing.Optional[typing.Sequence[ApiKeyLimitPolicySpec]]
-            Optional. Spending, token, or request caps to create and scope to this key in the same call. The response echoes the created policies in full (each with its `id`, `meter_definition_id`, and `current_state`). Caps are stored and visible as soon as they are created, but the gateway enforces them only where the limit system is enabled for your environment. Where it is not enabled, a cap records no usage and never blocks.
+            Caps to create and scope to this key. The response includes each created policy with its `id`, `meter_definition_id`, and `current_state`. Enforcement requires the limit system to be enabled for your environment.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -130,8 +128,6 @@ class TemporaryApiKeysClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveApiKeyResponse:
         """
-        Retrieve an API key by ID.
-
         Parameters
         ----------
         id : str
@@ -162,7 +158,7 @@ class TemporaryApiKeysClient:
 
     def delete_api_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete an API key. This action is irreversible.
+        Revokes access and retains the key record. This action cannot be undone.
 
         Parameters
         ----------
@@ -272,7 +268,7 @@ class AsyncTemporaryApiKeysClient:
 
     async def list_api_keys(self, *, request_options: typing.Optional[RequestOptions] = None) -> ListApiKeysResponse:
         """
-        List all API keys for your organization.
+        Returns unrevoked temporary API keys for your organization.
 
         Parameters
         ----------
@@ -318,8 +314,6 @@ class AsyncTemporaryApiKeysClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateApiKeyResponse:
         """
-        Create a new API key.
-
         Parameters
         ----------
         name : typing.Optional[str]
@@ -341,7 +335,7 @@ class AsyncTemporaryApiKeysClient:
             Test key (`true`) or production key (`false`).
 
         limit_policies : typing.Optional[typing.Sequence[ApiKeyLimitPolicySpec]]
-            Optional. Spending, token, or request caps to create and scope to this key in the same call. The response echoes the created policies in full (each with its `id`, `meter_definition_id`, and `current_state`). Caps are stored and visible as soon as they are created, but the gateway enforces them only where the limit system is enabled for your environment. Where it is not enabled, a cap records no usage and never blocks.
+            Caps to create and scope to this key. The response includes each created policy with its `id`, `meter_definition_id`, and `current_state`. Enforcement requires the limit system to be enabled for your environment.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -385,8 +379,6 @@ class AsyncTemporaryApiKeysClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveApiKeyResponse:
         """
-        Retrieve an API key by ID.
-
         Parameters
         ----------
         id : str
@@ -425,7 +417,7 @@ class AsyncTemporaryApiKeysClient:
 
     async def delete_api_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete an API key. This action is irreversible.
+        Revokes access and retains the key record. This action cannot be undone.
 
         Parameters
         ----------

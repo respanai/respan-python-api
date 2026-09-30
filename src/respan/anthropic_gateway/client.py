@@ -38,12 +38,12 @@ class AnthropicGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Send an Anthropic Messages API payload through Respan. Use x-api-key for native Anthropic SDKs, or Authorization: Bearer for Claude Code and bearer clients. Provider credentials are configured in Respan.
+        Send native Anthropic Messages requests through Respan using provider credentials configured in Respan. Authenticate with your Respan key in `x-api-key` for Anthropic SDKs or `Authorization: Bearer` for bearer clients.
 
         Parameters
         ----------
         api_key : str
-            Respan API key in Anthropic's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
+            Your Respan API key in Anthropic's native authentication header. Bearer authentication is also accepted.
 
         model : str
 
@@ -123,12 +123,12 @@ class AsyncAnthropicGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> typing.Dict[str, typing.Any]:
         """
-        Send an Anthropic Messages API payload through Respan. Use x-api-key for native Anthropic SDKs, or Authorization: Bearer for Claude Code and bearer clients. Provider credentials are configured in Respan.
+        Send native Anthropic Messages requests through Respan using provider credentials configured in Respan. Authenticate with your Respan key in `x-api-key` for Anthropic SDKs or `Authorization: Bearer` for bearer clients.
 
         Parameters
         ----------
         api_key : str
-            Respan API key in Anthropic's native auth header. Replace YOUR_RESPAN_API_KEY in the example with your key. Bearer authentication is also accepted by the backend but is not the generated native-SDK form.
+            Your Respan API key in Anthropic's native authentication header. Bearer authentication is also accepted.
 
         model : str
 

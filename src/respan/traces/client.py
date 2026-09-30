@@ -51,7 +51,7 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTracesResponse:
         """
-        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Returns traces matching the Filters API payload, with pagination. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -188,7 +188,7 @@ class TracesClient:
         self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTraceResponse:
         """
-        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Returns aggregate metrics and the full span tree. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -227,7 +227,7 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DeleteTraceResponse:
         """
-        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
+        Use `start_time` and `end_time` to narrow deletion to the relevant time range.
 
         Parameters
         ----------
@@ -319,7 +319,7 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrievePublicTraceResponse:
         """
-        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        The trace must first be shared via `PATCH /api/traces/{trace_unique_id}/`. No authentication is required. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -359,7 +359,7 @@ class TracesClient:
         self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
     ) -> CreateTraceLegacyResponse:
         """
-        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
+        Accepts spans as a JSON array or an object whose `data` field contains the array. Each span uses the fields in [Create a span](/docs/apis/spans/create-span), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, use [Ingest traces (OTLP)](/docs/apis/traces/create-trace).
 
         Parameters
         ----------
@@ -401,9 +401,9 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTraceResponse:
         """
-        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
+        Accepts [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) JSON or protobuf. The span fields accepted by `POST /api/request-logs/` are not valid here. The `Sample two-span trace` example creates a workflow root span and one chat child span. Before rerunning it, replace `traceId` and `spanId` with new 32-hex and 16-hex IDs to create a separate trace.
 
-        For SDK setup, use [Set up the SDK](/docs/documentation/features/tracing/traces) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
+        For SDK setup, see the [Tracing quickstart](/docs/documentation/features/tracing/quickstart) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which configures the exporter automatically.
 
         Parameters
         ----------
@@ -612,7 +612,7 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListTracesResponse:
         """
-        Retrieve a paginated list of traces matching your filters. Supports the filter payload documented in the Filters API. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Returns traces matching the Filters API payload, with pagination. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -767,7 +767,7 @@ class AsyncTracesClient:
         self, trace_unique_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveTraceResponse:
         """
-        Retrieve a single trace by `trace_unique_id`, including aggregate metrics and the full span tree. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        Returns aggregate metrics and the full span tree. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -814,7 +814,7 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DeleteTraceResponse:
         """
-        Delete a single trace by `trace_unique_id`. `start_time` and `end_time` can be provided to narrow the request to the relevant time range.
+        Use `start_time` and `end_time` to narrow deletion to the relevant time range.
 
         Parameters
         ----------
@@ -923,7 +923,7 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RetrievePublicTraceResponse:
         """
-        Retrieve a publicly shared trace without authentication. The trace must have been shared first via `PATCH /api/traces/{trace_unique_id}/`. Metadata keys beginning with `_` are reserved for platform use and are omitted from customer-facing span and trace responses, so they do not round-trip through read APIs.
+        The trace must first be shared via `PATCH /api/traces/{trace_unique_id}/`. No authentication is required. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -971,7 +971,7 @@ class AsyncTracesClient:
         self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
     ) -> CreateTraceLegacyResponse:
         """
-        Legacy trace-ingest endpoint. Accepts spans either as a raw JSON array or as an object with a `data` field containing the span array. Each span uses the same fields as [Create a span](/docs/apis/spans/api-request-logs), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, prefer [Create a trace (OTLP)](/docs/apis/traces/create-trace).
+        Accepts spans as a JSON array or an object whose `data` field contains the array. Each span uses the fields in [Create a span](/docs/apis/spans/create-span), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, use [Ingest traces (OTLP)](/docs/apis/traces/create-trace).
 
         Parameters
         ----------
@@ -1021,9 +1021,9 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateTraceResponse:
         """
-        Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
+        Accepts [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) JSON or protobuf. The span fields accepted by `POST /api/request-logs/` are not valid here. The `Sample two-span trace` example creates a workflow root span and one chat child span. Before rerunning it, replace `traceId` and `spanId` with new 32-hex and 16-hex IDs to create a separate trace.
 
-        For SDK setup, use [Set up the SDK](/docs/documentation/features/tracing/traces) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
+        For SDK setup, see the [Tracing quickstart](/docs/documentation/features/tracing/quickstart) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which configures the exporter automatically.
 
         Parameters
         ----------

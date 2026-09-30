@@ -54,7 +54,7 @@ class RawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateScoreResponse]:
         """
-        Create an evaluation score. Prefer the log-scoped route `POST /api/logs/{log_id}/scores/` when creating a score for a known log.
+        Use `POST /api/logs/{log_id}/scores/` when creating a score for a known span.
 
         Parameters
         ----------
@@ -184,8 +184,6 @@ class RawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[FilterScoresResponse]:
         """
-        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -266,8 +264,6 @@ class RawScoresClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveScoreResponse]:
         """
-        Retrieve a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -346,8 +342,6 @@ class RawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ReplaceScoreResponse]:
         """
-        Replace a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -482,8 +476,6 @@ class RawScoresClient:
 
     def delete_score(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
         """
-        Delete a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -543,8 +535,6 @@ class RawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateScoreResponse]:
         """
-        Partially update a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -646,8 +636,6 @@ class RawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListSpanScoresResponse]:
         """
-        List all scores for a specific log/span.
-
         Parameters
         ----------
         log_id : str
@@ -735,7 +723,7 @@ class RawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateSpanScoreResponse]:
         """
-        Create a score for a specific log/span. The backend keeps one score per `(log, evaluator, scorer)` and updates the existing score if the same combination is submitted again.
+        Each `(log, evaluator, scorer)` combination has one score. Submitting the same combination again updates that score.
 
         Parameters
         ----------
@@ -869,8 +857,6 @@ class RawScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveSpanScoreResponse]:
         """
-        Retrieve a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -952,8 +938,6 @@ class RawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ReplaceSpanScoreResponse]:
         """
-        Replace a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -1089,8 +1073,6 @@ class RawScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        Delete a score from a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -1154,8 +1136,6 @@ class RawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateSpanScoreResponse]:
         """
-        Partially update a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -1278,7 +1258,7 @@ class AsyncRawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateScoreResponse]:
         """
-        Create an evaluation score. Prefer the log-scoped route `POST /api/logs/{log_id}/scores/` when creating a score for a known log.
+        Use `POST /api/logs/{log_id}/scores/` when creating a score for a known span.
 
         Parameters
         ----------
@@ -1408,8 +1388,6 @@ class AsyncRawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[FilterScoresResponse]:
         """
-        List scores using POST-for-filtering. This endpoint accepts filters in the request body and returns paginated score results.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -1490,8 +1468,6 @@ class AsyncRawScoresClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveScoreResponse]:
         """
-        Retrieve a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -1570,8 +1546,6 @@ class AsyncRawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ReplaceScoreResponse]:
         """
-        Replace a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -1708,8 +1682,6 @@ class AsyncRawScoresClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Delete a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -1769,8 +1741,6 @@ class AsyncRawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateScoreResponse]:
         """
-        Partially update a score by score ID.
-
         Parameters
         ----------
         id : str
@@ -1872,8 +1842,6 @@ class AsyncRawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListSpanScoresResponse]:
         """
-        List all scores for a specific log/span.
-
         Parameters
         ----------
         log_id : str
@@ -1961,7 +1929,7 @@ class AsyncRawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateSpanScoreResponse]:
         """
-        Create a score for a specific log/span. The backend keeps one score per `(log, evaluator, scorer)` and updates the existing score if the same combination is submitted again.
+        Each `(log, evaluator, scorer)` combination has one score. Submitting the same combination again updates that score.
 
         Parameters
         ----------
@@ -2095,8 +2063,6 @@ class AsyncRawScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveSpanScoreResponse]:
         """
-        Retrieve a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -2178,8 +2144,6 @@ class AsyncRawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ReplaceSpanScoreResponse]:
         """
-        Replace a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -2315,8 +2279,6 @@ class AsyncRawScoresClient:
         self, log_id: str, score_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Delete a score from a log/span.
-
         Parameters
         ----------
         log_id : str
@@ -2380,8 +2342,6 @@ class AsyncRawScoresClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateSpanScoreResponse]:
         """
-        Partially update a specific score for a log/span.
-
         Parameters
         ----------
         log_id : str

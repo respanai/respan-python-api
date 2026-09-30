@@ -12,27 +12,27 @@ from .retrieve_user_response_environment import RetrieveUserResponseEnvironment
 class RetrieveUserResponse(UniversalBaseModel):
     id: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Customer identifier used by the detail serializer.
+    User identifier.
     """
 
     name: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Customer display name.
+    User display name.
     """
 
     email: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Customer email address.
+    User email address.
     """
 
     customer_identifier: typing.Optional[str] = pydantic.Field(default=None)
     """
-    Your unique identifier for the customer.
+    Your unique identifier for the user.
     """
 
     environment: typing.Optional[RetrieveUserResponseEnvironment] = pydantic.Field(default=None)
     """
-    Customer environment.
+    User environment.
     """
 
     total_budget: typing.Optional[float] = pydantic.Field(default=None)

@@ -39,7 +39,7 @@ class RawCachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[FilterCachedResponsesResponse]:
         """
-        List cached responses using POST-for-filtering. API-key responses expose public cache keys; dashboard JWT responses may include internal numeric identifiers.
+        API-key responses expose public cache keys; dashboard JWT responses may include internal numeric IDs.
 
         Parameters
         ----------
@@ -120,7 +120,7 @@ class RawCachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetFilteredCachedResponsesSummaryResponse]:
         """
-        Return the total number of cached responses after applying filters. This endpoint supports both JWT and API key authentication.
+        Returns the number of cached responses matching the filters.
 
         Parameters
         ----------
@@ -534,7 +534,7 @@ class AsyncRawCachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[FilterCachedResponsesResponse]:
         """
-        List cached responses using POST-for-filtering. API-key responses expose public cache keys; dashboard JWT responses may include internal numeric identifiers.
+        API-key responses expose public cache keys; dashboard JWT responses may include internal numeric IDs.
 
         Parameters
         ----------
@@ -615,7 +615,7 @@ class AsyncRawCachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetFilteredCachedResponsesSummaryResponse]:
         """
-        Return the total number of cached responses after applying filters. This endpoint supports both JWT and API key authentication.
+        Returns the number of cached responses matching the filters.
 
         Parameters
         ----------

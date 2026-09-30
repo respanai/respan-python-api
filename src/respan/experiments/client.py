@@ -63,7 +63,7 @@ class ExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateExperimentResponse:
         """
-        Create an experiment and start asynchronous workflow execution over a dataset.
+        Starts asynchronous workflow execution over a dataset.
 
         Parameters
         ----------
@@ -169,8 +169,6 @@ class ExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]:
         """
-        List experiments using POST-for-filtering.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -230,7 +228,7 @@ class ExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterExperimentsSummaryResponse:
         """
-        Return the number of experiments matching a POST filter payload.
+        Returns the number of experiments matching the filters.
 
         Parameters
         ----------
@@ -317,8 +315,6 @@ class ExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceExperimentResponse:
         """
-        Replace editable fields for an experiment.
-
         Parameters
         ----------
         experiment_id : str
@@ -419,8 +415,6 @@ class ExperimentsClient:
 
     def delete_experiment(self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Delete an experiment by ID.
-
         Parameters
         ----------
         experiment_id : str
@@ -468,8 +462,6 @@ class ExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateExperimentResponse:
         """
-        Partially update editable fields for an experiment.
-
         Parameters
         ----------
         experiment_id : str
@@ -584,7 +576,7 @@ class ExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListExperimentSpansResponseResultsItem, ListExperimentSpansResponse]:
         """
-        List experiment traces using POST-for-filtering. Supports status, cost, comparison key, timestamp, metadata, and score filters.
+        Filter traces by status, cost, comparison key, timestamp, metadata, or score.
 
         Parameters
         ----------
@@ -774,7 +766,7 @@ class ExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterExperimentSpansSummaryResponse:
         """
-        Get aggregate workflow metrics and evaluator score summaries for traces matching a POST filter payload.
+        Returns aggregate workflow metrics and evaluator score summaries for matching traces.
 
         Parameters
         ----------
@@ -832,7 +824,7 @@ class ExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterExperimentScoreHistogramResponse:
         """
-        Compute histogram aggregation for experiment evaluation scores. The backend reads `evaluator_id` and `bins` from query parameters; it does not consume a request body.
+        Pass `evaluator_id` and `bins` as query parameters. This endpoint does not consume a request body.
 
         Parameters
         ----------
@@ -906,7 +898,7 @@ class AsyncExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreateExperimentResponse:
         """
-        Create an experiment and start asynchronous workflow execution over a dataset.
+        Starts asynchronous workflow execution over a dataset.
 
         Parameters
         ----------
@@ -1020,8 +1012,6 @@ class AsyncExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListExperimentsResponseResultsItem, ListExperimentsResponse]:
         """
-        List experiments using POST-for-filtering.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -1090,7 +1080,7 @@ class AsyncExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterExperimentsSummaryResponse:
         """
-        Return the number of experiments matching a POST filter payload.
+        Returns the number of experiments matching the filters.
 
         Parameters
         ----------
@@ -1193,8 +1183,6 @@ class AsyncExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceExperimentResponse:
         """
-        Replace editable fields for an experiment.
-
         Parameters
         ----------
         experiment_id : str
@@ -1305,8 +1293,6 @@ class AsyncExperimentsClient:
         self, experiment_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        Delete an experiment by ID.
-
         Parameters
         ----------
         experiment_id : str
@@ -1362,8 +1348,6 @@ class AsyncExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateExperimentResponse:
         """
-        Partially update editable fields for an experiment.
-
         Parameters
         ----------
         experiment_id : str
@@ -1486,7 +1470,7 @@ class AsyncExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListExperimentSpansResponseResultsItem, ListExperimentSpansResponse]:
         """
-        List experiment traces using POST-for-filtering. Supports status, cost, comparison key, timestamp, metadata, and score filters.
+        Filter traces by status, cost, comparison key, timestamp, metadata, or score.
 
         Parameters
         ----------
@@ -1703,7 +1687,7 @@ class AsyncExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterExperimentSpansSummaryResponse:
         """
-        Get aggregate workflow metrics and evaluator score summaries for traces matching a POST filter payload.
+        Returns aggregate workflow metrics and evaluator score summaries for matching traces.
 
         Parameters
         ----------
@@ -1769,7 +1753,7 @@ class AsyncExperimentsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterExperimentScoreHistogramResponse:
         """
-        Compute histogram aggregation for experiment evaluation scores. The backend reads `evaluator_id` and `bins` from query parameters; it does not consume a request body.
+        Pass `evaluator_id` and `bins` as query parameters. This endpoint does not consume a request body.
 
         Parameters
         ----------

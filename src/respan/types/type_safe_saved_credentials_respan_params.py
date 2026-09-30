@@ -11,14 +11,14 @@ from .type_safe_saved_credentials_respan_params_credential_override_value import
 
 class TypeSafeSavedCredentialsRespanParams(UniversalBaseModel):
     """
-    **TypeSafe API key required unless already saved in Settings > Providers.** Enter it below in credential_override → jev-1.13.0 → api_key. Respan removes these parameters before forwarding the request.
+    Optional Respan parameters, removed before forwarding the request.
     """
 
     credential_override: typing.Optional[
         typing.Dict[str, TypeSafeSavedCredentialsRespanParamsCredentialOverrideValue]
     ] = pydantic.Field(default=None)
     """
-    **Required unless a TypeSafe key is saved in Settings > Providers.** Keep the selector jev-1.13.0 and replace YOUR_TYPESAFE_API_KEY with your TypeSafe provider key.
+    Override the saved key for this request. Use the model name without the `typesafe/` prefix, such as `jev-1.13.0`.
     """
 
     if IS_PYDANTIC_V2:

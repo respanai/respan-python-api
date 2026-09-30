@@ -29,20 +29,11 @@ class RawTypeSafeGatewayClient:
         self, *, request: TypesafeSystemoneRequest, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[TypesafeSystemoneResponse]:
         """
-        Evaluate state with TypeSafe Jev through Respan.
+        Evaluate a state against named questions and return TypeSafe's answers keyed by question name. Respan removes the `typesafe/` model prefix and `respan_params` before forwarding the request, then returns the TypeSafe JSON response unchanged.
 
-        **Required credentials — enter both keys:**
+        Authenticate with your Respan key and supply a TypeSafe key through `respan_params.credential_override` or Respan Settings > Providers. Use the model name without `typesafe/` as the override key: `jev-1.13.0` for `typesafe/jev-1.13.0`. To use a saved key, select **Use saved TypeSafe key** and omit `credential_override`. TypeSafe does not use Respan gateway credits.
 
-        1. **Respan API key (required):** enter your Respan key in the **Authorization** control.
-        2. **TypeSafe API key (required unless saved in Settings > Providers):** use the default **Enter TypeSafe API key** form and open its first field, `respan_params` → `credential_override` → `jev-1.13.0` → `api_key` and replace `YOUR_TYPESAFE_API_KEY` with your TypeSafe key.
-
-        The credential override uses the model name without `typesafe/`: `jev-1.13.0` for `typesafe/jev-1.13.0`. If your TypeSafe key is already saved in Settings > Providers, select **Use saved TypeSafe key** and remove the example's `respan_params.credential_override` block to use that saved key. TypeSafe does not use Respan gateway credits.
-
-        Send `model`, `state`, and a map of named `questions`. Respan removes the `typesafe/` model prefix and `respan_params` before forwarding the request. The TypeSafe JSON response is returned unchanged, with answers keyed by question name. Streaming is not supported; `stream: true` returns HTTP 400.
-
-        The refund example uses `noul`, which returns a probability between 0 and 1. For more on the question types, see the [TypeSafe API reference](https://docs.typesafe.ai/api).
-
-        TypeSafe may return HTTP 429 for rate limits or HTTP 529 when overloaded. Retry these responses with exponential backoff.
+        The refund example uses `noul`, a probability from 0 to 1. See the [TypeSafe API reference](https://docs.typesafe.ai/api) for question types. Streaming is unsupported: `stream: true` returns HTTP 400. Retry HTTP 429 (rate limit) and 529 (overloaded) with exponential backoff.
 
         Parameters
         ----------
@@ -147,20 +138,11 @@ class AsyncRawTypeSafeGatewayClient:
         self, *, request: TypesafeSystemoneRequest, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[TypesafeSystemoneResponse]:
         """
-        Evaluate state with TypeSafe Jev through Respan.
+        Evaluate a state against named questions and return TypeSafe's answers keyed by question name. Respan removes the `typesafe/` model prefix and `respan_params` before forwarding the request, then returns the TypeSafe JSON response unchanged.
 
-        **Required credentials — enter both keys:**
+        Authenticate with your Respan key and supply a TypeSafe key through `respan_params.credential_override` or Respan Settings > Providers. Use the model name without `typesafe/` as the override key: `jev-1.13.0` for `typesafe/jev-1.13.0`. To use a saved key, select **Use saved TypeSafe key** and omit `credential_override`. TypeSafe does not use Respan gateway credits.
 
-        1. **Respan API key (required):** enter your Respan key in the **Authorization** control.
-        2. **TypeSafe API key (required unless saved in Settings > Providers):** use the default **Enter TypeSafe API key** form and open its first field, `respan_params` → `credential_override` → `jev-1.13.0` → `api_key` and replace `YOUR_TYPESAFE_API_KEY` with your TypeSafe key.
-
-        The credential override uses the model name without `typesafe/`: `jev-1.13.0` for `typesafe/jev-1.13.0`. If your TypeSafe key is already saved in Settings > Providers, select **Use saved TypeSafe key** and remove the example's `respan_params.credential_override` block to use that saved key. TypeSafe does not use Respan gateway credits.
-
-        Send `model`, `state`, and a map of named `questions`. Respan removes the `typesafe/` model prefix and `respan_params` before forwarding the request. The TypeSafe JSON response is returned unchanged, with answers keyed by question name. Streaming is not supported; `stream: true` returns HTTP 400.
-
-        The refund example uses `noul`, which returns a probability between 0 and 1. For more on the question types, see the [TypeSafe API reference](https://docs.typesafe.ai/api).
-
-        TypeSafe may return HTTP 429 for rate limits or HTTP 529 when overloaded. Retry these responses with exponential backoff.
+        The refund example uses `noul`, a probability from 0 to 1. See the [TypeSafe API reference](https://docs.typesafe.ai/api) for question types. Streaming is unsupported: `stream: true` returns HTTP 400. Retry HTTP 429 (rate limit) and 529 (overloaded) with exponential backoff.
 
         Parameters
         ----------

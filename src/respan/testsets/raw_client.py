@@ -47,7 +47,7 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateTestsetResponse]:
         """
-        Create a new testset for evaluation. Public API responses return the external testset ID and column metadata only.
+        Returns testset metadata without row data.
 
         Parameters
         ----------
@@ -137,8 +137,6 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListTestsetsResponse]:
         """
-        List testsets with pagination and optional filters.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -222,7 +220,7 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[GetFilteredTestsetsSummaryResponse]:
         """
-        Return summary statistics for testsets after applying filters.
+        Returns the number of testsets matching the filters.
 
         Parameters
         ----------
@@ -290,8 +288,6 @@ class RawTestsetsClient:
         self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveTestsetResponse]:
         """
-        Retrieve a testset by ID.
-
         Parameters
         ----------
         testset_id : str
@@ -358,7 +354,7 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ReplaceTestsetResponse]:
         """
-        Replace a testset metadata payload.
+        Replaces testset metadata.
 
         Parameters
         ----------
@@ -516,7 +512,7 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateTestsetResponse]:
         """
-        Partially update testset metadata such as the name, description, starred state, or column definitions.
+        Updates testset metadata and column definitions.
 
         Parameters
         ----------
@@ -619,8 +615,6 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListTestsetRowsResponse]:
         """
-        List rows in a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -694,7 +688,7 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.List[CreateTestsetRowsResponseItem]]:
         """
-        Create or upsert one or more rows in a testset. Send the rows in the required `testset_rows` envelope.
+        Creates or upserts one or more rows. Send the rows in the required `testset_rows` envelope.
 
         Parameters
         ----------
@@ -783,7 +777,7 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[None]:
         """
-        Delete multiple rows from a testset by `row_index`.
+        Deletes rows identified by `row_index`.
 
         Parameters
         ----------
@@ -857,8 +851,6 @@ class RawTestsetsClient:
         self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveTestsetRowResponse]:
         """
-        Retrieve a single row from a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -926,8 +918,6 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ReplaceTestsetRowResponse]:
         """
-        Replace the payload for a single row.
-
         Parameters
         ----------
         testset_id : str
@@ -1011,8 +1001,6 @@ class RawTestsetsClient:
         self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        Delete a single row from a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -1072,8 +1060,6 @@ class RawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateTestsetRowResponse]:
         """
-        Partially update a single row in a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -1168,7 +1154,7 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateTestsetResponse]:
         """
-        Create a new testset for evaluation. Public API responses return the external testset ID and column metadata only.
+        Returns testset metadata without row data.
 
         Parameters
         ----------
@@ -1258,8 +1244,6 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListTestsetsResponse]:
         """
-        List testsets with pagination and optional filters.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -1343,7 +1327,7 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[GetFilteredTestsetsSummaryResponse]:
         """
-        Return summary statistics for testsets after applying filters.
+        Returns the number of testsets matching the filters.
 
         Parameters
         ----------
@@ -1411,8 +1395,6 @@ class AsyncRawTestsetsClient:
         self, testset_id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveTestsetResponse]:
         """
-        Retrieve a testset by ID.
-
         Parameters
         ----------
         testset_id : str
@@ -1479,7 +1461,7 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ReplaceTestsetResponse]:
         """
-        Replace a testset metadata payload.
+        Replaces testset metadata.
 
         Parameters
         ----------
@@ -1637,7 +1619,7 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateTestsetResponse]:
         """
-        Partially update testset metadata such as the name, description, starred state, or column definitions.
+        Updates testset metadata and column definitions.
 
         Parameters
         ----------
@@ -1740,8 +1722,6 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListTestsetRowsResponse]:
         """
-        List rows in a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -1815,7 +1795,7 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.List[CreateTestsetRowsResponseItem]]:
         """
-        Create or upsert one or more rows in a testset. Send the rows in the required `testset_rows` envelope.
+        Creates or upserts one or more rows. Send the rows in the required `testset_rows` envelope.
 
         Parameters
         ----------
@@ -1904,7 +1884,7 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[None]:
         """
-        Delete multiple rows from a testset by `row_index`.
+        Deletes rows identified by `row_index`.
 
         Parameters
         ----------
@@ -1978,8 +1958,6 @@ class AsyncRawTestsetsClient:
         self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveTestsetRowResponse]:
         """
-        Retrieve a single row from a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -2047,8 +2025,6 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ReplaceTestsetRowResponse]:
         """
-        Replace the payload for a single row.
-
         Parameters
         ----------
         testset_id : str
@@ -2132,8 +2108,6 @@ class AsyncRawTestsetsClient:
         self, testset_id: str, row_index: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Delete a single row from a testset.
-
         Parameters
         ----------
         testset_id : str
@@ -2193,8 +2167,6 @@ class AsyncRawTestsetsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateTestsetRowResponse]:
         """
-        Partially update a single row in a testset.
-
         Parameters
         ----------
         testset_id : str

@@ -41,7 +41,7 @@ class LimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListLimitPoliciesResponse:
         """
-        List every configured policy in your organization, including zero-traffic policies. Each carries its live `current_state`.
+        List policies in your organization with their live `current_state`, including policies with no traffic.
 
         Parameters
         ----------
@@ -95,7 +95,7 @@ class LimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> LimitPolicy:
         """
-        Create a policy. Returns the full policy, matching the retrieve response. Caps are stored and visible as soon as they are created, but the gateway enforces them only where the limit system is enabled for your environment. Where it is not enabled, a cap records no usage and never blocks.
+        Create a usage cap. The policy is stored immediately, but records usage and blocks requests only when the limit system is enabled for your environment.
 
         Parameters
         ----------
@@ -180,7 +180,7 @@ class LimitPoliciesClient:
 
     def retrieve_limit_policy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> LimitPolicy:
         """
-        Retrieve one policy with its live `current_state`.
+        Return the policy with its live `current_state`.
 
         Parameters
         ----------
@@ -212,7 +212,7 @@ class LimitPoliciesClient:
 
     def delete_limit_policy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Hard-delete the policy. Returns 204.
+        Permanently delete the policy.
 
         Parameters
         ----------
@@ -253,7 +253,7 @@ class LimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> LimitPolicy:
         """
-        Update mutable fields (`name`, `scope`, `rules`, `priority`, `is_active`). Immutable fields are ignored.
+        Update the policy configuration. Immutable fields are ignored.
 
         Parameters
         ----------
@@ -326,7 +326,7 @@ class AsyncLimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListLimitPoliciesResponse:
         """
-        List every configured policy in your organization, including zero-traffic policies. Each carries its live `current_state`.
+        List policies in your organization with their live `current_state`, including policies with no traffic.
 
         Parameters
         ----------
@@ -388,7 +388,7 @@ class AsyncLimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> LimitPolicy:
         """
-        Create a policy. Returns the full policy, matching the retrieve response. Caps are stored and visible as soon as they are created, but the gateway enforces them only where the limit system is enabled for your environment. Where it is not enabled, a cap records no usage and never blocks.
+        Create a usage cap. The policy is stored immediately, but records usage and blocks requests only when the limit system is enabled for your environment.
 
         Parameters
         ----------
@@ -483,7 +483,7 @@ class AsyncLimitPoliciesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> LimitPolicy:
         """
-        Retrieve one policy with its live `current_state`.
+        Return the policy with its live `current_state`.
 
         Parameters
         ----------
@@ -523,7 +523,7 @@ class AsyncLimitPoliciesClient:
 
     async def delete_limit_policy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Hard-delete the policy. Returns 204.
+        Permanently delete the policy.
 
         Parameters
         ----------
@@ -572,7 +572,7 @@ class AsyncLimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> LimitPolicy:
         """
-        Update mutable fields (`name`, `scope`, `rules`, `priority`, `is_active`). Immutable fields are ignored.
+        Update the policy configuration. Immutable fields are ignored.
 
         Parameters
         ----------

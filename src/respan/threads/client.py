@@ -39,8 +39,6 @@ class ThreadsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
-        Retrieve threads matching the specified filters with pagination.
-
         Parameters
         ----------
         page : typing.Optional[int]
@@ -108,8 +106,6 @@ class AsyncThreadsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[ListThreadsResponseResultsItem, ListThreadsResponse]:
         """
-        Retrieve threads matching the specified filters with pagination.
-
         Parameters
         ----------
         page : typing.Optional[int]

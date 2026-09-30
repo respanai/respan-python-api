@@ -82,20 +82,11 @@ class RawGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreateChatCompletionResponse]:
         """
-        Send a chat completion request through the Respan gateway. Supports 1000+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
+        Sends a chat completion request through the Respan gateway with automatic logging. Accepts [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat) and Respan options for fallbacks, caching, and prompt management.
 
-        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
-        1. **Top-level body fields** - add directly to the request body
-        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
-        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
+        Pass Respan parameters in top-level body fields, under `respan_params`, or as base64-encoded JSON in the `X-Data-Respan-Params` header. Top-level fields take precedence over `respan_params`, which takes precedence over the header. `respan_params`, `keywordsai_params`, and the decoded header must each be a JSON object. A non-object value is ignored: the request is served, but none of its parameters apply, so there is no customer attribution and no customer-scoped limits. With the OpenAI SDK, use `extra_body`.
 
-        Merge order: top-level body fields > `respan_params` > header.
-
-        Legacy compatibility:
-        - `keywordsai_params` is still accepted and merged into `respan_params`
-        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
-
-        When using the OpenAI SDK, pass Respan parameters via `extra_body`.
+        For legacy compatibility, `keywordsai_params` is merged into `respan_params`, and `X-Data-Keywordsai-Params` is still accepted and renamed internally.
 
         Parameters
         ----------
@@ -235,7 +226,7 @@ class RawGatewayClient:
             Custom span name for tracing.
 
         respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Namespaced container for all Respan parameters. Alternative to passing them at top level.
+            Namespaced container for all Respan parameters. Alternative to passing them at top level. Must be a JSON object: a string, list, number or boolean is ignored and none of its params apply.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -379,7 +370,7 @@ class RawGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[typing.Dict[str, typing.Any]]:
         """
-        Create an OpenAI-compatible response through Respan. Enter RESPAN_API_KEY in the Authorization control, choose the openai, azure, or perplexity example, and replace PROVIDER_API_KEY with that provider's key. Each example owns its fixed route-provider header and compatible request shape. The OpenAI example is otherwise ready to run. For Azure, also replace YOUR_AZURE_DEPLOYMENT and YOUR_RESOURCE; a Responses-compatible api_version is prefilled. Switching examples clears provider-specific fields left by the previous selection. Provider credentials may alternatively be stored in Settings -> Providers. Successful responses include X-Respan-Log-Id and are logged with the actual provider model and cost.
+        Creates an OpenAI-compatible response through Respan. Choose the OpenAI, Azure, or Perplexity example and replace PROVIDER_API_KEY with that provider's key. For Azure, also replace YOUR_AZURE_DEPLOYMENT and YOUR_RESOURCE. Provider credentials can instead be stored in Settings > Providers. Successful responses include X-Respan-Log-Id and are logged with the provider model and cost.
 
         Parameters
         ----------
@@ -581,20 +572,11 @@ class AsyncRawGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreateChatCompletionResponse]:
         """
-        Send a chat completion request through the Respan gateway. Supports 1000+ models across OpenAI, Anthropic, Google, Azure, and more with automatic logging, fallbacks, caching, and prompt management.
+        Sends a chat completion request through the Respan gateway with automatic logging. Accepts [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat) and Respan options for fallbacks, caching, and prompt management.
 
-        Accepts all [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat). Respan-specific parameters can be passed three ways:
-        1. **Top-level body fields** - add directly to the request body
-        2. **Nested under `respan_params`** - explicit namespacing to avoid conflicts
-        3. **Header `X-Data-Respan-Params`** - base64-encoded JSON header
+        Pass Respan parameters in top-level body fields, under `respan_params`, or as base64-encoded JSON in the `X-Data-Respan-Params` header. Top-level fields take precedence over `respan_params`, which takes precedence over the header. `respan_params`, `keywordsai_params`, and the decoded header must each be a JSON object. A non-object value is ignored: the request is served, but none of its parameters apply, so there is no customer attribution and no customer-scoped limits. With the OpenAI SDK, use `extra_body`.
 
-        Merge order: top-level body fields > `respan_params` > header.
-
-        Legacy compatibility:
-        - `keywordsai_params` is still accepted and merged into `respan_params`
-        - `X-Data-Keywordsai-Params` is still accepted and auto-renamed internally
-
-        When using the OpenAI SDK, pass Respan parameters via `extra_body`.
+        For legacy compatibility, `keywordsai_params` is merged into `respan_params`, and `X-Data-Keywordsai-Params` is still accepted and renamed internally.
 
         Parameters
         ----------
@@ -734,7 +716,7 @@ class AsyncRawGatewayClient:
             Custom span name for tracing.
 
         respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Namespaced container for all Respan parameters. Alternative to passing them at top level.
+            Namespaced container for all Respan parameters. Alternative to passing them at top level. Must be a JSON object: a string, list, number or boolean is ignored and none of its params apply.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -878,7 +860,7 @@ class AsyncRawGatewayClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[typing.Dict[str, typing.Any]]:
         """
-        Create an OpenAI-compatible response through Respan. Enter RESPAN_API_KEY in the Authorization control, choose the openai, azure, or perplexity example, and replace PROVIDER_API_KEY with that provider's key. Each example owns its fixed route-provider header and compatible request shape. The OpenAI example is otherwise ready to run. For Azure, also replace YOUR_AZURE_DEPLOYMENT and YOUR_RESOURCE; a Responses-compatible api_version is prefilled. Switching examples clears provider-specific fields left by the previous selection. Provider credentials may alternatively be stored in Settings -> Providers. Successful responses include X-Respan-Log-Id and are logged with the actual provider model and cost.
+        Creates an OpenAI-compatible response through Respan. Choose the OpenAI, Azure, or Perplexity example and replace PROVIDER_API_KEY with that provider's key. For Azure, also replace YOUR_AZURE_DEPLOYMENT and YOUR_RESOURCE. Provider credentials can instead be stored in Settings > Providers. Successful responses include X-Respan-Log-Id and are logged with the provider model and cost.
 
         Parameters
         ----------

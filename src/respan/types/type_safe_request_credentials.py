@@ -11,12 +11,12 @@ from .type_safe_request_credentials_respan_params import TypeSafeRequestCredenti
 
 class TypeSafeRequestCredentials(UniversalBaseModel):
     """
-    Provide both keys for this request. Enter the Respan key in Authorization and the required TypeSafe key below.
+    Supply a TypeSafe API key with this request. Authenticate with your Respan key in Authorization.
     """
 
     respan_params: TypeSafeRequestCredentialsRespanParams = pydantic.Field()
     """
-    **Required: TypeSafe API key.** Replace YOUR_TYPESAFE_API_KEY in credential_override → jev-1.13.0 → api_key with your TypeSafe key.
+    Request-scoped TypeSafe credentials. Respan removes these parameters before forwarding the request.
     """
 
     model: str = pydantic.Field()
