@@ -696,7 +696,7 @@ class RawTracesClient:
         """
         Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
 
-        For SDK setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
+        For SDK setup, use [Set up the SDK](/docs/documentation/features/tracing/traces) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
 
         Parameters
         ----------
@@ -1424,7 +1424,7 @@ class AsyncRawTracesClient:
         """
         Send traces using the standard [OTLP/HTTP](https://opentelemetry.io/docs/specs/otlp/) protocol. This endpoint expects OTLP JSON or protobuf, not the simpler span fields used by `POST /api/request-logs/`. To create a visible sample trace from the API reference, use the `Sample two-span trace` request example below; it creates a workflow root span and one chat child span. If you run the same example more than once, change `traceId` and `spanId` values to new 32-hex and 16-hex IDs so each run creates a separate trace.
 
-        For SDK setup, use the [Respan tracing SDK](/docs/sdks/python-sdk/overview) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
+        For SDK setup, use [Set up the SDK](/docs/documentation/features/tracing/traces) or the [OpenTelemetry integration](/docs/integrations/opentelemetry), which auto-configures the exporter.
 
         Parameters
         ----------
