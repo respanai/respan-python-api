@@ -260,7 +260,7 @@ class SpansClient:
             Name of the prompt template.
 
         is_custom_prompt : typing.Optional[bool]
-            Set `true` when using a custom `prompt_id`.
+            Not read at the top level. Respan reads `is_custom_prompt` only inside a `prompt` object, as in `{"prompt": {"prompt_id": "your-id", "is_custom_prompt": true}}`. Set it there for a prompt you manage outside Respan. Otherwise Respan looks up `prompt.prompt_id` among your saved prompts and rejects the span if none matches. A top-level `prompt_id` is logged as sent and isn't looked up.
 
         start_time : typing.Optional[dt.datetime]
             ISO 8601 timestamp when the request started.
@@ -1011,7 +1011,7 @@ class AsyncSpansClient:
             Name of the prompt template.
 
         is_custom_prompt : typing.Optional[bool]
-            Set `true` when using a custom `prompt_id`.
+            Not read at the top level. Respan reads `is_custom_prompt` only inside a `prompt` object, as in `{"prompt": {"prompt_id": "your-id", "is_custom_prompt": true}}`. Set it there for a prompt you manage outside Respan. Otherwise Respan looks up `prompt.prompt_id` among your saved prompts and rejects the span if none matches. A top-level `prompt_id` is logged as sent and isn't looked up.
 
         start_time : typing.Optional[dt.datetime]
             ISO 8601 timestamp when the request started.

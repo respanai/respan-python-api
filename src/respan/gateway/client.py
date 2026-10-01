@@ -87,7 +87,7 @@ class GatewayClient:
         """
         Sends a chat completion request through the Respan gateway with automatic logging. Accepts [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat) and Respan options for fallbacks, caching, and prompt management.
 
-        Pass Respan parameters in top-level body fields, under `respan_params`, or as base64-encoded JSON in the `X-Data-Respan-Params` header. Top-level fields take precedence over `respan_params`, which takes precedence over the header. `respan_params`, `keywordsai_params`, and the decoded header must each be a JSON object. A non-object value is ignored: the request is served, but none of its parameters apply, so there is no customer attribution and no customer-scoped limits. With the OpenAI SDK, use `extra_body`.
+        Pass Respan parameters in top-level body fields, under `respan_params`, or as base64-encoded JSON in the `X-Data-Respan-Params` header. If the same field is sent more than one way, `respan_params` takes precedence over the header, and both take precedence over a top-level field. The exception is `variables`: top-level `variables` are merged key by key over the `variables` from `respan_params` or the header. `respan_params`, `keywordsai_params`, and the decoded header must each be a JSON object; a top-level `respan_params` may also be a JSON string that decodes to one. Any other value is ignored, and so are the header's parameters: the request is served, but none of those parameters apply. Fields sent at the top level still apply. With the OpenAI SDK, use `extra_body`.
 
         For legacy compatibility, `keywordsai_params` is merged into `respan_params`, and `X-Data-Keywordsai-Params` is still accepted and renamed internally.
 
@@ -163,10 +163,10 @@ class GatewayClient:
             One-off credential overrides per provider. Overrides uploaded provider keys for this request only.
 
         cache_enabled : typing.Optional[bool]
-            Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
+            Enable response caching. See [Caching](/docs/documentation/features/gateway/caching).
 
         cache_ttl : typing.Optional[float]
-            Cache time-to-live in seconds. Default: 30 days.
+            How long a cached response is served, in seconds. A response stored without `cache_ttl` is served from the cache for at most 30 minutes.
 
         cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
             Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
@@ -175,7 +175,7 @@ class GatewayClient:
             Prompt template config. Properties: `prompt_id` (required), `variables` (template variables), `version` (number, or `"latest"` for draft), `echo` (return rendered prompt), `override` (use override_params), `override_params` (OpenAI params to override), `schema_version` (`1` = legacy, `2` = prompt config wins). See [Prompt management](/docs/documentation/features/prompt-management/advanced).
 
         retry_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Retry config. Properties: `retry_enabled` (boolean, required), `num_retries` (number), `retry_after` (seconds to wait).
+            Has no effect on this endpoint: chat completions always uses your organization's retry settings. Per-request `retry_params` (`retry_enabled`, `num_retries`, `retry_after`) applies only to `POST /api/responses`. See [Retries and fallback](/docs/documentation/features/gateway/retries).
 
         disable_log : typing.Optional[bool]
             When `true`, omits input/output from the log. Metrics (tokens, cost, latency) are still recorded.
@@ -202,7 +202,7 @@ class GatewayClient:
             End user identifier for analytics and budgets.
 
         customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
+            Customer details. Properties: `customer_identifier` (takes precedence over the top-level `customer_identifier`), `name` and `email` (logged with the request, and saved on the customer when Respan first sees it), and `rate_limit` (requests per minute for this customer, overriding your organization's customer rate limit; requests over it get `429`). Budget fields sent here aren't saved or enforced. Set budgets with [Update a user](/docs/apis/users/update-user).
 
         request_breakdown : typing.Optional[bool]
             Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
@@ -220,7 +220,7 @@ class GatewayClient:
             Typed metadata preserving native types (numbers, booleans, nested objects). Unlike `metadata` which coerces to strings.
 
         retries : typing.Optional[int]
-            Number of retries on failure.
+            Has no effect: chat completions always uses your organization's retry settings. See [Retries and fallback](/docs/documentation/features/gateway/retries).
 
         weight : typing.Optional[float]
             Load balancing weight.
@@ -229,7 +229,7 @@ class GatewayClient:
             Custom span name for tracing.
 
         respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Namespaced container for all Respan parameters. Alternative to passing them at top level. Must be a JSON object: a string, list, number or boolean is ignored and none of its params apply.
+            Namespaced container for all Respan parameters. Alternative to passing them at top level. Must be a JSON object, or a JSON string that decodes to one. A list, number or boolean is ignored and none of its params apply.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -381,7 +381,7 @@ class GatewayClient:
             Enable response caching for this request.
 
         cache_ttl : typing.Optional[float]
-            Cache lifetime in seconds.
+            Cache lifetime in seconds. A response stored without `cache_ttl` is served from the cache for at most 30 minutes.
 
         cache_options : typing.Optional[CreateResponseRequestCacheOptions]
 
@@ -514,7 +514,7 @@ class AsyncGatewayClient:
         """
         Sends a chat completion request through the Respan gateway with automatic logging. Accepts [OpenAI chat completion parameters](https://platform.openai.com/docs/apis/chat) and Respan options for fallbacks, caching, and prompt management.
 
-        Pass Respan parameters in top-level body fields, under `respan_params`, or as base64-encoded JSON in the `X-Data-Respan-Params` header. Top-level fields take precedence over `respan_params`, which takes precedence over the header. `respan_params`, `keywordsai_params`, and the decoded header must each be a JSON object. A non-object value is ignored: the request is served, but none of its parameters apply, so there is no customer attribution and no customer-scoped limits. With the OpenAI SDK, use `extra_body`.
+        Pass Respan parameters in top-level body fields, under `respan_params`, or as base64-encoded JSON in the `X-Data-Respan-Params` header. If the same field is sent more than one way, `respan_params` takes precedence over the header, and both take precedence over a top-level field. The exception is `variables`: top-level `variables` are merged key by key over the `variables` from `respan_params` or the header. `respan_params`, `keywordsai_params`, and the decoded header must each be a JSON object; a top-level `respan_params` may also be a JSON string that decodes to one. Any other value is ignored, and so are the header's parameters: the request is served, but none of those parameters apply. Fields sent at the top level still apply. With the OpenAI SDK, use `extra_body`.
 
         For legacy compatibility, `keywordsai_params` is merged into `respan_params`, and `X-Data-Keywordsai-Params` is still accepted and renamed internally.
 
@@ -590,10 +590,10 @@ class AsyncGatewayClient:
             One-off credential overrides per provider. Overrides uploaded provider keys for this request only.
 
         cache_enabled : typing.Optional[bool]
-            Enable response caching. See [Caching](/docs/documentation/features/gateway/advanced).
+            Enable response caching. See [Caching](/docs/documentation/features/gateway/caching).
 
         cache_ttl : typing.Optional[float]
-            Cache time-to-live in seconds. Default: 30 days.
+            How long a cached response is served, in seconds. A response stored without `cache_ttl` is served from the cache for at most 30 minutes.
 
         cache_options : typing.Optional[CreateChatCompletionRequestCacheOptions]
             Cache behavior options. Properties: `cache_by_customer`, `is_cached_by_model`, `omit_log`.
@@ -602,7 +602,7 @@ class AsyncGatewayClient:
             Prompt template config. Properties: `prompt_id` (required), `variables` (template variables), `version` (number, or `"latest"` for draft), `echo` (return rendered prompt), `override` (use override_params), `override_params` (OpenAI params to override), `schema_version` (`1` = legacy, `2` = prompt config wins). See [Prompt management](/docs/documentation/features/prompt-management/advanced).
 
         retry_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Retry config. Properties: `retry_enabled` (boolean, required), `num_retries` (number), `retry_after` (seconds to wait).
+            Has no effect on this endpoint: chat completions always uses your organization's retry settings. Per-request `retry_params` (`retry_enabled`, `num_retries`, `retry_after`) applies only to `POST /api/responses`. See [Retries and fallback](/docs/documentation/features/gateway/retries).
 
         disable_log : typing.Optional[bool]
             When `true`, omits input/output from the log. Metrics (tokens, cost, latency) are still recorded.
@@ -629,7 +629,7 @@ class AsyncGatewayClient:
             End user identifier for analytics and budgets.
 
         customer_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Extended customer info. Properties: `customer_identifier` (required), `group_identifier`, `name`, `email`, `period_budget`, `budget_duration` (`daily`/`weekly`/`monthly`), `total_budget`, `markup_percentage`.
+            Customer details. Properties: `customer_identifier` (takes precedence over the top-level `customer_identifier`), `name` and `email` (logged with the request, and saved on the customer when Respan first sees it), and `rate_limit` (requests per minute for this customer, overriding your organization's customer rate limit; requests over it get `429`). Budget fields sent here aren't saved or enforced. Set budgets with [Update a user](/docs/apis/users/update-user).
 
         request_breakdown : typing.Optional[bool]
             Return response metrics summary in the response body. For streaming, metrics appear in the final chunk.
@@ -647,7 +647,7 @@ class AsyncGatewayClient:
             Typed metadata preserving native types (numbers, booleans, nested objects). Unlike `metadata` which coerces to strings.
 
         retries : typing.Optional[int]
-            Number of retries on failure.
+            Has no effect: chat completions always uses your organization's retry settings. See [Retries and fallback](/docs/documentation/features/gateway/retries).
 
         weight : typing.Optional[float]
             Load balancing weight.
@@ -656,7 +656,7 @@ class AsyncGatewayClient:
             Custom span name for tracing.
 
         respan_params : typing.Optional[typing.Dict[str, typing.Any]]
-            Namespaced container for all Respan parameters. Alternative to passing them at top level. Must be a JSON object: a string, list, number or boolean is ignored and none of its params apply.
+            Namespaced container for all Respan parameters. Alternative to passing them at top level. Must be a JSON object, or a JSON string that decodes to one. A list, number or boolean is ignored and none of its params apply.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -816,7 +816,7 @@ class AsyncGatewayClient:
             Enable response caching for this request.
 
         cache_ttl : typing.Optional[float]
-            Cache lifetime in seconds.
+            Cache lifetime in seconds. A response stored without `cache_ttl` is served from the cache for at most 30 minutes.
 
         cache_options : typing.Optional[CreateResponseRequestCacheOptions]
 

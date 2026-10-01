@@ -99,7 +99,7 @@ class RawLimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[LimitPolicy]:
         """
-        Create a usage cap. The policy is stored immediately, but records usage and blocks requests only when the limit system is enabled for your environment.
+        Create a usage cap. The policy takes effect immediately: alert rules notify, and block rules reject gateway requests with `429` once the cap is reached.
 
         Parameters
         ----------
@@ -403,7 +403,7 @@ class AsyncRawLimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[LimitPolicy]:
         """
-        Create a usage cap. The policy is stored immediately, but records usage and blocks requests only when the limit system is enabled for your environment.
+        Create a usage cap. The policy takes effect immediately: alert rules notify, and block rules reject gateway requests with `429` once the cap is reached.
 
         Parameters
         ----------

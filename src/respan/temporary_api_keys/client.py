@@ -92,7 +92,7 @@ class TemporaryApiKeysClient:
             Test key (`true`) or production key (`false`).
 
         limit_policies : typing.Optional[typing.Sequence[ApiKeyLimitPolicySpec]]
-            Caps to create and scope to this key. The response includes each created policy with its `id`, `meter_definition_id`, and `current_state`. Enforcement requires the limit system to be enabled for your environment.
+            Caps to create and scope to this key. The response includes each created policy with its `id`, `meter_definition_id`, and `current_state`. Once a block rule's cap is reached, gateway requests with the key get `429`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -335,7 +335,7 @@ class AsyncTemporaryApiKeysClient:
             Test key (`true`) or production key (`false`).
 
         limit_policies : typing.Optional[typing.Sequence[ApiKeyLimitPolicySpec]]
-            Caps to create and scope to this key. The response includes each created policy with its `id`, `meter_definition_id`, and `current_state`. Enforcement requires the limit system to be enabled for your environment.
+            Caps to create and scope to this key. The response includes each created policy with its `id`, `meter_definition_id`, and `current_state`. Once a block rule's cap is reached, gateway requests with the key get `429`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.

@@ -255,7 +255,7 @@ class SpanCreateRequest(UniversalBaseModel):
 
     is_custom_prompt: typing.Optional[bool] = pydantic.Field(default=None)
     """
-    Set `true` when using a custom `prompt_id`.
+    Not read at the top level. Respan reads `is_custom_prompt` only inside a `prompt` object, as in `{"prompt": {"prompt_id": "your-id", "is_custom_prompt": true}}`. Set it there for a prompt you manage outside Respan. Otherwise Respan looks up `prompt.prompt_id` among your saved prompts and rejects the span if none matches. A top-level `prompt_id` is logged as sent and isn't looked up.
     """
 
     start_time: typing.Optional[dt.datetime] = pydantic.Field(default=None)

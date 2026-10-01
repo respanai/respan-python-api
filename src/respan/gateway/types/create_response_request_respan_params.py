@@ -29,7 +29,7 @@ class CreateResponseRequestRespanParams(UniversalBaseModel):
 
     cache_ttl: typing.Optional[float] = pydantic.Field(default=None)
     """
-    Cache lifetime in seconds.
+    Cache lifetime in seconds. A response stored without `cache_ttl` is served from the cache for at most 30 minutes.
     """
 
     cache_options: typing.Optional[CreateResponseRequestRespanParamsCacheOptions] = None

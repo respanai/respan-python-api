@@ -9,7 +9,7 @@ from .api_key_limit_policy_spec_metric import ApiKeyLimitPolicySpecMetric
 
 class ApiKeyLimitPolicySpec(UniversalBaseModel):
     """
-    A cost, token, or request cap created with the API key and scoped to it. The cap records usage and blocks requests only when the limit system is enabled for your environment.
+    A cost, token, or request cap created with the API key and scoped to it. Once the cap is reached, gateway requests with the key get `429`.
     """
 
     max_value: float = pydantic.Field()
