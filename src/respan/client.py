@@ -15,9 +15,6 @@ if typing.TYPE_CHECKING:
     from .caches.client import AsyncCachesClient, CachesClient
     from .credit_transactions.client import AsyncCreditTransactionsClient, CreditTransactionsClient
     from .dashboard.client import AsyncDashboardClient, DashboardClient
-    from .datasets.client import AsyncDatasetsClient, DatasetsClient
-    from .evaluators.client import AsyncEvaluatorsClient, EvaluatorsClient
-    from .experiments.client import AsyncExperimentsClient, ExperimentsClient
     from .gateway.client import AsyncGatewayClient, GatewayClient
     from .google_gateway.client import AsyncGoogleGatewayClient, GoogleGatewayClient
     from .limit_policies.client import AsyncLimitPoliciesClient, LimitPoliciesClient
@@ -27,15 +24,12 @@ if typing.TYPE_CHECKING:
     from .open_router_gateway.client import AsyncOpenRouterGatewayClient, OpenRouterGatewayClient
     from .prompts.client import AsyncPromptsClient, PromptsClient
     from .respan_models.client import AsyncRespanModelsClient, RespanModelsClient
-    from .scores.client import AsyncScoresClient, ScoresClient
     from .spans.client import AsyncSpansClient, SpansClient
     from .temporary_api_keys.client import AsyncTemporaryApiKeysClient, TemporaryApiKeysClient
-    from .testsets.client import AsyncTestsetsClient, TestsetsClient
     from .threads.client import AsyncThreadsClient, ThreadsClient
     from .traces.client import AsyncTracesClient, TracesClient
     from .type_safe_gateway.client import AsyncTypeSafeGatewayClient, TypeSafeGatewayClient
     from .users.client import AsyncUsersClient, UsersClient
-    from .workflows.client import AsyncWorkflowsClient, WorkflowsClient
 
 
 class RespanClient:
@@ -121,15 +115,9 @@ class RespanClient:
         self._open_ai_batch: typing.Optional[OpenAiBatchClient] = None
         self._multimodal: typing.Optional[MultimodalClient] = None
         self._prompts: typing.Optional[PromptsClient] = None
-        self._testsets: typing.Optional[TestsetsClient] = None
-        self._experiments: typing.Optional[ExperimentsClient] = None
-        self._evaluators: typing.Optional[EvaluatorsClient] = None
-        self._datasets: typing.Optional[DatasetsClient] = None
-        self._scores: typing.Optional[ScoresClient] = None
         self._models: typing.Optional[ModelsClient] = None
         self._temporary_api_keys: typing.Optional[TemporaryApiKeysClient] = None
         self._credit_transactions: typing.Optional[CreditTransactionsClient] = None
-        self._workflows: typing.Optional[WorkflowsClient] = None
         self._dashboard: typing.Optional[DashboardClient] = None
         self._anthropic_gateway: typing.Optional[AnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[GoogleGatewayClient] = None
@@ -211,46 +199,6 @@ class RespanClient:
         return self._prompts
 
     @property
-    def testsets(self):
-        if self._testsets is None:
-            from .testsets.client import TestsetsClient  # noqa: E402
-
-            self._testsets = TestsetsClient(client_wrapper=self._client_wrapper)
-        return self._testsets
-
-    @property
-    def experiments(self):
-        if self._experiments is None:
-            from .experiments.client import ExperimentsClient  # noqa: E402
-
-            self._experiments = ExperimentsClient(client_wrapper=self._client_wrapper)
-        return self._experiments
-
-    @property
-    def evaluators(self):
-        if self._evaluators is None:
-            from .evaluators.client import EvaluatorsClient  # noqa: E402
-
-            self._evaluators = EvaluatorsClient(client_wrapper=self._client_wrapper)
-        return self._evaluators
-
-    @property
-    def datasets(self):
-        if self._datasets is None:
-            from .datasets.client import DatasetsClient  # noqa: E402
-
-            self._datasets = DatasetsClient(client_wrapper=self._client_wrapper)
-        return self._datasets
-
-    @property
-    def scores(self):
-        if self._scores is None:
-            from .scores.client import ScoresClient  # noqa: E402
-
-            self._scores = ScoresClient(client_wrapper=self._client_wrapper)
-        return self._scores
-
-    @property
     def models(self):
         if self._models is None:
             from .models.client import ModelsClient  # noqa: E402
@@ -273,14 +221,6 @@ class RespanClient:
 
             self._credit_transactions = CreditTransactionsClient(client_wrapper=self._client_wrapper)
         return self._credit_transactions
-
-    @property
-    def workflows(self):
-        if self._workflows is None:
-            from .workflows.client import WorkflowsClient  # noqa: E402
-
-            self._workflows = WorkflowsClient(client_wrapper=self._client_wrapper)
-        return self._workflows
 
     @property
     def dashboard(self):
@@ -422,15 +362,9 @@ class AsyncRespanClient:
         self._open_ai_batch: typing.Optional[AsyncOpenAiBatchClient] = None
         self._multimodal: typing.Optional[AsyncMultimodalClient] = None
         self._prompts: typing.Optional[AsyncPromptsClient] = None
-        self._testsets: typing.Optional[AsyncTestsetsClient] = None
-        self._experiments: typing.Optional[AsyncExperimentsClient] = None
-        self._evaluators: typing.Optional[AsyncEvaluatorsClient] = None
-        self._datasets: typing.Optional[AsyncDatasetsClient] = None
-        self._scores: typing.Optional[AsyncScoresClient] = None
         self._models: typing.Optional[AsyncModelsClient] = None
         self._temporary_api_keys: typing.Optional[AsyncTemporaryApiKeysClient] = None
         self._credit_transactions: typing.Optional[AsyncCreditTransactionsClient] = None
-        self._workflows: typing.Optional[AsyncWorkflowsClient] = None
         self._dashboard: typing.Optional[AsyncDashboardClient] = None
         self._anthropic_gateway: typing.Optional[AsyncAnthropicGatewayClient] = None
         self._google_gateway: typing.Optional[AsyncGoogleGatewayClient] = None
@@ -512,46 +446,6 @@ class AsyncRespanClient:
         return self._prompts
 
     @property
-    def testsets(self):
-        if self._testsets is None:
-            from .testsets.client import AsyncTestsetsClient  # noqa: E402
-
-            self._testsets = AsyncTestsetsClient(client_wrapper=self._client_wrapper)
-        return self._testsets
-
-    @property
-    def experiments(self):
-        if self._experiments is None:
-            from .experiments.client import AsyncExperimentsClient  # noqa: E402
-
-            self._experiments = AsyncExperimentsClient(client_wrapper=self._client_wrapper)
-        return self._experiments
-
-    @property
-    def evaluators(self):
-        if self._evaluators is None:
-            from .evaluators.client import AsyncEvaluatorsClient  # noqa: E402
-
-            self._evaluators = AsyncEvaluatorsClient(client_wrapper=self._client_wrapper)
-        return self._evaluators
-
-    @property
-    def datasets(self):
-        if self._datasets is None:
-            from .datasets.client import AsyncDatasetsClient  # noqa: E402
-
-            self._datasets = AsyncDatasetsClient(client_wrapper=self._client_wrapper)
-        return self._datasets
-
-    @property
-    def scores(self):
-        if self._scores is None:
-            from .scores.client import AsyncScoresClient  # noqa: E402
-
-            self._scores = AsyncScoresClient(client_wrapper=self._client_wrapper)
-        return self._scores
-
-    @property
     def models(self):
         if self._models is None:
             from .models.client import AsyncModelsClient  # noqa: E402
@@ -574,14 +468,6 @@ class AsyncRespanClient:
 
             self._credit_transactions = AsyncCreditTransactionsClient(client_wrapper=self._client_wrapper)
         return self._credit_transactions
-
-    @property
-    def workflows(self):
-        if self._workflows is None:
-            from .workflows.client import AsyncWorkflowsClient  # noqa: E402
-
-            self._workflows = AsyncWorkflowsClient(client_wrapper=self._client_wrapper)
-        return self._workflows
 
     @property
     def dashboard(self):

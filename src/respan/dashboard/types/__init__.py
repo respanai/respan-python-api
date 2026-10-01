@@ -9,11 +9,6 @@ if typing.TYPE_CHECKING:
     from .get_cache_hit_metrics_summary_request_summary_type import GetCacheHitMetricsSummaryRequestSummaryType
     from .get_cache_hit_metrics_summary_request_time_tick import GetCacheHitMetricsSummaryRequestTimeTick
     from .get_cache_hit_metrics_summary_response import GetCacheHitMetricsSummaryResponse
-    from .get_eval_results_summary_request_summary_type import GetEvalResultsSummaryRequestSummaryType
-    from .get_eval_results_summary_request_time_tick import GetEvalResultsSummaryRequestTimeTick
-    from .get_eval_results_summary_response_item import GetEvalResultsSummaryResponseItem
-    from .get_eval_results_summary_response_item_automation_name import GetEvalResultsSummaryResponseItemAutomationName
-    from .get_eval_results_summary_response_item_evaluator_id import GetEvalResultsSummaryResponseItemEvaluatorId
     from .get_lifetime_cache_hit_totals_request_summary_type import GetLifetimeCacheHitTotalsRequestSummaryType
     from .get_lifetime_cache_hit_totals_request_time_tick import GetLifetimeCacheHitTotalsRequestTimeTick
     from .get_lifetime_cache_hit_totals_response import GetLifetimeCacheHitTotalsResponse
@@ -36,9 +31,6 @@ if typing.TYPE_CHECKING:
     from .list_cache_hit_metrics_request_summary_type import ListCacheHitMetricsRequestSummaryType
     from .list_cache_hit_metrics_request_time_tick import ListCacheHitMetricsRequestTimeTick
     from .list_cache_hit_metrics_response import ListCacheHitMetricsResponse
-    from .list_eval_results_request_summary_type import ListEvalResultsRequestSummaryType
-    from .list_eval_results_request_time_tick import ListEvalResultsRequestTimeTick
-    from .list_eval_results_response import ListEvalResultsResponse
     from .list_llm_metrics_request_fetch_filters import ListLlmMetricsRequestFetchFilters
     from .list_llm_metrics_request_summary_type import ListLlmMetricsRequestSummaryType
     from .list_llm_metrics_request_time_tick import ListLlmMetricsRequestTimeTick
@@ -61,11 +53,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "GetCacheHitMetricsSummaryRequestSummaryType": ".get_cache_hit_metrics_summary_request_summary_type",
     "GetCacheHitMetricsSummaryRequestTimeTick": ".get_cache_hit_metrics_summary_request_time_tick",
     "GetCacheHitMetricsSummaryResponse": ".get_cache_hit_metrics_summary_response",
-    "GetEvalResultsSummaryRequestSummaryType": ".get_eval_results_summary_request_summary_type",
-    "GetEvalResultsSummaryRequestTimeTick": ".get_eval_results_summary_request_time_tick",
-    "GetEvalResultsSummaryResponseItem": ".get_eval_results_summary_response_item",
-    "GetEvalResultsSummaryResponseItemAutomationName": ".get_eval_results_summary_response_item_automation_name",
-    "GetEvalResultsSummaryResponseItemEvaluatorId": ".get_eval_results_summary_response_item_evaluator_id",
     "GetLifetimeCacheHitTotalsRequestSummaryType": ".get_lifetime_cache_hit_totals_request_summary_type",
     "GetLifetimeCacheHitTotalsRequestTimeTick": ".get_lifetime_cache_hit_totals_request_time_tick",
     "GetLifetimeCacheHitTotalsResponse": ".get_lifetime_cache_hit_totals_response",
@@ -88,9 +75,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ListCacheHitMetricsRequestSummaryType": ".list_cache_hit_metrics_request_summary_type",
     "ListCacheHitMetricsRequestTimeTick": ".list_cache_hit_metrics_request_time_tick",
     "ListCacheHitMetricsResponse": ".list_cache_hit_metrics_response",
-    "ListEvalResultsRequestSummaryType": ".list_eval_results_request_summary_type",
-    "ListEvalResultsRequestTimeTick": ".list_eval_results_request_time_tick",
-    "ListEvalResultsResponse": ".list_eval_results_response",
     "ListLlmMetricsRequestFetchFilters": ".list_llm_metrics_request_fetch_filters",
     "ListLlmMetricsRequestSummaryType": ".list_llm_metrics_request_summary_type",
     "ListLlmMetricsRequestTimeTick": ".list_llm_metrics_request_time_tick",
@@ -135,11 +119,6 @@ __all__ = [
     "GetCacheHitMetricsSummaryRequestSummaryType",
     "GetCacheHitMetricsSummaryRequestTimeTick",
     "GetCacheHitMetricsSummaryResponse",
-    "GetEvalResultsSummaryRequestSummaryType",
-    "GetEvalResultsSummaryRequestTimeTick",
-    "GetEvalResultsSummaryResponseItem",
-    "GetEvalResultsSummaryResponseItemAutomationName",
-    "GetEvalResultsSummaryResponseItemEvaluatorId",
     "GetLifetimeCacheHitTotalsRequestSummaryType",
     "GetLifetimeCacheHitTotalsRequestTimeTick",
     "GetLifetimeCacheHitTotalsResponse",
@@ -162,9 +141,6 @@ __all__ = [
     "ListCacheHitMetricsRequestSummaryType",
     "ListCacheHitMetricsRequestTimeTick",
     "ListCacheHitMetricsResponse",
-    "ListEvalResultsRequestSummaryType",
-    "ListEvalResultsRequestTimeTick",
-    "ListEvalResultsResponse",
     "ListLlmMetricsRequestFetchFilters",
     "ListLlmMetricsRequestSummaryType",
     "ListLlmMetricsRequestTimeTick",
