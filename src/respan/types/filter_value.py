@@ -14,7 +14,7 @@ class FilterValue(UniversalBaseModel):
 
     operator: typing.Optional[FilterValueOperator] = pydantic.Field(default=None)
     """
-    Comparison operator. Empty string for exact match.
+    Comparison operator. An empty string means equals.
     """
 
     value: typing.List[typing.Any] = pydantic.Field()

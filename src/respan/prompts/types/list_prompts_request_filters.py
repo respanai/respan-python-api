@@ -11,7 +11,20 @@ from ...types.filter_value import FilterValue
 
 class ListPromptsRequestFilters(UniversalBaseModel):
     """
-    Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+    Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A prompt must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+    **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+    **Fields:** `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `commit_count`, `creator_email`, version fields through `current_version__<field>` or `live_version__<field>` (for example `current_version__model` or `current_version__updated_at`), `tags` (prompts with any of the given tag IDs), and `is_deleted` (send `"value": true` to get deleted prompts instead of active ones). Unsupported fields return a 400 error.
+
+    **Example:**
+
+    ```json
+    {
+      "name": {"operator": "icontains", "value": ["support"]},
+      "current_version__model": {"operator": "in", "value": ["gpt-5.5", "claude-sonnet-4-5-20250929"]}
+    }
+    ```
     """
 
     prompt_id: typing.Optional[FilterValue] = None
@@ -20,12 +33,15 @@ class ListPromptsRequestFilters(UniversalBaseModel):
     description: typing.Optional[FilterValue] = None
     starred: typing.Optional[FilterValue] = None
     tags: typing.Optional[FilterValue] = None
-    created_at: typing.Optional[FilterValue] = None
-    updated_at: typing.Optional[FilterValue] = None
     current_version_updated_at: typing_extensions.Annotated[
         typing.Optional[FilterValue],
         FieldMetadata(alias="current_version__updated_at"),
         pydantic.Field(alias="current_version__updated_at"),
+    ] = None
+    current_version_created_at: typing_extensions.Annotated[
+        typing.Optional[FilterValue],
+        FieldMetadata(alias="current_version__created_at"),
+        pydantic.Field(alias="current_version__created_at"),
     ] = None
     is_deleted: typing.Optional[FilterValue] = None
 

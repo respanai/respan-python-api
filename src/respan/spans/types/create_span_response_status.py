@@ -2,4 +2,6 @@
 
 import typing
 
-CreateSpanResponseStatus = typing.Union[typing.Literal["success", "error"], typing.Any]
+CreateSpanResponseStatus = typing.Union[
+    typing.Literal["success", "warning", "failed", "pending", "running"], typing.Any
+]

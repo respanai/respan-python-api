@@ -2,4 +2,4 @@
 
 import typing
 
-RetrieveCustomModelResponseAffiliationCategory = typing.Union[typing.Literal["respan", "custom"], typing.Any]
+RetrieveCustomModelResponseAffiliationCategory = typing.Union[typing.Literal["keywordsai", "custom"], typing.Any]

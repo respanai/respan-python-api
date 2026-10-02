@@ -13,7 +13,26 @@ class DashboardQuantilesRequest(UniversalBaseModel):
     Optional POST body for quantile endpoints. Time range controls are URL query parameters.
     """
 
-    filters: typing.Optional[Filters] = None
+    filters: typing.Optional[Filters] = pydantic.Field(default=None)
+    """
+    Narrows the spans the metrics are computed from.
+    
+    Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+    
+    **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+    
+    **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+    
+    **Example:**
+    
+    ```json
+    {
+      "model": {"operator": "", "value": ["gpt-5.5"]},
+      "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+    }
+    ```
+    """
+
     metrics_to_aggregate: typing.Optional[typing.List[DashboardQuantilesRequestMetricsToAggregateItem]] = (
         pydantic.Field(default=None)
     )

@@ -9,7 +9,21 @@ from .trace_filter_condition import TraceFilterCondition
 
 class TraceBulkDeleteFilters(UniversalBaseModel):
     """
-    Non-empty trace-level filters. The named fields below are supported, along with dynamic `metadata__<key>` fields. Environment and time filters in this object are ANDed with the query-parameter/default window. Do not send other field names: the current server ignores unknown fields instead of rejecting them, which can broaden a delete request.
+    Required. Selects the traces to delete.
+
+    Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A trace must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+    **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+    **Fields:** `trace_unique_id`, `customer_identifier`, `environment`, `start_time`, `end_time`, `span_count`, `llm_call_count`, `error_count`, `total_cost`, `total_prompt_tokens`, `total_completion_tokens`, `total_tokens`, and `metadata__<key>` (values are strings). Here `environment`, `start_time` and `end_time` only narrow the window set by the query parameters. Unsupported fields or operators return a 400 error, and nothing is deleted.
+
+    **Example:**
+
+    ```json
+    {
+      "trace_unique_id": {"operator": "in", "value": ["trace-01", "trace-02"]}
+    }
+    ```
     """
 
     trace_unique_id: typing.Optional[TraceFilterCondition] = None

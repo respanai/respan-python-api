@@ -37,7 +37,7 @@ class LimitPoliciesClient:
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
-        ordering: typing.Optional[str] = None,
+        sort_by: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListLimitPoliciesResponse:
         """
@@ -49,8 +49,8 @@ class LimitPoliciesClient:
 
         page_size : typing.Optional[int]
 
-        ordering : typing.Optional[str]
-            Prefix with `-` for descending.
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -71,7 +71,7 @@ class LimitPoliciesClient:
         client.limit_policies.list_limit_policies()
         """
         _response = self._raw_client.list_limit_policies(
-            page=page, page_size=page_size, ordering=ordering, request_options=request_options
+            page=page, page_size=page_size, sort_by=sort_by, request_options=request_options
         )
         return _response.data
 
@@ -212,7 +212,7 @@ class LimitPoliciesClient:
 
     def delete_limit_policy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Permanently delete the policy.
+        Permanently delete the policy. Changing or deleting a policy needs the dashboard, or an API key explicitly granted the `limit_policies` permission; the `*` permission doesn't count. Any key can create policies.
 
         Parameters
         ----------
@@ -253,7 +253,7 @@ class LimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> LimitPolicy:
         """
-        Update the policy configuration. Immutable fields are ignored.
+        Update the policy configuration. Immutable fields are ignored. Changing or deleting a policy needs the dashboard, or an API key explicitly granted the `limit_policies` permission; the `*` permission doesn't count. Any key can create policies.
 
         Parameters
         ----------
@@ -322,7 +322,7 @@ class AsyncLimitPoliciesClient:
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
-        ordering: typing.Optional[str] = None,
+        sort_by: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ListLimitPoliciesResponse:
         """
@@ -334,8 +334,8 @@ class AsyncLimitPoliciesClient:
 
         page_size : typing.Optional[int]
 
-        ordering : typing.Optional[str]
-            Prefix with `-` for descending.
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -364,7 +364,7 @@ class AsyncLimitPoliciesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.list_limit_policies(
-            page=page, page_size=page_size, ordering=ordering, request_options=request_options
+            page=page, page_size=page_size, sort_by=sort_by, request_options=request_options
         )
         return _response.data
 
@@ -523,7 +523,7 @@ class AsyncLimitPoliciesClient:
 
     async def delete_limit_policy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Permanently delete the policy.
+        Permanently delete the policy. Changing or deleting a policy needs the dashboard, or an API key explicitly granted the `limit_policies` permission; the `*` permission doesn't count. Any key can create policies.
 
         Parameters
         ----------
@@ -572,7 +572,7 @@ class AsyncLimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> LimitPolicy:
         """
-        Update the policy configuration. Immutable fields are ignored.
+        Update the policy configuration. Immutable fields are ignored. Changing or deleting a policy needs the dashboard, or an API key explicitly granted the `limit_policies` permission; the `*` permission doesn't count. Any key can create policies.
 
         Parameters
         ----------

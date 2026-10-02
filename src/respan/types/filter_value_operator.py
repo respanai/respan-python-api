@@ -4,7 +4,22 @@ import typing
 
 FilterValueOperator = typing.Union[
     typing.Literal[
-        "", "iexact", "lt", "lte", "gt", "gte", "contains", "icontains", "startswith", "endswith", "in", "isnull", "not"
+        "",
+        "not",
+        "in",
+        "not_in",
+        "lt",
+        "lte",
+        "gt",
+        "gte",
+        "contains",
+        "not_contains",
+        "icontains",
+        "startswith",
+        "not_startswith",
+        "endswith",
+        "not_endswith",
+        "not_empty",
     ],
     typing.Any,
 ]

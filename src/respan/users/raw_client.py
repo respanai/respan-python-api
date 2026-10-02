@@ -14,10 +14,10 @@ from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
 from ..errors.content_too_large_error import ContentTooLargeError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.internal_server_error import InternalServerError
 from ..errors.not_found_error import NotFoundError
 from ..errors.too_many_requests_error import TooManyRequestsError
-from ..errors.unauthorized_error import UnauthorizedError
 from ..types.filters import Filters
 from .types.delete_user_request_environment import DeleteUserRequestEnvironment
 from .types.list_customers_request_environment import ListCustomersRequestEnvironment
@@ -65,6 +65,20 @@ class RawUsersClient:
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
 
         filters : typing.Optional[Filters]
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A user must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `customer_identifier`, `name`, `email`, `environment`, `number_of_requests`, `total_cost`, `total_tokens`, `total_prompt_tokens`, `total_completion_tokens`, `average_latency`, `average_ttft`, `active_days`. Unsupported fields, including `metadata__<key>`, return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "total_cost": {"operator": "gte", "value": [10]},
+              "email": {"operator": "endswith", "value": ["@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -127,8 +141,8 @@ class RawUsersClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -220,8 +234,8 @@ class RawUsersClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -305,8 +319,8 @@ class RawUsersClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -460,8 +474,8 @@ class RawUsersClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -542,6 +556,20 @@ class AsyncRawUsersClient:
             Optional environment filter. If omitted, the backend uses the environment implied by your auth context when applicable.
 
         filters : typing.Optional[Filters]
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A user must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `customer_identifier`, `name`, `email`, `environment`, `number_of_requests`, `total_cost`, `total_tokens`, `total_prompt_tokens`, `total_completion_tokens`, `average_latency`, `average_ttft`, `active_days`. Unsupported fields, including `metadata__<key>`, return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "total_cost": {"operator": "gte", "value": [10]},
+              "email": {"operator": "endswith", "value": ["@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -607,8 +635,8 @@ class AsyncRawUsersClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -700,8 +728,8 @@ class AsyncRawUsersClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -785,8 +813,8 @@ class AsyncRawUsersClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -940,8 +968,8 @@ class AsyncRawUsersClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

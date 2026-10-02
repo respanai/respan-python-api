@@ -10,7 +10,7 @@ from .filter_models_response_results_item import FilterModelsResponseResultsItem
 class FilterModelsResponse(UniversalBaseModel):
     count: int = pydantic.Field()
     """
-    Total number of matching models.
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
     """
 
     next: typing.Optional[str] = pydantic.Field(default=None)

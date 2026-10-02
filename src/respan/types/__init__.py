@@ -12,10 +12,35 @@ if typing.TYPE_CHECKING:
     from .bad_request_error_body_error import BadRequestErrorBodyError
     from .bad_request_error_body_requests import BadRequestErrorBodyRequests
     from .bad_request_error_body_value import BadRequestErrorBodyValue
+    from .behavior_breakdown import BehaviorBreakdown
+    from .behavior_breakdown_group import BehaviorBreakdownGroup
+    from .behavior_breakdown_group_by import BehaviorBreakdownGroupBy
+    from .behavior_catalog import BehaviorCatalog
+    from .behavior_catalog_entry import BehaviorCatalogEntry
+    from .behavior_catalog_entry_source import BehaviorCatalogEntrySource
+    from .behavior_catalog_entry_type import BehaviorCatalogEntryType
+    from .behavior_polarity import BehaviorPolarity
+    from .behavior_polarity_counts import BehaviorPolarityCounts
+    from .behavior_span import BehaviorSpan
+    from .behavior_spans import BehaviorSpans
+    from .behavior_summary import BehaviorSummary
+    from .behavior_summary_item import BehaviorSummaryItem
+    from .behavior_tag import BehaviorTag
+    from .behavior_time_series import BehaviorTimeSeries
+    from .behavior_time_series_granularity import BehaviorTimeSeriesGranularity
+    from .behavior_time_series_group_by import BehaviorTimeSeriesGroupBy
+    from .behavior_time_series_point import BehaviorTimeSeriesPoint
+    from .behavior_verdict import BehaviorVerdict
+    from .behavior_verdict_state import BehaviorVerdictState
     from .bulk_delete_response import BulkDeleteResponse
     from .bulk_item_error import BulkItemError
     from .bulk_operation_response import BulkOperationResponse
+    from .conflict_error_body import ConflictErrorBody
     from .content_too_large_error_body import ContentTooLargeErrorBody
+    from .custom_behavior import CustomBehavior
+    from .custom_behavior_detail import CustomBehaviorDetail
+    from .custom_behavior_list import CustomBehaviorList
+    from .custom_behavior_with_tags import CustomBehaviorWithTags
     from .dashboard_breakdown_request import DashboardBreakdownRequest
     from .dashboard_breakdown_request_metrics_to_aggregate_item import DashboardBreakdownRequestMetricsToAggregateItem
     from .dashboard_breakdown_row import DashboardBreakdownRow
@@ -35,6 +60,47 @@ if typing.TYPE_CHECKING:
     from .dashboard_top_n_response import DashboardTopNResponse
     from .dashboard_total_users_summary import DashboardTotalUsersSummary
     from .dashboard_users_row import DashboardUsersRow
+    from .error_breakdown import ErrorBreakdown
+    from .error_breakdown_group import ErrorBreakdownGroup
+    from .error_breakdown_group_by import ErrorBreakdownGroupBy
+    from .error_breakdown_group_group_value import ErrorBreakdownGroupGroupValue
+    from .error_class import ErrorClass
+    from .error_fault_domain import ErrorFaultDomain
+    from .error_group import ErrorGroup
+    from .error_group_detail import ErrorGroupDetail
+    from .error_group_filter_condition import ErrorGroupFilterCondition
+    from .error_group_filter_condition_operator import ErrorGroupFilterConditionOperator
+    from .error_group_filter_condition_value import ErrorGroupFilterConditionValue
+    from .error_group_filter_condition_value_two_item import ErrorGroupFilterConditionValueTwoItem
+    from .error_group_filters import ErrorGroupFilters
+    from .error_group_level import ErrorGroupLevel
+    from .error_group_list import ErrorGroupList
+    from .error_group_occurrence import ErrorGroupOccurrence
+    from .error_group_resolution import ErrorGroupResolution
+    from .error_incident import ErrorIncident
+    from .error_incident_affected import ErrorIncidentAffected
+    from .error_incident_affected_dimension import ErrorIncidentAffectedDimension
+    from .error_incident_affected_value import ErrorIncidentAffectedValue
+    from .error_incident_contributor import ErrorIncidentContributor
+    from .error_incident_contributor_drilldown_filters import ErrorIncidentContributorDrilldownFilters
+    from .error_incident_contributors import ErrorIncidentContributors
+    from .error_incident_detail import ErrorIncidentDetail
+    from .error_incident_detail_data_status import ErrorIncidentDetailDataStatus
+    from .error_incident_detail_links import ErrorIncidentDetailLinks
+    from .error_incident_impact import ErrorIncidentImpact
+    from .error_incident_list import ErrorIncidentList
+    from .error_incident_occurrence import ErrorIncidentOccurrence
+    from .error_incident_primary_error import ErrorIncidentPrimaryError
+    from .error_incident_resolution_reason import ErrorIncidentResolutionReason
+    from .error_incident_severity import ErrorIncidentSeverity
+    from .error_incident_state import ErrorIncidentState
+    from .error_incident_trigger import ErrorIncidentTrigger
+    from .error_resolution_status import ErrorResolutionStatus
+    from .error_time_series import ErrorTimeSeries
+    from .error_time_series_granularity import ErrorTimeSeriesGranularity
+    from .error_time_series_group_by import ErrorTimeSeriesGroupBy
+    from .error_time_series_point import ErrorTimeSeriesPoint
+    from .error_time_series_point_series import ErrorTimeSeriesPointSeries
     from .failed_dependency_error_body import FailedDependencyErrorBody
     from .failed_dependency_error_body_error import FailedDependencyErrorBodyError
     from .filter_value import FilterValue
@@ -55,6 +121,7 @@ if typing.TYPE_CHECKING:
     from .model_status_response_time_tick import ModelStatusResponseTimeTick
     from .model_status_uptime_bucket import ModelStatusUptimeBucket
     from .not_found_error_body import NotFoundErrorBody
+    from .not_found_error_body_error import NotFoundErrorBodyError
     from .platform_stats_response import PlatformStatsResponse
     from .platform_stats_response_total_cost_item import PlatformStatsResponseTotalCostItem
     from .platform_stats_response_total_tokens_item import PlatformStatsResponseTotalTokensItem
@@ -123,7 +190,9 @@ if typing.TYPE_CHECKING:
     from .type_safe_score_answer import TypeSafeScoreAnswer
     from .type_safe_score_question import TypeSafeScoreQuestion
     from .unauthorized_error_body import UnauthorizedErrorBody
+    from .unauthorized_error_body_error import UnauthorizedErrorBodyError
     from .unprocessable_entity_error_body import UnprocessableEntityErrorBody
+    from .unprocessable_entity_error_body_error import UnprocessableEntityErrorBodyError
 _dynamic_imports: typing.Dict[str, str] = {
     "ApiKeyLimitPolicySpec": ".api_key_limit_policy_spec",
     "ApiKeyLimitPolicySpecMetric": ".api_key_limit_policy_spec_metric",
@@ -131,10 +200,35 @@ _dynamic_imports: typing.Dict[str, str] = {
     "BadRequestErrorBodyError": ".bad_request_error_body_error",
     "BadRequestErrorBodyRequests": ".bad_request_error_body_requests",
     "BadRequestErrorBodyValue": ".bad_request_error_body_value",
+    "BehaviorBreakdown": ".behavior_breakdown",
+    "BehaviorBreakdownGroup": ".behavior_breakdown_group",
+    "BehaviorBreakdownGroupBy": ".behavior_breakdown_group_by",
+    "BehaviorCatalog": ".behavior_catalog",
+    "BehaviorCatalogEntry": ".behavior_catalog_entry",
+    "BehaviorCatalogEntrySource": ".behavior_catalog_entry_source",
+    "BehaviorCatalogEntryType": ".behavior_catalog_entry_type",
+    "BehaviorPolarity": ".behavior_polarity",
+    "BehaviorPolarityCounts": ".behavior_polarity_counts",
+    "BehaviorSpan": ".behavior_span",
+    "BehaviorSpans": ".behavior_spans",
+    "BehaviorSummary": ".behavior_summary",
+    "BehaviorSummaryItem": ".behavior_summary_item",
+    "BehaviorTag": ".behavior_tag",
+    "BehaviorTimeSeries": ".behavior_time_series",
+    "BehaviorTimeSeriesGranularity": ".behavior_time_series_granularity",
+    "BehaviorTimeSeriesGroupBy": ".behavior_time_series_group_by",
+    "BehaviorTimeSeriesPoint": ".behavior_time_series_point",
+    "BehaviorVerdict": ".behavior_verdict",
+    "BehaviorVerdictState": ".behavior_verdict_state",
     "BulkDeleteResponse": ".bulk_delete_response",
     "BulkItemError": ".bulk_item_error",
     "BulkOperationResponse": ".bulk_operation_response",
+    "ConflictErrorBody": ".conflict_error_body",
     "ContentTooLargeErrorBody": ".content_too_large_error_body",
+    "CustomBehavior": ".custom_behavior",
+    "CustomBehaviorDetail": ".custom_behavior_detail",
+    "CustomBehaviorList": ".custom_behavior_list",
+    "CustomBehaviorWithTags": ".custom_behavior_with_tags",
     "DashboardBreakdownRequest": ".dashboard_breakdown_request",
     "DashboardBreakdownRequestMetricsToAggregateItem": ".dashboard_breakdown_request_metrics_to_aggregate_item",
     "DashboardBreakdownRow": ".dashboard_breakdown_row",
@@ -154,6 +248,47 @@ _dynamic_imports: typing.Dict[str, str] = {
     "DashboardTopNResponse": ".dashboard_top_n_response",
     "DashboardTotalUsersSummary": ".dashboard_total_users_summary",
     "DashboardUsersRow": ".dashboard_users_row",
+    "ErrorBreakdown": ".error_breakdown",
+    "ErrorBreakdownGroup": ".error_breakdown_group",
+    "ErrorBreakdownGroupBy": ".error_breakdown_group_by",
+    "ErrorBreakdownGroupGroupValue": ".error_breakdown_group_group_value",
+    "ErrorClass": ".error_class",
+    "ErrorFaultDomain": ".error_fault_domain",
+    "ErrorGroup": ".error_group",
+    "ErrorGroupDetail": ".error_group_detail",
+    "ErrorGroupFilterCondition": ".error_group_filter_condition",
+    "ErrorGroupFilterConditionOperator": ".error_group_filter_condition_operator",
+    "ErrorGroupFilterConditionValue": ".error_group_filter_condition_value",
+    "ErrorGroupFilterConditionValueTwoItem": ".error_group_filter_condition_value_two_item",
+    "ErrorGroupFilters": ".error_group_filters",
+    "ErrorGroupLevel": ".error_group_level",
+    "ErrorGroupList": ".error_group_list",
+    "ErrorGroupOccurrence": ".error_group_occurrence",
+    "ErrorGroupResolution": ".error_group_resolution",
+    "ErrorIncident": ".error_incident",
+    "ErrorIncidentAffected": ".error_incident_affected",
+    "ErrorIncidentAffectedDimension": ".error_incident_affected_dimension",
+    "ErrorIncidentAffectedValue": ".error_incident_affected_value",
+    "ErrorIncidentContributor": ".error_incident_contributor",
+    "ErrorIncidentContributorDrilldownFilters": ".error_incident_contributor_drilldown_filters",
+    "ErrorIncidentContributors": ".error_incident_contributors",
+    "ErrorIncidentDetail": ".error_incident_detail",
+    "ErrorIncidentDetailDataStatus": ".error_incident_detail_data_status",
+    "ErrorIncidentDetailLinks": ".error_incident_detail_links",
+    "ErrorIncidentImpact": ".error_incident_impact",
+    "ErrorIncidentList": ".error_incident_list",
+    "ErrorIncidentOccurrence": ".error_incident_occurrence",
+    "ErrorIncidentPrimaryError": ".error_incident_primary_error",
+    "ErrorIncidentResolutionReason": ".error_incident_resolution_reason",
+    "ErrorIncidentSeverity": ".error_incident_severity",
+    "ErrorIncidentState": ".error_incident_state",
+    "ErrorIncidentTrigger": ".error_incident_trigger",
+    "ErrorResolutionStatus": ".error_resolution_status",
+    "ErrorTimeSeries": ".error_time_series",
+    "ErrorTimeSeriesGranularity": ".error_time_series_granularity",
+    "ErrorTimeSeriesGroupBy": ".error_time_series_group_by",
+    "ErrorTimeSeriesPoint": ".error_time_series_point",
+    "ErrorTimeSeriesPointSeries": ".error_time_series_point_series",
     "FailedDependencyErrorBody": ".failed_dependency_error_body",
     "FailedDependencyErrorBodyError": ".failed_dependency_error_body_error",
     "FilterValue": ".filter_value",
@@ -174,6 +309,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ModelStatusResponseTimeTick": ".model_status_response_time_tick",
     "ModelStatusUptimeBucket": ".model_status_uptime_bucket",
     "NotFoundErrorBody": ".not_found_error_body",
+    "NotFoundErrorBodyError": ".not_found_error_body_error",
     "PlatformStatsResponse": ".platform_stats_response",
     "PlatformStatsResponseTotalCostItem": ".platform_stats_response_total_cost_item",
     "PlatformStatsResponseTotalTokensItem": ".platform_stats_response_total_tokens_item",
@@ -232,7 +368,9 @@ _dynamic_imports: typing.Dict[str, str] = {
     "TypeSafeScoreAnswer": ".type_safe_score_answer",
     "TypeSafeScoreQuestion": ".type_safe_score_question",
     "UnauthorizedErrorBody": ".unauthorized_error_body",
+    "UnauthorizedErrorBodyError": ".unauthorized_error_body_error",
     "UnprocessableEntityErrorBody": ".unprocessable_entity_error_body",
+    "UnprocessableEntityErrorBodyError": ".unprocessable_entity_error_body_error",
 }
 
 
@@ -264,10 +402,35 @@ __all__ = [
     "BadRequestErrorBodyError",
     "BadRequestErrorBodyRequests",
     "BadRequestErrorBodyValue",
+    "BehaviorBreakdown",
+    "BehaviorBreakdownGroup",
+    "BehaviorBreakdownGroupBy",
+    "BehaviorCatalog",
+    "BehaviorCatalogEntry",
+    "BehaviorCatalogEntrySource",
+    "BehaviorCatalogEntryType",
+    "BehaviorPolarity",
+    "BehaviorPolarityCounts",
+    "BehaviorSpan",
+    "BehaviorSpans",
+    "BehaviorSummary",
+    "BehaviorSummaryItem",
+    "BehaviorTag",
+    "BehaviorTimeSeries",
+    "BehaviorTimeSeriesGranularity",
+    "BehaviorTimeSeriesGroupBy",
+    "BehaviorTimeSeriesPoint",
+    "BehaviorVerdict",
+    "BehaviorVerdictState",
     "BulkDeleteResponse",
     "BulkItemError",
     "BulkOperationResponse",
+    "ConflictErrorBody",
     "ContentTooLargeErrorBody",
+    "CustomBehavior",
+    "CustomBehaviorDetail",
+    "CustomBehaviorList",
+    "CustomBehaviorWithTags",
     "DashboardBreakdownRequest",
     "DashboardBreakdownRequestMetricsToAggregateItem",
     "DashboardBreakdownRow",
@@ -287,6 +450,47 @@ __all__ = [
     "DashboardTopNResponse",
     "DashboardTotalUsersSummary",
     "DashboardUsersRow",
+    "ErrorBreakdown",
+    "ErrorBreakdownGroup",
+    "ErrorBreakdownGroupBy",
+    "ErrorBreakdownGroupGroupValue",
+    "ErrorClass",
+    "ErrorFaultDomain",
+    "ErrorGroup",
+    "ErrorGroupDetail",
+    "ErrorGroupFilterCondition",
+    "ErrorGroupFilterConditionOperator",
+    "ErrorGroupFilterConditionValue",
+    "ErrorGroupFilterConditionValueTwoItem",
+    "ErrorGroupFilters",
+    "ErrorGroupLevel",
+    "ErrorGroupList",
+    "ErrorGroupOccurrence",
+    "ErrorGroupResolution",
+    "ErrorIncident",
+    "ErrorIncidentAffected",
+    "ErrorIncidentAffectedDimension",
+    "ErrorIncidentAffectedValue",
+    "ErrorIncidentContributor",
+    "ErrorIncidentContributorDrilldownFilters",
+    "ErrorIncidentContributors",
+    "ErrorIncidentDetail",
+    "ErrorIncidentDetailDataStatus",
+    "ErrorIncidentDetailLinks",
+    "ErrorIncidentImpact",
+    "ErrorIncidentList",
+    "ErrorIncidentOccurrence",
+    "ErrorIncidentPrimaryError",
+    "ErrorIncidentResolutionReason",
+    "ErrorIncidentSeverity",
+    "ErrorIncidentState",
+    "ErrorIncidentTrigger",
+    "ErrorResolutionStatus",
+    "ErrorTimeSeries",
+    "ErrorTimeSeriesGranularity",
+    "ErrorTimeSeriesGroupBy",
+    "ErrorTimeSeriesPoint",
+    "ErrorTimeSeriesPointSeries",
     "FailedDependencyErrorBody",
     "FailedDependencyErrorBodyError",
     "FilterValue",
@@ -307,6 +511,7 @@ __all__ = [
     "ModelStatusResponseTimeTick",
     "ModelStatusUptimeBucket",
     "NotFoundErrorBody",
+    "NotFoundErrorBodyError",
     "PlatformStatsResponse",
     "PlatformStatsResponseTotalCostItem",
     "PlatformStatsResponseTotalTokensItem",
@@ -365,5 +570,7 @@ __all__ = [
     "TypeSafeScoreAnswer",
     "TypeSafeScoreQuestion",
     "UnauthorizedErrorBody",
+    "UnauthorizedErrorBodyError",
     "UnprocessableEntityErrorBody",
+    "UnprocessableEntityErrorBodyError",
 ]

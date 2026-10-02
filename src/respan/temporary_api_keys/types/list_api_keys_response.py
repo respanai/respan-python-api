@@ -8,7 +8,11 @@ from .list_api_keys_response_results_item import ListApiKeysResponseResultsItem
 
 
 class ListApiKeysResponse(UniversalBaseModel):
-    count: int
+    count: int = pydantic.Field()
+    """
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
+    """
+
     next: typing.Optional[str] = None
     previous: typing.Optional[str] = None
     current_filters: typing.Optional[typing.Dict[str, typing.Any]] = None

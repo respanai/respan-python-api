@@ -16,7 +16,6 @@ class CommitPromptVersionResponse(UniversalBaseModel):
     messages: typing.Optional[typing.List[typing.Dict[str, typing.Any]]] = None
     model: typing.Optional[str] = None
     readonly: typing.Optional[bool] = None
-    is_deployed: typing.Optional[bool] = None
     edited_by: typing.Optional[CommitPromptVersionResponseEditedBy] = None
     created_at: typing.Optional[dt.datetime] = None
     updated_at: typing.Optional[dt.datetime] = None

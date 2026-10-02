@@ -2,4 +2,4 @@
 
 import typing
 
-FilterModelsResponseResultsItemAffiliationCategory = typing.Union[typing.Literal["respan", "custom"], typing.Any]
+FilterModelsResponseResultsItemAffiliationCategory = typing.Union[typing.Literal["keywordsai", "custom"], typing.Any]

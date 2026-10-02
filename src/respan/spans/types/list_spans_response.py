@@ -9,7 +9,7 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 class ListSpansResponse(UniversalBaseModel):
     count: int = pydantic.Field()
     """
-    Total number of results
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
     """
 
     next: typing.Optional[str] = pydantic.Field(default=None)

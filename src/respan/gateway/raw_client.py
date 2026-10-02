@@ -11,6 +11,8 @@ from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
 from ..errors.failed_dependency_error import FailedDependencyError
+from ..errors.forbidden_error import ForbiddenError
+from ..errors.not_found_error import NotFoundError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from .types.create_chat_completion_request_cache_options import CreateChatCompletionRequestCacheOptions
@@ -331,6 +333,28 @@ class RawGatewayClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 424:
                 raise FailedDependencyError(
                     headers=dict(_response.headers),
@@ -383,13 +407,13 @@ class RawGatewayClient:
             Responses upstream. Each named API Explorer example prepopulates its matching value; keep the header paired with the selected example. The Perplexity opt-in is header-only, case-insensitive, and whitespace-tolerant.
 
         model : typing.Optional[str]
-            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, or omit model when using preset or models.
+            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, such as perplexity/sonar, or send `models` instead.
 
         stream : typing.Optional[bool]
             Return Responses API server-sent events when true.
 
         preset : typing.Optional[str]
-            Perplexity Agent API preset. May be used without model.
+            Perplexity Agent API preset, such as `medium`. Send it with `model` or `models`: a preset alone fails Respan's model validation.
 
         models : typing.Optional[typing.Sequence[str]]
             Perplexity Agent API fallback model chain, tried in order.
@@ -490,6 +514,17 @@ class RawGatewayClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -821,6 +856,28 @@ class AsyncRawGatewayClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 424:
                 raise FailedDependencyError(
                     headers=dict(_response.headers),
@@ -873,13 +930,13 @@ class AsyncRawGatewayClient:
             Responses upstream. Each named API Explorer example prepopulates its matching value; keep the header paired with the selected example. The Perplexity opt-in is header-only, case-insensitive, and whitespace-tolerant.
 
         model : typing.Optional[str]
-            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, or omit model when using preset or models.
+            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, such as perplexity/sonar, or send `models` instead.
 
         stream : typing.Optional[bool]
             Return Responses API server-sent events when true.
 
         preset : typing.Optional[str]
-            Perplexity Agent API preset. May be used without model.
+            Perplexity Agent API preset, such as `medium`. Send it with `model` or `models`: a preset alone fails Respan's model validation.
 
         models : typing.Optional[typing.Sequence[str]]
             Perplexity Agent API fallback model chain, tried in order.
@@ -980,6 +1037,17 @@ class AsyncRawGatewayClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

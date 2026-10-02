@@ -8,14 +8,13 @@ from .list_custom_providers_response_results_item import ListCustomProvidersResp
 
 
 class ListCustomProvidersResponse(UniversalBaseModel):
-    count: int
-    next: typing.Optional[str] = None
-    previous: typing.Optional[str] = None
-    total_count: typing.Optional[int] = pydantic.Field(default=None)
+    count: int = pydantic.Field()
     """
-    Present for dashboard-authenticated callers.
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
     """
 
+    next: typing.Optional[str] = None
+    previous: typing.Optional[str] = None
     current_filters: typing.Optional[typing.Dict[str, typing.Any]] = None
     results: typing.List[ListCustomProvidersResponseResultsItem]
 

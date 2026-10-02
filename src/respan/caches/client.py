@@ -51,7 +51,19 @@ class CachesClient:
             Number of results to return per page. Maximum 1000.
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A cached response must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `cache_key_by_org_uuid` (the `cache_key` value the API returns), `timestamp` (when the response was cached), `updated_at`, and `expiry_date`. Send dates as ISO 8601 strings. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "expiry_date": {"operator": "gte", "value": ["2026-10-01T00:00:00Z"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -88,7 +100,19 @@ class CachesClient:
         Parameters
         ----------
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A cached response must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `cache_key_by_org_uuid` (the `cache_key` value the API returns), `timestamp` (when the response was cached), `updated_at`, and `expiry_date`. Send dates as ISO 8601 strings. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "timestamp": {"operator": "gte", "value": ["2026-09-01T00:00:00Z"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -304,7 +328,19 @@ class AsyncCachesClient:
             Number of results to return per page. Maximum 1000.
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A cached response must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `cache_key_by_org_uuid` (the `cache_key` value the API returns), `timestamp` (when the response was cached), `updated_at`, and `expiry_date`. Send dates as ISO 8601 strings. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "expiry_date": {"operator": "gte", "value": ["2026-10-01T00:00:00Z"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -349,7 +385,19 @@ class AsyncCachesClient:
         Parameters
         ----------
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A cached response must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `cache_key_by_org_uuid` (the `cache_key` value the API returns), `timestamp` (when the response was cached), `updated_at`, and `expiry_date`. Send dates as ISO 8601 strings. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "timestamp": {"operator": "gte", "value": ["2026-09-01T00:00:00Z"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.

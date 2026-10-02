@@ -71,7 +71,20 @@ class PromptsClient:
             Sort field. Prefix with `-` for descending. Common values are `-id` and `-current_version__updated_at`.
 
         filters : typing.Optional[ListPromptsRequestFilters]
-            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A prompt must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `commit_count`, `creator_email`, version fields through `current_version__<field>` or `live_version__<field>` (for example `current_version__model` or `current_version__updated_at`), `tags` (prompts with any of the given tag IDs), and `is_deleted` (send `"value": true` to get deleted prompts instead of active ones). Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "name": {"operator": "icontains", "value": ["support"]},
+              "current_version__model": {"operator": "in", "value": ["gpt-5.5", "claude-sonnet-4-5-20250929"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -111,15 +124,15 @@ class PromptsClient:
     def create_prompt(
         self,
         *,
-        name: str,
+        name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptResponse:
         """
         Parameters
         ----------
-        name : str
-            Prompt name.
+        name : typing.Optional[str]
+            Prompt name. Defaults to `Untitled`.
 
         description : typing.Optional[str]
             Prompt description.
@@ -140,9 +153,7 @@ class PromptsClient:
             authorization="YOUR_AUTHORIZATION",
             respan_api_key="YOUR_RESPAN_API_KEY",
         )
-        client.prompts.create_prompt(
-            name="customer_support",
-        )
+        client.prompts.create_prompt()
         """
         _response = self._raw_client.create_prompt(name=name, description=description, request_options=request_options)
         return _response.data
@@ -393,11 +404,10 @@ class PromptsClient:
         response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         json_schema: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         is_enforcing_response_format: typing.Optional[bool] = OMIT,
-        deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptVersionResponse:
         """
-        Use `{{variable_name}}` syntax in messages to define template variables.
+        Use `{{variable_name}}` syntax in messages to define template variables. The new version becomes the prompt's current draft, and every earlier version becomes read-only. To deploy it, commit it, then use Deploy a prompt version.
 
         Parameters
         ----------
@@ -463,9 +473,6 @@ class PromptsClient:
         is_enforcing_response_format : typing.Optional[bool]
             Whether to strictly enforce the response format.
 
-        deploy : typing.Optional[bool]
-            Deploy this version as the live version immediately.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -508,7 +515,6 @@ class PromptsClient:
                 {"model": "gpt-4o", "weight": 0.8},
                 {"model": "gpt-4o-mini", "weight": 0.2},
             ],
-            deploy=False,
         )
         """
         _response = self._raw_client.create_prompt_version(
@@ -534,7 +540,6 @@ class PromptsClient:
             response_format=response_format,
             json_schema=json_schema,
             is_enforcing_response_format=is_enforcing_response_format,
-            deploy=deploy,
             request_options=request_options,
         )
         return _response.data
@@ -579,7 +584,7 @@ class PromptsClient:
         self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        The currently deployed live version cannot be deleted.
+        Deletes the version. Deleting the deployed version leaves the prompt with no live version, so deploy another version first.
 
         Parameters
         ----------
@@ -797,7 +802,7 @@ class PromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CommitPromptVersionResponse:
         """
-        Commit the current draft version. This creates a readonly snapshot and advances the draft workflow.
+        Commits the current draft as a read-only version. No new draft is created; create a version to keep editing.
 
         Parameters
         ----------
@@ -882,7 +887,20 @@ class PromptsClient:
         Parameters
         ----------
         filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
-            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A prompt must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `commit_count`, version fields through `current_version__<field>` or `live_version__<field>` (for example `current_version__model` or `current_version__updated_at`), and `is_deleted` (send `"value": true` to count deleted prompts instead of active ones). Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "starred": {"operator": "", "value": [true]},
+              "current_version__model": {"operator": "", "value": ["gpt-5.5"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1162,7 +1180,20 @@ class AsyncPromptsClient:
             Sort field. Prefix with `-` for descending. Common values are `-id` and `-current_version__updated_at`.
 
         filters : typing.Optional[ListPromptsRequestFilters]
-            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A prompt must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `commit_count`, `creator_email`, version fields through `current_version__<field>` or `live_version__<field>` (for example `current_version__model` or `current_version__updated_at`), `tags` (prompts with any of the given tag IDs), and `is_deleted` (send `"value": true` to get deleted prompts instead of active ones). Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "name": {"operator": "icontains", "value": ["support"]},
+              "current_version__model": {"operator": "in", "value": ["gpt-5.5", "claude-sonnet-4-5-20250929"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1210,15 +1241,15 @@ class AsyncPromptsClient:
     async def create_prompt(
         self,
         *,
-        name: str,
+        name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptResponse:
         """
         Parameters
         ----------
-        name : str
-            Prompt name.
+        name : typing.Optional[str]
+            Prompt name. Defaults to `Untitled`.
 
         description : typing.Optional[str]
             Prompt description.
@@ -1244,9 +1275,7 @@ class AsyncPromptsClient:
 
 
         async def main() -> None:
-            await client.prompts.create_prompt(
-                name="customer_support",
-            )
+            await client.prompts.create_prompt()
 
 
         asyncio.run(main())
@@ -1544,11 +1573,10 @@ class AsyncPromptsClient:
         response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         json_schema: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         is_enforcing_response_format: typing.Optional[bool] = OMIT,
-        deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CreatePromptVersionResponse:
         """
-        Use `{{variable_name}}` syntax in messages to define template variables.
+        Use `{{variable_name}}` syntax in messages to define template variables. The new version becomes the prompt's current draft, and every earlier version becomes read-only. To deploy it, commit it, then use Deploy a prompt version.
 
         Parameters
         ----------
@@ -1614,9 +1642,6 @@ class AsyncPromptsClient:
         is_enforcing_response_format : typing.Optional[bool]
             Whether to strictly enforce the response format.
 
-        deploy : typing.Optional[bool]
-            Deploy this version as the live version immediately.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -1664,7 +1689,6 @@ class AsyncPromptsClient:
                     {"model": "gpt-4o", "weight": 0.8},
                     {"model": "gpt-4o-mini", "weight": 0.2},
                 ],
-                deploy=False,
             )
 
 
@@ -1693,7 +1717,6 @@ class AsyncPromptsClient:
             response_format=response_format,
             json_schema=json_schema,
             is_enforcing_response_format=is_enforcing_response_format,
-            deploy=deploy,
             request_options=request_options,
         )
         return _response.data
@@ -1746,7 +1769,7 @@ class AsyncPromptsClient:
         self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> None:
         """
-        The currently deployed live version cannot be deleted.
+        Deletes the version. Deleting the deployed version leaves the prompt with no live version, so deploy another version first.
 
         Parameters
         ----------
@@ -1980,7 +2003,7 @@ class AsyncPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> CommitPromptVersionResponse:
         """
-        Commit the current draft version. This creates a readonly snapshot and advances the draft workflow.
+        Commits the current draft as a read-only version. No new draft is created; create a version to keep editing.
 
         Parameters
         ----------
@@ -2083,7 +2106,20 @@ class AsyncPromptsClient:
         Parameters
         ----------
         filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
-            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A prompt must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `commit_count`, version fields through `current_version__<field>` or `live_version__<field>` (for example `current_version__model` or `current_version__updated_at`), and `is_deleted` (send `"value": true` to count deleted prompts instead of active ones). Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "starred": {"operator": "", "value": [true]},
+              "current_version__model": {"operator": "", "value": ["gpt-5.5"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.

@@ -9,9 +9,9 @@ from ..core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 class DashboardUsersRow(UniversalBaseModel):
     date_group: dt.datetime
-    active_users: int
-    total_cost: float
-    average_cost_per_user: float
+    active_users: typing.Optional[int] = None
+    total_cost: typing.Optional[float] = None
+    average_cost_per_user: typing.Optional[float] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

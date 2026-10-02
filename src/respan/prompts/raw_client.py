@@ -14,7 +14,6 @@ from ..errors.bad_request_error import BadRequestError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
 from ..errors.too_many_requests_error import TooManyRequestsError
-from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.bulk_operation_response import BulkOperationResponse
 from ..types.prompt_bulk_request_item import PromptBulkRequestItem
@@ -71,7 +70,20 @@ class RawPromptsClient:
             Sort field. Prefix with `-` for descending. Common values are `-id` and `-current_version__updated_at`.
 
         filters : typing.Optional[ListPromptsRequestFilters]
-            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A prompt must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `commit_count`, `creator_email`, version fields through `current_version__<field>` or `live_version__<field>` (for example `current_version__model` or `current_version__updated_at`), `tags` (prompts with any of the given tag IDs), and `is_deleted` (send `"value": true` to get deleted prompts instead of active ones). Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "name": {"operator": "icontains", "value": ["support"]},
+              "current_version__model": {"operator": "in", "value": ["gpt-5.5", "claude-sonnet-4-5-20250929"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -110,8 +122,8 @@ class RawPromptsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -129,15 +141,15 @@ class RawPromptsClient:
     def create_prompt(
         self,
         *,
-        name: str,
+        name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreatePromptResponse]:
         """
         Parameters
         ----------
-        name : str
-            Prompt name.
+        name : typing.Optional[str]
+            Prompt name. Defaults to `Untitled`.
 
         description : typing.Optional[str]
             Prompt description.
@@ -184,8 +196,8 @@ class RawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -248,17 +260,6 @@ class RawPromptsClient:
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -340,8 +341,8 @@ class RawPromptsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -393,8 +394,8 @@ class RawPromptsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -484,8 +485,8 @@ class RawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -560,8 +561,8 @@ class RawPromptsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -612,11 +613,10 @@ class RawPromptsClient:
         response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         json_schema: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         is_enforcing_response_format: typing.Optional[bool] = OMIT,
-        deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CreatePromptVersionResponse]:
         """
-        Use `{{variable_name}}` syntax in messages to define template variables.
+        Use `{{variable_name}}` syntax in messages to define template variables. The new version becomes the prompt's current draft, and every earlier version becomes read-only. To deploy it, commit it, then use Deploy a prompt version.
 
         Parameters
         ----------
@@ -682,9 +682,6 @@ class RawPromptsClient:
         is_enforcing_response_format : typing.Optional[bool]
             Whether to strictly enforce the response format.
 
-        deploy : typing.Optional[bool]
-            Deploy this version as the live version immediately.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -724,7 +721,6 @@ class RawPromptsClient:
                 "response_format": response_format,
                 "json_schema": json_schema,
                 "is_enforcing_response_format": is_enforcing_response_format,
-                "deploy": deploy,
             },
             headers={
                 "content-type": "application/json",
@@ -753,8 +749,8 @@ class RawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -815,8 +811,8 @@ class RawPromptsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -846,7 +842,7 @@ class RawPromptsClient:
         self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        The currently deployed live version cannot be deleted.
+        Deletes the version. Deleting the deployed version leaves the prompt with no live version, so deploy another version first.
 
         Parameters
         ----------
@@ -871,19 +867,8 @@ class RawPromptsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1079,8 +1064,8 @@ class RawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1114,7 +1099,7 @@ class RawPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[CommitPromptVersionResponse]:
         """
-        Commit the current draft version. This creates a readonly snapshot and advances the draft workflow.
+        Commits the current draft as a read-only version. No new draft is created; create a version to keep editing.
 
         Parameters
         ----------
@@ -1165,8 +1150,8 @@ class RawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1247,8 +1232,8 @@ class RawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1286,7 +1271,20 @@ class RawPromptsClient:
         Parameters
         ----------
         filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
-            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A prompt must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `commit_count`, version fields through `current_version__<field>` or `live_version__<field>` (for example `current_version__model` or `current_version__updated_at`), and `is_deleted` (send `"value": true` to count deleted prompts instead of active ones). Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "starred": {"operator": "", "value": [true]},
+              "current_version__model": {"operator": "", "value": ["gpt-5.5"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1320,8 +1318,8 @@ class RawPromptsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1383,8 +1381,8 @@ class RawPromptsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1462,8 +1460,8 @@ class RawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1512,8 +1510,8 @@ class RawPromptsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1565,8 +1563,8 @@ class RawPromptsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1659,8 +1657,8 @@ class RawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1713,7 +1711,20 @@ class AsyncRawPromptsClient:
             Sort field. Prefix with `-` for descending. Common values are `-id` and `-current_version__updated_at`.
 
         filters : typing.Optional[ListPromptsRequestFilters]
-            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A prompt must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `commit_count`, `creator_email`, version fields through `current_version__<field>` or `live_version__<field>` (for example `current_version__model` or `current_version__updated_at`), `tags` (prompts with any of the given tag IDs), and `is_deleted` (send `"value": true` to get deleted prompts instead of active ones). Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "name": {"operator": "icontains", "value": ["support"]},
+              "current_version__model": {"operator": "in", "value": ["gpt-5.5", "claude-sonnet-4-5-20250929"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1752,8 +1763,8 @@ class AsyncRawPromptsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1771,15 +1782,15 @@ class AsyncRawPromptsClient:
     async def create_prompt(
         self,
         *,
-        name: str,
+        name: typing.Optional[str] = OMIT,
         description: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreatePromptResponse]:
         """
         Parameters
         ----------
-        name : str
-            Prompt name.
+        name : typing.Optional[str]
+            Prompt name. Defaults to `Untitled`.
 
         description : typing.Optional[str]
             Prompt description.
@@ -1826,8 +1837,8 @@ class AsyncRawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1890,17 +1901,6 @@ class AsyncRawPromptsClient:
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1982,8 +1982,8 @@ class AsyncRawPromptsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2035,8 +2035,8 @@ class AsyncRawPromptsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2126,8 +2126,8 @@ class AsyncRawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2202,8 +2202,8 @@ class AsyncRawPromptsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2254,11 +2254,10 @@ class AsyncRawPromptsClient:
         response_format: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         json_schema: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         is_enforcing_response_format: typing.Optional[bool] = OMIT,
-        deploy: typing.Optional[bool] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CreatePromptVersionResponse]:
         """
-        Use `{{variable_name}}` syntax in messages to define template variables.
+        Use `{{variable_name}}` syntax in messages to define template variables. The new version becomes the prompt's current draft, and every earlier version becomes read-only. To deploy it, commit it, then use Deploy a prompt version.
 
         Parameters
         ----------
@@ -2324,9 +2323,6 @@ class AsyncRawPromptsClient:
         is_enforcing_response_format : typing.Optional[bool]
             Whether to strictly enforce the response format.
 
-        deploy : typing.Optional[bool]
-            Deploy this version as the live version immediately.
-
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -2366,7 +2362,6 @@ class AsyncRawPromptsClient:
                 "response_format": response_format,
                 "json_schema": json_schema,
                 "is_enforcing_response_format": is_enforcing_response_format,
-                "deploy": deploy,
             },
             headers={
                 "content-type": "application/json",
@@ -2395,8 +2390,8 @@ class AsyncRawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2457,8 +2452,8 @@ class AsyncRawPromptsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2488,7 +2483,7 @@ class AsyncRawPromptsClient:
         self, prompt_id: str, version: int, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        The currently deployed live version cannot be deleted.
+        Deletes the version. Deleting the deployed version leaves the prompt with no live version, so deploy another version first.
 
         Parameters
         ----------
@@ -2513,19 +2508,8 @@ class AsyncRawPromptsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2721,8 +2705,8 @@ class AsyncRawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2756,7 +2740,7 @@ class AsyncRawPromptsClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[CommitPromptVersionResponse]:
         """
-        Commit the current draft version. This creates a readonly snapshot and advances the draft workflow.
+        Commits the current draft as a read-only version. No new draft is created; create a version to keep editing.
 
         Parameters
         ----------
@@ -2807,8 +2791,8 @@ class AsyncRawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2889,8 +2873,8 @@ class AsyncRawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2928,7 +2912,20 @@ class AsyncRawPromptsClient:
         Parameters
         ----------
         filters : typing.Optional[GetPromptsSummaryWithFiltersRequestFilters]
-            Prompt filters. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A prompt must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `prompt_id`, `prompt_slug`, `name`, `description`, `starred`, `commit_count`, version fields through `current_version__<field>` or `live_version__<field>` (for example `current_version__model` or `current_version__updated_at`), and `is_deleted` (send `"value": true` to count deleted prompts instead of active ones). Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "starred": {"operator": "", "value": [true]},
+              "current_version__model": {"operator": "", "value": ["gpt-5.5"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2962,8 +2959,8 @@ class AsyncRawPromptsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -3025,8 +3022,8 @@ class AsyncRawPromptsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -3104,8 +3101,8 @@ class AsyncRawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -3154,8 +3151,8 @@ class AsyncRawPromptsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -3207,8 +3204,8 @@ class AsyncRawPromptsClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -3301,8 +3298,8 @@ class AsyncRawPromptsClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

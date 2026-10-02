@@ -8,10 +8,13 @@ from .request_logs_groups_filter_response_results_item import RequestLogsGroupsF
 
 
 class RequestLogsGroupsFilterResponse(UniversalBaseModel):
-    count: int
+    count: int = pydantic.Field()
+    """
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
+    """
+
     next: typing.Optional[str] = None
     previous: typing.Optional[str] = None
-    total_count: typing.Optional[int] = None
     current_filters: typing.Optional[typing.Dict[str, typing.Any]] = None
     filters_data: typing.Optional[typing.Dict[str, typing.Any]] = None
     results: typing.List[RequestLogsGroupsFilterResponseResultsItem]

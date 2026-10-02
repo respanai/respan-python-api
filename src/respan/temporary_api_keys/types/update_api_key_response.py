@@ -45,7 +45,7 @@ class UpdateApiKeyResponse(UniversalBaseModel):
 
     spending_limit: typing.Optional[float] = pydantic.Field(default=None)
     """
-    Spending limit in USD.
+    Spending limit in USD. `null` when not set.
     """
 
     created: typing.Optional[dt.datetime] = pydantic.Field(default=None)

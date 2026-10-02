@@ -45,7 +45,7 @@ class CreateApiKeyResponse(UniversalBaseModel):
 
     spending_limit: typing.Optional[float] = pydantic.Field(default=None)
     """
-    Spending limit in USD.
+    Spending limit in USD. `null` when not set.
     """
 
     api_key: typing.Optional[str] = pydantic.Field(default=None)

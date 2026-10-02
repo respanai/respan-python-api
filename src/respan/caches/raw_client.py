@@ -14,7 +14,6 @@ from ..errors.bad_request_error import BadRequestError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
 from ..errors.too_many_requests_error import TooManyRequestsError
-from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.bulk_delete_response import BulkDeleteResponse
 from .types.api_caches_partial_update2response import ApiCachesPartialUpdate2Response
@@ -50,7 +49,19 @@ class RawCachesClient:
             Number of results to return per page. Maximum 1000.
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A cached response must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `cache_key_by_org_uuid` (the `cache_key` value the API returns), `timestamp` (when the response was cached), `updated_at`, and `expiry_date`. Send dates as ISO 8601 strings. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "expiry_date": {"operator": "gte", "value": ["2026-10-01T00:00:00Z"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -97,8 +108,8 @@ class RawCachesClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -125,7 +136,19 @@ class RawCachesClient:
         Parameters
         ----------
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A cached response must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `cache_key_by_org_uuid` (the `cache_key` value the API returns), `timestamp` (when the response was cached), `updated_at`, and `expiry_date`. Send dates as ISO 8601 strings. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "timestamp": {"operator": "gte", "value": ["2026-09-01T00:00:00Z"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -168,8 +191,8 @@ class RawCachesClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -240,17 +263,6 @@ class RawCachesClient:
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -332,8 +344,8 @@ class RawCachesClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -385,17 +397,6 @@ class RawCachesClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 403:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
@@ -482,17 +483,6 @@ class RawCachesClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 403:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
@@ -545,7 +535,19 @@ class AsyncRawCachesClient:
             Number of results to return per page. Maximum 1000.
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A cached response must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `cache_key_by_org_uuid` (the `cache_key` value the API returns), `timestamp` (when the response was cached), `updated_at`, and `expiry_date`. Send dates as ISO 8601 strings. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "expiry_date": {"operator": "gte", "value": ["2026-10-01T00:00:00Z"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -592,8 +594,8 @@ class AsyncRawCachesClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -620,7 +622,19 @@ class AsyncRawCachesClient:
         Parameters
         ----------
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A cached response must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `cache_key_by_org_uuid` (the `cache_key` value the API returns), `timestamp` (when the response was cached), `updated_at`, and `expiry_date`. Send dates as ISO 8601 strings. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "timestamp": {"operator": "gte", "value": ["2026-09-01T00:00:00Z"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -663,8 +677,8 @@ class AsyncRawCachesClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -735,17 +749,6 @@ class AsyncRawCachesClient:
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -827,8 +830,8 @@ class AsyncRawCachesClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -880,17 +883,6 @@ class AsyncRawCachesClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 403:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
@@ -968,17 +960,6 @@ class AsyncRawCachesClient:
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

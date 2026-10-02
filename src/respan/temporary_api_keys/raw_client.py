@@ -11,8 +11,9 @@ from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
+from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
-from ..errors.unauthorized_error import UnauthorizedError
 from ..types.api_key_limit_policy_spec import ApiKeyLimitPolicySpec
 from .types.create_api_key_response import CreateApiKeyResponse
 from .types.list_api_keys_response import ListApiKeysResponse
@@ -58,8 +59,8 @@ class RawTemporaryApiKeysClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -148,8 +149,19 @@ class RawTemporaryApiKeysClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -196,8 +208,8 @@ class RawTemporaryApiKeysClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -247,8 +259,8 @@ class RawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -286,7 +298,7 @@ class RawTemporaryApiKeysClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UpdateApiKeyResponse]:
         """
-        Update an API key's name, expiry, usage, rate, or spending limit.
+        Update an API key's name, expiry, usage, rate, or spending limit. With an API key you can change `name` and `expiry_date`. Changing `max_usage`, `rate_limit`, `spending_limit` or `limit_policies` needs the dashboard, or a key explicitly granted the `limit_policies` permission.
 
         Parameters
         ----------
@@ -340,8 +352,8 @@ class RawTemporaryApiKeysClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -403,8 +415,8 @@ class AsyncRawTemporaryApiKeysClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -493,8 +505,19 @@ class AsyncRawTemporaryApiKeysClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -541,8 +564,8 @@ class AsyncRawTemporaryApiKeysClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -594,8 +617,8 @@ class AsyncRawTemporaryApiKeysClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -633,7 +656,7 @@ class AsyncRawTemporaryApiKeysClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UpdateApiKeyResponse]:
         """
-        Update an API key's name, expiry, usage, rate, or spending limit.
+        Update an API key's name, expiry, usage, rate, or spending limit. With an API key you can change `name` and `expiry_date`. Changing `max_usage`, `rate_limit`, `spending_limit` or `limit_policies` needs the dashboard, or a key explicitly granted the `limit_policies` permission.
 
         Parameters
         ----------
@@ -687,8 +710,8 @@ class AsyncRawTemporaryApiKeysClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

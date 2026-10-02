@@ -348,13 +348,13 @@ class GatewayClient:
             Responses upstream. Each named API Explorer example prepopulates its matching value; keep the header paired with the selected example. The Perplexity opt-in is header-only, case-insensitive, and whitespace-tolerant.
 
         model : typing.Optional[str]
-            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, or omit model when using preset or models.
+            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, such as perplexity/sonar, or send `models` instead.
 
         stream : typing.Optional[bool]
             Return Responses API server-sent events when true.
 
         preset : typing.Optional[str]
-            Perplexity Agent API preset. May be used without model.
+            Perplexity Agent API preset, such as `medium`. Send it with `model` or `models`: a preset alone fails Respan's model validation.
 
         models : typing.Optional[typing.Sequence[str]]
             Perplexity Agent API fallback model chain, tried in order.
@@ -783,13 +783,13 @@ class AsyncGatewayClient:
             Responses upstream. Each named API Explorer example prepopulates its matching value; keep the header paired with the selected example. The Perplexity opt-in is header-only, case-insensitive, and whitespace-tolerant.
 
         model : typing.Optional[str]
-            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, or omit model when using preset or models.
+            OpenAI: use a supported model such as gpt-4o-mini. Azure: use azure/<your-deployment-name>. Perplexity: use a provider-prefixed model, such as perplexity/sonar, or send `models` instead.
 
         stream : typing.Optional[bool]
             Return Responses API server-sent events when true.
 
         preset : typing.Optional[str]
-            Perplexity Agent API preset. May be used without model.
+            Perplexity Agent API preset, such as `medium`. Send it with `model` or `models`: a preset alone fails Respan's model validation.
 
         models : typing.Optional[typing.Sequence[str]]
             Perplexity Agent API fallback model chain, tried in order.

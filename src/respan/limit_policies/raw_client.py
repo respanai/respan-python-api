@@ -11,6 +11,9 @@ from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
+from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
+from ..errors.not_found_error import NotFoundError
 from ..types.limit_policy import LimitPolicy
 from ..types.limit_policy_rule import LimitPolicyRule
 from .types.limit_policy_create_request_algorithm import LimitPolicyCreateRequestAlgorithm
@@ -31,7 +34,7 @@ class RawLimitPoliciesClient:
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
-        ordering: typing.Optional[str] = None,
+        sort_by: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ListLimitPoliciesResponse]:
         """
@@ -43,8 +46,8 @@ class RawLimitPoliciesClient:
 
         page_size : typing.Optional[int]
 
-        ordering : typing.Optional[str]
-            Prefix with `-` for descending.
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -60,7 +63,7 @@ class RawLimitPoliciesClient:
             params={
                 "page": page,
                 "page_size": page_size,
-                "ordering": ordering,
+                "sort_by": sort_by,
             },
             request_options=request_options,
         )
@@ -74,6 +77,17 @@ class RawLimitPoliciesClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -180,6 +194,28 @@ class RawLimitPoliciesClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -219,6 +255,28 @@ class RawLimitPoliciesClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -228,7 +286,7 @@ class RawLimitPoliciesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        Permanently delete the policy.
+        Permanently delete the policy. Changing or deleting a policy needs the dashboard, or an API key explicitly granted the `limit_policies` permission; the `*` permission doesn't count. Any key can create policies.
 
         Parameters
         ----------
@@ -250,6 +308,28 @@ class RawLimitPoliciesClient:
         try:
             if 200 <= _response.status_code < 300:
                 return HttpResponse(response=_response, data=None)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -267,7 +347,7 @@ class RawLimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[LimitPolicy]:
         """
-        Update the policy configuration. Immutable fields are ignored.
+        Update the policy configuration. Immutable fields are ignored. Changing or deleting a policy needs the dashboard, or an API key explicitly granted the `limit_policies` permission; the `*` permission doesn't count. Any key can create policies.
 
         Parameters
         ----------
@@ -320,6 +400,28 @@ class RawLimitPoliciesClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -335,7 +437,7 @@ class AsyncRawLimitPoliciesClient:
         *,
         page: typing.Optional[int] = None,
         page_size: typing.Optional[int] = None,
-        ordering: typing.Optional[str] = None,
+        sort_by: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ListLimitPoliciesResponse]:
         """
@@ -347,8 +449,8 @@ class AsyncRawLimitPoliciesClient:
 
         page_size : typing.Optional[int]
 
-        ordering : typing.Optional[str]
-            Prefix with `-` for descending.
+        sort_by : typing.Optional[str]
+            Field to sort by. Prefix with `-` for descending.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -364,7 +466,7 @@ class AsyncRawLimitPoliciesClient:
             params={
                 "page": page,
                 "page_size": page_size,
-                "ordering": ordering,
+                "sort_by": sort_by,
             },
             request_options=request_options,
         )
@@ -378,6 +480,17 @@ class AsyncRawLimitPoliciesClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -484,6 +597,28 @@ class AsyncRawLimitPoliciesClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -523,6 +658,28 @@ class AsyncRawLimitPoliciesClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -532,7 +689,7 @@ class AsyncRawLimitPoliciesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Permanently delete the policy.
+        Permanently delete the policy. Changing or deleting a policy needs the dashboard, or an API key explicitly granted the `limit_policies` permission; the `*` permission doesn't count. Any key can create policies.
 
         Parameters
         ----------
@@ -554,6 +711,28 @@ class AsyncRawLimitPoliciesClient:
         try:
             if 200 <= _response.status_code < 300:
                 return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -571,7 +750,7 @@ class AsyncRawLimitPoliciesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[LimitPolicy]:
         """
-        Update the policy configuration. Immutable fields are ignored.
+        Update the policy configuration. Immutable fields are ignored. Changing or deleting a policy needs the dashboard, or an API key explicitly granted the `limit_policies` permission; the `*` permission doesn't count. Any key can create policies.
 
         Parameters
         ----------
@@ -624,6 +803,28 @@ class AsyncRawLimitPoliciesClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

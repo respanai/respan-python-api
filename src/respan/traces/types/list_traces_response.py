@@ -10,7 +10,7 @@ from .list_traces_response_results_item import ListTracesResponseResultsItem
 class ListTracesResponse(UniversalBaseModel):
     count: int = pydantic.Field()
     """
-    Total number of matching traces.
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
     """
 
     next: typing.Optional[str] = pydantic.Field(default=None)

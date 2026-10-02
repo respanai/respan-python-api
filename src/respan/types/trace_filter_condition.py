@@ -14,7 +14,7 @@ class TraceFilterCondition(UniversalBaseModel):
 
     operator: typing.Optional[TraceFilterConditionOperator] = pydantic.Field(default=None)
     """
-    Comparison operator. If omitted, exact matching is used.
+    Comparison operator. If omitted or empty, exact matching is used.
     """
 
     value: typing.List[typing.Any] = pydantic.Field()

@@ -9,7 +9,11 @@ from .filter_value import FilterValue
 
 class Filters(UniversalBaseModel):
     """
-    Filter criteria. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for operator syntax.
+    Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A result must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+    **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+    The fields you can filter on depend on the endpoint; `metadata__<key>` filters custom metadata where the endpoint supports it.
     """
 
     status: typing.Optional[FilterValue] = None
@@ -28,18 +32,23 @@ class Filters(UniversalBaseModel):
     model: typing.Optional[FilterValue] = None
     log_type: typing.Optional[FilterValue] = None
     stream: typing.Optional[FilterValue] = None
-    tools: typing.Optional[FilterValue] = None
-    cache_hit: typing.Optional[FilterValue] = None
+    has_tool_calls: typing.Optional[FilterValue] = pydantic.Field(default=None)
+    """
+    Whether the span made tool calls.
+    """
+
+    cache_bit: typing.Optional[FilterValue] = pydantic.Field(default=None)
+    """
+    Whether the response was served from the Respan cache.
+    """
+
     cache_key: typing.Optional[FilterValue] = None
     prompt_tokens: typing.Optional[FilterValue] = None
     completion_tokens: typing.Optional[FilterValue] = None
     total_tokens: typing.Optional[FilterValue] = None
     cost: typing.Optional[FilterValue] = None
     latency: typing.Optional[FilterValue] = None
-    metadata: typing.Optional[FilterValue] = None
-    messages: typing.Optional[FilterValue] = None
     positive_feedback: typing.Optional[FilterValue] = None
-    evaluator_id: typing.Optional[FilterValue] = None
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

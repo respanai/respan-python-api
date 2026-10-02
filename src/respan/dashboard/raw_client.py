@@ -13,12 +13,12 @@ from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
 from ..errors.content_too_large_error import ContentTooLargeError
+from ..errors.forbidden_error import ForbiddenError
 from ..types.dashboard_llm_metrics_summary import DashboardLlmMetricsSummary
 from ..types.dashboard_quantiles_request_metrics_to_aggregate_item import (
     DashboardQuantilesRequestMetricsToAggregateItem,
 )
 from ..types.filters import Filters
-from ..types.platform_stats_response import PlatformStatsResponse
 from .types.get_cache_hit_metrics_summary_request_summary_type import GetCacheHitMetricsSummaryRequestSummaryType
 from .types.get_cache_hit_metrics_summary_request_time_tick import GetCacheHitMetricsSummaryRequestTimeTick
 from .types.get_cache_hit_metrics_summary_response import GetCacheHitMetricsSummaryResponse
@@ -28,7 +28,6 @@ from .types.get_lifetime_cache_hit_totals_response import GetLifetimeCacheHitTot
 from .types.get_llm_metrics_summary_request_fetch_filters import GetLlmMetricsSummaryRequestFetchFilters
 from .types.get_llm_metrics_summary_request_summary_type import GetLlmMetricsSummaryRequestSummaryType
 from .types.get_llm_metrics_summary_request_time_tick import GetLlmMetricsSummaryRequestTimeTick
-from .types.get_platform_stats_request_breakdown_by import GetPlatformStatsRequestBreakdownBy
 from .types.get_quantiles_summary_request_summary_type import GetQuantilesSummaryRequestSummaryType
 from .types.get_quantiles_summary_request_time_tick import GetQuantilesSummaryRequestTimeTick
 from .types.get_quantiles_summary_response import GetQuantilesSummaryResponse
@@ -108,6 +107,22 @@ class RawDashboardClient:
             Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -150,6 +165,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -195,6 +221,22 @@ class RawDashboardClient:
             Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -237,6 +279,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -279,6 +332,22 @@ class RawDashboardClient:
             Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
             Quantile metric families to calculate.
@@ -324,6 +393,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -366,6 +446,22 @@ class RawDashboardClient:
             Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
             Quantile metric families to calculate.
@@ -411,6 +507,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -466,6 +573,22 @@ class RawDashboardClient:
             Metrics to return. Supported values depend on `scope`; when omitted the API returns number of requests, total cost, and total tokens.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -512,6 +635,17 @@ class RawDashboardClient:
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -577,6 +711,22 @@ class RawDashboardClient:
             Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -619,6 +769,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -655,6 +816,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -725,6 +897,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -795,6 +978,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -865,6 +1059,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -920,6 +1125,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -975,51 +1191,17 @@ class RawDashboardClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    def get_platform_stats(
-        self,
-        *,
-        breakdown_by: typing.Optional[GetPlatformStatsRequestBreakdownBy] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[PlatformStatsResponse]:
-        """
-        Returns weekly token usage across the platform for the last 52 weeks, grouped by model or provider. The top 10 values are returned individually; the rest are grouped in `Others`. Weekly buckets start on Monday, and results are cached for 1 hour. Rate limit: 30 requests per minute per IP.
-
-        Parameters
-        ----------
-        breakdown_by : typing.Optional[GetPlatformStatsRequestBreakdownBy]
-            Dimension to break the weekly totals down by.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[PlatformStatsResponse]
-            Successful response.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            "api/platform-stats/",
-            method="GET",
-            params={
-                "breakdown_by": breakdown_by,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PlatformStatsResponse,
-                    parse_obj_as(
-                        type_=PlatformStatsResponse,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return HttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1070,6 +1252,22 @@ class AsyncRawDashboardClient:
             Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1112,6 +1310,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1157,6 +1366,22 @@ class AsyncRawDashboardClient:
             Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1199,6 +1424,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1241,6 +1477,22 @@ class AsyncRawDashboardClient:
             Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
             Quantile metric families to calculate.
@@ -1286,6 +1538,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1328,6 +1591,22 @@ class AsyncRawDashboardClient:
             Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
             Quantile metric families to calculate.
@@ -1373,6 +1652,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1428,6 +1718,22 @@ class AsyncRawDashboardClient:
             Metrics to return. Supported values depend on `scope`; when omitted the API returns number of requests, total cost, and total tokens.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1474,6 +1780,17 @@ class AsyncRawDashboardClient:
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1539,6 +1856,22 @@ class AsyncRawDashboardClient:
             Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1581,6 +1914,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1617,6 +1961,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1687,6 +2042,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1757,6 +2123,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1827,6 +2204,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1882,6 +2270,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
@@ -1937,51 +2336,17 @@ class AsyncRawDashboardClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
-    async def get_platform_stats(
-        self,
-        *,
-        breakdown_by: typing.Optional[GetPlatformStatsRequestBreakdownBy] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[PlatformStatsResponse]:
-        """
-        Returns weekly token usage across the platform for the last 52 weeks, grouped by model or provider. The top 10 values are returned individually; the rest are grouped in `Others`. Weekly buckets start on Monday, and results are cached for 1 hour. Rate limit: 30 requests per minute per IP.
-
-        Parameters
-        ----------
-        breakdown_by : typing.Optional[GetPlatformStatsRequestBreakdownBy]
-            Dimension to break the weekly totals down by.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[PlatformStatsResponse]
-            Successful response.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            "api/platform-stats/",
-            method="GET",
-            params={
-                "breakdown_by": breakdown_by,
-            },
-            request_options=request_options,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    PlatformStatsResponse,
-                    parse_obj_as(
-                        type_=PlatformStatsResponse,  # type: ignore
-                        object_=_response.json(),
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
                     ),
                 )
-                return AsyncHttpResponse(response=_response, data=_data)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)

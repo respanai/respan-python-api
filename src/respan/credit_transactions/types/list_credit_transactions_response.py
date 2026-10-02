@@ -10,17 +10,12 @@ from .list_credit_transactions_response_results_item import ListCreditTransactio
 class ListCreditTransactionsResponse(UniversalBaseModel):
     count: int = pydantic.Field()
     """
-    Total transactions.
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
     """
 
     next: typing.Optional[str] = None
     previous: typing.Optional[str] = None
     results: typing.List[ListCreditTransactionsResponseResultsItem]
-    total_count: typing.Optional[int] = pydantic.Field(default=None)
-    """
-    Present for dashboard-authenticated callers.
-    """
-
     current_filters: typing.Optional[typing.Dict[str, typing.Any]] = None
     filters_data: typing.Optional[typing.Dict[str, typing.Any]] = None
 

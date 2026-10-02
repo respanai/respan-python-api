@@ -10,7 +10,6 @@ from ..types.dashboard_quantiles_request_metrics_to_aggregate_item import (
     DashboardQuantilesRequestMetricsToAggregateItem,
 )
 from ..types.filters import Filters
-from ..types.platform_stats_response import PlatformStatsResponse
 from .raw_client import AsyncRawDashboardClient, RawDashboardClient
 from .types.get_cache_hit_metrics_summary_request_summary_type import GetCacheHitMetricsSummaryRequestSummaryType
 from .types.get_cache_hit_metrics_summary_request_time_tick import GetCacheHitMetricsSummaryRequestTimeTick
@@ -21,7 +20,6 @@ from .types.get_lifetime_cache_hit_totals_response import GetLifetimeCacheHitTot
 from .types.get_llm_metrics_summary_request_fetch_filters import GetLlmMetricsSummaryRequestFetchFilters
 from .types.get_llm_metrics_summary_request_summary_type import GetLlmMetricsSummaryRequestSummaryType
 from .types.get_llm_metrics_summary_request_time_tick import GetLlmMetricsSummaryRequestTimeTick
-from .types.get_platform_stats_request_breakdown_by import GetPlatformStatsRequestBreakdownBy
 from .types.get_quantiles_summary_request_summary_type import GetQuantilesSummaryRequestSummaryType
 from .types.get_quantiles_summary_request_time_tick import GetQuantilesSummaryRequestTimeTick
 from .types.get_quantiles_summary_response import GetQuantilesSummaryResponse
@@ -112,6 +110,22 @@ class DashboardClient:
             Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -184,6 +198,22 @@ class DashboardClient:
             Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -253,6 +283,22 @@ class DashboardClient:
             Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
             Quantile metric families to calculate.
@@ -325,6 +371,22 @@ class DashboardClient:
             Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
             Quantile metric families to calculate.
@@ -410,6 +472,22 @@ class DashboardClient:
             Metrics to return. Supported values depend on `scope`; when omitted the API returns number of requests, total cost, and total tokens.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -484,6 +562,22 @@ class DashboardClient:
             Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -822,41 +916,6 @@ class DashboardClient:
         )
         return _response.data
 
-    def get_platform_stats(
-        self,
-        *,
-        breakdown_by: typing.Optional[GetPlatformStatsRequestBreakdownBy] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PlatformStatsResponse:
-        """
-        Returns weekly token usage across the platform for the last 52 weeks, grouped by model or provider. The top 10 values are returned individually; the rest are grouped in `Others`. Weekly buckets start on Monday, and results are cached for 1 hour. Rate limit: 30 requests per minute per IP.
-
-        Parameters
-        ----------
-        breakdown_by : typing.Optional[GetPlatformStatsRequestBreakdownBy]
-            Dimension to break the weekly totals down by.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PlatformStatsResponse
-            Successful response.
-
-        Examples
-        --------
-        from respan import RespanClient
-
-        client = RespanClient(
-            authorization="YOUR_AUTHORIZATION",
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-        client.dashboard.get_platform_stats()
-        """
-        _response = self._raw_client.get_platform_stats(breakdown_by=breakdown_by, request_options=request_options)
-        return _response.data
-
 
 class AsyncDashboardClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -913,6 +972,22 @@ class AsyncDashboardClient:
             Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -993,6 +1068,22 @@ class AsyncDashboardClient:
             Whether to include available filter options in the response.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1070,6 +1161,22 @@ class AsyncDashboardClient:
             Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
             Quantile metric families to calculate.
@@ -1150,6 +1257,22 @@ class AsyncDashboardClient:
             Timezone offset, in hours, used when resolving preset ranges.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         metrics_to_aggregate : typing.Optional[typing.Sequence[DashboardQuantilesRequestMetricsToAggregateItem]]
             Quantile metric families to calculate.
@@ -1243,6 +1366,22 @@ class AsyncDashboardClient:
             Metrics to return. Supported values depend on `scope`; when omitted the API returns number of requests, total cost, and total tokens.
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1325,6 +1464,22 @@ class AsyncDashboardClient:
             Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
+            Narrows the spans the metrics are computed from.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `environment`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` and `total_cost`, and `scores__<evaluator_id>`, don't work here.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "", "value": ["gpt-5.5"]},
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1718,50 +1873,5 @@ class AsyncDashboardClient:
         """
         _response = await self._raw_client.get_storage_volume_summary(
             summary_type=summary_type, date=date, timezone_offset=timezone_offset, request_options=request_options
-        )
-        return _response.data
-
-    async def get_platform_stats(
-        self,
-        *,
-        breakdown_by: typing.Optional[GetPlatformStatsRequestBreakdownBy] = None,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> PlatformStatsResponse:
-        """
-        Returns weekly token usage across the platform for the last 52 weeks, grouped by model or provider. The top 10 values are returned individually; the rest are grouped in `Others`. Weekly buckets start on Monday, and results are cached for 1 hour. Rate limit: 30 requests per minute per IP.
-
-        Parameters
-        ----------
-        breakdown_by : typing.Optional[GetPlatformStatsRequestBreakdownBy]
-            Dimension to break the weekly totals down by.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        PlatformStatsResponse
-            Successful response.
-
-        Examples
-        --------
-        import asyncio
-
-        from respan import AsyncRespanClient
-
-        client = AsyncRespanClient(
-            authorization="YOUR_AUTHORIZATION",
-            respan_api_key="YOUR_RESPAN_API_KEY",
-        )
-
-
-        async def main() -> None:
-            await client.dashboard.get_platform_stats()
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_platform_stats(
-            breakdown_by=breakdown_by, request_options=request_options
         )
         return _response.data

@@ -2,4 +2,4 @@
 
 import typing
 
-UpdateCustomModelResponseAffiliationCategory = typing.Union[typing.Literal["respan", "custom"], typing.Any]
+UpdateCustomModelResponseAffiliationCategory = typing.Union[typing.Literal["keywordsai", "custom"], typing.Any]

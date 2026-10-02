@@ -10,8 +10,8 @@ from ..core.jsonable_encoder import jsonable_encoder
 from ..core.pagination import AsyncPager, SyncPager
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
-from ..errors.unauthorized_error import UnauthorizedError
 from .types.list_credit_transactions_response import ListCreditTransactionsResponse
 from .types.list_credit_transactions_response_results_item import ListCreditTransactionsResponseResultsItem
 from .types.retrieve_credit_transaction_response import RetrieveCreditTransactionResponse
@@ -73,8 +73,8 @@ class RawCreditTransactionsClient:
                     request_options=request_options,
                 )
                 return SyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -93,6 +93,8 @@ class RawCreditTransactionsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RetrieveCreditTransactionResponse]:
         """
+        Returns one credit transaction, such as a top-up or an adjustment. The monthly usage rows that List credit transactions returns (IDs like `usage_2026-09-30`) are summaries and can't be fetched here.
+
         Parameters
         ----------
         id : str
@@ -121,8 +123,8 @@ class RawCreditTransactionsClient:
                     ),
                 )
                 return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -208,8 +210,8 @@ class AsyncRawCreditTransactionsClient:
                     )
 
                 return AsyncPager(has_next=_has_next, items=_items, get_next=_get_next, response=_parsed_response)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -228,6 +230,8 @@ class AsyncRawCreditTransactionsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RetrieveCreditTransactionResponse]:
         """
+        Returns one credit transaction, such as a top-up or an adjustment. The monthly usage rows that List credit transactions returns (IDs like `usage_2026-09-30`) are summaries and can't be fetched here.
+
         Parameters
         ----------
         id : str
@@ -256,8 +260,8 @@ class AsyncRawCreditTransactionsClient:
                     ),
                 )
                 return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

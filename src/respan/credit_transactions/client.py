@@ -73,6 +73,8 @@ class CreditTransactionsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCreditTransactionResponse:
         """
+        Returns one credit transaction, such as a top-up or an adjustment. The monthly usage rows that List credit transactions returns (IDs like `usage_2026-09-30`) are summaries and can't be fetched here.
+
         Parameters
         ----------
         id : str
@@ -173,6 +175,8 @@ class AsyncCreditTransactionsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RetrieveCreditTransactionResponse:
         """
+        Returns one credit transaction, such as a top-up or an adjustment. The monthly usage rows that List credit transactions returns (IDs like `usage_2026-09-30`) are summaries and can't be fetched here.
+
         Parameters
         ----------
         id : str

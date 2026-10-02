@@ -31,7 +31,7 @@ class CreateSpanResponse(UniversalBaseModel):
 
     status: typing.Optional[CreateSpanResponseStatus] = pydantic.Field(default=None)
     """
-    Request status.
+    Stored status. `warning` means the span was stored with warnings, for example estimated token usage.
     """
 
     cost: typing.Optional[float] = pydantic.Field(default=None)

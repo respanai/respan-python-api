@@ -35,7 +35,6 @@ class CreatePromptVersionResponse(UniversalBaseModel):
     json_schema: typing.Optional[typing.Dict[str, typing.Any]] = None
     is_enforcing_response_format: typing.Optional[bool] = None
     readonly: typing.Optional[bool] = None
-    is_deployed: typing.Optional[bool] = None
     edited_by: typing.Optional[CreatePromptVersionResponseEditedBy] = None
     created_at: typing.Optional[dt.datetime] = None
     updated_at: typing.Optional[dt.datetime] = None

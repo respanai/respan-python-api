@@ -74,6 +74,24 @@ class TracesClient:
             Filter by environment.
 
         filters : typing.Optional[Filters]
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A trace must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:**
+            - Trace: `trace_unique_id`, `name` (the workflow name), `customer_identifier`, `environment`, `organization_key_id`, `trace_group_identifier`, `session_identifier`, `root_span_unique_id`, `span_count`, `llm_call_count`, `error_count`, `total_cost`, `total_prompt_tokens`, `total_completion_tokens`, `total_request_tokens`, `duration` (seconds), and `metadata__<key>` (values are strings).
+            - Span fields, which match a trace when any of its spans matches: `span_unique_id`, `span_name`, `span_workflow_name`, `span_parent_id`, `model`, `provider_id`, `deployment_name`, `prompt_id`, `prompt_name`, `prompt_version_number`, `log_type`, `log_method`, `status`, `status_code`, `error_class`, `error_fingerprint`, `cost`, `latency`, `time_to_first_token`, `tokens_per_second`, `routing_time`, `prompt_tokens`, `completion_tokens`, `prompt_cache_hit_tokens`, `prompt_cache_creation_tokens`.
+
+            Unsupported fields, such as `total_tokens`, return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "total_cost": {"operator": "gte", "value": [0.05]},
+              "model": {"operator": "", "value": ["gpt-5.5"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -126,7 +144,7 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BulkDeleteResponse:
         """
-        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
+        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. Unknown fields and invalid operators return `400` before anything is deleted. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
 
         Parameters
         ----------
@@ -169,7 +187,7 @@ class TracesClient:
             environment="prod",
             filters=TraceBulkDeleteFilters(
                 customer_identifier=TraceFilterCondition(
-                    operator="is",
+                    operator="",
                     value=["customer-123"],
                 ),
             ),
@@ -227,7 +245,7 @@ class TracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DeleteTraceResponse:
         """
-        Use `start_time` and `end_time` to narrow deletion to the relevant time range.
+        Use `start_time` and `end_time` to narrow deletion to the relevant time range. Deletion is asynchronous: the trace leaves List traces right away, but its spans can stay visible in List spans and Get a trace for several minutes. An unknown ID also returns 200.
 
         Parameters
         ----------
@@ -359,7 +377,7 @@ class TracesClient:
         self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
     ) -> CreateTraceLegacyResponse:
         """
-        Accepts spans as a JSON array or an object whose `data` field contains the array. Each span uses the fields in [Create a span](/docs/apis/spans/create-span), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, use [Ingest traces (OTLP)](/docs/apis/traces/create-trace).
+        Accepts spans as a JSON array or an object whose `data` field contains the array. Each span uses the fields in [Create a span](/docs/apis/spans/create-span), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, use [Ingest traces (OTLP)](/docs/apis/traces/ingest-traces-otlp).
 
         Parameters
         ----------
@@ -635,6 +653,24 @@ class AsyncTracesClient:
             Filter by environment.
 
         filters : typing.Optional[Filters]
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A trace must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:**
+            - Trace: `trace_unique_id`, `name` (the workflow name), `customer_identifier`, `environment`, `organization_key_id`, `trace_group_identifier`, `session_identifier`, `root_span_unique_id`, `span_count`, `llm_call_count`, `error_count`, `total_cost`, `total_prompt_tokens`, `total_completion_tokens`, `total_request_tokens`, `duration` (seconds), and `metadata__<key>` (values are strings).
+            - Span fields, which match a trace when any of its spans matches: `span_unique_id`, `span_name`, `span_workflow_name`, `span_parent_id`, `model`, `provider_id`, `deployment_name`, `prompt_id`, `prompt_name`, `prompt_version_number`, `log_type`, `log_method`, `status`, `status_code`, `error_class`, `error_fingerprint`, `cost`, `latency`, `time_to_first_token`, `tokens_per_second`, `routing_time`, `prompt_tokens`, `completion_tokens`, `prompt_cache_hit_tokens`, `prompt_cache_creation_tokens`.
+
+            Unsupported fields, such as `total_tokens`, return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "total_cost": {"operator": "gte", "value": [0.05]},
+              "model": {"operator": "", "value": ["gpt-5.5"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -694,7 +730,7 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> BulkDeleteResponse:
         """
-        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. The current server ignores unknown fields and invalid operators, which can broaden the deletion selection, so validate filters carefully before sending them. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
+        Delete traces matching a non-empty filter object. The endpoint resolves at most 1,000 trace IDs per request; requests matching more are rejected with `422`. Use the query parameters for the canonical environment and time window; the same fields in the body only narrow that window. Only the documented filter fields and `metadata__<key>` are supported. Unknown fields and invalid operators return `400` before anything is deleted. ClickHouse deletion is asynchronous, so `success_count` and `deleted_count` report traces submitted for deletion, not confirmation that every row has already disappeared. Rate limit: 10 requests per minute per organization and exact endpoint path for API-key calls (shared across API keys), and per user and exact endpoint path for JWT calls.
 
         Parameters
         ----------
@@ -745,7 +781,7 @@ class AsyncTracesClient:
                 environment="prod",
                 filters=TraceBulkDeleteFilters(
                     customer_identifier=TraceFilterCondition(
-                        operator="is",
+                        operator="",
                         value=["customer-123"],
                     ),
                 ),
@@ -814,7 +850,7 @@ class AsyncTracesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> DeleteTraceResponse:
         """
-        Use `start_time` and `end_time` to narrow deletion to the relevant time range.
+        Use `start_time` and `end_time` to narrow deletion to the relevant time range. Deletion is asynchronous: the trace leaves List traces right away, but its spans can stay visible in List spans and Get a trace for several minutes. An unknown ID also returns 200.
 
         Parameters
         ----------
@@ -971,7 +1007,7 @@ class AsyncTracesClient:
         self, *, request: CreateTraceLegacyRequest, request_options: typing.Optional[RequestOptions] = None
     ) -> CreateTraceLegacyResponse:
         """
-        Accepts spans as a JSON array or an object whose `data` field contains the array. Each span uses the fields in [Create a span](/docs/apis/spans/create-span), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, use [Ingest traces (OTLP)](/docs/apis/traces/create-trace).
+        Accepts spans as a JSON array or an object whose `data` field contains the array. Each span uses the fields in [Create a span](/docs/apis/spans/create-span), plus `trace_unique_id`, `span_unique_id`, and optional `span_parent_id` to build the trace tree. For new integrations, use [Ingest traces (OTLP)](/docs/apis/traces/ingest-traces-otlp).
 
         Parameters
         ----------

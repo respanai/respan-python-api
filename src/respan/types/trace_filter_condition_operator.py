@@ -4,7 +4,7 @@ import typing
 
 TraceFilterConditionOperator = typing.Union[
     typing.Literal[
-        "is",
+        "",
         "not",
         "in",
         "not_in",
@@ -19,7 +19,6 @@ TraceFilterConditionOperator = typing.Union[
         "not_startswith",
         "endswith",
         "not_endswith",
-        "empty",
         "notEmpty",
         "not_empty",
         "isnull",

@@ -47,7 +47,6 @@ class ModelsClient:
         *,
         model_name: str,
         base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
         provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
@@ -55,7 +54,6 @@ class ModelsClient:
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
         max_context_window: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
         supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -72,11 +70,8 @@ class ModelsClient:
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
 
-        display_name : typing.Optional[str]
-            Human-readable display name.
-
         custom_provider_id : typing.Optional[str]
-            Custom provider string ID or provider identifier to associate.
+            The custom provider to call the model through. Required unless `base_model_name` is set, in which case the base model's provider is used.
 
         provider_id : typing.Optional[str]
             Alternative to `custom_provider_id`.
@@ -96,14 +91,12 @@ class ModelsClient:
         max_context_window : typing.Optional[int]
             Maximum context window size.
 
-        streaming_support : typing.Optional[int]
-
         function_call : typing.Optional[int]
 
         image_support : typing.Optional[int]
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
-            Partial override for model parameter support. The response returns computed `supported_params`.
+            Partial override for the model's parameters: a map of parameter name to a parameter definition with the same shape as `supported_params` entries (`name`, `type`, `default`, `range` with `min` and `max`, `description`, `required`), or `null` to remove the parameter. Replaces any earlier override. The response returns the computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -128,7 +121,6 @@ class ModelsClient:
         _response = self._raw_client.create_custom_model(
             model_name=model_name,
             base_model_name=base_model_name,
-            display_name=display_name,
             custom_provider_id=custom_provider_id,
             provider_id=provider_id,
             input_cost=input_cost,
@@ -136,7 +128,6 @@ class ModelsClient:
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
             max_context_window=max_context_window,
-            streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
             supported_params_override=supported_params_override,
@@ -163,13 +154,26 @@ class ModelsClient:
             Page number.
 
         page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
+            Results per page (default 100, max 1000).
 
         sort_by : typing.Optional[str]
             Field to sort by. Prefix with `-` for descending order.
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A model must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `model_name`, `base_model_name`, `provider__provider_id`, `provider__provider_name`, `affiliation_category` (`custom` or `keywordsai`), `is_managed`, `status` (`active` or `deprecated`), `model_type` (`chat`, `embedding`, `image`, `video`, `rerank`, `speech` or `transcription`), `input_cost`, `output_cost`, `max_context_window`, `has_discount`, and `available_to_user` (`[true]` keeps only the models you can call). With `icontains`, `model_name` ignores `-`, `_`, `.` and spaces, so `gemini3` matches `gemini-3`. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "provider__provider_id": {"operator": "", "value": ["anthropic"]},
+              "status": {"operator": "", "value": ["active"]}
+            }
+            ```
 
         is_exporting : typing.Optional[bool]
             Reserved for dashboard exports.
@@ -221,7 +225,20 @@ class ModelsClient:
         Parameters
         ----------
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A model must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `model_name`, `base_model_name`, `provider__provider_id`, `provider__provider_name`, `affiliation_category` (`custom` or `keywordsai`), `is_managed`, `status` (`active` or `deprecated`), `model_type` (`chat`, `embedding`, `image`, `video`, `rerank`, `speech` or `transcription`), `input_cost`, `output_cost`, `max_context_window`, `has_discount`, and `available_to_user` (`[true]` keeps only the models you can call). With `icontains`, `model_name` ignores `-`, `_`, `.` and spaces, so `gemini3` matches `gemini-3`. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "model_type": {"operator": "", "value": ["embedding"]},
+              "available_to_user": {"operator": "", "value": [true]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -255,7 +272,7 @@ class ModelsClient:
         Parameters
         ----------
         model_name : str
-            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
+            The `model_name` that List models returns. Built-in models are provider-prefixed, such as `openai/gpt-4o-mini`; bare names such as `gpt-4o-mini` return 404.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -285,7 +302,6 @@ class ModelsClient:
         model_name: str,
         *,
         base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
         provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
@@ -293,7 +309,6 @@ class ModelsClient:
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
         max_context_window: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
         supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -309,9 +324,6 @@ class ModelsClient:
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
-
-        display_name : typing.Optional[str]
-            Human-readable display name.
 
         custom_provider_id : typing.Optional[str]
             Custom provider string ID or provider identifier to associate.
@@ -334,14 +346,12 @@ class ModelsClient:
         max_context_window : typing.Optional[int]
             Maximum context window size.
 
-        streaming_support : typing.Optional[int]
-
         function_call : typing.Optional[int]
 
         image_support : typing.Optional[int]
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
-            Partial override for model parameter support. The response returns computed `supported_params`.
+            Partial override for the model's parameters: a map of parameter name to a parameter definition with the same shape as `supported_params` entries (`name`, `type`, `default`, `range` with `min` and `max`, `description`, `required`), or `null` to remove the parameter. Replaces any earlier override. The response returns the computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -366,7 +376,6 @@ class ModelsClient:
         _response = self._raw_client.replace_custom_model(
             model_name,
             base_model_name=base_model_name,
-            display_name=display_name,
             custom_provider_id=custom_provider_id,
             provider_id=provider_id,
             input_cost=input_cost,
@@ -374,7 +383,6 @@ class ModelsClient:
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
             max_context_window=max_context_window,
-            streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
             supported_params_override=supported_params_override,
@@ -416,7 +424,6 @@ class ModelsClient:
         model_name: str,
         *,
         base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
         provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
@@ -424,7 +431,6 @@ class ModelsClient:
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
         max_context_window: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
         supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -440,9 +446,6 @@ class ModelsClient:
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
-
-        display_name : typing.Optional[str]
-            Human-readable display name.
 
         custom_provider_id : typing.Optional[str]
             Custom provider string ID or provider identifier to associate.
@@ -465,14 +468,12 @@ class ModelsClient:
         max_context_window : typing.Optional[int]
             Maximum context window size.
 
-        streaming_support : typing.Optional[int]
-
         function_call : typing.Optional[int]
 
         image_support : typing.Optional[int]
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
-            Partial override for model parameter support. The response returns computed `supported_params`.
+            Partial override for the model's parameters: a map of parameter name to a parameter definition with the same shape as `supported_params` entries (`name`, `type`, `default`, `range` with `min` and `max`, `description`, `required`), or `null` to remove the parameter. Replaces any earlier override. The response returns the computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -497,7 +498,6 @@ class ModelsClient:
         _response = self._raw_client.update_custom_model(
             model_name,
             base_model_name=base_model_name,
-            display_name=display_name,
             custom_provider_id=custom_provider_id,
             provider_id=provider_id,
             input_cost=input_cost,
@@ -505,7 +505,6 @@ class ModelsClient:
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
             max_context_window=max_context_window,
-            streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
             supported_params_override=supported_params_override,
@@ -641,7 +640,7 @@ class ModelsClient:
         self,
         provider_id: str,
         *,
-        provider_name: typing.Optional[str] = OMIT,
+        provider_name: str,
         extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceCustomProviderResponse:
@@ -653,7 +652,7 @@ class ModelsClient:
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
 
-        provider_name : typing.Optional[str]
+        provider_name : str
             Human-readable provider name.
 
         extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
@@ -677,6 +676,7 @@ class ModelsClient:
         )
         client.models.replace_custom_provider(
             provider_id="provider_id",
+            provider_name="My vLLM Server",
         )
         """
         _response = self._raw_client.replace_custom_provider(
@@ -933,7 +933,6 @@ class AsyncModelsClient:
         *,
         model_name: str,
         base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
         provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
@@ -941,7 +940,6 @@ class AsyncModelsClient:
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
         max_context_window: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
         supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -958,11 +956,8 @@ class AsyncModelsClient:
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
 
-        display_name : typing.Optional[str]
-            Human-readable display name.
-
         custom_provider_id : typing.Optional[str]
-            Custom provider string ID or provider identifier to associate.
+            The custom provider to call the model through. Required unless `base_model_name` is set, in which case the base model's provider is used.
 
         provider_id : typing.Optional[str]
             Alternative to `custom_provider_id`.
@@ -982,14 +977,12 @@ class AsyncModelsClient:
         max_context_window : typing.Optional[int]
             Maximum context window size.
 
-        streaming_support : typing.Optional[int]
-
         function_call : typing.Optional[int]
 
         image_support : typing.Optional[int]
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
-            Partial override for model parameter support. The response returns computed `supported_params`.
+            Partial override for the model's parameters: a map of parameter name to a parameter definition with the same shape as `supported_params` entries (`name`, `type`, `default`, `range` with `min` and `max`, `description`, `required`), or `null` to remove the parameter. Replaces any earlier override. The response returns the computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1022,7 +1015,6 @@ class AsyncModelsClient:
         _response = await self._raw_client.create_custom_model(
             model_name=model_name,
             base_model_name=base_model_name,
-            display_name=display_name,
             custom_provider_id=custom_provider_id,
             provider_id=provider_id,
             input_cost=input_cost,
@@ -1030,7 +1022,6 @@ class AsyncModelsClient:
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
             max_context_window=max_context_window,
-            streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
             supported_params_override=supported_params_override,
@@ -1057,13 +1048,26 @@ class AsyncModelsClient:
             Page number.
 
         page_size : typing.Optional[int]
-            Number of results to return per page. Maximum 100.
+            Results per page (default 100, max 1000).
 
         sort_by : typing.Optional[str]
             Field to sort by. Prefix with `-` for descending order.
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A model must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `model_name`, `base_model_name`, `provider__provider_id`, `provider__provider_name`, `affiliation_category` (`custom` or `keywordsai`), `is_managed`, `status` (`active` or `deprecated`), `model_type` (`chat`, `embedding`, `image`, `video`, `rerank`, `speech` or `transcription`), `input_cost`, `output_cost`, `max_context_window`, `has_discount`, and `available_to_user` (`[true]` keeps only the models you can call). With `icontains`, `model_name` ignores `-`, `_`, `.` and spaces, so `gemini3` matches `gemini-3`. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "provider__provider_id": {"operator": "", "value": ["anthropic"]},
+              "status": {"operator": "", "value": ["active"]}
+            }
+            ```
 
         is_exporting : typing.Optional[bool]
             Reserved for dashboard exports.
@@ -1124,7 +1128,20 @@ class AsyncModelsClient:
         Parameters
         ----------
         filters : typing.Optional[typing.Dict[str, typing.Any]]
-            Filter criteria using the standard Respan filter format.
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A model must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:** `model_name`, `base_model_name`, `provider__provider_id`, `provider__provider_name`, `affiliation_category` (`custom` or `keywordsai`), `is_managed`, `status` (`active` or `deprecated`), `model_type` (`chat`, `embedding`, `image`, `video`, `rerank`, `speech` or `transcription`), `input_cost`, `output_cost`, `max_context_window`, `has_discount`, and `available_to_user` (`[true]` keeps only the models you can call). With `icontains`, `model_name` ignores `-`, `_`, `.` and spaces, so `gemini3` matches `gemini-3`. Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "model_type": {"operator": "", "value": ["embedding"]},
+              "available_to_user": {"operator": "", "value": [true]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1166,7 +1183,7 @@ class AsyncModelsClient:
         Parameters
         ----------
         model_name : str
-            Model name. The route supports names containing slashes, such as `openai/gpt-4o-mini`.
+            The `model_name` that List models returns. Built-in models are provider-prefixed, such as `openai/gpt-4o-mini`; bare names such as `gpt-4o-mini` return 404.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1204,7 +1221,6 @@ class AsyncModelsClient:
         model_name: str,
         *,
         base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
         provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
@@ -1212,7 +1228,6 @@ class AsyncModelsClient:
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
         max_context_window: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
         supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -1228,9 +1243,6 @@ class AsyncModelsClient:
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
-
-        display_name : typing.Optional[str]
-            Human-readable display name.
 
         custom_provider_id : typing.Optional[str]
             Custom provider string ID or provider identifier to associate.
@@ -1253,14 +1265,12 @@ class AsyncModelsClient:
         max_context_window : typing.Optional[int]
             Maximum context window size.
 
-        streaming_support : typing.Optional[int]
-
         function_call : typing.Optional[int]
 
         image_support : typing.Optional[int]
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
-            Partial override for model parameter support. The response returns computed `supported_params`.
+            Partial override for the model's parameters: a map of parameter name to a parameter definition with the same shape as `supported_params` entries (`name`, `type`, `default`, `range` with `min` and `max`, `description`, `required`), or `null` to remove the parameter. Replaces any earlier override. The response returns the computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1293,7 +1303,6 @@ class AsyncModelsClient:
         _response = await self._raw_client.replace_custom_model(
             model_name,
             base_model_name=base_model_name,
-            display_name=display_name,
             custom_provider_id=custom_provider_id,
             provider_id=provider_id,
             input_cost=input_cost,
@@ -1301,7 +1310,6 @@ class AsyncModelsClient:
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
             max_context_window=max_context_window,
-            streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
             supported_params_override=supported_params_override,
@@ -1353,7 +1361,6 @@ class AsyncModelsClient:
         model_name: str,
         *,
         base_model_name: typing.Optional[str] = OMIT,
-        display_name: typing.Optional[str] = OMIT,
         custom_provider_id: typing.Optional[str] = OMIT,
         provider_id: typing.Optional[str] = OMIT,
         input_cost: typing.Optional[float] = OMIT,
@@ -1361,7 +1368,6 @@ class AsyncModelsClient:
         cache_hit_input_cost: typing.Optional[float] = OMIT,
         cache_creation_input_cost: typing.Optional[float] = OMIT,
         max_context_window: typing.Optional[int] = OMIT,
-        streaming_support: typing.Optional[int] = OMIT,
         function_call: typing.Optional[int] = OMIT,
         image_support: typing.Optional[int] = OMIT,
         supported_params_override: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
@@ -1377,9 +1383,6 @@ class AsyncModelsClient:
 
         base_model_name : typing.Optional[str]
             Base model to inherit properties from.
-
-        display_name : typing.Optional[str]
-            Human-readable display name.
 
         custom_provider_id : typing.Optional[str]
             Custom provider string ID or provider identifier to associate.
@@ -1402,14 +1405,12 @@ class AsyncModelsClient:
         max_context_window : typing.Optional[int]
             Maximum context window size.
 
-        streaming_support : typing.Optional[int]
-
         function_call : typing.Optional[int]
 
         image_support : typing.Optional[int]
 
         supported_params_override : typing.Optional[typing.Dict[str, typing.Any]]
-            Partial override for model parameter support. The response returns computed `supported_params`.
+            Partial override for the model's parameters: a map of parameter name to a parameter definition with the same shape as `supported_params` entries (`name`, `type`, `default`, `range` with `min` and `max`, `description`, `required`), or `null` to remove the parameter. Replaces any earlier override. The response returns the computed `supported_params`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1442,7 +1443,6 @@ class AsyncModelsClient:
         _response = await self._raw_client.update_custom_model(
             model_name,
             base_model_name=base_model_name,
-            display_name=display_name,
             custom_provider_id=custom_provider_id,
             provider_id=provider_id,
             input_cost=input_cost,
@@ -1450,7 +1450,6 @@ class AsyncModelsClient:
             cache_hit_input_cost=cache_hit_input_cost,
             cache_creation_input_cost=cache_creation_input_cost,
             max_context_window=max_context_window,
-            streaming_support=streaming_support,
             function_call=function_call,
             image_support=image_support,
             supported_params_override=supported_params_override,
@@ -1610,7 +1609,7 @@ class AsyncModelsClient:
         self,
         provider_id: str,
         *,
-        provider_name: typing.Optional[str] = OMIT,
+        provider_name: str,
         extra_kwargs: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ReplaceCustomProviderResponse:
@@ -1622,7 +1621,7 @@ class AsyncModelsClient:
         provider_id : str
             Custom provider string ID returned as `id` and `provider_id` in provider responses.
 
-        provider_name : typing.Optional[str]
+        provider_name : str
             Human-readable provider name.
 
         extra_kwargs : typing.Optional[typing.Dict[str, typing.Any]]
@@ -1651,6 +1650,7 @@ class AsyncModelsClient:
         async def main() -> None:
             await client.models.replace_custom_provider(
                 provider_id="provider_id",
+                provider_name="My vLLM Server",
             )
 
 

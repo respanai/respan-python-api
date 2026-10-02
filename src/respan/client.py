@@ -12,21 +12,23 @@ from .environment import RespanClientEnvironment
 
 if typing.TYPE_CHECKING:
     from .anthropic_gateway.client import AnthropicGatewayClient, AsyncAnthropicGatewayClient
+    from .behaviors.client import AsyncBehaviorsClient, BehaviorsClient
     from .caches.client import AsyncCachesClient, CachesClient
     from .credit_transactions.client import AsyncCreditTransactionsClient, CreditTransactionsClient
     from .dashboard.client import AsyncDashboardClient, DashboardClient
+    from .error_groups.client import AsyncErrorGroupsClient, ErrorGroupsClient
     from .gateway.client import AsyncGatewayClient, GatewayClient
     from .google_gateway.client import AsyncGoogleGatewayClient, GoogleGatewayClient
+    from .incidents.client import AsyncIncidentsClient, IncidentsClient
     from .limit_policies.client import AsyncLimitPoliciesClient, LimitPoliciesClient
     from .models.client import AsyncModelsClient, ModelsClient
-    from .multimodal.client import AsyncMultimodalClient, MultimodalClient
     from .open_ai_batch.client import AsyncOpenAiBatchClient, OpenAiBatchClient
     from .open_router_gateway.client import AsyncOpenRouterGatewayClient, OpenRouterGatewayClient
     from .prompts.client import AsyncPromptsClient, PromptsClient
+    from .provider_gateway.client import AsyncProviderGatewayClient, ProviderGatewayClient
     from .respan_models.client import AsyncRespanModelsClient, RespanModelsClient
     from .spans.client import AsyncSpansClient, SpansClient
     from .temporary_api_keys.client import AsyncTemporaryApiKeysClient, TemporaryApiKeysClient
-    from .threads.client import AsyncThreadsClient, ThreadsClient
     from .traces.client import AsyncTracesClient, TracesClient
     from .type_safe_gateway.client import AsyncTypeSafeGatewayClient, TypeSafeGatewayClient
     from .users.client import AsyncUsersClient, UsersClient
@@ -109,19 +111,21 @@ class RespanClient:
         self._traces: typing.Optional[TracesClient] = None
         self._spans: typing.Optional[SpansClient] = None
         self._caches: typing.Optional[CachesClient] = None
-        self._threads: typing.Optional[ThreadsClient] = None
+        self._behaviors: typing.Optional[BehaviorsClient] = None
+        self._error_groups: typing.Optional[ErrorGroupsClient] = None
+        self._incidents: typing.Optional[IncidentsClient] = None
         self._users: typing.Optional[UsersClient] = None
         self._gateway: typing.Optional[GatewayClient] = None
         self._open_ai_batch: typing.Optional[OpenAiBatchClient] = None
-        self._multimodal: typing.Optional[MultimodalClient] = None
         self._prompts: typing.Optional[PromptsClient] = None
         self._models: typing.Optional[ModelsClient] = None
         self._temporary_api_keys: typing.Optional[TemporaryApiKeysClient] = None
         self._credit_transactions: typing.Optional[CreditTransactionsClient] = None
         self._dashboard: typing.Optional[DashboardClient] = None
         self._anthropic_gateway: typing.Optional[AnthropicGatewayClient] = None
-        self._google_gateway: typing.Optional[GoogleGatewayClient] = None
         self._open_router_gateway: typing.Optional[OpenRouterGatewayClient] = None
+        self._provider_gateway: typing.Optional[ProviderGatewayClient] = None
+        self._google_gateway: typing.Optional[GoogleGatewayClient] = None
         self._respan_models: typing.Optional[RespanModelsClient] = None
         self._type_safe_gateway: typing.Optional[TypeSafeGatewayClient] = None
         self._limit_policies: typing.Optional[LimitPoliciesClient] = None
@@ -151,12 +155,28 @@ class RespanClient:
         return self._caches
 
     @property
-    def threads(self):
-        if self._threads is None:
-            from .threads.client import ThreadsClient  # noqa: E402
+    def behaviors(self):
+        if self._behaviors is None:
+            from .behaviors.client import BehaviorsClient  # noqa: E402
 
-            self._threads = ThreadsClient(client_wrapper=self._client_wrapper)
-        return self._threads
+            self._behaviors = BehaviorsClient(client_wrapper=self._client_wrapper)
+        return self._behaviors
+
+    @property
+    def error_groups(self):
+        if self._error_groups is None:
+            from .error_groups.client import ErrorGroupsClient  # noqa: E402
+
+            self._error_groups = ErrorGroupsClient(client_wrapper=self._client_wrapper)
+        return self._error_groups
+
+    @property
+    def incidents(self):
+        if self._incidents is None:
+            from .incidents.client import IncidentsClient  # noqa: E402
+
+            self._incidents = IncidentsClient(client_wrapper=self._client_wrapper)
+        return self._incidents
 
     @property
     def users(self):
@@ -181,14 +201,6 @@ class RespanClient:
 
             self._open_ai_batch = OpenAiBatchClient(client_wrapper=self._client_wrapper)
         return self._open_ai_batch
-
-    @property
-    def multimodal(self):
-        if self._multimodal is None:
-            from .multimodal.client import MultimodalClient  # noqa: E402
-
-            self._multimodal = MultimodalClient(client_wrapper=self._client_wrapper)
-        return self._multimodal
 
     @property
     def prompts(self):
@@ -239,20 +251,28 @@ class RespanClient:
         return self._anthropic_gateway
 
     @property
-    def google_gateway(self):
-        if self._google_gateway is None:
-            from .google_gateway.client import GoogleGatewayClient  # noqa: E402
-
-            self._google_gateway = GoogleGatewayClient(client_wrapper=self._client_wrapper)
-        return self._google_gateway
-
-    @property
     def open_router_gateway(self):
         if self._open_router_gateway is None:
             from .open_router_gateway.client import OpenRouterGatewayClient  # noqa: E402
 
             self._open_router_gateway = OpenRouterGatewayClient(client_wrapper=self._client_wrapper)
         return self._open_router_gateway
+
+    @property
+    def provider_gateway(self):
+        if self._provider_gateway is None:
+            from .provider_gateway.client import ProviderGatewayClient  # noqa: E402
+
+            self._provider_gateway = ProviderGatewayClient(client_wrapper=self._client_wrapper)
+        return self._provider_gateway
+
+    @property
+    def google_gateway(self):
+        if self._google_gateway is None:
+            from .google_gateway.client import GoogleGatewayClient  # noqa: E402
+
+            self._google_gateway = GoogleGatewayClient(client_wrapper=self._client_wrapper)
+        return self._google_gateway
 
     @property
     def respan_models(self):
@@ -356,19 +376,21 @@ class AsyncRespanClient:
         self._traces: typing.Optional[AsyncTracesClient] = None
         self._spans: typing.Optional[AsyncSpansClient] = None
         self._caches: typing.Optional[AsyncCachesClient] = None
-        self._threads: typing.Optional[AsyncThreadsClient] = None
+        self._behaviors: typing.Optional[AsyncBehaviorsClient] = None
+        self._error_groups: typing.Optional[AsyncErrorGroupsClient] = None
+        self._incidents: typing.Optional[AsyncIncidentsClient] = None
         self._users: typing.Optional[AsyncUsersClient] = None
         self._gateway: typing.Optional[AsyncGatewayClient] = None
         self._open_ai_batch: typing.Optional[AsyncOpenAiBatchClient] = None
-        self._multimodal: typing.Optional[AsyncMultimodalClient] = None
         self._prompts: typing.Optional[AsyncPromptsClient] = None
         self._models: typing.Optional[AsyncModelsClient] = None
         self._temporary_api_keys: typing.Optional[AsyncTemporaryApiKeysClient] = None
         self._credit_transactions: typing.Optional[AsyncCreditTransactionsClient] = None
         self._dashboard: typing.Optional[AsyncDashboardClient] = None
         self._anthropic_gateway: typing.Optional[AsyncAnthropicGatewayClient] = None
-        self._google_gateway: typing.Optional[AsyncGoogleGatewayClient] = None
         self._open_router_gateway: typing.Optional[AsyncOpenRouterGatewayClient] = None
+        self._provider_gateway: typing.Optional[AsyncProviderGatewayClient] = None
+        self._google_gateway: typing.Optional[AsyncGoogleGatewayClient] = None
         self._respan_models: typing.Optional[AsyncRespanModelsClient] = None
         self._type_safe_gateway: typing.Optional[AsyncTypeSafeGatewayClient] = None
         self._limit_policies: typing.Optional[AsyncLimitPoliciesClient] = None
@@ -398,12 +420,28 @@ class AsyncRespanClient:
         return self._caches
 
     @property
-    def threads(self):
-        if self._threads is None:
-            from .threads.client import AsyncThreadsClient  # noqa: E402
+    def behaviors(self):
+        if self._behaviors is None:
+            from .behaviors.client import AsyncBehaviorsClient  # noqa: E402
 
-            self._threads = AsyncThreadsClient(client_wrapper=self._client_wrapper)
-        return self._threads
+            self._behaviors = AsyncBehaviorsClient(client_wrapper=self._client_wrapper)
+        return self._behaviors
+
+    @property
+    def error_groups(self):
+        if self._error_groups is None:
+            from .error_groups.client import AsyncErrorGroupsClient  # noqa: E402
+
+            self._error_groups = AsyncErrorGroupsClient(client_wrapper=self._client_wrapper)
+        return self._error_groups
+
+    @property
+    def incidents(self):
+        if self._incidents is None:
+            from .incidents.client import AsyncIncidentsClient  # noqa: E402
+
+            self._incidents = AsyncIncidentsClient(client_wrapper=self._client_wrapper)
+        return self._incidents
 
     @property
     def users(self):
@@ -428,14 +466,6 @@ class AsyncRespanClient:
 
             self._open_ai_batch = AsyncOpenAiBatchClient(client_wrapper=self._client_wrapper)
         return self._open_ai_batch
-
-    @property
-    def multimodal(self):
-        if self._multimodal is None:
-            from .multimodal.client import AsyncMultimodalClient  # noqa: E402
-
-            self._multimodal = AsyncMultimodalClient(client_wrapper=self._client_wrapper)
-        return self._multimodal
 
     @property
     def prompts(self):
@@ -486,20 +516,28 @@ class AsyncRespanClient:
         return self._anthropic_gateway
 
     @property
-    def google_gateway(self):
-        if self._google_gateway is None:
-            from .google_gateway.client import AsyncGoogleGatewayClient  # noqa: E402
-
-            self._google_gateway = AsyncGoogleGatewayClient(client_wrapper=self._client_wrapper)
-        return self._google_gateway
-
-    @property
     def open_router_gateway(self):
         if self._open_router_gateway is None:
             from .open_router_gateway.client import AsyncOpenRouterGatewayClient  # noqa: E402
 
             self._open_router_gateway = AsyncOpenRouterGatewayClient(client_wrapper=self._client_wrapper)
         return self._open_router_gateway
+
+    @property
+    def provider_gateway(self):
+        if self._provider_gateway is None:
+            from .provider_gateway.client import AsyncProviderGatewayClient  # noqa: E402
+
+            self._provider_gateway = AsyncProviderGatewayClient(client_wrapper=self._client_wrapper)
+        return self._provider_gateway
+
+    @property
+    def google_gateway(self):
+        if self._google_gateway is None:
+            from .google_gateway.client import AsyncGoogleGatewayClient  # noqa: E402
+
+            self._google_gateway = AsyncGoogleGatewayClient(client_wrapper=self._client_wrapper)
+        return self._google_gateway
 
     @property
     def respan_models(self):

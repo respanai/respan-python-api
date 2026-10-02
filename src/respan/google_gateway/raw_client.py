@@ -11,9 +11,9 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..errors.bad_request_error import BadRequestError
 from ..errors.failed_dependency_error import FailedDependencyError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.payment_required_error import PaymentRequiredError
 from ..errors.too_many_requests_error import TooManyRequestsError
-from ..errors.unauthorized_error import UnauthorizedError
 from .types.api_google_v1beta_models_create_request_render_format import ApiGoogleV1BetaModelsCreateRequestRenderFormat
 from .types.api_google_v1beta_models_create_request_sdk_type import ApiGoogleV1BetaModelsCreateRequestSdkType
 
@@ -91,17 +91,6 @@ class RawGoogleGatewayClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 402:
                 raise PaymentRequiredError(
                     headers=dict(_response.headers),
@@ -109,6 +98,17 @@ class RawGoogleGatewayClient:
                         typing.Dict[str, typing.Any],
                         parse_obj_as(
                             type_=typing.Dict[str, typing.Any],  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -211,17 +211,6 @@ class AsyncRawGoogleGatewayClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 402:
                 raise PaymentRequiredError(
                     headers=dict(_response.headers),
@@ -229,6 +218,17 @@ class AsyncRawGoogleGatewayClient:
                         typing.Dict[str, typing.Any],
                         parse_obj_as(
                             type_=typing.Dict[str, typing.Any],  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

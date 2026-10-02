@@ -15,7 +15,6 @@ if typing.TYPE_CHECKING:
     from .get_llm_metrics_summary_request_fetch_filters import GetLlmMetricsSummaryRequestFetchFilters
     from .get_llm_metrics_summary_request_summary_type import GetLlmMetricsSummaryRequestSummaryType
     from .get_llm_metrics_summary_request_time_tick import GetLlmMetricsSummaryRequestTimeTick
-    from .get_platform_stats_request_breakdown_by import GetPlatformStatsRequestBreakdownBy
     from .get_quantiles_summary_request_summary_type import GetQuantilesSummaryRequestSummaryType
     from .get_quantiles_summary_request_time_tick import GetQuantilesSummaryRequestTimeTick
     from .get_quantiles_summary_response import GetQuantilesSummaryResponse
@@ -59,7 +58,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "GetLlmMetricsSummaryRequestFetchFilters": ".get_llm_metrics_summary_request_fetch_filters",
     "GetLlmMetricsSummaryRequestSummaryType": ".get_llm_metrics_summary_request_summary_type",
     "GetLlmMetricsSummaryRequestTimeTick": ".get_llm_metrics_summary_request_time_tick",
-    "GetPlatformStatsRequestBreakdownBy": ".get_platform_stats_request_breakdown_by",
     "GetQuantilesSummaryRequestSummaryType": ".get_quantiles_summary_request_summary_type",
     "GetQuantilesSummaryRequestTimeTick": ".get_quantiles_summary_request_time_tick",
     "GetQuantilesSummaryResponse": ".get_quantiles_summary_response",
@@ -125,7 +123,6 @@ __all__ = [
     "GetLlmMetricsSummaryRequestFetchFilters",
     "GetLlmMetricsSummaryRequestSummaryType",
     "GetLlmMetricsSummaryRequestTimeTick",
-    "GetPlatformStatsRequestBreakdownBy",
     "GetQuantilesSummaryRequestSummaryType",
     "GetQuantilesSummaryRequestTimeTick",
     "GetQuantilesSummaryResponse",

@@ -12,8 +12,6 @@ if typing.TYPE_CHECKING:
     from .create_custom_model_response_affiliation_category import CreateCustomModelResponseAffiliationCategory
     from .create_custom_model_response_model_type import CreateCustomModelResponseModelType
     from .create_custom_model_response_provider import CreateCustomModelResponseProvider
-    from .create_custom_model_response_source import CreateCustomModelResponseSource
-    from .create_custom_model_response_throughput import CreateCustomModelResponseThroughput
     from .create_custom_provider_response import CreateCustomProviderResponse
     from .filter_models_response import FilterModelsResponse
     from .filter_models_response_results_item import FilterModelsResponseResultsItem
@@ -22,8 +20,6 @@ if typing.TYPE_CHECKING:
     )
     from .filter_models_response_results_item_model_type import FilterModelsResponseResultsItemModelType
     from .filter_models_response_results_item_provider import FilterModelsResponseResultsItemProvider
-    from .filter_models_response_results_item_source import FilterModelsResponseResultsItemSource
-    from .filter_models_response_results_item_throughput import FilterModelsResponseResultsItemThroughput
     from .filter_models_summary_response import FilterModelsSummaryResponse
     from .filter_models_summary_response_summary import FilterModelsSummaryResponseSummary
     from .list_custom_providers_response import ListCustomProvidersResponse
@@ -38,22 +34,16 @@ if typing.TYPE_CHECKING:
     from .replace_custom_model_response_affiliation_category import ReplaceCustomModelResponseAffiliationCategory
     from .replace_custom_model_response_model_type import ReplaceCustomModelResponseModelType
     from .replace_custom_model_response_provider import ReplaceCustomModelResponseProvider
-    from .replace_custom_model_response_source import ReplaceCustomModelResponseSource
-    from .replace_custom_model_response_throughput import ReplaceCustomModelResponseThroughput
     from .replace_custom_provider_response import ReplaceCustomProviderResponse
     from .retrieve_custom_model_response import RetrieveCustomModelResponse
     from .retrieve_custom_model_response_affiliation_category import RetrieveCustomModelResponseAffiliationCategory
     from .retrieve_custom_model_response_model_type import RetrieveCustomModelResponseModelType
     from .retrieve_custom_model_response_provider import RetrieveCustomModelResponseProvider
-    from .retrieve_custom_model_response_source import RetrieveCustomModelResponseSource
-    from .retrieve_custom_model_response_throughput import RetrieveCustomModelResponseThroughput
     from .retrieve_custom_provider_response import RetrieveCustomProviderResponse
     from .update_custom_model_response import UpdateCustomModelResponse
     from .update_custom_model_response_affiliation_category import UpdateCustomModelResponseAffiliationCategory
     from .update_custom_model_response_model_type import UpdateCustomModelResponseModelType
     from .update_custom_model_response_provider import UpdateCustomModelResponseProvider
-    from .update_custom_model_response_source import UpdateCustomModelResponseSource
-    from .update_custom_model_response_throughput import UpdateCustomModelResponseThroughput
     from .update_custom_provider_response import UpdateCustomProviderResponse
 _dynamic_imports: typing.Dict[str, str] = {
     "ApiModelsStatusCreateRequestTimeTick": ".api_models_status_create_request_time_tick",
@@ -62,16 +52,12 @@ _dynamic_imports: typing.Dict[str, str] = {
     "CreateCustomModelResponseAffiliationCategory": ".create_custom_model_response_affiliation_category",
     "CreateCustomModelResponseModelType": ".create_custom_model_response_model_type",
     "CreateCustomModelResponseProvider": ".create_custom_model_response_provider",
-    "CreateCustomModelResponseSource": ".create_custom_model_response_source",
-    "CreateCustomModelResponseThroughput": ".create_custom_model_response_throughput",
     "CreateCustomProviderResponse": ".create_custom_provider_response",
     "FilterModelsResponse": ".filter_models_response",
     "FilterModelsResponseResultsItem": ".filter_models_response_results_item",
     "FilterModelsResponseResultsItemAffiliationCategory": ".filter_models_response_results_item_affiliation_category",
     "FilterModelsResponseResultsItemModelType": ".filter_models_response_results_item_model_type",
     "FilterModelsResponseResultsItemProvider": ".filter_models_response_results_item_provider",
-    "FilterModelsResponseResultsItemSource": ".filter_models_response_results_item_source",
-    "FilterModelsResponseResultsItemThroughput": ".filter_models_response_results_item_throughput",
     "FilterModelsSummaryResponse": ".filter_models_summary_response",
     "FilterModelsSummaryResponseSummary": ".filter_models_summary_response_summary",
     "ListCustomProvidersResponse": ".list_custom_providers_response",
@@ -86,22 +72,16 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ReplaceCustomModelResponseAffiliationCategory": ".replace_custom_model_response_affiliation_category",
     "ReplaceCustomModelResponseModelType": ".replace_custom_model_response_model_type",
     "ReplaceCustomModelResponseProvider": ".replace_custom_model_response_provider",
-    "ReplaceCustomModelResponseSource": ".replace_custom_model_response_source",
-    "ReplaceCustomModelResponseThroughput": ".replace_custom_model_response_throughput",
     "ReplaceCustomProviderResponse": ".replace_custom_provider_response",
     "RetrieveCustomModelResponse": ".retrieve_custom_model_response",
     "RetrieveCustomModelResponseAffiliationCategory": ".retrieve_custom_model_response_affiliation_category",
     "RetrieveCustomModelResponseModelType": ".retrieve_custom_model_response_model_type",
     "RetrieveCustomModelResponseProvider": ".retrieve_custom_model_response_provider",
-    "RetrieveCustomModelResponseSource": ".retrieve_custom_model_response_source",
-    "RetrieveCustomModelResponseThroughput": ".retrieve_custom_model_response_throughput",
     "RetrieveCustomProviderResponse": ".retrieve_custom_provider_response",
     "UpdateCustomModelResponse": ".update_custom_model_response",
     "UpdateCustomModelResponseAffiliationCategory": ".update_custom_model_response_affiliation_category",
     "UpdateCustomModelResponseModelType": ".update_custom_model_response_model_type",
     "UpdateCustomModelResponseProvider": ".update_custom_model_response_provider",
-    "UpdateCustomModelResponseSource": ".update_custom_model_response_source",
-    "UpdateCustomModelResponseThroughput": ".update_custom_model_response_throughput",
     "UpdateCustomProviderResponse": ".update_custom_provider_response",
 }
 
@@ -134,16 +114,12 @@ __all__ = [
     "CreateCustomModelResponseAffiliationCategory",
     "CreateCustomModelResponseModelType",
     "CreateCustomModelResponseProvider",
-    "CreateCustomModelResponseSource",
-    "CreateCustomModelResponseThroughput",
     "CreateCustomProviderResponse",
     "FilterModelsResponse",
     "FilterModelsResponseResultsItem",
     "FilterModelsResponseResultsItemAffiliationCategory",
     "FilterModelsResponseResultsItemModelType",
     "FilterModelsResponseResultsItemProvider",
-    "FilterModelsResponseResultsItemSource",
-    "FilterModelsResponseResultsItemThroughput",
     "FilterModelsSummaryResponse",
     "FilterModelsSummaryResponseSummary",
     "ListCustomProvidersResponse",
@@ -158,21 +134,15 @@ __all__ = [
     "ReplaceCustomModelResponseAffiliationCategory",
     "ReplaceCustomModelResponseModelType",
     "ReplaceCustomModelResponseProvider",
-    "ReplaceCustomModelResponseSource",
-    "ReplaceCustomModelResponseThroughput",
     "ReplaceCustomProviderResponse",
     "RetrieveCustomModelResponse",
     "RetrieveCustomModelResponseAffiliationCategory",
     "RetrieveCustomModelResponseModelType",
     "RetrieveCustomModelResponseProvider",
-    "RetrieveCustomModelResponseSource",
-    "RetrieveCustomModelResponseThroughput",
     "RetrieveCustomProviderResponse",
     "UpdateCustomModelResponse",
     "UpdateCustomModelResponseAffiliationCategory",
     "UpdateCustomModelResponseModelType",
     "UpdateCustomModelResponseProvider",
-    "UpdateCustomModelResponseSource",
-    "UpdateCustomModelResponseThroughput",
     "UpdateCustomProviderResponse",
 ]

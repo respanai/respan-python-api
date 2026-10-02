@@ -8,6 +8,10 @@ from ...core.pydantic_utilities import IS_PYDANTIC_V2, UniversalBaseModel
 
 
 class CreatePromptResponseLiveVersion(UniversalBaseModel):
+    """
+    The deployed version, as the full version object that Get a prompt version returns. `null` until a version is deployed.
+    """
+
     version: typing.Optional[int] = None
     model: typing.Optional[str] = None
     updated_at: typing.Optional[dt.datetime] = None

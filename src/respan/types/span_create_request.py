@@ -240,7 +240,7 @@ class SpanCreateRequest(UniversalBaseModel):
 
     status: typing.Optional[SpanCreateRequestStatus] = pydantic.Field(default=None)
     """
-    Request status.
+    Request status. `error` is stored as `failed`.
     """
 
     prompt_id: typing.Optional[str] = pydantic.Field(default=None)

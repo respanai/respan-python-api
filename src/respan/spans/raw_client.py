@@ -19,7 +19,6 @@ from ..errors.forbidden_error import ForbiddenError
 from ..errors.internal_server_error import InternalServerError
 from ..errors.not_found_error import NotFoundError
 from ..errors.too_many_requests_error import TooManyRequestsError
-from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.bulk_operation_response import BulkOperationResponse
 from ..types.filters import Filters
@@ -254,7 +253,7 @@ class RawSpansClient:
             Warnings from the request.
 
         status : typing.Optional[SpanCreateRequestStatus]
-            Request status.
+            Request status. `error` is stored as `failed`.
 
         prompt_id : typing.Optional[str]
             ID of the Respan prompt template used.
@@ -298,7 +297,7 @@ class RawSpansClient:
         Returns
         -------
         HttpResponse[CreateSpanResponse]
-            Span created successfully
+            The stored span, with the same fields as Get a span.
         """
         _response = self._client_wrapper.httpx_client.request(
             "api/request-logs/",
@@ -403,8 +402,8 @@ class RawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -508,17 +507,6 @@ class RawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 403:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
@@ -572,7 +560,7 @@ class RawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> SyncPager[typing.Dict[str, typing.Any], ListSpansResponse]:
         """
-        Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for syntax. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
+        Filter on span fields with `filters`, and sort by evaluator scores. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -601,6 +589,29 @@ class RawSpansClient:
             Comma-separated list of fields to include in each span. Reduces response size.
 
         filters : typing.Optional[Filters]
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:**
+            - `unique_id`, `trace_unique_id`, `span_unique_id`, `span_parent_id`, `span_name`, `span_workflow_name`, `thread_identifier`, `customer_identifier`, `customer_email`, `custom_identifier`, `group_identifier`, `evaluation_identifier`, `organization_key_id`, `prompt_id`, `prompt_name`, `prompt_version_number`, `model`, `provider_id`, `deployment_name`, `log_type`, `log_method`, `status`, `status_code`, `environment`, `error_class`, `error_code`, `error_message`, `error_fingerprint`, `cache_key`, `note`
+            - True or false: `stream`, `has_tool_calls`, `cache_bit`, `used_custom_credential`, `positive_feedback`
+            - Numbers: `cost`, `latency`, `time_to_first_token`, `tokens_per_second`, `routing_time`, `prompt_tokens`, `completion_tokens`, `total_request_tokens`, `prompt_cache_hit_tokens`, `prompt_cache_creation_tokens`. The aliases `total_cost`, `input_tokens`, `output_tokens` and `total_tokens` also work, and so does `trace_id` for `trace_unique_id`.
+            - `metadata__<key>`: a custom metadata value. Values are strings, and spans without the key never match, even with `not`.
+            - `scores__<evaluator_id>`: an evaluator's numeric score, with `""`, `not`, `in`, `not_in`, `lt`, `lte`, `gt` or `gte`.
+            - `is_root_span` (`[true]` or `[false]`), `fault_domain` (`user`, `respan` or `provider`), and `behaviors` (spans where the named behaviors fired, when span behaviors are on).
+
+            Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "in", "value": ["gpt-5.5", "claude-sonnet-4-5-20250929"]},
+              "cost": {"operator": "gte", "value": [0.01]},
+              "metadata__plan": {"operator": "", "value": ["pro"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -671,8 +682,8 @@ class RawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -765,8 +776,8 @@ class RawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -838,6 +849,28 @@ class RawSpansClient:
             Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:**
+            - `unique_id`, `trace_unique_id`, `span_unique_id`, `span_parent_id`, `span_name`, `span_workflow_name`, `thread_identifier`, `customer_identifier`, `customer_email`, `custom_identifier`, `group_identifier`, `evaluation_identifier`, `organization_key_id`, `prompt_id`, `prompt_name`, `prompt_version_number`, `model`, `provider_id`, `deployment_name`, `log_type`, `log_method`, `status`, `status_code`, `environment`, `error_class`, `error_code`, `error_message`, `error_fingerprint`, `cache_key`, `note`
+            - True or false: `stream`, `has_tool_calls`, `cache_bit`, `used_custom_credential`, `positive_feedback`
+            - Numbers: `cost`, `latency`, `time_to_first_token`, `tokens_per_second`, `routing_time`, `prompt_tokens`, `completion_tokens`, `total_request_tokens`, `prompt_cache_hit_tokens`, `prompt_cache_creation_tokens`. The aliases `total_cost`, `input_tokens`, `output_tokens` and `total_tokens` also work, and so does `trace_id` for `trace_unique_id`.
+            - `metadata__<key>`: a custom metadata value. Values are strings, and spans without the key never match, even with `not`.
+            - `scores__<evaluator_id>`: an evaluator's numeric score, with `""`, `not`, `in`, `not_in`, `lt`, `lte`, `gt` or `gte`.
+            - `is_root_span` (`[true]` or `[false]`), `fault_domain` (`user`, `respan` or `provider`), and `behaviors` (spans where the named behaviors fired, when span behaviors are on).
+
+            Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]},
+              "status_code": {"operator": "not", "value": [200]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -887,8 +920,8 @@ class RawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1011,17 +1044,6 @@ class RawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 403:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
@@ -1072,6 +1094,25 @@ class RawSpansClient:
         page_size : typing.Optional[int]
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Narrows what's grouped.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. Each span, trace or thread must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields** depend on `group_by`:
+            - `trace`: trace fields such as `total_cost`, `error_count`, `span_count`, `customer_identifier` and `metadata__<key>`, plus span fields such as `model`, which match a trace when any of its spans matches.
+            - `thread`: thread fields such as `thread_identifier`, `customer_identifier`, `number_of_requests`, `total_cost` and `total_tokens`.
+            - Any other value: span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` don't work.
+
+            **Example:**
+
+            ```json
+            {
+              "status_code": {"operator": "not", "value": [200]},
+              "metadata__plan": {"operator": "", "value": ["pro"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1114,17 +1155,6 @@ class RawSpansClient:
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1355,7 +1385,7 @@ class AsyncRawSpansClient:
             Warnings from the request.
 
         status : typing.Optional[SpanCreateRequestStatus]
-            Request status.
+            Request status. `error` is stored as `failed`.
 
         prompt_id : typing.Optional[str]
             ID of the Respan prompt template used.
@@ -1399,7 +1429,7 @@ class AsyncRawSpansClient:
         Returns
         -------
         AsyncHttpResponse[CreateSpanResponse]
-            Span created successfully
+            The stored span, with the same fields as Get a span.
         """
         _response = await self._client_wrapper.httpx_client.request(
             "api/request-logs/",
@@ -1504,8 +1534,8 @@ class AsyncRawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1609,17 +1639,6 @@ class AsyncRawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 403:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
@@ -1673,7 +1692,7 @@ class AsyncRawSpansClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncPager[typing.Dict[str, typing.Any], ListSpansResponse]:
         """
-        Supports filtering by any span field, URL-based quick filters, and sorting by evaluator scores. See [Filters API Reference](/docs/apis/reference/filters-api-reference) for syntax. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
+        Filter on span fields with `filters`, and sort by evaluator scores. Metadata keys beginning with `_` are reserved for platform use and omitted from span and trace read responses.
 
         Parameters
         ----------
@@ -1702,6 +1721,29 @@ class AsyncRawSpansClient:
             Comma-separated list of fields to include in each span. Reduces response size.
 
         filters : typing.Optional[Filters]
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:**
+            - `unique_id`, `trace_unique_id`, `span_unique_id`, `span_parent_id`, `span_name`, `span_workflow_name`, `thread_identifier`, `customer_identifier`, `customer_email`, `custom_identifier`, `group_identifier`, `evaluation_identifier`, `organization_key_id`, `prompt_id`, `prompt_name`, `prompt_version_number`, `model`, `provider_id`, `deployment_name`, `log_type`, `log_method`, `status`, `status_code`, `environment`, `error_class`, `error_code`, `error_message`, `error_fingerprint`, `cache_key`, `note`
+            - True or false: `stream`, `has_tool_calls`, `cache_bit`, `used_custom_credential`, `positive_feedback`
+            - Numbers: `cost`, `latency`, `time_to_first_token`, `tokens_per_second`, `routing_time`, `prompt_tokens`, `completion_tokens`, `total_request_tokens`, `prompt_cache_hit_tokens`, `prompt_cache_creation_tokens`. The aliases `total_cost`, `input_tokens`, `output_tokens` and `total_tokens` also work, and so does `trace_id` for `trace_unique_id`.
+            - `metadata__<key>`: a custom metadata value. Values are strings, and spans without the key never match, even with `not`.
+            - `scores__<evaluator_id>`: an evaluator's numeric score, with `""`, `not`, `in`, `not_in`, `lt`, `lte`, `gt` or `gte`.
+            - `is_root_span` (`[true]` or `[false]`), `fault_domain` (`user`, `respan` or `provider`), and `behaviors` (spans where the named behaviors fired, when span behaviors are on).
+
+            Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "model": {"operator": "in", "value": ["gpt-5.5", "claude-sonnet-4-5-20250929"]},
+              "cost": {"operator": "gte", "value": [0.01]},
+              "metadata__plan": {"operator": "", "value": ["pro"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1775,8 +1817,8 @@ class AsyncRawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1869,8 +1911,8 @@ class AsyncRawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -1942,6 +1984,28 @@ class AsyncRawSpansClient:
             Filter by environment (`prod` or `test`).
 
         filters : typing.Optional[Filters]
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. A span must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields:**
+            - `unique_id`, `trace_unique_id`, `span_unique_id`, `span_parent_id`, `span_name`, `span_workflow_name`, `thread_identifier`, `customer_identifier`, `customer_email`, `custom_identifier`, `group_identifier`, `evaluation_identifier`, `organization_key_id`, `prompt_id`, `prompt_name`, `prompt_version_number`, `model`, `provider_id`, `deployment_name`, `log_type`, `log_method`, `status`, `status_code`, `environment`, `error_class`, `error_code`, `error_message`, `error_fingerprint`, `cache_key`, `note`
+            - True or false: `stream`, `has_tool_calls`, `cache_bit`, `used_custom_credential`, `positive_feedback`
+            - Numbers: `cost`, `latency`, `time_to_first_token`, `tokens_per_second`, `routing_time`, `prompt_tokens`, `completion_tokens`, `total_request_tokens`, `prompt_cache_hit_tokens`, `prompt_cache_creation_tokens`. The aliases `total_cost`, `input_tokens`, `output_tokens` and `total_tokens` also work, and so does `trace_id` for `trace_unique_id`.
+            - `metadata__<key>`: a custom metadata value. Values are strings, and spans without the key never match, even with `not`.
+            - `scores__<evaluator_id>`: an evaluator's numeric score, with `""`, `not`, `in`, `not_in`, `lt`, `lte`, `gt` or `gte`.
+            - `is_root_span` (`[true]` or `[false]`), `fault_domain` (`user`, `respan` or `provider`), and `behaviors` (spans where the named behaviors fired, when span behaviors are on).
+
+            Unsupported fields return a 400 error.
+
+            **Example:**
+
+            ```json
+            {
+              "customer_identifier": {"operator": "", "value": ["alex@acme.dev"]},
+              "status_code": {"operator": "not", "value": [200]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1991,8 +2055,8 @@ class AsyncRawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2115,17 +2179,6 @@ class AsyncRawSpansClient:
                         ),
                     ),
                 )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 403:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
@@ -2176,6 +2229,25 @@ class AsyncRawSpansClient:
         page_size : typing.Optional[int]
 
         filters : typing.Optional[typing.Dict[str, typing.Any]]
+            Narrows what's grouped.
+
+            Each key is a field to filter on, and each value is a condition: `{"<field>": {"operator": "<operator>", "value": [...]}}`. Each span, trace or thread must match every condition. To set two conditions on one field, such as a range, pass a list of conditions.
+
+            **Operators:** `""` (equals, the default), `not`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `contains`, `not_contains`, `icontains` (ignores case), `startswith`, `not_startswith`, `endswith`, `not_endswith`, `empty`, `not_empty`. Put values in a list: `""` and `in` match any of the listed values, and `not` and `not_in` match none of them. Other operators take one value; for `empty` and `not_empty`, send `[""]`.
+
+            **Fields** depend on `group_by`:
+            - `trace`: trace fields such as `total_cost`, `error_count`, `span_count`, `customer_identifier` and `metadata__<key>`, plus span fields such as `model`, which match a trace when any of its spans matches.
+            - `thread`: thread fields such as `thread_identifier`, `customer_identifier`, `number_of_requests`, `total_cost` and `total_tokens`.
+            - Any other value: span columns, such as `model`, `provider_id`, `deployment_name`, `customer_identifier`, `custom_identifier`, `organization_key_id`, `prompt_id`, `log_type`, `status_code`, `cost`, `latency`, `prompt_tokens`, `completion_tokens` and `total_request_tokens`, plus `metadata__<key>` (values are strings). Aliases such as `total_tokens` don't work.
+
+            **Example:**
+
+            ```json
+            {
+              "status_code": {"operator": "not", "value": [200]},
+              "metadata__plan": {"operator": "", "value": ["pro"]}
+            }
+            ```
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2218,17 +2290,6 @@ class AsyncRawSpansClient:
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 400:
                 raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

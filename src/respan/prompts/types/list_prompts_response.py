@@ -10,7 +10,7 @@ from .list_prompts_response_results_item import ListPromptsResponseResultsItem
 class ListPromptsResponse(UniversalBaseModel):
     count: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Total number of matching prompts.
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
     """
 
     next: typing.Optional[str] = pydantic.Field(default=None)

@@ -9,7 +9,11 @@ from ...types.limit_policy import LimitPolicy
 
 class ListLimitPoliciesResponse(UniversalBaseModel):
     results: typing.Optional[typing.List[LimitPolicy]] = None
-    count: typing.Optional[int] = None
+    count: typing.Optional[int] = pydantic.Field(default=None)
+    """
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
+    """
+
     next: typing.Optional[str] = None
     previous: typing.Optional[str] = None
 

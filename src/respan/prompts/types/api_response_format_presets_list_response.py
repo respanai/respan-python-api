@@ -8,10 +8,13 @@ from .api_response_format_presets_list_response_results_item import ApiResponseF
 
 
 class ApiResponseFormatPresetsListResponse(UniversalBaseModel):
-    count: int
+    count: int = pydantic.Field()
+    """
+    Number of results on this page, not the total. Request pages until `next` is null to get every result.
+    """
+
     next: typing.Optional[str] = None
     previous: typing.Optional[str] = None
-    total_count: typing.Optional[int] = None
     current_filters: typing.Optional[typing.Dict[str, typing.Any]] = None
     results: typing.List[ApiResponseFormatPresetsListResponseResultsItem]
 

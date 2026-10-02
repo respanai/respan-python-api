@@ -199,7 +199,7 @@ class TemporaryApiKeysClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateApiKeyResponse:
         """
-        Update an API key's name, expiry, usage, rate, or spending limit.
+        Update an API key's name, expiry, usage, rate, or spending limit. With an API key you can change `name` and `expiry_date`. Changing `max_usage`, `rate_limit`, `spending_limit` or `limit_policies` needs the dashboard, or a key explicitly granted the `limit_policies` permission.
 
         Parameters
         ----------
@@ -466,7 +466,7 @@ class AsyncTemporaryApiKeysClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UpdateApiKeyResponse:
         """
-        Update an API key's name, expiry, usage, rate, or spending limit.
+        Update an API key's name, expiry, usage, rate, or spending limit. With an API key you can change `name` and `expiry_date`. Changing `max_usage`, `rate_limit`, `spending_limit` or `limit_policies` needs the dashboard, or a key explicitly granted the `limit_policies` permission.
 
         Parameters
         ----------
