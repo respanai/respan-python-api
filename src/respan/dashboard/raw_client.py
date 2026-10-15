@@ -14,6 +14,7 @@ from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
 from ..errors.content_too_large_error import ContentTooLargeError
 from ..errors.forbidden_error import ForbiddenError
+from ..types.dashboard_breakdown_value import DashboardBreakdownValue
 from ..types.dashboard_llm_metrics_summary import DashboardLlmMetricsSummary
 from ..types.dashboard_quantiles_request_metrics_to_aggregate_item import (
     DashboardQuantilesRequestMetricsToAggregateItem,
@@ -52,7 +53,6 @@ from .types.list_metrics_breakdown_request_metrics_to_aggregate_item import (
 from .types.list_metrics_breakdown_request_scope import ListMetricsBreakdownRequestScope
 from .types.list_metrics_breakdown_request_summary_type import ListMetricsBreakdownRequestSummaryType
 from .types.list_metrics_breakdown_request_time_tick import ListMetricsBreakdownRequestTimeTick
-from .types.list_metrics_breakdown_response_value import ListMetricsBreakdownResponseValue
 from .types.list_quantiles_request_summary_type import ListQuantilesRequestSummaryType
 from .types.list_quantiles_request_time_tick import ListQuantilesRequestTimeTick
 from .types.list_quantiles_response import ListQuantilesResponse
@@ -539,7 +539,7 @@ class RawDashboardClient:
         ] = OMIT,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> HttpResponse[typing.Dict[str, ListMetricsBreakdownResponseValue]]:
+    ) -> HttpResponse[typing.Dict[str, DashboardBreakdownValue]]:
         """
         Returns time-series metrics grouped by a dimension. Span scope supports full filtering and dimensions. Trace scope accepts no body filters and only user or organization-key breakdowns. Thread scope accepts neither filters nor a breakdown dimension. Each requested metric is a top-level key containing an array of time buckets.
 
@@ -595,7 +595,7 @@ class RawDashboardClient:
 
         Returns
         -------
-        HttpResponse[typing.Dict[str, ListMetricsBreakdownResponseValue]]
+        HttpResponse[typing.Dict[str, DashboardBreakdownValue]]
             Metric-keyed time-series breakdown.
         """
         _response = self._client_wrapper.httpx_client.request(
@@ -626,9 +626,9 @@ class RawDashboardClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    typing.Dict[str, ListMetricsBreakdownResponseValue],
+                    typing.Dict[str, DashboardBreakdownValue],
                     parse_obj_as(
-                        type_=typing.Dict[str, ListMetricsBreakdownResponseValue],  # type: ignore
+                        type_=typing.Dict[str, DashboardBreakdownValue],  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1684,7 +1684,7 @@ class AsyncRawDashboardClient:
         ] = OMIT,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> AsyncHttpResponse[typing.Dict[str, ListMetricsBreakdownResponseValue]]:
+    ) -> AsyncHttpResponse[typing.Dict[str, DashboardBreakdownValue]]:
         """
         Returns time-series metrics grouped by a dimension. Span scope supports full filtering and dimensions. Trace scope accepts no body filters and only user or organization-key breakdowns. Thread scope accepts neither filters nor a breakdown dimension. Each requested metric is a top-level key containing an array of time buckets.
 
@@ -1740,7 +1740,7 @@ class AsyncRawDashboardClient:
 
         Returns
         -------
-        AsyncHttpResponse[typing.Dict[str, ListMetricsBreakdownResponseValue]]
+        AsyncHttpResponse[typing.Dict[str, DashboardBreakdownValue]]
             Metric-keyed time-series breakdown.
         """
         _response = await self._client_wrapper.httpx_client.request(
@@ -1771,9 +1771,9 @@ class AsyncRawDashboardClient:
         try:
             if 200 <= _response.status_code < 300:
                 _data = typing.cast(
-                    typing.Dict[str, ListMetricsBreakdownResponseValue],
+                    typing.Dict[str, DashboardBreakdownValue],
                     parse_obj_as(
-                        type_=typing.Dict[str, ListMetricsBreakdownResponseValue],  # type: ignore
+                        type_=typing.Dict[str, DashboardBreakdownValue],  # type: ignore
                         object_=_response.json(),
                     ),
                 )

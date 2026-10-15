@@ -7,7 +7,23 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .span1score_request_respan_params import Span1ScoreRequestRespanParams
-_dynamic_imports: typing.Dict[str, str] = {"Span1ScoreRequestRespanParams": ".span1score_request_respan_params"}
+    from .span2decision_request_questions_value import (
+        Span2DecisionRequestQuestionsValue,
+        Span2DecisionRequestQuestionsValue_Choice,
+        Span2DecisionRequestQuestionsValue_Noul,
+        Span2DecisionRequestQuestionsValue_Number,
+        Span2DecisionRequestQuestionsValue_Score,
+    )
+    from .span2decision_request_state import Span2DecisionRequestState
+_dynamic_imports: typing.Dict[str, str] = {
+    "Span1ScoreRequestRespanParams": ".span1score_request_respan_params",
+    "Span2DecisionRequestQuestionsValue": ".span2decision_request_questions_value",
+    "Span2DecisionRequestQuestionsValue_Choice": ".span2decision_request_questions_value",
+    "Span2DecisionRequestQuestionsValue_Noul": ".span2decision_request_questions_value",
+    "Span2DecisionRequestQuestionsValue_Number": ".span2decision_request_questions_value",
+    "Span2DecisionRequestQuestionsValue_Score": ".span2decision_request_questions_value",
+    "Span2DecisionRequestState": ".span2decision_request_state",
+}
 
 
 def __getattr__(attr_name: str) -> typing.Any:
@@ -31,4 +47,12 @@ def __dir__():
     return sorted(lazy_attrs)
 
 
-__all__ = ["Span1ScoreRequestRespanParams"]
+__all__ = [
+    "Span1ScoreRequestRespanParams",
+    "Span2DecisionRequestQuestionsValue",
+    "Span2DecisionRequestQuestionsValue_Choice",
+    "Span2DecisionRequestQuestionsValue_Noul",
+    "Span2DecisionRequestQuestionsValue_Number",
+    "Span2DecisionRequestQuestionsValue_Score",
+    "Span2DecisionRequestState",
+]

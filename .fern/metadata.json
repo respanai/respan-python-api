@@ -5,6 +5,6 @@
   "generatorConfig": {
     "client_class_name": "RespanClient"
   },
-  "originGitCommit": "93e9a884f4f37823e94ebcb392aeef0fd2deb0e5",
-  "sdkVersion": "0.1.49"
+  "originGitCommit": "c2698cb6a4bdde5329c735c90f5ab33263fd2271",
+  "sdkVersion": "0.1.50"
 }

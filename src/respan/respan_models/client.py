@@ -7,8 +7,12 @@ from ..core.request_options import RequestOptions
 from ..types.span1behavior import Span1Behavior
 from ..types.span1score_response import Span1ScoreResponse
 from ..types.span1span import Span1Span
+from ..types.span2decision_response import Span2DecisionResponse
+from ..types.span2reasoning import Span2Reasoning
 from .raw_client import AsyncRawRespanModelsClient, RawRespanModelsClient
 from .types.span1score_request_respan_params import Span1ScoreRequestRespanParams
+from .types.span2decision_request_questions_value import Span2DecisionRequestQuestionsValue
+from .types.span2decision_request_state import Span2DecisionRequestState
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -105,6 +109,95 @@ class RespanModelsClient:
         """
         _response = self._raw_client.score_span_behaviors(
             span=span, behaviors=behaviors, model=model, respan_params=respan_params, request_options=request_options
+        )
+        return _response.data
+
+    def create_decisions(
+        self,
+        *,
+        state: Span2DecisionRequestState,
+        questions: typing.Dict[str, Span2DecisionRequestQuestionsValue],
+        model: typing.Optional[str] = OMIT,
+        images: typing.Optional[typing.Sequence[str]] = OMIT,
+        reasoning: typing.Optional[Span2Reasoning] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> Span2DecisionResponse:
+        """
+        Answer typed questions about a state with span-02, Respan's decision model. Each question is `choice`, `noul` (yes/no), `score` or `number`, and each answer carries its probability distribution and confidence. One request can mix all four types.
+
+        Set a thinking deadline with `reasoning.budget_ms`: span-02 thinks until then and answers with its best decision so far. The body is the System One format, so a System One client works by changing the URL. span-02 runs on Respan credits only and is priced per input and output token; thought tokens aren't billed. Streaming is unsupported.
+
+        Parameters
+        ----------
+        state : Span2DecisionRequestState
+            What the questions are about: text or any JSON value.
+
+        questions : typing.Dict[str, Span2DecisionRequestQuestionsValue]
+            Your question ids mapped to questions. Answers come back under the same ids.
+
+        model : typing.Optional[str]
+            Use `span-02` or `respan/span-02`. Omit for `span-02`.
+
+        images : typing.Optional[typing.Sequence[str]]
+            Up to 4 images, as data URIs or base64. span-02 sees them before the text.
+
+        reasoning : typing.Optional[Span2Reasoning]
+
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Respan parameters for the request log, such as `customer_identifier`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        Span2DecisionResponse
+            Answers keyed by question id. The example is the captured response to the request shown; probabilities can vary slightly between calls.
+
+        Examples
+        --------
+        from respan import RespanClient, Span2Reasoning
+        from respan.respan_models import (
+            Span2DecisionRequestQuestionsValue_Choice,
+            Span2DecisionRequestQuestionsValue_Noul,
+            Span2DecisionRequestQuestionsValue_Number,
+            Span2DecisionRequestQuestionsValue_Score,
+        )
+
+        client = RespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+        client.respan_models.create_decisions(
+            model="span-02",
+            state={
+                "customer_message": "My package arrived damaged and nobody answers my emails. I want a refund now.",
+                "order": {"id": 123, "days_late": 4},
+            },
+            questions={
+                "department": Span2DecisionRequestQuestionsValue_Choice(
+                    criteria={},
+                ),
+                "wants_refund": Span2DecisionRequestQuestionsValue_Noul(),
+                "frustration": Span2DecisionRequestQuestionsValue_Score(
+                    criteria=["criteria"],
+                ),
+                "days_late": Span2DecisionRequestQuestionsValue_Number(),
+            },
+            reasoning=Span2Reasoning(
+                mode="auto",
+            ),
+        )
+        """
+        _response = self._raw_client.create_decisions(
+            state=state,
+            questions=questions,
+            model=model,
+            images=images,
+            reasoning=reasoning,
+            respan_params=respan_params,
+            request_options=request_options,
         )
         return _response.data
 
@@ -208,5 +301,102 @@ class AsyncRespanModelsClient:
         """
         _response = await self._raw_client.score_span_behaviors(
             span=span, behaviors=behaviors, model=model, respan_params=respan_params, request_options=request_options
+        )
+        return _response.data
+
+    async def create_decisions(
+        self,
+        *,
+        state: Span2DecisionRequestState,
+        questions: typing.Dict[str, Span2DecisionRequestQuestionsValue],
+        model: typing.Optional[str] = OMIT,
+        images: typing.Optional[typing.Sequence[str]] = OMIT,
+        reasoning: typing.Optional[Span2Reasoning] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> Span2DecisionResponse:
+        """
+        Answer typed questions about a state with span-02, Respan's decision model. Each question is `choice`, `noul` (yes/no), `score` or `number`, and each answer carries its probability distribution and confidence. One request can mix all four types.
+
+        Set a thinking deadline with `reasoning.budget_ms`: span-02 thinks until then and answers with its best decision so far. The body is the System One format, so a System One client works by changing the URL. span-02 runs on Respan credits only and is priced per input and output token; thought tokens aren't billed. Streaming is unsupported.
+
+        Parameters
+        ----------
+        state : Span2DecisionRequestState
+            What the questions are about: text or any JSON value.
+
+        questions : typing.Dict[str, Span2DecisionRequestQuestionsValue]
+            Your question ids mapped to questions. Answers come back under the same ids.
+
+        model : typing.Optional[str]
+            Use `span-02` or `respan/span-02`. Omit for `span-02`.
+
+        images : typing.Optional[typing.Sequence[str]]
+            Up to 4 images, as data URIs or base64. span-02 sees them before the text.
+
+        reasoning : typing.Optional[Span2Reasoning]
+
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Respan parameters for the request log, such as `customer_identifier`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        Span2DecisionResponse
+            Answers keyed by question id. The example is the captured response to the request shown; probabilities can vary slightly between calls.
+
+        Examples
+        --------
+        import asyncio
+
+        from respan import AsyncRespanClient, Span2Reasoning
+        from respan.respan_models import (
+            Span2DecisionRequestQuestionsValue_Choice,
+            Span2DecisionRequestQuestionsValue_Noul,
+            Span2DecisionRequestQuestionsValue_Number,
+            Span2DecisionRequestQuestionsValue_Score,
+        )
+
+        client = AsyncRespanClient(
+            authorization="YOUR_AUTHORIZATION",
+            respan_api_key="YOUR_RESPAN_API_KEY",
+        )
+
+
+        async def main() -> None:
+            await client.respan_models.create_decisions(
+                model="span-02",
+                state={
+                    "customer_message": "My package arrived damaged and nobody answers my emails. I want a refund now.",
+                    "order": {"id": 123, "days_late": 4},
+                },
+                questions={
+                    "department": Span2DecisionRequestQuestionsValue_Choice(
+                        criteria={},
+                    ),
+                    "wants_refund": Span2DecisionRequestQuestionsValue_Noul(),
+                    "frustration": Span2DecisionRequestQuestionsValue_Score(
+                        criteria=["criteria"],
+                    ),
+                    "days_late": Span2DecisionRequestQuestionsValue_Number(),
+                },
+                reasoning=Span2Reasoning(
+                    mode="auto",
+                ),
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.create_decisions(
+            state=state,
+            questions=questions,
+            model=model,
+            images=images,
+            reasoning=reasoning,
+            respan_params=respan_params,
+            request_options=request_options,
         )
         return _response.data

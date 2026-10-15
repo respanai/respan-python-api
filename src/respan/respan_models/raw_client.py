@@ -21,7 +21,11 @@ from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.span1behavior import Span1Behavior
 from ..types.span1score_response import Span1ScoreResponse
 from ..types.span1span import Span1Span
+from ..types.span2decision_response import Span2DecisionResponse
+from ..types.span2reasoning import Span2Reasoning
 from .types.span1score_request_respan_params import Span1ScoreRequestRespanParams
+from .types.span2decision_request_questions_value import Span2DecisionRequestQuestionsValue
+from .types.span2decision_request_state import Span2DecisionRequestState
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -200,6 +204,144 @@ class RawRespanModelsClient:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
+    def create_decisions(
+        self,
+        *,
+        state: Span2DecisionRequestState,
+        questions: typing.Dict[str, Span2DecisionRequestQuestionsValue],
+        model: typing.Optional[str] = OMIT,
+        images: typing.Optional[typing.Sequence[str]] = OMIT,
+        reasoning: typing.Optional[Span2Reasoning] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[Span2DecisionResponse]:
+        """
+        Answer typed questions about a state with span-02, Respan's decision model. Each question is `choice`, `noul` (yes/no), `score` or `number`, and each answer carries its probability distribution and confidence. One request can mix all four types.
+
+        Set a thinking deadline with `reasoning.budget_ms`: span-02 thinks until then and answers with its best decision so far. The body is the System One format, so a System One client works by changing the URL. span-02 runs on Respan credits only and is priced per input and output token; thought tokens aren't billed. Streaming is unsupported.
+
+        Parameters
+        ----------
+        state : Span2DecisionRequestState
+            What the questions are about: text or any JSON value.
+
+        questions : typing.Dict[str, Span2DecisionRequestQuestionsValue]
+            Your question ids mapped to questions. Answers come back under the same ids.
+
+        model : typing.Optional[str]
+            Use `span-02` or `respan/span-02`. Omit for `span-02`.
+
+        images : typing.Optional[typing.Sequence[str]]
+            Up to 4 images, as data URIs or base64. span-02 sees them before the text.
+
+        reasoning : typing.Optional[Span2Reasoning]
+
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Respan parameters for the request log, such as `customer_identifier`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[Span2DecisionResponse]
+            Answers keyed by question id. The example is the captured response to the request shown; probabilities can vary slightly between calls.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "api/v1/decisions",
+            method="POST",
+            json={
+                "model": model,
+                "state": convert_and_respect_annotation_metadata(
+                    object_=state, annotation=Span2DecisionRequestState, direction="write"
+                ),
+                "questions": convert_and_respect_annotation_metadata(
+                    object_=questions,
+                    annotation=typing.Dict[str, Span2DecisionRequestQuestionsValue],
+                    direction="write",
+                ),
+                "images": images,
+                "reasoning": convert_and_respect_annotation_metadata(
+                    object_=reasoning, annotation=Span2Reasoning, direction="write"
+                ),
+                "respan_params": respan_params,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    Span2DecisionResponse,
+                    parse_obj_as(
+                        type_=Span2DecisionResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Dict[str, typing.Any],
+                        parse_obj_as(
+                            type_=typing.Dict[str, typing.Any],  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 504:
+                raise GatewayTimeoutError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Dict[str, typing.Any],
+                        parse_obj_as(
+                            type_=typing.Dict[str, typing.Any],  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
 
 class AsyncRawRespanModelsClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -354,6 +496,144 @@ class AsyncRawRespanModelsClient:
                         typing.Dict[str, typing.Any],
                         parse_obj_as(
                             type_=typing.Dict[str, typing.Any],  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 504:
+                raise GatewayTimeoutError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Dict[str, typing.Any],
+                        parse_obj_as(
+                            type_=typing.Dict[str, typing.Any],  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def create_decisions(
+        self,
+        *,
+        state: Span2DecisionRequestState,
+        questions: typing.Dict[str, Span2DecisionRequestQuestionsValue],
+        model: typing.Optional[str] = OMIT,
+        images: typing.Optional[typing.Sequence[str]] = OMIT,
+        reasoning: typing.Optional[Span2Reasoning] = OMIT,
+        respan_params: typing.Optional[typing.Dict[str, typing.Any]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[Span2DecisionResponse]:
+        """
+        Answer typed questions about a state with span-02, Respan's decision model. Each question is `choice`, `noul` (yes/no), `score` or `number`, and each answer carries its probability distribution and confidence. One request can mix all four types.
+
+        Set a thinking deadline with `reasoning.budget_ms`: span-02 thinks until then and answers with its best decision so far. The body is the System One format, so a System One client works by changing the URL. span-02 runs on Respan credits only and is priced per input and output token; thought tokens aren't billed. Streaming is unsupported.
+
+        Parameters
+        ----------
+        state : Span2DecisionRequestState
+            What the questions are about: text or any JSON value.
+
+        questions : typing.Dict[str, Span2DecisionRequestQuestionsValue]
+            Your question ids mapped to questions. Answers come back under the same ids.
+
+        model : typing.Optional[str]
+            Use `span-02` or `respan/span-02`. Omit for `span-02`.
+
+        images : typing.Optional[typing.Sequence[str]]
+            Up to 4 images, as data URIs or base64. span-02 sees them before the text.
+
+        reasoning : typing.Optional[Span2Reasoning]
+
+        respan_params : typing.Optional[typing.Dict[str, typing.Any]]
+            Respan parameters for the request log, such as `customer_identifier`.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[Span2DecisionResponse]
+            Answers keyed by question id. The example is the captured response to the request shown; probabilities can vary slightly between calls.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "api/v1/decisions",
+            method="POST",
+            json={
+                "model": model,
+                "state": convert_and_respect_annotation_metadata(
+                    object_=state, annotation=Span2DecisionRequestState, direction="write"
+                ),
+                "questions": convert_and_respect_annotation_metadata(
+                    object_=questions,
+                    annotation=typing.Dict[str, Span2DecisionRequestQuestionsValue],
+                    direction="write",
+                ),
+                "images": images,
+                "reasoning": convert_and_respect_annotation_metadata(
+                    object_=reasoning, annotation=Span2Reasoning, direction="write"
+                ),
+                "respan_params": respan_params,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    Span2DecisionResponse,
+                    parse_obj_as(
+                        type_=Span2DecisionResponse,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Dict[str, typing.Any],
+                        parse_obj_as(
+                            type_=typing.Dict[str, typing.Any],  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

@@ -44,6 +44,7 @@ if typing.TYPE_CHECKING:
     from .dashboard_breakdown_request import DashboardBreakdownRequest
     from .dashboard_breakdown_request_metrics_to_aggregate_item import DashboardBreakdownRequestMetricsToAggregateItem
     from .dashboard_breakdown_row import DashboardBreakdownRow
+    from .dashboard_breakdown_value import DashboardBreakdownValue
     from .dashboard_cache_hit_row import DashboardCacheHitRow
     from .dashboard_cache_hit_summary import DashboardCacheHitSummary
     from .dashboard_filters_request import DashboardFiltersRequest
@@ -143,6 +144,20 @@ if typing.TYPE_CHECKING:
     from .span1score_response_model import Span1ScoreResponseModel
     from .span1score_response_usage import Span1ScoreResponseUsage
     from .span1span import Span1Span
+    from .span2decision_response import Span2DecisionResponse
+    from .span2decision_response_answers_value import (
+        Span2DecisionResponseAnswersValue,
+        Span2DecisionResponseAnswersValue_Choice,
+        Span2DecisionResponseAnswersValue_Noul,
+        Span2DecisionResponseAnswersValue_Number,
+        Span2DecisionResponseAnswersValue_Score,
+    )
+    from .span2decision_response_model import Span2DecisionResponseModel
+    from .span2decision_response_usage import Span2DecisionResponseUsage
+    from .span2number_answer import Span2NumberAnswer
+    from .span2number_question import Span2NumberQuestion
+    from .span2reasoning import Span2Reasoning
+    from .span2reasoning_mode import Span2ReasoningMode
     from .span_create_request import SpanCreateRequest
     from .span_create_request_customer_params import SpanCreateRequestCustomerParams
     from .span_create_request_environment import SpanCreateRequestEnvironment
@@ -232,6 +247,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "DashboardBreakdownRequest": ".dashboard_breakdown_request",
     "DashboardBreakdownRequestMetricsToAggregateItem": ".dashboard_breakdown_request_metrics_to_aggregate_item",
     "DashboardBreakdownRow": ".dashboard_breakdown_row",
+    "DashboardBreakdownValue": ".dashboard_breakdown_value",
     "DashboardCacheHitRow": ".dashboard_cache_hit_row",
     "DashboardCacheHitSummary": ".dashboard_cache_hit_summary",
     "DashboardFiltersRequest": ".dashboard_filters_request",
@@ -329,6 +345,18 @@ _dynamic_imports: typing.Dict[str, str] = {
     "Span1ScoreResponseModel": ".span1score_response_model",
     "Span1ScoreResponseUsage": ".span1score_response_usage",
     "Span1Span": ".span1span",
+    "Span2DecisionResponse": ".span2decision_response",
+    "Span2DecisionResponseAnswersValue": ".span2decision_response_answers_value",
+    "Span2DecisionResponseAnswersValue_Choice": ".span2decision_response_answers_value",
+    "Span2DecisionResponseAnswersValue_Noul": ".span2decision_response_answers_value",
+    "Span2DecisionResponseAnswersValue_Number": ".span2decision_response_answers_value",
+    "Span2DecisionResponseAnswersValue_Score": ".span2decision_response_answers_value",
+    "Span2DecisionResponseModel": ".span2decision_response_model",
+    "Span2DecisionResponseUsage": ".span2decision_response_usage",
+    "Span2NumberAnswer": ".span2number_answer",
+    "Span2NumberQuestion": ".span2number_question",
+    "Span2Reasoning": ".span2reasoning",
+    "Span2ReasoningMode": ".span2reasoning_mode",
     "SpanCreateRequest": ".span_create_request",
     "SpanCreateRequestCustomerParams": ".span_create_request_customer_params",
     "SpanCreateRequestEnvironment": ".span_create_request_environment",
@@ -434,6 +462,7 @@ __all__ = [
     "DashboardBreakdownRequest",
     "DashboardBreakdownRequestMetricsToAggregateItem",
     "DashboardBreakdownRow",
+    "DashboardBreakdownValue",
     "DashboardCacheHitRow",
     "DashboardCacheHitSummary",
     "DashboardFiltersRequest",
@@ -531,6 +560,18 @@ __all__ = [
     "Span1ScoreResponseModel",
     "Span1ScoreResponseUsage",
     "Span1Span",
+    "Span2DecisionResponse",
+    "Span2DecisionResponseAnswersValue",
+    "Span2DecisionResponseAnswersValue_Choice",
+    "Span2DecisionResponseAnswersValue_Noul",
+    "Span2DecisionResponseAnswersValue_Number",
+    "Span2DecisionResponseAnswersValue_Score",
+    "Span2DecisionResponseModel",
+    "Span2DecisionResponseUsage",
+    "Span2NumberAnswer",
+    "Span2NumberQuestion",
+    "Span2Reasoning",
+    "Span2ReasoningMode",
     "SpanCreateRequest",
     "SpanCreateRequestCustomerParams",
     "SpanCreateRequestEnvironment",

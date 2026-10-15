@@ -12,7 +12,7 @@ class DashboardBreakdownRow(UniversalBaseModel):
     One time bucket. Contains `date_group` and one key per dimension value (e.g. one column per model) with the metric value as the cell. Other dimension values may be folded into `Others`.
     """
 
-    date_group: typing.Optional[dt.datetime] = None
+    date_group: dt.datetime
 
     if IS_PYDANTIC_V2:
         model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)  # type: ignore # Pydantic v2

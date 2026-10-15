@@ -41,8 +41,6 @@ if typing.TYPE_CHECKING:
     from .list_metrics_breakdown_request_scope import ListMetricsBreakdownRequestScope
     from .list_metrics_breakdown_request_summary_type import ListMetricsBreakdownRequestSummaryType
     from .list_metrics_breakdown_request_time_tick import ListMetricsBreakdownRequestTimeTick
-    from .list_metrics_breakdown_response_value import ListMetricsBreakdownResponseValue
-    from .list_metrics_breakdown_response_value_zero_item import ListMetricsBreakdownResponseValueZeroItem
     from .list_quantiles_request_summary_type import ListQuantilesRequestSummaryType
     from .list_quantiles_request_time_tick import ListQuantilesRequestTimeTick
     from .list_quantiles_response import ListQuantilesResponse
@@ -82,8 +80,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ListMetricsBreakdownRequestScope": ".list_metrics_breakdown_request_scope",
     "ListMetricsBreakdownRequestSummaryType": ".list_metrics_breakdown_request_summary_type",
     "ListMetricsBreakdownRequestTimeTick": ".list_metrics_breakdown_request_time_tick",
-    "ListMetricsBreakdownResponseValue": ".list_metrics_breakdown_response_value",
-    "ListMetricsBreakdownResponseValueZeroItem": ".list_metrics_breakdown_response_value_zero_item",
     "ListQuantilesRequestSummaryType": ".list_quantiles_request_summary_type",
     "ListQuantilesRequestTimeTick": ".list_quantiles_request_time_tick",
     "ListQuantilesResponse": ".list_quantiles_response",
@@ -147,8 +143,6 @@ __all__ = [
     "ListMetricsBreakdownRequestScope",
     "ListMetricsBreakdownRequestSummaryType",
     "ListMetricsBreakdownRequestTimeTick",
-    "ListMetricsBreakdownResponseValue",
-    "ListMetricsBreakdownResponseValueZeroItem",
     "ListQuantilesRequestSummaryType",
     "ListQuantilesRequestTimeTick",
     "ListQuantilesResponse",

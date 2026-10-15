@@ -5,6 +5,7 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
+from ..types.dashboard_breakdown_value import DashboardBreakdownValue
 from ..types.dashboard_llm_metrics_summary import DashboardLlmMetricsSummary
 from ..types.dashboard_quantiles_request_metrics_to_aggregate_item import (
     DashboardQuantilesRequestMetricsToAggregateItem,
@@ -44,7 +45,6 @@ from .types.list_metrics_breakdown_request_metrics_to_aggregate_item import (
 from .types.list_metrics_breakdown_request_scope import ListMetricsBreakdownRequestScope
 from .types.list_metrics_breakdown_request_summary_type import ListMetricsBreakdownRequestSummaryType
 from .types.list_metrics_breakdown_request_time_tick import ListMetricsBreakdownRequestTimeTick
-from .types.list_metrics_breakdown_response_value import ListMetricsBreakdownResponseValue
 from .types.list_quantiles_request_summary_type import ListQuantilesRequestSummaryType
 from .types.list_quantiles_request_time_tick import ListQuantilesRequestTimeTick
 from .types.list_quantiles_response import ListQuantilesResponse
@@ -438,7 +438,7 @@ class DashboardClient:
         ] = OMIT,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, ListMetricsBreakdownResponseValue]:
+    ) -> typing.Dict[str, DashboardBreakdownValue]:
         """
         Returns time-series metrics grouped by a dimension. Span scope supports full filtering and dimensions. Trace scope accepts no body filters and only user or organization-key breakdowns. Thread scope accepts neither filters nor a breakdown dimension. Each requested metric is a top-level key containing an array of time buckets.
 
@@ -494,7 +494,7 @@ class DashboardClient:
 
         Returns
         -------
-        typing.Dict[str, ListMetricsBreakdownResponseValue]
+        typing.Dict[str, DashboardBreakdownValue]
             Metric-keyed time-series breakdown.
 
         Examples
@@ -1332,7 +1332,7 @@ class AsyncDashboardClient:
         ] = OMIT,
         filters: typing.Optional[Filters] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
-    ) -> typing.Dict[str, ListMetricsBreakdownResponseValue]:
+    ) -> typing.Dict[str, DashboardBreakdownValue]:
         """
         Returns time-series metrics grouped by a dimension. Span scope supports full filtering and dimensions. Trace scope accepts no body filters and only user or organization-key breakdowns. Thread scope accepts neither filters nor a breakdown dimension. Each requested metric is a top-level key containing an array of time buckets.
 
@@ -1388,7 +1388,7 @@ class AsyncDashboardClient:
 
         Returns
         -------
-        typing.Dict[str, ListMetricsBreakdownResponseValue]
+        typing.Dict[str, DashboardBreakdownValue]
             Metric-keyed time-series breakdown.
 
         Examples
