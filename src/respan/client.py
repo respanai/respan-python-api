@@ -11,6 +11,7 @@ from .core.logging import LogConfig, Logger
 from .environment import RespanClientEnvironment
 
 if typing.TYPE_CHECKING:
+    from .a_b_tests.client import ABTestsClient, AsyncABTestsClient
     from .anthropic_gateway.client import AnthropicGatewayClient, AsyncAnthropicGatewayClient
     from .behaviors.client import AsyncBehaviorsClient, BehaviorsClient
     from .caches.client import AsyncCachesClient, CachesClient
@@ -129,6 +130,7 @@ class RespanClient:
         self._respan_models: typing.Optional[RespanModelsClient] = None
         self._type_safe_gateway: typing.Optional[TypeSafeGatewayClient] = None
         self._limit_policies: typing.Optional[LimitPoliciesClient] = None
+        self._a_b_tests: typing.Optional[ABTestsClient] = None
 
     @property
     def traces(self):
@@ -298,6 +300,14 @@ class RespanClient:
             self._limit_policies = LimitPoliciesClient(client_wrapper=self._client_wrapper)
         return self._limit_policies
 
+    @property
+    def a_b_tests(self):
+        if self._a_b_tests is None:
+            from .a_b_tests.client import ABTestsClient  # noqa: E402
+
+            self._a_b_tests = ABTestsClient(client_wrapper=self._client_wrapper)
+        return self._a_b_tests
+
 
 class AsyncRespanClient:
     """
@@ -394,6 +404,7 @@ class AsyncRespanClient:
         self._respan_models: typing.Optional[AsyncRespanModelsClient] = None
         self._type_safe_gateway: typing.Optional[AsyncTypeSafeGatewayClient] = None
         self._limit_policies: typing.Optional[AsyncLimitPoliciesClient] = None
+        self._a_b_tests: typing.Optional[AsyncABTestsClient] = None
 
     @property
     def traces(self):
@@ -562,6 +573,14 @@ class AsyncRespanClient:
 
             self._limit_policies = AsyncLimitPoliciesClient(client_wrapper=self._client_wrapper)
         return self._limit_policies
+
+    @property
+    def a_b_tests(self):
+        if self._a_b_tests is None:
+            from .a_b_tests.client import AsyncABTestsClient  # noqa: E402
+
+            self._a_b_tests = AsyncABTestsClient(client_wrapper=self._client_wrapper)
+        return self._a_b_tests
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: RespanClientEnvironment) -> str:

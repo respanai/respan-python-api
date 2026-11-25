@@ -40,7 +40,7 @@ class CachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterCachedResponsesResponse:
         """
-        API-key responses expose public cache keys; dashboard JWT responses may include internal numeric IDs.
+        Only entries that can still be served are listed: an entry whose `expiry_date` is in the past or `null` is not returned. API-key responses expose public cache keys; dashboard JWT responses may include internal numeric IDs.
 
         Parameters
         ----------
@@ -95,7 +95,7 @@ class CachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredCachedResponsesSummaryResponse:
         """
-        Returns the number of cached responses matching the filters.
+        Returns the number of unexpired cached responses matching the filters.
 
         Parameters
         ----------
@@ -257,7 +257,7 @@ class CachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ApiCachesPartialUpdate2Response:
         """
-        Update the expiry date of a cached response identified by its public cache key.
+        Update the expiry date of a cached response identified by its public cache key. An entry that has already expired returns 404 and cannot be revived.
 
         Parameters
         ----------
@@ -265,7 +265,7 @@ class CachesClient:
             Organization-scoped cache key returned by the cache list endpoint.
 
         expiry_date : typing.Optional[dt.datetime]
-            New expiry time; null clears it.
+            New expiry time. Setting `null` or a past time makes the entry unservable: it is no longer served or listed, and later reads and updates return 404. It can still be deleted.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -317,7 +317,7 @@ class AsyncCachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> FilterCachedResponsesResponse:
         """
-        API-key responses expose public cache keys; dashboard JWT responses may include internal numeric IDs.
+        Only entries that can still be served are listed: an entry whose `expiry_date` is in the past or `null` is not returned. API-key responses expose public cache keys; dashboard JWT responses may include internal numeric IDs.
 
         Parameters
         ----------
@@ -380,7 +380,7 @@ class AsyncCachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> GetFilteredCachedResponsesSummaryResponse:
         """
-        Returns the number of cached responses matching the filters.
+        Returns the number of unexpired cached responses matching the filters.
 
         Parameters
         ----------
@@ -576,7 +576,7 @@ class AsyncCachesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> ApiCachesPartialUpdate2Response:
         """
-        Update the expiry date of a cached response identified by its public cache key.
+        Update the expiry date of a cached response identified by its public cache key. An entry that has already expired returns 404 and cannot be revived.
 
         Parameters
         ----------
@@ -584,7 +584,7 @@ class AsyncCachesClient:
             Organization-scoped cache key returned by the cache list endpoint.
 
         expiry_date : typing.Optional[dt.datetime]
-            New expiry time; null clears it.
+            New expiry time. Setting `null` or a past time makes the entry unservable: it is no longer served or listed, and later reads and updates return 404. It can still be deleted.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.

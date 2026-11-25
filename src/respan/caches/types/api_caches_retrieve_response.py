@@ -65,7 +65,7 @@ class ApiCachesRetrieveResponse(UniversalBaseModel):
 
     expiry_date: typing.Optional[dt.datetime] = pydantic.Field(default=None)
     """
-    When the cache entry expires. `null` means no expiry date is set.
+    When the cache entry expires. Always in the future; an entry whose expiry is past or `null` returns 404.
     """
 
     if IS_PYDANTIC_V2:
